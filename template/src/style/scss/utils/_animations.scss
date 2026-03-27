@@ -1,0 +1,685 @@
+// ============================================
+// SARALÖWE Luxury Animations
+// Premium Motion Design System
+// ============================================
+
+// ============================================
+// Animation Variables
+// ============================================
+
+$animation-timing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+$animation-timing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+$animation-timing-elegant: cubic-bezier(0.25, 0.8, 0.25, 1);
+$animation-timing-luxury: cubic-bezier(0.19, 1, 0.22, 1);
+$animation-timing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+// ============================================
+// Keyframe Animations
+// ============================================
+
+// Luxury Fade In Up
+@keyframes luxuryFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Elegant Fade In
+@keyframes elegantFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Gold Shimmer Effect
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+// Luxury Pulse
+@keyframes luxuryPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba($saralowe-gold, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 15px rgba($saralowe-gold, 0);
+  }
+}
+
+// Gentle Float
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  75% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
+}
+
+// Parallax Float
+@keyframes parallaxFloat {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(-15px) translateX(5px);
+  }
+  66% {
+    transform: translateY(-8px) translateX(-3px);
+  }
+}
+
+// Rotate Elegant
+@keyframes rotateElegant {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Scale In Luxury
+@keyframes scaleInLuxury {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Slide In Right
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Slide In Left
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Glow Pulse
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba($saralowe-gold, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba($saralowe-gold, 0.6);
+  }
+}
+
+// Border Glow
+@keyframes borderGlow {
+  0%, 100% {
+    border-color: rgba($saralowe-gold, 0.3);
+  }
+  50% {
+    border-color: rgba($saralowe-gold, 0.8);
+  }
+}
+
+// Gradient Flow
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// 3D Flip
+@keyframes flip3D {
+  0% {
+    transform: perspective(1000px) rotateY(0);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(180deg);
+  }
+}
+
+// Tilt Effect
+@keyframes tiltEffect {
+  0%, 100% {
+    transform: perspective(1000px) rotateX(0) rotateY(0);
+  }
+  25% {
+    transform: perspective(1000px) rotateX(2deg) rotateY(2deg);
+  }
+  75% {
+    transform: perspective(1000px) rotateX(-2deg) rotateY(-2deg);
+  }
+}
+
+// Reveal From Bottom
+@keyframes revealFromBottom {
+  0% {
+    clip-path: inset(100% 0 0 0);
+    opacity: 0;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+// Sparkle
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Bounce Subtle
+@keyframes bounceSubtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+// ============================================
+// Animation Classes
+// ============================================
+
+// Fade In Animations
+.animate-fade-in {
+  animation: elegantFadeIn 0.8s $animation-timing-elegant forwards;
+}
+
+.animate-fade-in-up {
+  animation: luxuryFadeInUp 0.8s $animation-timing-luxury forwards;
+}
+
+.animate-fade-in-up-delay-1 {
+  animation: luxuryFadeInUp 0.8s $animation-timing-luxury 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: luxuryFadeInUp 0.8s $animation-timing-luxury 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-3 {
+  animation: luxuryFadeInUp 0.8s $animation-timing-luxury 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-4 {
+  animation: luxuryFadeInUp 0.8s $animation-timing-luxury 0.4s forwards;
+  opacity: 0;
+}
+
+// Slide Animations
+.animate-slide-in-right {
+  animation: slideInRight 0.6s $animation-timing-elegant forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s $animation-timing-elegant forwards;
+}
+
+// Scale Animations
+.animate-scale-in {
+  animation: scaleInLuxury 0.6s $animation-timing-spring forwards;
+}
+
+// Float Animations
+.animate-float {
+  animation: gentleFloat 6s ease-in-out infinite;
+}
+
+.animate-parallax-float {
+  animation: parallaxFloat 8s ease-in-out infinite;
+}
+
+// Glow Animations
+.animate-glow {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.animate-border-glow {
+  animation: borderGlow 2s ease-in-out infinite;
+}
+
+// Special Effects
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba($saralowe-gold, 0) 0%,
+    rgba($saralowe-gold, 0.4) 50%,
+    rgba($saralowe-gold, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: goldShimmer 3s ease-in-out infinite;
+}
+
+.animate-pulse-luxury {
+  animation: luxuryPulse 2s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.animate-bounce-subtle {
+  animation: bounceSubtle 2s ease-in-out infinite;
+}
+
+// Reveal Animations
+.animate-reveal {
+  animation: revealFromBottom 1s $animation-timing-luxury forwards;
+}
+
+// ============================================
+// Transition Utilities
+// ============================================
+
+.transition-smooth {
+  transition: all 0.3s $animation-timing-smooth;
+}
+
+.transition-elegant {
+  transition: all 0.4s $animation-timing-elegant;
+}
+
+.transition-luxury {
+  transition: all 0.5s $animation-timing-luxury;
+}
+
+.transition-spring {
+  transition: all 0.4s $animation-timing-spring;
+}
+
+.transition-fast {
+  transition: all 0.2s ease-out;
+}
+
+.transition-slow {
+  transition: all 0.8s $animation-timing-elegant;
+}
+
+// ============================================
+// Hover Effect Classes
+// ============================================
+
+// Lift on Hover
+.hover-lift {
+  transition: transform 0.4s $animation-timing-elegant, box-shadow 0.4s $animation-timing-elegant;
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: $box-shadow-hover;
+  }
+}
+
+// Scale on Hover
+.hover-scale {
+  transition: transform 0.3s $animation-timing-spring;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.hover-scale-subtle {
+  transition: transform 0.3s $animation-timing-spring;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+// Glow on Hover
+.hover-glow {
+  transition: box-shadow 0.4s $animation-timing-elegant;
+
+  &:hover {
+    box-shadow: 0 0 30px rgba($saralowe-gold, 0.4);
+  }
+}
+
+// Shine Effect on Hover
+.hover-shine {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left 0.6s ease;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+// 3D Tilt on Hover
+.hover-tilt {
+  transition: transform 0.3s ease;
+  transform-style: preserve-3d;
+
+  &:hover {
+    transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+  }
+}
+
+// Border Animation on Hover
+.hover-border-animate {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, $saralowe-burgundy, $saralowe-gold);
+    transition: all 0.4s $animation-timing-elegant;
+    transform: translateX(-50%);
+  }
+
+  &:hover::after {
+    width: 80%;
+  }
+}
+
+// Gold Underline on Hover
+.hover-gold-underline {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: $saralowe-gold;
+    transition: width 0.4s $animation-timing-elegant;
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
+}
+
+// ============================================
+// Scroll Reveal Utilities
+// ============================================
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s $animation-timing-elegant, transform 0.8s $animation-timing-elegant;
+
+  &.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-reveal="left"] {
+  transform: translateX(-30px);
+
+  &.revealed {
+    transform: translateX(0);
+  }
+}
+
+[data-reveal="right"] {
+  transform: translateX(30px);
+
+  &.revealed {
+    transform: translateX(0);
+  }
+}
+
+[data-reveal="scale"] {
+  transform: scale(0.9);
+
+  &.revealed {
+    transform: scale(1);
+  }
+}
+
+// ============================================
+// Loading Animations
+// ============================================
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba($saralowe-burgundy, 0.2);
+  border-top-color: $saralowe-burgundy;
+  border-radius: 50%;
+  animation: rotateElegant 1s linear infinite;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 8px;
+
+  span {
+    width: 8px;
+    height: 8px;
+    background: $saralowe-burgundy;
+    border-radius: 50%;
+    animation: bounceSubtle 1.4s ease-in-out infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+}
+
+.loading-gold {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, $saralowe-blush 0%, $saralowe-ivory 50%, $saralowe-blush 100%);
+  background-size: 200% 100%;
+  animation: goldShimmer 1.5s ease-in-out infinite;
+}
+
+// ============================================
+// Stagger Animation Utility
+// ============================================
+
+.stagger-children {
+  > * {
+    opacity: 0;
+    animation: luxuryFadeInUp 0.6s $animation-timing-elegant forwards;
+
+    @for $i from 1 through 12 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.1}s;
+      }
+    }
+  }
+}
+
+// ============================================
+// Parallax Layers
+// ============================================
+
+.parallax-container {
+  perspective: 1000px;
+  overflow: hidden;
+}
+
+.parallax-layer {
+  will-change: transform;
+
+  &.parallax-slow {
+    transform: translateZ(-100px) scale(1.1);
+  }
+
+  &.parallax-medium {
+    transform: translateZ(-50px) scale(1.05);
+  }
+
+  &.parallax-fast {
+    transform: translateZ(0);
+  }
+}
+
+// ============================================
+// Decorative Elements
+// ============================================
+
+.decoration-dot {
+  width: 8px;
+  height: 8px;
+  background: $saralowe-gold;
+  border-radius: 50%;
+  animation: luxuryPulse 2s ease-in-out infinite;
+}
+
+.decoration-line {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, $saralowe-burgundy, $saralowe-gold);
+  border-radius: 2px;
+}
+
+.decoration-circle {
+  width: 100px;
+  height: 100px;
+  border: 2px solid rgba($saralowe-gold, 0.3);
+  border-radius: 50%;
+  animation: rotateElegant 20s linear infinite;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: $saralowe-gold;
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+// ============================================
+// Interactive Feedback
+// ============================================
+
+.click-ripple {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba($saralowe-gold, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease, opacity 0.6s ease;
+    opacity: 0;
+  }
+
+  &:active::after {
+    width: 200%;
+    height: 200%;
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Responsive Animation Adjustments
+// ============================================
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@include respond-below(md) {
+  .animate-float,
+  .animate-parallax-float {
+    animation: none;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+
+  .hover-tilt:hover {
+    transform: none;
+  }
+}

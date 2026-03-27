@@ -1,0 +1,927 @@
+// ============================================
+// SARALÖWE Luxury Card System
+// Premium Card Components
+// ============================================
+
+// ============================================
+// Base Luxury Card
+// ============================================
+
+.card-luxury {
+  position: relative;
+  background: $white;
+  border-radius: $border-radius-xl;
+  border: 1px solid rgba($saralowe-burgundy, 0.08);
+  box-shadow: 0 4px 20px rgba($saralowe-burgundy, 0.06);
+  overflow: hidden;
+  transition: all 0.5s $animation-timing-elegant;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $saralowe-burgundy, $saralowe-gold);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba($saralowe-burgundy, 0.12);
+    border-color: rgba($saralowe-gold, 0.2);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  .card-body {
+    padding: 24px;
+  }
+
+  .card-title {
+    font-family: $font-family-display;
+    font-weight: $font-weight-semibold;
+    color: $saralowe-burgundy;
+    margin-bottom: 12px;
+  }
+
+  .card-text {
+    color: $gray-600;
+    line-height: 1.7;
+  }
+}
+
+// ============================================
+// Course Card Luxury
+// ============================================
+
+.course-card-luxury {
+  position: relative;
+  background: $white;
+  border-radius: $border-radius-xl;
+  border: none;
+  box-shadow: 0 8px 30px rgba($saralowe-burgundy, 0.08);
+  overflow: hidden;
+  transition: all 0.5s $animation-timing-elegant;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: $border-radius-xl;
+    border: 2px solid transparent;
+    background: linear-gradient($white, $white) padding-box,
+                linear-gradient(135deg, rgba($saralowe-gold, 0), rgba($saralowe-gold, 0.5), rgba($saralowe-gold, 0)) border-box;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 25px 80px rgba($saralowe-burgundy, 0.15);
+
+    &::before {
+      opacity: 1;
+    }
+
+    .course-img-wrapper {
+      img {
+        transform: scale(1.1);
+      }
+
+      .course-overlay {
+        opacity: 1;
+      }
+    }
+
+    .course-badge {
+      animation: luxuryPulse 1s ease-in-out;
+    }
+  }
+
+  .course-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    height: 220px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s $animation-timing-elegant;
+    }
+
+    .course-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba($saralowe-burgundy, 0.7) 100%
+      );
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+
+      .overlay-content {
+        color: $white;
+        transform: translateY(20px);
+        transition: transform 0.4s ease;
+      }
+    }
+
+    &:hover .overlay-content {
+      transform: translateY(0);
+    }
+  }
+
+  .course-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: linear-gradient(135deg, $saralowe-gold 0%, darken($saralowe-gold, 10%) 100%);
+    color: $white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: $font-size-12;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba($saralowe-gold, 0.4);
+    z-index: 2;
+  }
+
+  .course-favorite {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background: rgba($white, 0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 2;
+    box-shadow: 0 4px 15px rgba($saralowe-burgundy, 0.15);
+
+    i {
+      color: $saralowe-burgundy;
+      font-size: $font-size-16;
+      transition: all 0.3s ease;
+    }
+
+    &:hover {
+      background: $saralowe-burgundy;
+      transform: scale(1.1);
+
+      i {
+        color: $white;
+      }
+    }
+
+    &.active {
+      background: $saralowe-crimson;
+
+      i {
+        color: $white;
+      }
+    }
+  }
+
+  .course-content {
+    padding: 24px;
+
+    .course-category {
+      display: inline-block;
+      color: $saralowe-gold;
+      font-size: $font-size-12;
+      font-weight: $font-weight-semibold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .course-title {
+      font-family: $font-family-display;
+      font-size: $font-size-20;
+      font-weight: $font-weight-semibold;
+      color: $saralowe-burgundy;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: $saralowe-crimson;
+      }
+    }
+
+    .course-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba($saralowe-burgundy, 0.08);
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: $gray-500;
+        font-size: $font-size-13;
+
+        i {
+          color: $saralowe-sage;
+          font-size: $font-size-14;
+        }
+      }
+    }
+
+    .course-instructor {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      .instructor-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid rgba($saralowe-gold, 0.3);
+        object-fit: cover;
+      }
+
+      .instructor-info {
+        .instructor-name {
+          font-weight: $font-weight-medium;
+          color: $saralowe-forest;
+          font-size: $font-size-14;
+        }
+
+        .instructor-title {
+          font-size: $font-size-12;
+          color: $gray-500;
+        }
+      }
+    }
+
+    .course-rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+
+      .stars {
+        display: flex;
+        gap: 2px;
+
+        i {
+          color: $saralowe-gold;
+          font-size: $font-size-14;
+        }
+      }
+
+      .rating-text {
+        color: $gray-500;
+        font-size: $font-size-13;
+      }
+    }
+  }
+
+  .course-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: rgba($saralowe-ivory, 0.5);
+    border-top: 1px solid rgba($saralowe-burgundy, 0.06);
+
+    .course-price {
+      .current-price {
+        font-family: $font-family-display;
+        font-size: $font-size-24;
+        font-weight: $font-weight-bold;
+        color: $saralowe-burgundy;
+      }
+
+      .original-price {
+        font-size: $font-size-14;
+        color: $gray-400;
+        text-decoration: line-through;
+        margin-left: 8px;
+      }
+    }
+
+    .enroll-btn {
+      @extend .btn-luxury;
+      background: linear-gradient(135deg, $saralowe-burgundy 0%, $saralowe-crimson 100%);
+      color: $white;
+      padding: 10px 24px;
+      font-size: $font-size-13;
+    }
+  }
+}
+
+// ============================================
+// Instructor Card Luxury
+// ============================================
+
+.instructor-card-luxury {
+  position: relative;
+  background: $white;
+  border-radius: $border-radius-xl;
+  padding: 32px 24px;
+  text-align: center;
+  border: 1px solid rgba($saralowe-burgundy, 0.08);
+  box-shadow: 0 8px 30px rgba($saralowe-burgundy, 0.06);
+  transition: all 0.5s $animation-timing-elegant;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(135deg, $saralowe-blush 0%, $saralowe-ivory 100%);
+    z-index: 0;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba($saralowe-burgundy, 0.12);
+
+    .instructor-avatar {
+      border-color: $saralowe-gold;
+      box-shadow: 0 0 0 4px rgba($saralowe-gold, 0.2);
+    }
+
+    .social-links a {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .instructor-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid $white;
+    box-shadow: 0 8px 30px rgba($saralowe-burgundy, 0.15);
+    object-fit: cover;
+    margin: 0 auto 20px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s ease;
+  }
+
+  .instructor-name {
+    font-family: $font-family-display;
+    font-size: $font-size-22;
+    font-weight: $font-weight-semibold;
+    color: $saralowe-burgundy;
+    margin-bottom: 8px;
+  }
+
+  .instructor-specialty {
+    color: $saralowe-gold;
+    font-size: $font-size-14;
+    font-weight: $font-weight-medium;
+    margin-bottom: 16px;
+  }
+
+  .instructor-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+    padding: 16px 0;
+    border-top: 1px solid rgba($saralowe-burgundy, 0.08);
+    border-bottom: 1px solid rgba($saralowe-burgundy, 0.08);
+
+    .stat-item {
+      text-align: center;
+
+      .stat-value {
+        font-family: $font-family-display;
+        font-size: $font-size-24;
+        font-weight: $font-weight-bold;
+        color: $saralowe-forest;
+      }
+
+      .stat-label {
+        font-size: $font-size-12;
+        color: $gray-500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  .social-links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    a {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba($saralowe-burgundy, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $saralowe-burgundy;
+      transition: all 0.3s ease;
+      opacity: 0.7;
+      transform: translateY(10px);
+
+      &:hover {
+        background: $saralowe-burgundy;
+        color: $white;
+      }
+
+      @for $i from 1 through 4 {
+        &:nth-child(#{$i}) {
+          transition-delay: #{$i * 0.05}s;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// Testimonial Card Luxury
+// ============================================
+
+.testimonial-card-luxury {
+  position: relative;
+  background: linear-gradient(135deg, $white 0%, $saralowe-ivory 100%);
+  border-radius: $border-radius-xl;
+  padding: 40px 32px;
+  border: 1px solid rgba($saralowe-gold, 0.15);
+  box-shadow: 0 8px 30px rgba($saralowe-burgundy, 0.06);
+  transition: all 0.5s $animation-timing-elegant;
+
+  &::before {
+    content: '"';
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    font-family: $font-family-display;
+    font-size: 80px;
+    color: rgba($saralowe-gold, 0.2);
+    line-height: 1;
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba($saralowe-burgundy, 0.1);
+    border-color: rgba($saralowe-gold, 0.3);
+  }
+
+  .testimonial-content {
+    font-family: $font-family-display;
+    font-size: $font-size-18;
+    font-style: italic;
+    color: $saralowe-forest;
+    line-height: 1.8;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .testimonial-rating {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+
+    i {
+      color: $saralowe-gold;
+      font-size: $font-size-16;
+    }
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .author-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid rgba($saralowe-gold, 0.3);
+      object-fit: cover;
+    }
+
+    .author-info {
+      .author-name {
+        font-weight: $font-weight-semibold;
+        color: $saralowe-burgundy;
+        font-size: $font-size-16;
+        margin-bottom: 4px;
+      }
+
+      .author-role {
+        color: $gray-500;
+        font-size: $font-size-13;
+      }
+    }
+  }
+}
+
+// ============================================
+// Pricing Card Luxury
+// ============================================
+
+.pricing-card-luxury {
+  position: relative;
+  background: $white;
+  border-radius: $border-radius-xxl;
+  padding: 40px 32px;
+  text-align: center;
+  border: 2px solid rgba($saralowe-burgundy, 0.08);
+  box-shadow: 0 10px 40px rgba($saralowe-burgundy, 0.08);
+  transition: all 0.5s $animation-timing-elegant;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba($saralowe-gold, 0.1) 0%, transparent 70%);
+    z-index: 0;
+  }
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 80px rgba($saralowe-burgundy, 0.15);
+  }
+
+  &.featured {
+    border-color: $saralowe-gold;
+    background: linear-gradient(180deg, $white 0%, rgba($saralowe-blush, 0.3) 100%);
+
+    &::after {
+      content: 'Popular';
+      position: absolute;
+      top: 24px;
+      right: -35px;
+      background: linear-gradient(135deg, $saralowe-gold 0%, darken($saralowe-gold, 10%) 100%);
+      color: $white;
+      padding: 6px 40px;
+      font-size: $font-size-12;
+      font-weight: $font-weight-semibold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transform: rotate(45deg);
+    }
+  }
+
+  .pricing-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background: linear-gradient(135deg, $saralowe-blush 0%, $saralowe-ivory 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+
+    i {
+      font-size: $font-size-32;
+      color: $saralowe-burgundy;
+    }
+  }
+
+  .pricing-title {
+    font-family: $font-family-display;
+    font-size: $font-size-24;
+    font-weight: $font-weight-semibold;
+    color: $saralowe-burgundy;
+    margin-bottom: 8px;
+  }
+
+  .pricing-description {
+    color: $gray-500;
+    font-size: $font-size-14;
+    margin-bottom: 24px;
+  }
+
+  .pricing-price {
+    margin-bottom: 32px;
+
+    .currency {
+      font-size: $font-size-24;
+      color: $saralowe-burgundy;
+      vertical-align: top;
+    }
+
+    .amount {
+      font-family: $font-family-display;
+      font-size: $font-size-60;
+      font-weight: $font-weight-bold;
+      color: $saralowe-burgundy;
+      line-height: 1;
+    }
+
+    .period {
+      color: $gray-500;
+      font-size: $font-size-14;
+    }
+  }
+
+  .pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px;
+    text-align: left;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba($saralowe-burgundy, 0.06);
+      color: $gray-600;
+      font-size: $font-size-14;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      i {
+        width: 20px;
+        height: 20px;
+        background: rgba($saralowe-sage, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $saralowe-sage;
+        font-size: $font-size-10;
+        flex-shrink: 0;
+      }
+
+      &.disabled {
+        color: $gray-400;
+
+        i {
+          background: rgba($gray-400, 0.2);
+          color: $gray-400;
+        }
+      }
+    }
+  }
+
+  .pricing-btn {
+    width: 100%;
+  }
+}
+
+// ============================================
+// Stats Card Luxury
+// ============================================
+
+.stats-card-luxury {
+  position: relative;
+  background: linear-gradient(135deg, $saralowe-burgundy 0%, darken($saralowe-burgundy, 15%) 100%);
+  border-radius: $border-radius-xl;
+  padding: 32px;
+  color: $white;
+  overflow: hidden;
+  transition: all 0.4s $animation-timing-elegant;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba($saralowe-gold, 0.15) 0%, transparent 60%);
+  }
+
+  &:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 60px rgba($saralowe-burgundy, 0.4);
+  }
+
+  .stats-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba($white, 0.15);
+    border-radius: $border-radius-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+
+    i {
+      font-size: $font-size-28;
+      color: $saralowe-gold;
+    }
+  }
+
+  .stats-value {
+    font-family: $font-family-display;
+    font-size: $font-size-42;
+    font-weight: $font-weight-bold;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stats-label {
+    font-size: $font-size-14;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .stats-trend {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: $font-size-12;
+    font-weight: $font-weight-medium;
+
+    &.positive {
+      color: lighten($saralowe-sage, 20%);
+    }
+
+    &.negative {
+      color: lighten($danger, 20%);
+    }
+  }
+}
+
+// ============================================
+// Feature Card Luxury
+// ============================================
+
+.feature-card-luxury {
+  position: relative;
+  background: $white;
+  border-radius: $border-radius-xl;
+  padding: 32px;
+  border: 1px solid rgba($saralowe-burgundy, 0.08);
+  transition: all 0.4s $animation-timing-elegant;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, $saralowe-burgundy, $saralowe-gold);
+    transition: all 0.4s $animation-timing-elegant;
+    transform: translateX(-50%);
+    border-radius: 0 0 $border-radius-xl $border-radius-xl;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba($saralowe-burgundy, 0.1);
+
+    &::after {
+      width: 80%;
+    }
+
+    .feature-icon {
+      background: linear-gradient(135deg, $saralowe-burgundy 0%, $saralowe-crimson 100%);
+
+      i {
+        color: $white;
+      }
+    }
+  }
+
+  .feature-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, $saralowe-blush 0%, $saralowe-ivory 100%);
+    border-radius: $border-radius-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    transition: all 0.4s ease;
+
+    i {
+      font-size: $font-size-28;
+      color: $saralowe-burgundy;
+      transition: color 0.4s ease;
+    }
+  }
+
+  .feature-title {
+    font-family: $font-family-display;
+    font-size: $font-size-20;
+    font-weight: $font-weight-semibold;
+    color: $saralowe-burgundy;
+    margin-bottom: 12px;
+  }
+
+  .feature-description {
+    color: $gray-600;
+    font-size: $font-size-14;
+    line-height: 1.7;
+  }
+}
+
+// ============================================
+// Glass Card
+// ============================================
+
+.card-glass {
+  background: rgba($white, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: $border-radius-xl;
+  border: 1px solid rgba($saralowe-gold, 0.1);
+  box-shadow: 0 8px 32px rgba($saralowe-burgundy, 0.08);
+  padding: 24px;
+  transition: all 0.4s $animation-timing-elegant;
+
+  &:hover {
+    background: rgba($white, 0.85);
+    border-color: rgba($saralowe-gold, 0.25);
+    box-shadow: 0 15px 50px rgba($saralowe-burgundy, 0.12);
+    transform: translateY(-5px);
+  }
+}
+
+// ============================================
+// Responsive Adjustments
+// ============================================
+
+@include respond-below(md) {
+  .course-card-luxury {
+    .course-img-wrapper {
+      height: 180px;
+    }
+
+    .course-content {
+      padding: 20px;
+
+      .course-title {
+        font-size: $font-size-18;
+      }
+    }
+
+    .course-footer {
+      padding: 12px 20px;
+      flex-direction: column;
+      gap: 12px;
+
+      .enroll-btn {
+        width: 100%;
+      }
+    }
+  }
+
+  .instructor-card-luxury {
+    padding: 24px 20px;
+
+    .instructor-avatar {
+      width: 100px;
+      height: 100px;
+    }
+  }
+
+  .pricing-card-luxury {
+    padding: 32px 24px;
+
+    .pricing-price .amount {
+      font-size: $font-size-48;
+    }
+  }
+}

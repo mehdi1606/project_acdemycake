@@ -1,0 +1,508 @@
+// ============================================
+// SARALÖWE Brand Identity
+// Luxury Cake Design E-Learning Platform
+// ============================================
+
+// Premium Font imports
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+// ============================================
+// SARALÖWE Brand Colors
+// ============================================
+
+// Primary Brand Colors (Reds - Core Identity)
+$saralowe-burgundy: #651C32;        // PANTONE 7421 C - Deep burgundy (primary)
+$saralowe-crimson: #A6192E;         // PANTONE 187 C - Bold crimson (secondary accent)
+
+// Soft Backgrounds (Blush & Ivory)
+$saralowe-blush: #F5DADF;           // PANTONE 705 C - Soft blush pink
+$saralowe-ivory: #F2EFE8;           // PANTONE 11-0608 TCX - Warm ivory/cream
+
+// Accent Colors (Greens)
+$saralowe-sage: #788E75;            // PANTONE 17-0210 TCX - Earthy sage green
+$saralowe-forest: #1D3C34;          // PANTONE 560 C - Deep forest green
+
+// Luxury Accent (Gold)
+$saralowe-gold: #C5912C;            // PANTONE 1245 C - Rich gold
+
+// ============================================
+// Root CSS Variables for Dynamic Theming
+// ============================================
+
+:root {
+  // Brand Colors
+  --saralowe-burgundy: #{$saralowe-burgundy};
+  --saralowe-crimson: #{$saralowe-crimson};
+  --saralowe-blush: #{$saralowe-blush};
+  --saralowe-ivory: #{$saralowe-ivory};
+  --saralowe-sage: #{$saralowe-sage};
+  --saralowe-forest: #{$saralowe-forest};
+  --saralowe-gold: #{$saralowe-gold};
+
+  // Base Colors
+  --white: #fff;
+  --dark: #1a1a1a;
+  --black: #000;
+  --light: #{$saralowe-ivory};
+
+  // Gray Scale (Warm-tinted)
+  --gray-100: #f5f3f0;
+  --gray-200: #e8e4df;
+  --gray-300: #d4cec6;
+  --gray-400: #a8a099;
+  --gray-500: #7a7067;
+  --gray-600: #5d534a;
+  --gray-700: #453d36;
+  --gray-800: #2d2722;
+  --gray-900: #{$saralowe-burgundy};
+
+  // Light Scale (Cream-tinted)
+  --light-100: #FEFDFB;
+  --light-200: #FBF9F6;
+  --light-300: #F9F6F2;
+  --light-400: #F7F4EF;
+  --light-500: #{$saralowe-ivory};
+  --light-600: #EDE9E2;
+  --light-700: #E8E3DA;
+  --light-800: #E3DDD3;
+  --light-900: #DED7CB;
+
+  // Luxury Variables
+  --luxury-gradient: linear-gradient(135deg, #{$saralowe-burgundy} 0%, #{$saralowe-crimson} 100%);
+  --gold-gradient: linear-gradient(135deg, #{$saralowe-gold} 0%, #D4A84B 50%, #{$saralowe-gold} 100%);
+  --soft-gradient: linear-gradient(180deg, #{$saralowe-ivory} 0%, #{$saralowe-blush} 100%);
+  --forest-gradient: linear-gradient(135deg, #{$saralowe-forest} 0%, #{$saralowe-sage} 100%);
+
+  // Shadows
+  --shadow-soft: 0 4px 20px rgba(101, 28, 50, 0.08);
+  --shadow-medium: 0 8px 30px rgba(101, 28, 50, 0.12);
+  --shadow-luxury: 0 20px 60px rgba(101, 28, 50, 0.15);
+  --shadow-gold: 0 4px 20px rgba(197, 145, 44, 0.3);
+
+  // Animation Timing
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --transition-elegant: cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.dark-mode {
+  --white: #0D0D0D;
+  --dark: #F5F3F0;
+  --black: #F5F3F0;
+  --light: #1a1512;
+
+  --gray-100: #1f1a16;
+  --gray-200: #2a241f;
+  --gray-300: #3d342c;
+  --gray-400: #9CA3AF;
+  --gray-500: #a8a099;
+  --gray-600: #c4bbb0;
+  --gray-700: #d4cec6;
+  --gray-800: #e8e4df;
+  --gray-900: #f5f3f0;
+
+  --light-100: #0f0c0a;
+  --light-200: #141110;
+  --light-300: #1a1613;
+  --light-400: #1f1b17;
+  --light-500: #24201b;
+  --light-600: #2a251f;
+  --light-700: #302a23;
+  --light-800: #362f27;
+  --light-900: #3c342b;
+
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --shadow-luxury: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+// ============================================
+// Font Configuration
+// ============================================
+
+$font-size-base: 14px;
+$font-size-sm: $font-size-base * .875;
+$font-size-lg: $font-size-base * 1.25;
+$font-weight-lighter: lighter;
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-bolder: bolder;
+
+// Font Families - Luxury Typography
+$font-family-primary: "Montserrat", sans-serif;
+$font-family-display: "Cormorant Garamond", serif;
+$font-awesome: "Fontawesome";
+
+// ============================================
+// Theme Colors (Mapped to SARALÖWE Brand)
+// ============================================
+
+$primary: $saralowe-burgundy;
+$primary-hover: darken($saralowe-burgundy, 8%);
+$secondary: $saralowe-crimson;
+$secondary-hover: darken($saralowe-crimson, 8%);
+$success: $saralowe-sage;
+$success-hover: darken($saralowe-sage, 10%);
+$info: $saralowe-forest;
+$info-hover: darken($saralowe-forest, 10%);
+$warning: $saralowe-gold;
+$warning-hover: darken($saralowe-gold, 10%);
+$danger: #C53030;
+$danger-hover: darken(#C53030, 10%);
+$dark: var(--dark);
+$dark-hover: #1a1512;
+$light: var(--light);
+$light-hover: #d4cec6;
+$white: var(--white);
+$black: var(--black);
+$purple: $saralowe-burgundy;
+$pink: $saralowe-blush;
+$skyblue: $saralowe-sage;
+$teal: $saralowe-forest;
+$ligh-green: $saralowe-sage;
+
+$dark-green: $saralowe-forest;
+$night-blue: #0F0F41;
+$dark-gray: #2E2E48;
+$royal-blue: $saralowe-forest;
+$indigo: $saralowe-burgundy;
+$darkaqua: $saralowe-forest;
+$whiterock: $saralowe-ivory;
+$rockblue: $saralowe-sage;
+$bluehaze: #B5C0D0;
+$brightblue: $saralowe-sage;
+$lunargreen: $saralowe-sage;
+$lavendar: $saralowe-burgundy;
+$magenta: $saralowe-crimson;
+$chromeyellow: $saralowe-gold;
+$lavared: $saralowe-crimson;
+$blackpearl: $saralowe-forest;
+$maroon: $saralowe-burgundy;
+$bluegem: $saralowe-burgundy;
+$firefly: $saralowe-forest;
+
+$violet: $saralowe-burgundy;
+$orange: $saralowe-gold;
+$green: $saralowe-sage;
+$red: $saralowe-crimson;
+
+// Primary Shades (Burgundy)
+$primary-100: #f0e4e7;
+$primary-200: #e0c9cf;
+$primary-300: #c9a3ad;
+$primary-400: #b27d8b;
+$primary-500: #9b5769;
+$primary-600: #843147;
+$primary-700: $saralowe-burgundy;
+$primary-800: #4d1425;
+$primary-900: #340d19;
+
+// Secondary Shades (Crimson)
+$secondary-100: #f9e6e9;
+$secondary-200: #f2ccd2;
+$secondary-300: #e599a5;
+$secondary-400: #d86678;
+$secondary-500: #cb334b;
+$secondary-600: $saralowe-crimson;
+$secondary-700: #851425;
+$secondary-800: #5a0d19;
+$secondary-900: #2f070d;
+
+// Pink Shades (Blush)
+$pink-100: #fef7f8;
+$pink-200: #fceef0;
+$pink-300: #f9e5e9;
+$pink-400: #f7dce1;
+$pink-500: $saralowe-blush;
+$pink-600: #efc4cc;
+$pink-700: #e9adb8;
+$pink-800: #e396a4;
+$pink-900: #dd7f90;
+
+// Light Shades
+$light-100: var(--light-100);
+$light-200: var(--light-200);
+$light-300: var(--light-300);
+$light-400: var(--light-400);
+$light-500: var(--light-500);
+$light-600: var(--light-600);
+$light-700: var(--light-700);
+$light-800: var(--light-800);
+$light-900: var(--light-900);
+
+// Gray Shades
+$gray-100: var(--gray-100);
+$gray-200: var(--gray-200);
+$gray-300: var(--gray-300);
+$gray-400: var(--gray-400);
+$gray-500: var(--gray-500);
+$gray-600: var(--gray-600);
+$gray-700: var(--gray-700);
+$gray-800: var(--gray-800);
+$gray-900: var(--gray-900);
+
+// Info Shades (Forest)
+$info-100: #e6ebe9;
+$info-200: #cdd7d4;
+$info-300: #9aafa8;
+$info-400: #67877d;
+$info-500: #345f51;
+$info-600: #2a4d42;
+$info-700: $saralowe-forest;
+$info-800: #152e28;
+$info-900: #0a1714;
+
+// Success Shades (Sage)
+$success-100: #f0f3ef;
+$success-200: #e1e7df;
+$success-300: #c3cfbf;
+$success-400: #a5b79f;
+$success-500: #879f7f;
+$success-600: $saralowe-sage;
+$success-700: #5d715a;
+$success-800: #43543f;
+$success-900: #283724;
+
+// Warning Shades (Gold)
+$warning-100: #fdf6e8;
+$warning-200: #faedd1;
+$warning-300: #f5dba3;
+$warning-400: #f0c975;
+$warning-500: #ebb747;
+$warning-600: $saralowe-gold;
+$warning-700: #9a7423;
+$warning-800: #6f5319;
+$warning-900: #443310;
+
+// Danger Shades
+$danger-100: #fae8e8;
+$danger-200: #f5d1d1;
+$danger-300: #eba3a3;
+$danger-400: #e07575;
+$danger-500: #d64747;
+$danger-600: #C53030;
+$danger-700: #9a2626;
+$danger-800: #701c1c;
+$danger-900: #451212;
+
+// Purple Shades (Using Burgundy)
+$purple-100: $primary-100;
+$purple-200: $primary-200;
+$purple-300: $primary-300;
+$purple-400: $primary-400;
+$purple-500: $primary-500;
+$purple-600: $primary-600;
+$purple-700: $primary-700;
+$purple-800: $primary-800;
+$purple-900: $primary-900;
+
+// Skyblue Shades (Using Sage)
+$skyblue-100: $success-100;
+$skyblue-200: $success-200;
+$skyblue-300: $success-300;
+$skyblue-400: $success-400;
+$skyblue-500: $success-500;
+$skyblue-600: $success-600;
+$skyblue-700: $success-700;
+$skyblue-800: $success-800;
+$skyblue-900: $success-900;
+
+// Darkmode Base
+$darkmode-light: #1a1512;
+$darkmode-dark: #F5F3F0;
+$darkmode-white: #0D0D0D;
+
+// Darkmode Gray
+$darkmode-gray-900: #f5f3f0;
+$darkmode-gray-800: #e8e4df;
+$darkmode-gray-700: #d4cec6;
+$darkmode-gray-600: #c4bbb0;
+$darkmode-gray-500: #a8a099;
+$darkmode-gray-400: #7a7067;
+$darkmode-gray-300: #3d342c;
+$darkmode-gray-200: #2a241f;
+$darkmode-gray-100: #1f1a16;
+
+// Darkmode Light
+$darkmode-light-900: #3c342b;
+$darkmode-light-800: #362f27;
+$darkmode-light-700: #302a23;
+$darkmode-light-600: #2a251f;
+$darkmode-light-500: #24201b;
+$darkmode-light-400: #1f1b17;
+$darkmode-light-300: #1a1613;
+$darkmode-light-200: #141110;
+$darkmode-light-100: #0f0c0a;
+
+// Darkmode Transparent
+$darkmode-primary-transparent: rgba($saralowe-burgundy, 0.15);
+$darkmode-secondary-transparent: rgba($saralowe-crimson, 0.15);
+$darkmode-success-transparent: rgba($saralowe-sage, 0.15);
+$darkmode-warning-transparent: rgba($saralowe-gold, 0.15);
+$darkmode-danger-transparent: rgba($danger, 0.15);
+$darkmode-info-transparent: rgba($saralowe-forest, 0.15);
+$darkmode-purple-transparent: rgba($saralowe-burgundy, 0.15);
+$darkmode-skyblue-transparent: rgba($saralowe-sage, 0.15);
+$darkmode-pink-transparent: rgba($saralowe-blush, 0.15);
+$darkmode-dark-transparent: rgba(#1a1512, 0.15);
+$darkmode-light-transparent: rgba(#0f0c0a, 0.15);
+
+$colors: (
+  "skyblue":    $skyblue,
+  "purple":     $purple,
+  "pink":       $pink,
+  "white":      $white,
+  "gray":       $gray-600,
+  "gray-dark":  $gray-800,
+  "gold":       $saralowe-gold,
+  "burgundy":   $saralowe-burgundy,
+  "sage":       $saralowe-sage,
+  "forest":     $saralowe-forest
+);
+
+$theme-colors: (
+    "primary": $primary,
+    "secondary": $secondary,
+    "success": $success,
+    "info": $info,
+    "warning": $warning,
+    "danger": $danger,
+    "purple": $purple
+);
+
+$text-color: var(--gray-500);
+$title-color: var(--gray-900);
+$sub-title: var(--gray-500);
+$body-bg: var(--white);
+$text-muted: #7a7067;
+$default-background: $saralowe-ivory;
+$black-bg: $saralowe-forest;
+$input-bg: $saralowe-ivory;
+$form-control-bg: var(--white);
+
+// Social Icons Colors
+$facebook: #3B5998;
+$twitter: #00ACEE;
+$google: #DD4B39;
+$linkedin: #0E76A8;
+$youtube: #C4302B;
+$instagram: #E4405F;
+$pinterest: #cc2127;
+$skype: #00AFF0;
+$email: $saralowe-burgundy;
+$appstore: #000;
+
+// ============================================
+// Luxury Gradients
+// ============================================
+
+$primary-transparent: rgba($saralowe-burgundy, 0.08);
+$secondary-transparent: rgba($saralowe-crimson, 0.08);
+$success-transparent: rgba($saralowe-sage, 0.1);
+$warning-transparent: rgba($saralowe-gold, 0.1);
+$danger-transparent: rgba($danger, 0.08);
+$info-transparent: rgba($saralowe-forest, 0.08);
+$pink-transparent: rgba($saralowe-blush, 0.3);
+$light-transparent: rgba($saralowe-ivory, 0.5);
+$dark-transparent: rgba(#1a1512, 0.05);
+$teal-transparent: rgba($saralowe-forest, 0.08);
+$purple-transparent: rgba($saralowe-burgundy, 0.08);
+$skyblue-transparent: rgba($saralowe-sage, 0.1);
+
+// Luxury Gradients
+$primary-gradient: linear-gradient(135deg, $saralowe-blush 0%, $saralowe-ivory 50%, #fff 100%);
+$secondary-gradient: linear-gradient(135deg, $saralowe-burgundy 0%, $saralowe-crimson 100%);
+$success-gradient: linear-gradient(135deg, $saralowe-forest 0%, $saralowe-sage 100%);
+$warning-gradient: linear-gradient(135deg, $saralowe-gold 0%, #D4A84B 100%);
+$danger-gradient: linear-gradient(180deg, #C53030 0%, #9a2626 100%);
+$info-gradient: linear-gradient(135deg, $saralowe-forest 0%, darken($saralowe-forest, 10%) 100%);
+$light-gradient: linear-gradient(180deg, #fff 0%, $saralowe-ivory 100%);
+$dark-gradient: linear-gradient(180deg, $saralowe-ivory 0%, #FFFFFF 100%);
+$pink-gradient: linear-gradient(180deg, $saralowe-blush 0%, #FFFFFF 100%);
+$purple-gradient: linear-gradient(135deg, $saralowe-burgundy 0%, lighten($saralowe-burgundy, 15%) 100%);
+$teal-gradient: linear-gradient(180deg, rgba($saralowe-forest, 0.1) 0%, #FFFFFF 100%);
+$orange-gradient: linear-gradient(135deg, $saralowe-gold 0%, $saralowe-crimson 100%);
+$gradient-purple: linear-gradient(180deg, $saralowe-burgundy 0%, darken($saralowe-burgundy, 15%) 100%);
+$blue-gradient: linear-gradient(180deg, $saralowe-sage 0%, $saralowe-forest 100%);
+$maroon-gradient: linear-gradient(180deg, $saralowe-crimson 0%, $saralowe-burgundy 100%);
+$gold-shimmer: linear-gradient(90deg, $saralowe-gold 0%, #D4A84B 25%, $saralowe-gold 50%, #D4A84B 75%, $saralowe-gold 100%);
+
+$purple-gradient2: linear-gradient(10.93deg, $saralowe-burgundy 16.22%, lighten($saralowe-burgundy, 20%) 120.13%);
+$blue-gradient2: linear-gradient(10.93deg, $saralowe-forest 16.22%, $saralowe-sage 120.13%);
+
+// Style Anchor Elements
+$link-color: $primary;
+$link-decoration: none;
+$link-shade-percentage: 20%;
+$link-hover-color: darken($link-color, 10%);
+$link-hover-decoration: null;
+$spacer: 1rem;
+
+// Border
+$border-width: 1px;
+$border-style: solid;
+$border-color: rgba($saralowe-burgundy, 0.1);
+$default-border: rgba($saralowe-burgundy, 0.1);
+$input-border: rgba($saralowe-burgundy, 0.15);
+
+// Border Radius - Softer, more elegant
+$border-radius: 8px;
+$border-radius-sm: 6px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$border-radius-xxl: 24px;
+$rounded: 50%;
+$rounded-pill: 50px;
+
+// Box Shadow - Luxury Shadows
+$box-shadow: 0 4px 20px rgba($saralowe-burgundy, 0.08);
+$box-shadow-xs: 0 2px 8px rgba($saralowe-burgundy, 0.04);
+$box-shadow-xs-2: 0 4px 12px rgba($saralowe-burgundy, 0.06);
+$box-shadow-sm: 0 4px 16px rgba($saralowe-burgundy, 0.08);
+$box-shadow-md: 0 8px 24px rgba($saralowe-burgundy, 0.1);
+$box-shadow-lg: 0 12px 40px rgba($saralowe-burgundy, 0.12);
+$drop-shadow: 0 8px 32px rgba($saralowe-burgundy, 0.1);
+$box-shadow-100: 0 16px 48px rgba($saralowe-burgundy, 0.08);
+$box-shadow1: 0 8px 32px rgba($saralowe-burgundy, 0.06);
+$box-shadow-gold: 0 4px 20px rgba($saralowe-gold, 0.25);
+$box-shadow-hover: 0 20px 60px rgba($saralowe-burgundy, 0.15);
+
+// Font Size
+$font-size-8: 8px;
+$font-size-9: 9px;
+$font-size-10: 10px;
+$font-size-11: 11px;
+$font-size-12: 12px;
+$font-size-13: 13px;
+$font-size-14: 14px;
+$font-size-15: 15px;
+$font-size-16: 16px;
+$font-size-17: 17px;
+$font-size-18: 18px;
+$font-size-20: 20px;
+$font-size-22: 22px;
+$font-size-24: 24px;
+$font-size-26: 26px;
+$font-size-28: 28px;
+$font-size-30: 30px;
+$font-size-32: 32px;
+$font-size-34: 34px;
+$font-size-36: 36px;
+$font-size-38: 38px;
+$font-size-40: 40px;
+$font-size-42: 42px;
+$font-size-44: 44px;
+$font-size-48: 48px;
+$font-size-50: 50px;
+$font-size-54: 54px;
+$font-size-60: 60px;
+
+$h1-font-size: 32px;
+$h2-font-size: 26px;
+$h3-font-size: 22px;
+$h4-font-size: 18px;
+$h5-font-size: 16px;
+$h6-font-size: 14px;

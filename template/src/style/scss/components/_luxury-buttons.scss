@@ -1,0 +1,608 @@
+// ============================================
+// SARALÖWE Luxury Button System
+// Premium Button Components
+// ============================================
+
+// ============================================
+// Base Luxury Button
+// ============================================
+
+.btn-luxury {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 32px;
+  font-family: $font-family-primary;
+  font-size: $font-size-14;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: $border-radius-lg;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.4s $animation-timing-elegant;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: left 0.6s ease;
+    z-index: -1;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  i {
+    margin-right: 8px;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover i {
+    transform: translateX(3px);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($saralowe-gold, 0.3);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// ============================================
+// Primary Luxury Button (Burgundy)
+// ============================================
+
+.btn-luxury-primary {
+  @extend .btn-luxury;
+  background: linear-gradient(135deg, $saralowe-burgundy 0%, darken($saralowe-burgundy, 10%) 100%);
+  color: $white;
+  box-shadow: 0 8px 30px rgba($saralowe-burgundy, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, darken($saralowe-burgundy, 5%) 0%, darken($saralowe-burgundy, 15%) 100%);
+    box-shadow: 0 12px 40px rgba($saralowe-burgundy, 0.4);
+    transform: translateY(-3px);
+    color: $white;
+  }
+}
+
+// ============================================
+// Secondary Luxury Button (Crimson)
+// ============================================
+
+.btn-luxury-secondary {
+  @extend .btn-luxury;
+  background: linear-gradient(135deg, $saralowe-crimson 0%, darken($saralowe-crimson, 10%) 100%);
+  color: $white;
+  box-shadow: 0 8px 30px rgba($saralowe-crimson, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, darken($saralowe-crimson, 5%) 0%, darken($saralowe-crimson, 15%) 100%);
+    box-shadow: 0 12px 40px rgba($saralowe-crimson, 0.4);
+    transform: translateY(-3px);
+    color: $white;
+  }
+}
+
+// ============================================
+// Gold Luxury Button
+// ============================================
+
+.btn-luxury-gold {
+  @extend .btn-luxury;
+  background: linear-gradient(135deg, $saralowe-gold 0%, darken($saralowe-gold, 10%) 100%);
+  color: $white;
+  box-shadow: 0 8px 30px rgba($saralowe-gold, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, darken($saralowe-gold, 5%) 0%, darken($saralowe-gold, 15%) 100%);
+    box-shadow: 0 12px 40px rgba($saralowe-gold, 0.4);
+    transform: translateY(-3px);
+    color: $white;
+  }
+}
+
+// ============================================
+// Forest Luxury Button
+// ============================================
+
+.btn-luxury-forest {
+  @extend .btn-luxury;
+  background: linear-gradient(135deg, $saralowe-forest 0%, darken($saralowe-forest, 10%) 100%);
+  color: $white;
+  box-shadow: 0 8px 30px rgba($saralowe-forest, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, darken($saralowe-forest, 5%) 0%, darken($saralowe-forest, 15%) 100%);
+    box-shadow: 0 12px 40px rgba($saralowe-forest, 0.4);
+    transform: translateY(-3px);
+    color: $white;
+  }
+}
+
+// ============================================
+// Outline Luxury Buttons
+// ============================================
+
+.btn-luxury-outline {
+  @extend .btn-luxury;
+  background: transparent;
+  border: 2px solid $saralowe-burgundy;
+  color: $saralowe-burgundy;
+  box-shadow: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: $saralowe-burgundy;
+    transition: width 0.4s $animation-timing-elegant;
+    z-index: -1;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: $saralowe-burgundy;
+
+    &::after {
+      width: 100%;
+    }
+  }
+}
+
+.btn-luxury-outline-gold {
+  @extend .btn-luxury;
+  background: transparent;
+  border: 2px solid $saralowe-gold;
+  color: $saralowe-gold;
+  box-shadow: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: $saralowe-gold;
+    transition: width 0.4s $animation-timing-elegant;
+    z-index: -1;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: $saralowe-gold;
+
+    &::after {
+      width: 100%;
+    }
+  }
+}
+
+// ============================================
+// Glass Morphism Button
+// ============================================
+
+.btn-luxury-glass {
+  @extend .btn-luxury;
+  background: rgba($saralowe-ivory, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba($saralowe-gold, 0.2);
+  color: $saralowe-burgundy;
+  box-shadow: 0 8px 32px rgba($saralowe-burgundy, 0.1);
+
+  &:hover {
+    background: rgba($saralowe-ivory, 0.25);
+    border-color: rgba($saralowe-gold, 0.4);
+    box-shadow: 0 12px 40px rgba($saralowe-burgundy, 0.15);
+    transform: translateY(-3px);
+  }
+}
+
+// ============================================
+// Shimmer Button (Gold Effect)
+// ============================================
+
+.btn-luxury-shimmer {
+  @extend .btn-luxury;
+  background: linear-gradient(
+    90deg,
+    $saralowe-burgundy 0%,
+    darken($saralowe-burgundy, 5%) 25%,
+    $saralowe-burgundy 50%,
+    darken($saralowe-burgundy, 5%) 75%,
+    $saralowe-burgundy 100%
+  );
+  background-size: 200% 100%;
+  color: $white;
+  box-shadow: 0 8px 30px rgba($saralowe-burgundy, 0.3);
+  animation: goldShimmer 3s ease-in-out infinite;
+
+  &:hover {
+    animation-play-state: paused;
+    box-shadow: 0 12px 40px rgba($saralowe-burgundy, 0.4);
+    transform: translateY(-3px);
+  }
+}
+
+// ============================================
+// Pill Buttons
+// ============================================
+
+.btn-luxury-pill {
+  border-radius: 50px;
+  padding: 14px 36px;
+}
+
+// ============================================
+// Icon Buttons
+// ============================================
+
+.btn-luxury-icon {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border-radius: 50%;
+
+  i {
+    margin: 0;
+    font-size: $font-size-18;
+  }
+
+  &:hover i {
+    transform: scale(1.1);
+  }
+}
+
+.btn-luxury-icon-sm {
+  width: 40px;
+  height: 40px;
+
+  i {
+    font-size: $font-size-16;
+  }
+}
+
+.btn-luxury-icon-lg {
+  width: 60px;
+  height: 60px;
+
+  i {
+    font-size: $font-size-22;
+  }
+}
+
+// ============================================
+// Size Variants
+// ============================================
+
+.btn-luxury-sm {
+  padding: 10px 24px;
+  font-size: $font-size-12;
+}
+
+.btn-luxury-lg {
+  padding: 18px 40px;
+  font-size: $font-size-16;
+}
+
+.btn-luxury-xl {
+  padding: 20px 48px;
+  font-size: $font-size-18;
+}
+
+// ============================================
+// CTA Button (Call to Action)
+// ============================================
+
+.btn-cta {
+  @extend .btn-luxury;
+  background: linear-gradient(135deg, $saralowe-burgundy 0%, $saralowe-crimson 100%);
+  color: $white;
+  padding: 16px 40px;
+  font-size: $font-size-16;
+  border-radius: 50px;
+  box-shadow:
+    0 10px 40px rgba($saralowe-burgundy, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left 0.6s ease;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba($saralowe-gold, 0.1) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, darken($saralowe-burgundy, 5%) 0%, darken($saralowe-crimson, 5%) 100%);
+    box-shadow:
+      0 15px 50px rgba($saralowe-burgundy, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+    color: $white;
+
+    &::before {
+      left: 100%;
+    }
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba($saralowe-burgundy, 0.35);
+  }
+}
+
+// ============================================
+// Floating Action Button
+// ============================================
+
+.btn-fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $saralowe-burgundy 0%, $saralowe-crimson 100%);
+  color: $white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-24;
+  box-shadow: 0 6px 30px rgba($saralowe-burgundy, 0.4);
+  transition: all 0.3s $animation-timing-elegant;
+  z-index: 1000;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 40px rgba($saralowe-burgundy, 0.5);
+  }
+
+  &:active {
+    transform: scale(1.05);
+  }
+}
+
+// ============================================
+// Text Link Button
+// ============================================
+
+.btn-link-luxury {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: $saralowe-burgundy;
+  font-family: $font-family-primary;
+  font-size: $font-size-14;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, $saralowe-burgundy, $saralowe-gold);
+    transition: width 0.4s $animation-timing-elegant;
+  }
+
+  i {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    color: $saralowe-crimson;
+
+    &::after {
+      width: 100%;
+    }
+
+    i {
+      transform: translateX(5px);
+    }
+  }
+}
+
+// ============================================
+// Button Group Luxury
+// ============================================
+
+.btn-group-luxury {
+  display: inline-flex;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba($saralowe-burgundy, 0.15);
+
+  .btn-luxury {
+    border-radius: 0;
+    margin: 0;
+
+    &:first-child {
+      border-radius: $border-radius-lg 0 0 $border-radius-lg;
+    }
+
+    &:last-child {
+      border-radius: 0 $border-radius-lg $border-radius-lg 0;
+    }
+
+    &:not(:last-child) {
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+// ============================================
+// Loading State
+// ============================================
+
+.btn-luxury {
+  &.loading {
+    pointer-events: none;
+    opacity: 0.8;
+
+    &::after {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: $white;
+      border-radius: 50%;
+      animation: rotateElegant 0.8s linear infinite;
+      margin-left: 10px;
+    }
+  }
+}
+
+// ============================================
+// Disabled State
+// ============================================
+
+.btn-luxury {
+  &:disabled,
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+// ============================================
+// Apply to Existing Buttons
+// ============================================
+
+.btn-primary {
+  background: linear-gradient(135deg, $saralowe-burgundy 0%, darken($saralowe-burgundy, 8%) 100%);
+  border: none;
+  color: $white;
+  box-shadow: 0 4px 15px rgba($saralowe-burgundy, 0.25);
+  transition: all 0.4s $animation-timing-elegant;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, darken($saralowe-burgundy, 5%) 0%, darken($saralowe-burgundy, 12%) 100%);
+    box-shadow: 0 8px 25px rgba($saralowe-burgundy, 0.35);
+    transform: translateY(-2px);
+    color: $white;
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($saralowe-gold, 0.3);
+  }
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, $saralowe-crimson 0%, darken($saralowe-crimson, 8%) 100%);
+  border: none;
+  color: $white;
+  box-shadow: 0 4px 15px rgba($saralowe-crimson, 0.25);
+  transition: all 0.4s $animation-timing-elegant;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, darken($saralowe-crimson, 5%) 0%, darken($saralowe-crimson, 12%) 100%);
+    box-shadow: 0 8px 25px rgba($saralowe-crimson, 0.35);
+    transform: translateY(-2px);
+    color: $white;
+
+    &::before {
+      left: 100%;
+    }
+  }
+}
