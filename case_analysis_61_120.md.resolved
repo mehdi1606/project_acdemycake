@@ -1,0 +1,110 @@
+# Section 1B — Case Analysis (Cases 61–120)
+
+> Legend: ✅ Works | ⚠️ Partial | ❌ Missing | 🐛 Bug
+
+## 🎓 STUDENT — Orders, Profile, Community (Cases 61–74)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 61 | Order History | ✅ | `GET /api/v1/payments/history?page=&size=` | `StudentOrder` component, `PaymentService.getPaymentHistory()` | None |
+| 62 | Transaction Details | ✅ | `GET /api/v1/payments/transaction/{id}` | `PaymentService.getTransactionById()` | None |
+| 63 | View Profile | ✅ | `GET /api/v1/auth/me` | `StudentProfile` component | None |
+| 64 | Edit Profile | ✅ | `PUT /api/v1/profile` with [UpdateProfileRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#79-85) | `StudentSettings` component, `ProfileService.updateProfile()` | None |
+| 65 | Upload Avatar | ✅ | `POST /api/v1/profile/avatar` (multipart) | `ProfileService.uploadAvatar()` | None |
+| 66 | Change Password | ✅ | `PUT /api/v1/profile/password` with [ChangePasswordRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#86-91) | `StudentChangePassword` component | None |
+| 67 | Social Profiles | ⚠️ | Profile update may include social links in [UpdateProfileRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#79-85) | `StudentSocialProfile` component exists | ⚠️ Need to verify if backend [UpdateProfileRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#79-85) DTO has social link fields |
+| 68 | Notification Preferences | ✅ | `GET/PUT /api/v1/profile/preferences` | `StudentNotification` settings | None |
+| 69 | View Community Posts | ✅ | `GET /api/v1/community/posts?page=&size=&postType=&search=` | `BlogGrid` pages — but likely static templates | ⚠️ Blog pages may not call community API |
+| 70 | Create Post | ✅ | `POST /api/v1/community/posts` with [CreatePostRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#374-379) | `CommunityService.createPost()` | None |
+| 71 | Like/Unlike Post | ✅ | `POST /api/v1/community/posts/{id}/like`, `DELETE .../like` | `CommunityService.likePost()` / [unlikePost()](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/CommunityController.java#78-84) | None |
+| 72 | Comment on Post | ✅ | `POST /api/v1/community/posts/{id}/comments` | `CommunityService.createComment()` | None |
+| 73 | Like/Unlike Comment | ✅ | `POST /api/v1/community/comments/{id}/like`, `DELETE .../like` | `CommunityService.likeComment()` / [unlikeComment()](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/CommunityController.java#130-136) | None |
+| 74 | Report Post | ✅ | `POST /api/v1/community/posts/{id}/report?reason=` | `CommunityService.reportPost()` | None |
+
+---
+
+## 👨‍🏫 INSTRUCTOR — Dashboard & Course Management (Cases 75–82)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 75 | Instructor Dashboard | ✅ | `GET /api/v1/instructor/dashboard` → [InstructorDashboard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#459-476) | [InstructorDashboard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#459-476) component | None |
+| 76 | Course List View | ✅ | `GET /api/v1/instructor/courses?page=&size=` | [InstructorCourse](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/service/CourseService.java#52-53) component | None |
+| 77 | Course Grid View | ✅ | Same API as #76 | `InstructorCourseGrid` component | None |
+| 78 | Create New Course | ✅ | `POST /api/v1/instructor/courses` with [CreateCourseRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/instructor.service.ts#15-31) | `AddNewCourse` component, `InstructorService.createCourse()` | None |
+| 79 | Edit Course | ✅ | `PUT /api/v1/instructor/courses/{id}` with [UpdateCourseRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/instructor.service.ts#32-33) | `AddNewCourse` with edit mode | None |
+| 80 | Upload Thumbnail | ✅ | `POST /api/v1/instructor/courses/{id}/thumbnail` (multipart) | `InstructorService.uploadThumbnail()` | None |
+| 81 | Submit for Review | ✅ | `POST /api/v1/instructor/courses/{id}/publish` | `InstructorService.submitForReview()` | None |
+| 82 | Delete Course | ✅ | `DELETE /api/v1/instructor/courses/{id}` | `InstructorService.deleteCourse()` | None |
+
+## 👨‍🏫 INSTRUCTOR — Curriculum (Cases 83–94)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 83 | Course Manage Page | ✅ | Multiple APIs (modules, lessons) | `CourseManage` at `${routes.instructorCourseManage}/:courseId` | None |
+| 84 | Create Module | ✅ | `POST /api/v1/instructor/courses/{courseId}/modules` | `InstructorService.createModule()` | None |
+| 85 | Edit Module | ✅ | `PUT /api/v1/instructor/modules/{id}` | `InstructorService.updateModule()` | None |
+| 86 | Delete Module | ✅ | `DELETE /api/v1/instructor/modules/{id}` | `InstructorService.deleteModule()` | None |
+| 87 | Reorder Modules | ❌ | **No reorder endpoint** in [InstructorController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/InstructorController.java#19-309) | No drag-and-drop or reorder UI obvious | 🐛 `orderIndex` field exists on Module entity but no API to update order |
+| 88 | Create Lesson | ✅ | `POST /api/v1/instructor/modules/{moduleId}/lessons` | `InstructorService.createLesson()` | None |
+| 89 | Edit Lesson | ✅ | `PUT /api/v1/instructor/lessons/{id}` | `InstructorService.updateLesson()` | None |
+| 90 | Delete Lesson | ✅ | `DELETE /api/v1/instructor/lessons/{id}` | `InstructorService.deleteLesson()` | None |
+| 91 | Upload Video (Mux) | ✅ | `POST /api/v1/instructor/lessons/{id}/video/initiate` → Mux upload URL | `InstructorService.getVideoUploadUrl()` | None |
+| 92 | Upload Video (Local) | ✅ | `POST /api/v1/instructor/lessons/{id}/video` (multipart) | `InstructorService.uploadVideoFile()` | None |
+| 93 | Video Processing Status | ⚠️ | Mux webhook updates lesson status | No polling/WebSocket mechanism for real-time UI status | ⚠️ Frontend may need to poll or use WebSocket for status |
+| 94 | Set Preview Lesson | ✅ | `isFreePreview` field in [CreateLessonRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/instructor.service.ts#40-48) | Set during lesson creation/edit | None |
+
+## 👨‍🏫 INSTRUCTOR — Students (Cases 95–97)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 95 | View My Students | ✅ | `GET /api/v1/instructor/students?page=&size=&search=` | `StudentGrid` / `StudentList` components | None |
+| 96 | Student Detail | ✅ | `GET /api/v1/instructor/students/{studentId}` → `InstructorStudentDetailResponse` | `StudentsDetails` component | None |
+| 97 | Filter by Course | ⚠️ | `GET /api/v1/instructor/courses/{id}/students` exists | No visible filter-by-course UI in students page | ⚠️ Backend supports it but frontend may not expose course filter |
+
+## 👨‍🏫 INSTRUCTOR — Quizzes (Cases 98–103)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 98 | View Quizzes | ✅ | `GET /api/v1/instructor/quizzes?page=&size=` | `InstructorQuiz` component | None |
+| 99 | Create Quiz | ✅ | `POST /api/v1/instructor/quizzes` with [CreateQuizRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#623-635) | `InstructorQuizQuestions` component | None |
+| 100 | Edit Quiz | ❌ | **No PUT endpoint** in [QuizController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/QuizController.java#18-93) — only create and delete | No edit functionality | 🐛 Missing `PUT /api/v1/instructor/quizzes/{id}` endpoint |
+| 101 | Publish/Unpublish Quiz | ✅ | `POST /api/v1/instructor/quizzes/{id}/publish`, `.../unpublish` | `QuizService.publishQuiz()` | None |
+| 102 | Delete Quiz | ✅ | `DELETE /api/v1/instructor/quizzes/{id}` | `QuizService.deleteQuiz()` | None |
+| 103 | View Quiz Results | ⚠️ | `GET /api/v1/instructor/quizzes/{id}/attempts` — **returns empty stub** | `InstructorQuizResult` component | 🐛 Backend always returns empty [PageResponse](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/instructor.service.ts#69-80) (placeholder code) |
+
+## 👨‍🏫 INSTRUCTOR — Assignments (Cases 104–107)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 104 | View Assignments | ✅ | Endpoint in [InstructorController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/InstructorController.java#19-309) for assignments | `InstructorAssignment` component | None |
+| 105 | Create Assignment | ✅ | `POST /api/v1/instructor/assignments` | `InstructorService.createAssignment()` | None |
+| 106 | Edit Assignment | ✅ | `PUT /api/v1/instructor/assignments/{id}` | `InstructorService.updateAssignment()` | None |
+| 107 | Delete Assignment | ✅ | `DELETE /api/v1/instructor/assignments/{id}` | `InstructorService.deleteAssignment()` | None |
+
+## 👨‍🏫 INSTRUCTOR — Announcements (Cases 108–111)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 108 | View Announcements | ✅ | `GET /api/v1/instructor/announcements?page=&size=` | `InstructorAnnouncements` component | None |
+| 109 | Create Announcement | ✅ | `POST /api/v1/instructor/announcements` with [CreatePostRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#374-379) | `InstructorService.createAnnouncement()` | None |
+| 110 | Edit Announcement | ✅ | `PUT /api/v1/instructor/announcements/{id}` | `InstructorService.updateAnnouncement()` | None |
+| 111 | Delete Announcement | ✅ | `DELETE /api/v1/instructor/announcements/{id}` | `InstructorService.deleteAnnouncement()` | None |
+
+## 👨‍🏫 INSTRUCTOR — Earnings & Payouts (Cases 112–116)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 112 | Earnings Dashboard | ✅ | `GET /api/v1/instructor/dashboard` includes earnings data | [InstructorEarning](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#477-490) component | None |
+| 113 | Earnings List | ✅ | `GET /api/v1/instructor/earnings?page=&size=` | `InstructorService.getEarnings()` | None |
+| 114 | View Statements | ✅ | `GET /api/v1/instructor/statements` | `InstructorStatement` component | None |
+| 115 | Request Payout | ✅ | `POST /api/v1/instructor/payouts` | `InstructorService.requestPayout()` | None |
+| 116 | Payout History | ✅ | `GET /api/v1/instructor/payouts?page=&size=` | `InstructorService.getPayouts()` | None |
+
+## 👨‍🏫 INSTRUCTOR — Certificates & Messaging (Cases 117–121)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 117 | View Issued Certificates | ✅ | `GET /api/v1/instructor/certificates?page=&size=` | `InstructorCertificate` component | None |
+| 118 | Download Certificate | ✅ | `GET /api/v1/instructor/certificates/{id}/download` | `InstructorService.downloadCertificate()` | None |
+| 119 | Upload Cert Template | ✅ | `POST /api/v1/instructor/courses/{courseId}/certificate-template` (multipart) | `InstructorService.uploadCertificateTemplate()` | None |
+| 120 | Conversations | ✅ | Same `/api/v1/messages/*` APIs | `InstructorMessage` component | None |

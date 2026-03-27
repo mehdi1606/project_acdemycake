@@ -1,0 +1,98 @@
+# Section 1C — Case Analysis (Cases 121–177)
+
+> Legend: ✅ Works | ⚠️ Partial | ❌ Missing | 🐛 Bug
+
+## 👨‍🏫 INSTRUCTOR — Settings (Cases 121–131)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 121 | Send/Receive Messages | ✅ | Same `/api/v1/messages/*` | `InstructorMessage` | None |
+| 122 | Profile Settings | ✅ | `PUT /api/v1/profile` | `InstructorProfileSettings` | None |
+| 123 | Upload Avatar | ✅ | `POST /api/v1/profile/avatar` | `ProfileService.uploadAvatar()` | None |
+| 124 | Change Password | ✅ | `PUT /api/v1/profile/password` | `InstructorChangePassoword` (typo in filename) | None |
+| 125 | Social Profiles | ⚠️ | Included in profile update | `InstructorSocialprofileSettings` | Same as case 67 — verify DTO |
+| 126 | Plan Settings | ✅ | `GET /api/v1/subscriptions/my-subscription` | `InstructorPlanSettings` | None |
+| 127 | Withdraw Settings | ⚠️ | Payout request includes bank details | `InstructorWithdraw` component | ⚠️ Withdraw settings may be part of payout, not standalone config |
+| 128 | Integrations | ❌ | **No integration API** exists | `InstructorIntegrations` component exists but likely static/template | 🐛 No backend for Zoom/Google Meet integration |
+| 129 | Notifications | ✅ | Same `/api/v1/notifications/*` | `InstructorNotification` | None |
+| 130 | Profile Dropdown | ✅ | N/A (frontend UI) | Header component with user info from Redux | None |
+| 131 | Premium Badge | ⚠️ | User response includes `subscriptionStatus` | Badge rendering in navbar | ⚠️ Need runtime verification |
+
+---
+
+## 🛡️ ADMIN (Cases 132–157)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 132 | Admin Dashboard | ✅ | `GET /api/v1/admin/dashboard` → [AdminDashboard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#548-571) | [AdminDashboard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#548-571) component | None |
+| 133 | View All Users | ✅ | `GET /api/v1/admin/users?page=&size=&search=` | `AdminUsers` component | None |
+| 134 | View User Detail | ✅ | `GET /api/v1/admin/users/{id}` | `AdminService.getUserById()` | None |
+| 135 | Ban User | ⚠️ | `POST /api/v1/admin/users/{id}/ban?reason=` | `AdminService.banUser(id, reason)` | 🐛 Backend expects `reason` as `@RequestParam` but frontend sends it in request body `{ reason }` — will result in 400 or null reason |
+| 136 | Unban User | ✅ | `POST /api/v1/admin/users/{id}/unban` | `AdminService.unbanUser()` | None |
+| 137 | Delete User | ✅ | `DELETE /api/v1/admin/users/{id}` | `AdminService.deleteUser()` | None |
+| 138 | View All Courses | ✅ | `GET /api/v1/admin/courses?page=&size=&status=` | `AdminCourses` component | None |
+| 139 | Pending Courses | ✅ | `GET /api/v1/admin/courses/pending` | `AdminPendingCourses` component | None |
+| 140 | Approve Course | ✅ | `POST /api/v1/admin/courses/{id}/approve` | `AdminService.approveCourse()` | None |
+| 141 | Reject Course | ⚠️ | **No reject endpoint** in [AdminController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/AdminController.java#15-143) | `AdminService.rejectCourse()` calls `POST /admin/courses/{id}/reject` | 🐛 Frontend service calls an endpoint that doesn't exist in backend |
+| 142 | View Categories | ✅ | `GET /api/v1/categories` | `AdminCategories`, `AdminService.getCategories()` | None |
+| 143 | Create Category | ✅ | `POST /api/v1/categories` | `AdminService.createCategory()` | None |
+| 144 | Edit Category | ✅ | `PUT /api/v1/categories/{id}` | `AdminService.updateCategory()` | None |
+| 145 | Upload Category Image | ✅ | `POST /api/v1/categories/{id}/image` (multipart) | `AdminService.uploadCategoryImage()` | None |
+| 146 | Delete Category | ✅ | `DELETE /api/v1/categories/{id}` | `AdminService.deleteCategory()` | None |
+| 147 | View All Transactions | ✅ | `GET /api/v1/admin/transactions?page=&size=` | `AdminTransactions`, `AdminService.getTransactions()` | None |
+| 148 | Transaction Details | ⚠️ | No dedicated admin transaction detail endpoint | Clicking may use `PaymentService.getTransactionById()` | ⚠️ Relies on user-level payment endpoint, not admin |
+| 149 | View All Tickets | ✅ | `GET /api/v1/admin/tickets?page=&size=&status=` | `AdminTickets` component | None |
+| 150 | View Ticket Detail | ✅ | `GET /api/v1/admin/tickets/{id}` | `TicketService.getTicketAsAdmin()` | None |
+| 151 | Reply to Ticket | ✅ | `POST /api/v1/admin/tickets/{id}/reply` | `TicketService.replyAsAdmin()` | None |
+| 152 | Update Ticket Status | ✅ | `PUT /api/v1/admin/tickets/{id}/status` with `UpdateTicketStatusRequest` | `TicketService.updateTicketStatus()` | None |
+| 153 | Ticket Stats | ✅ | `GET /api/v1/admin/tickets/stats` | `TicketService.getAllTicketStats()` | None |
+| 154 | View Subscriptions | ❌ | No admin subscriptions endpoint | **No admin subscription page** in routes or components | 🐛 Missing feature entirely |
+| 155 | Analytics Dashboard | ⚠️ | `GET /api/v1/admin/analytics?period=` returns `Object` | No dedicated analytics page component | ⚠️ Backend returns generic Object; no frontend page |
+| 156 | Reports | ⚠️ | `GET /api/v1/admin/reports?type=` returns `Object` | No dedicated reports page component | ⚠️ Backend returns generic Object; no frontend page |
+| 157 | Admin Profile | ✅ | Same profile APIs | `AdminSettings` component | None |
+
+---
+
+## ⚙️ SYSTEM & INTEGRATIONS (Cases 158–177)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 158 | PayZone Payment Webhook | ✅ | `POST /api/v1/payments/webhook` → `paymentService.handlePayzoneWebhook()` | N/A | None |
+| 159 | PayZone Subscription Webhook | ❌ | `POST /api/v1/subscriptions/webhook` — **EMPTY BODY** (just `return "OK"`) | N/A | 🐛 **Critical**: Webhook handler does nothing. Subscriptions activated via webhook will NOT be processed |
+| 160 | Mux Video Webhook | ⚠️ | Mux integration exists in `integration/mux/` | N/A | Need to verify Mux webhook endpoint exists (may be in MuxWebhookController) |
+| 161 | Subscription Auto-Expiry | ✅ | `SchedulerConfig.checkExpiredSubscriptions()` — cron `0 0 0 * * *` (midnight daily) → `subscriptionService.checkAndExpireSubscriptions()` | N/A | None |
+| 162 | Expiry Reminders | ✅ | `SchedulerConfig.sendSubscriptionReminders()` — cron `0 0 9 * * *` (9am daily) → `subscriptionService.sendExpiryReminders()` | N/A | None |
+| 163 | Notification Cleanup | ✅ | `SchedulerConfig.cleanupOldNotifications()` — cron `0 0 2 1 * *` (2am, 1st of month) → `notificationService.cleanupOldNotifications()` | N/A | None |
+| 164 | Email: Welcome | ⚠️ | Email service likely sends on registration | Need to verify in `AuthServiceImpl` | ⚠️ Needs service impl verification |
+| 165 | Email: Verification | ✅ | Sent during `AuthService.register()` | N/A | None |
+| 166 | Email: Password Reset | ✅ | Sent during `AuthService.forgotPassword()` | N/A | None |
+| 167 | Email: Purchase Confirm | ⚠️ | Likely in `PaymentServiceImpl.handlePayzoneWebhook()` | N/A | ⚠️ Needs service impl verification |
+| 168 | Email: Subscription Confirm | ⚠️ | Would be in subscription webhook — but **webhook is empty** | N/A | 🐛 Cannot send confirmation if webhook does nothing |
+| 169 | Email: Certificate Earned | ⚠️ | Likely in `CertificateServiceImpl` | N/A | ⚠️ Needs verification |
+| 170 | Email: New Lesson | ⚠️ | May notify enrolled students when lesson created | N/A | ⚠️ Needs verification in lesson service |
+| 171 | WebSocket: Real-time Messages | ✅ | [WebSocketConfig](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/websocket/WebSocketConfig.java#11-37) with STOMP `/ws`, `WebSocketAuthInterceptor` | Frontend needs SockJS/STOMP client | ⚠️ Backend configured; need to verify frontend client |
+| 172 | WebSocket: Real-time Notifications | ⚠️ | WebSocket configured for `/topic/` prefixes | No frontend subscription visible in services | ⚠️ Same as 171 |
+| 173 | JWT Token Expiry | ✅ | 15min access token configured in [application.yml](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/resources/application.yml) | Axios interceptor auto-refreshes on 401 | None |
+| 174 | JWT Refresh Expiry | ✅ | 7-day refresh token | On refresh failure → redirect to login | None |
+| 175 | File Uploads | ✅ | 50MB max, `./uploads` directory, served via `/files/**` | `apiMultipart` Axios instance (60s timeout) | ⚠️ Relative `./uploads` path risky in production |
+| 176 | CORS | ✅ | [SecurityConfig](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/config/SecurityConfig.java#23-99) allows `*` origins | Works for dev; too permissive for production | ⚠️ Should restrict in production |
+| 177 | Error 404 / 500 | ⚠️ | [GlobalExceptionHandler](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/exception/GlobalExceptionHandler.java#19-121) returns JSON errors | `Error404` and `Error500` pages exist in auth routes | 🐛 No catch-all `*` route in router — unknown URLs show blank page, not 404 |
+
+---
+
+## Summary of Critical Issues Found
+
+| Severity | # | Issue |
+|----------|---|-------|
+| 🔴 Critical | 159 | **Subscription webhook is empty** — handler returns "OK" without processing |
+| 🔴 Critical | 25 | **No frontend role guards** — any authenticated user can navigate to admin/instructor pages |
+| 🔴 Critical | 141 | **Reject course endpoint missing** — frontend calls endpoint that doesn't exist |
+| 🟡 Major | 100 | **Quiz edit endpoint missing** — can only create or delete quizzes |
+| 🟡 Major | 103 | **Quiz attempts returns empty stub** — always returns empty page |
+| 🟡 Major | 135 | **Ban user parameter mismatch** — frontend sends body, backend expects query param |
+| 🟡 Major | 154 | **Admin subscriptions page missing** entirely |
+| 🟡 Major | 87 | **Module reorder API missing** — no endpoint to change module order |
+| 🟠 Minor | 18 | **Resend verification** — backend endpoint exists, frontend doesn't call it |
+| 🟠 Minor | 155-156 | **Admin analytics/reports** — backend returns `Object`, no frontend pages |
+| 🟠 Minor | 177 | **No catch-all 404 route** in React router |
+| 🟠 Minor | 128 | **Integrations** — no backend for Zoom/Meet config |

@@ -1,0 +1,95 @@
+# Section 1A — Case Analysis (Cases 1–60)
+
+> Legend: ✅ Works | ⚠️ Partial | ❌ Missing | 🐛 Bug
+
+## 🔓 PUBLIC (Cases 1–15)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 1 | Home Page | ✅ | `GET /api/v1/courses/stats` → `PlatformStatsResponse`, `GET /api/v1/courses/featured-instructors` | `HomeOne` component, `CourseService.getPlatformStats()`, `CourseService.getFeaturedInstructors()` | None found |
+| 2 | Course Grid Browse | ✅ | `GET /api/v1/courses` with `search`, `categoryId`, `level`, `sortBy` params | `CourseGrid` component, `CourseService.getCourses()` | None found |
+| 3 | Course List Browse | ✅ | Same API as #2 | `CourseList` component | None found |
+| 4 | Course Details | ✅ | `GET /api/v1/courses/slug/{slug}`, `GET /api/v1/courses/{id}/curriculum`, `GET /api/v1/courses/{id}/reviews` | `CourseDetails` component | None found |
+| 5 | Course Category | ✅ | `GET /api/v1/categories`, `GET /api/v1/courses?categoryId=` | [CourseCategory](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#117-126) component, route `${routes.courseCategory}/:slug` | None found |
+| 6 | Instructor List | ✅ | `GET /api/v1/courses/featured-instructors` | `InstructorList` + `InstructorGrid` pages | None found |
+| 7 | Instructor Profile | ✅ | `GET /api/v1/courses/instructor/{id}/profile`, `GET /api/v1/courses/instructor/{id}/courses` | `InstructorDetails` at `${routes.instructorDetails}/:instructorId` | None found |
+| 8 | Blog / Community | ⚠️ | `GET /api/v1/community/posts` | `BlogGrid` etc. pages exist but are static blog layouts — may not be wired to community API | Blog pages appear to be template pages, not connected to community backend |
+| 9 | Pricing Plans | ✅ | `GET /api/v1/subscriptions/plans` | `PricePlanning` component | None found |
+| 10 | Certificate Verify | ✅ | `GET /api/v1/certificates/verify/{certificateNumber}` — public endpoint | No dedicated verify page in frontend routes | ⚠️ Backend endpoint exists but no frontend UI for public certificate verification |
+| 11 | About / Contact / FAQ | ✅ | N/A (static pages) | `AboutUs`, `ContactUs`, `Faq` components with routes | None found |
+| 12 | Privacy / Terms | ✅ | N/A (static pages) | `PrivacyPolicy`, `TermsCondition` components | None found |
+| 13 | Navbar | ✅ | N/A | Header component in `core/common/` | None found |
+| 14 | Mobile Menu | ✅ | N/A | Handled by CSS/Bootstrap responsive + sidebar slice | Cannot verify without runtime test |
+| 15 | Breadcrumb | ✅ | N/A | Breadcrumb in layout | None found |
+
+### Test Scenarios (Cases 1–15)
+```
+Case 1:  GET /api/v1/courses/stats → 200 { totalCourses, totalStudents, ... }
+Case 2:  GET /api/v1/courses?page=0&size=12&search=cake&level=BEGINNER → 200 { content[], page, totalPages }
+Case 4:  GET /api/v1/courses/slug/chocolate-cake-101 → 200 { id, title, curriculum, reviews }
+Case 9:  GET /api/v1/subscriptions/plans → 200 [{ name: "Yearly", price: 1200 }]
+Case 10: GET /api/v1/certificates/verify/CERT-2024-001 → 200 { valid, studentName, courseName }
+```
+
+---
+
+## 🔐 AUTHENTICATION (Cases 16–25)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 16 | Register | ✅ | `POST /api/v1/auth/register` → `AuthResponse` | [Register](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/auth/register/register.tsx#30-559) component (561 lines) with password strength validation | None found |
+| 17 | Email Verification | ✅ | `GET /api/v1/auth/verify-email?token=` | No dedicated frontend page — relies on email link hitting backend directly | ⚠️ No UI feedback page after verification; backend redirects unclear |
+| 18 | Resend Verification | ⚠️ | `POST /api/v1/auth/resend-verification` exists in [AuthController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/AuthController.java#19-108) | Not found in [auth.service.ts](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/auth.service.ts) frontend API | 🐛 Backend endpoint exists but frontend doesn't call it |
+| 19 | Login | ✅ | `POST /api/v1/auth/login` → `AuthResponse` | [Login](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/auth/login/login.tsx#17-361) component dispatches `authSlice.login` thunk | None found |
+| 20 | Forgot Password | ✅ | `POST /api/v1/auth/forgot-password` | `ForgortPassword` component (typo in filename) | None found |
+| 21 | Reset Password | ✅ | `POST /api/v1/auth/reset-password` | `SetPassword` component at `/set-password` route | None found |
+| 22 | Token Refresh | ✅ | `POST /api/v1/auth/refresh-token` | Axios response interceptor auto-refreshes on 401 | None found |
+| 23 | Logout | ✅ | `POST /api/v1/auth/logout` | `authService.logout()` clears localStorage | ⚠️ Backend invalidates refresh token but access token remains valid until expiry (no server-side blacklist) |
+| 24 | Protected Routes | ⚠️ | Backend: [SecurityConfig](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/config/SecurityConfig.java#23-99) requires auth for `/api/v1/**` except public endpoints | [SubscriptionGuard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/common/SubscriptionGuard.tsx#10-29) only checks [isAuthenticated](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/auth.service.ts#85-89) from Redux state | 🐛 Guard only checks Redux state — if user manually navigates and Redux isn't hydrated, guard may fail. Also, instructor/admin routes have NO frontend guard at all. |
+| 25 | Role Guard | ❌ | Backend: `@PreAuthorize("hasRole('ADMIN')")` on [AdminController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/AdminController.java#15-143), `@PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")` on [InstructorController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/InstructorController.java#19-309) | **No role-based guards** in frontend routing | 🐛 Student can navigate to `/instructor/*` or `/admin/*` routes — they'll see the UI but API calls will fail with 403. Bad UX. |
+
+### Key Issues Found
+> [!WARNING]
+> **Case 25**: No frontend role-based route guards exist. All dashboard routes (student, instructor, admin) are registered as `publicRoutes` in [router.link.tsx](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/router/router.link.tsx). Only the [SubscriptionGuard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/common/SubscriptionGuard.tsx#10-29) (auth check) wraps student pages. Instructor and admin pages have **zero** frontend protection.
+
+---
+
+## 🎓 STUDENT (Cases 26–60)
+
+| # | Feature | Status | Backend | Frontend | Issues |
+|---|---------|--------|---------|----------|--------|
+| 26 | Student Dashboard | ✅ | n/a (uses enrollment + course APIs) | `StudentDashboard` wrapped in [SubscriptionGuard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/common/SubscriptionGuard.tsx#10-29) | None found |
+| 27 | My Courses | ✅ | `GET /api/v1/courses/my-courses?page=&size=` | [StudentCourse](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/instructor.service.ts#81-92) component | None found |
+| 28 | Enroll Free Course | ✅ | `POST /api/v1/courses/{id}/enroll` | `CourseService.enrollInCourse()` | None found |
+| 29 | Purchase Course | ✅ | `POST /api/v1/payments/course/{courseId}` → returns PayZone URL | `PaymentService.initiateCoursePayment()` | None found |
+| 30 | Subscribe | ✅ | `POST /api/v1/subscriptions/subscribe` → PayZone URL | `SubscriptionService.subscribe()` | None found |
+| 31 | Cancel Subscription | ✅ | `POST /api/v1/subscriptions/cancel` | `SubscriptionService.cancelSubscription()` | None found |
+| 32 | Watch Lesson (Video) | ✅ | `GET /api/v1/lessons/{id}`, `GET /api/v1/lessons/{id}/video-url` → signed Mux URL | `CourseWatch` with [SubscriptionGuard](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/common/SubscriptionGuard.tsx#10-29), Mux player | None found |
+| 33 | Watch Lesson (Text) | ✅ | `GET /api/v1/lessons/{id}` returns `textContent` for TEXT type | `CourseWatch` renders based on `contentType` | None found |
+| 34 | Lesson Progress | ✅ | `POST /api/v1/lessons/{id}/progress` with `watchedSeconds` | `CourseService.updateLessonProgress()` | None found |
+| 35 | Mark Lesson Complete | ✅ | `POST /api/v1/lessons/{id}/complete` | `CourseService.completeLessonProgress()` | None found |
+| 36 | Course Completion | ⚠️ | Certificate auto-generation logic in `CertificateServiceImpl` | No frontend auto-trigger visible | ⚠️ Certificate generation may need manual investigation of service impl |
+| 37 | View Available Quizzes | ✅ | `GET /api/v1/student/quizzes?page=&size=` | [StudentQuiz](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/StudentQuizController.java#17-49) component | None found |
+| 38 | Start Quiz | ✅ | `POST /api/v1/student/quizzes/{quizId}/start` → returns attemptId | `QuizService.startQuiz()` | None found |
+| 39 | Answer Questions | ✅ | `POST /api/v1/student/attempts/{attemptId}/check` → instant feedback | `StudentAttemptController.checkAnswer()` | None found |
+| 40 | Submit Quiz | ✅ | `POST /api/v1/student/attempts/{attemptId}/submit` → score + pass/fail | `StudentAttemptController.submitAttempt()` | None found |
+| 41 | Write Review | ✅ | `POST /api/v1/courses/{id}/reviews` with `@Valid CreateReviewRequest` | `CourseService.createReview()` | None found |
+| 42 | Edit/Delete Review | ✅ | `PUT /api/v1/courses/{courseId}/reviews/{reviewId}`, `DELETE ...` | `CourseService.updateReview()`, `CourseService.deleteReview()` | None found |
+| 43 | Add to Wishlist | ✅ | `POST /api/v1/courses/{id}/wishlist` | `CourseService.addToWishlist()` | None found |
+| 44 | View Wishlist | ✅ | `GET /api/v1/courses/wishlist?page=&size=` | `StudentWishlist` component | None found |
+| 45 | Remove from Wishlist | ✅ | `DELETE /api/v1/courses/{id}/wishlist` | `CourseService.removeFromWishlist()` | None found |
+| 46 | View Certificates | ✅ | `GET /api/v1/certificates?page=&size=` | `StudentCertificates` component | None found |
+| 47 | Download Certificate | ✅ | `GET /api/v1/certificates/{id}/download` → PDF bytes | `CertificateService.downloadCertificate()` | None found |
+| 48 | View Conversations | ✅ | `GET /api/v1/messages/conversations` | `StudentMessage` component | None found |
+| 49 | Send Message | ✅ | `POST /api/v1/messages/send` with [SendMessageRequest](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/types.ts#402-406) | `MessageService.sendMessage()` | None found |
+| 50 | Receive Message | ⚠️ | REST API returns messages; WebSocket configured for real-time | WebSocket client integration unclear | ⚠️ Need to verify WebSocket subscription in frontend message component |
+| 51 | Mark as Read | ✅ | `PUT /api/v1/messages/{id}/read`, `PUT /api/v1/messages/conversations/{userId}/read` | `MessageService.markAsRead()` | None found |
+| 52 | Create Ticket | ✅ | `POST /api/v1/student/tickets` with `CreateTicketRequest` | `StudentTickets` component, `TicketService.createTicket()` | None found |
+| 53 | View My Tickets | ✅ | `GET /api/v1/student/tickets?page=&size=&status=` | `StudentTickets` component | None found |
+| 54 | Reply to Ticket | ✅ | `POST /api/v1/student/tickets/{id}/reply` with `ReplyTicketRequest` | `TicketService.replyToTicket()` | None found |
+| 55 | Close Ticket | ✅ | `PUT /api/v1/student/tickets/{id}/close` | `TicketService.closeTicket()` | None found |
+| 56 | Ticket Stats | ✅ | `GET /api/v1/student/tickets/stats` → `TicketStatsResponse` | `TicketService.getMyStats()` | None found |
+| 57 | View Notifications | ✅ | `GET /api/v1/notifications?page=&size=&type=` | `StudentNotification` component | None found |
+| 58 | Mark as Read | ✅ | `PUT /api/v1/notifications/{id}/read`, `PUT /api/v1/notifications/read-all` | `NotificationService.markAsRead()`, [markAllAsRead()](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/NotificationController.java#49-55) | None found |
+| 59 | Delete Notification | ✅ | `DELETE /api/v1/notifications/{id}` | `NotificationService.deleteNotification()` | None found |
+| 60 | Unread Count Badge | ✅ | `GET /api/v1/notifications/unread-count` | `NotificationService.getUnreadCount()` | Need to verify badge rendering in header |
