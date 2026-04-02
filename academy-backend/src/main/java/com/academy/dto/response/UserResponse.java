@@ -28,6 +28,7 @@ public class UserResponse {
     private LocalDateTime subscriptionEndDate;
     private String socialLinks;
     private LocalDateTime createdAt;
+    private Boolean mustChangePassword;
 
     public static UserResponse fromEntity(User user) {
         return UserResponse.builder()
@@ -43,6 +44,7 @@ public class UserResponse {
                 .subscriptionEndDate(user.getSubscriptionEndDate())
                 .socialLinks(user.getSocialLinks())
                 .createdAt(user.getCreatedAt())
+                .mustChangePassword(Boolean.TRUE.equals(user.getMustChangePassword()))
                 .build();
     }
 }

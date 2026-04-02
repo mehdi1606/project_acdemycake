@@ -39,12 +39,12 @@ export const all_routes = {
     instructorNotification: '/instructor/instructor-notifications',
     instructorIntegrations: '/instructor/instructor-integrations',
     instructorWithdraw: '/instructor/instructor-withdraw',
-    instructorWishlist: '/instructor/instructor-withdraw',
-    instructorReviews: '/instructor/instructor-withdraw',
-    instructorQuizAttempts: '/instructor/instructor-withdraw',
-    instructorOrders: '/instructor/instructor-withdraw',
-    instructorChat: '/instructor/instructor-withdraw',
-    instructorReferral: '/instructor/instructor-withdraw',
+    instructorWishlist: '/instructor/instructor-wishlist',
+    instructorReviews: '/instructor/instructor-reviews',
+    instructorQuizAttempts: '/instructor/instructor-quiz-attempts',
+    instructorOrders: '/instructor/instructor-orders',
+    instructorChat: '/instructor/instructor-chat',
+    instructorReferral: '/instructor/instructor-referral',
     instructorTickets: '/instructor/instructor-tickets',
     instructorQA: '/instructor/instructor-quiz-questions',
     instructorsettings: '/instructor/instructor-settings',
@@ -98,7 +98,7 @@ export const all_routes = {
     lockscreen: '/lock-screen',
     privacyPolicy: "/pages/privacy-policy",
     termsConditions: "/terms-conditions",
-    contactUs: "pages/contact-us",
+    contactUs: "/pages/contact-us",
     about_us: "/pages/about-us",
     invoices: "/pages/invoices",
     FAQ: "/pages/faq",
@@ -126,5 +126,9 @@ export const all_routes = {
     blogRightSidebar: "/blog/blog-right-sidebar",
     blogDetailsLeftSidebar: "/blog/blog-details-left-sidebar",
     blogDetailsRightSidebar: "/blog/blog-details-right-sidebar",
+
+    // Community
+    community: '/community',
+    communityPost: '/community/:postId',
 
 };

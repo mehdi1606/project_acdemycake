@@ -55,29 +55,6 @@ CREATE TABLE quiz_options (
 
 CREATE INDEX idx_quiz_options_question_id ON quiz_options(question_id);
 
--- ============================================================
--- Initial admin user
--- Email: anouareloddy@gmail.com  |  Password: Admin@1234
--- ============================================================
-INSERT INTO users (
-    id,
-    email,
-    password_hash,
-    full_name,
-    role,
-    is_email_verified,
-    created_at,
-    updated_at
-)
-SELECT
-    gen_random_uuid(),
-    'anouareloddy@gmail.com',
-    crypt('Admin@1234', gen_salt('bf', 10)),
-    'Anouar El Oddy',
-    'ADMIN',
-    TRUE,
-    NOW(),
-    NOW()
-WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE email = 'anouareloddy@gmail.com'
-);
+-- Initial admin user is bootstrapped at runtime via AdminBootstrapService
+-- using ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_FULL_NAME environment variables.
+-- No hardcoded credentials in migrations.

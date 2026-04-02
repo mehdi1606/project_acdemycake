@@ -55,6 +55,7 @@ const InstructorQuiz: React.FC = () => {
   const [quizForm, setQuizForm] = useState<QuizFormData>(emptyQuizForm);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question>(createEmptyQuestion());
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -191,6 +192,21 @@ const InstructorQuiz: React.FC = () => {
     catch (e: any) { console.error(e); message.error(e?.response?.data?.message || 'Failed to delete quiz.'); }
   };
 
+  const handleTogglePublish = async (quiz: Quiz) => {
+    setPublishingId(quiz.id);
+    try {
+      const updated = quiz.status === 'PUBLISHED'
+        ? await quizService.unpublishQuiz(quiz.id)
+        : await quizService.publishQuiz(quiz.id);
+      setQuizzes((prev) => prev.map((q) => q.id === quiz.id ? { ...q, status: updated.status } : q));
+      message.success(updated.status === 'PUBLISHED' ? 'Quiz published.' : 'Quiz moved to draft.');
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Failed to update quiz status.');
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
   const stepTitle = (n: number) => ['Basic Info', 'Questions', 'Settings', 'Review'][n - 1] || '';
 
   // Stepper
@@ -257,6 +273,23 @@ const InstructorQuiz: React.FC = () => {
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        className="lx-btn lx-btn-sm"
+                        disabled={publishingId === quiz.id}
+                        onClick={() => handleTogglePublish(quiz)}
+                        style={quiz.status === 'PUBLISHED'
+                          ? { background: 'rgba(107, 29, 42, 0.08)', color: '#6B1D2A', border: '1px solid rgba(107, 29, 42, 0.18)' }
+                          : { background: 'rgba(34, 139, 34, 0.08)', color: '#1a6e1a', border: '1px solid rgba(34, 139, 34, 0.2)' }
+                        }
+                        title={quiz.status === 'PUBLISHED' ? 'Move to Draft' : 'Publish Quiz'}
+                      >
+                        {publishingId === quiz.id
+                          ? <i className="isax isax-refresh" style={{ animation: 'spin 1s linear infinite' }} />
+                          : quiz.status === 'PUBLISHED'
+                            ? <><i className="isax isax-eye-slash" style={{ marginRight: 4 }} />Unpublish</>
+                            : <><i className="isax isax-send-2" style={{ marginRight: 4 }} />Publish</>
+                        }
+                      </button>
                       <Link to={all_routes.instructorQuizResult} className="lx-btn lx-btn-outline lx-btn-sm">
                         <i className="isax isax-chart" style={{ marginRight: 4 }} /> Results
                       </Link>

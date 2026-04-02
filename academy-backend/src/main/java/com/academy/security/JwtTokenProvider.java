@@ -3,9 +3,11 @@ package com.academy.security;
 import com.academy.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,16 @@ public class JwtTokenProvider {
 
     @Value("${app.jwt.refresh-token-expiration-ms}")
     private long refreshTokenExpirationMs;
+
+    @PostConstruct
+    public void validateSecrets() {
+        if (!StringUtils.hasText(jwtSecret)) {
+            throw new IllegalStateException("JWT_SECRET environment variable is required and must not be empty");
+        }
+        if (jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 characters (256 bits)");
+        }
+    }
 
     private SecretKey getSigningKey() {
         // Use the secret directly as bytes (supports any string format)

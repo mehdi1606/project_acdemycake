@@ -90,7 +90,21 @@
       "Bash(node /tmp/fix_quiz_questions.mjs)",
       "Bash(node /tmp/fix_quiz_result.mjs)",
       "Bash(node /tmp/fix_plan_settings.mjs)",
-      "Bash(grep -l \"btn btn-\\\\|form-control\\\\|modal fade\\\\|badge bg-\\\\|table table-\" \"C:/Users/asus/Documents/Project main/plateforme/template/src/feature-module/student/student-settings\"/*.tsx)"
+      "Bash(grep -l \"btn btn-\\\\|form-control\\\\|modal fade\\\\|badge bg-\\\\|table table-\" \"C:/Users/asus/Documents/Project main/plateforme/template/src/feature-module/student/student-settings\"/*.tsx)",
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(python -c \"import reportlab; print\\(''reportlab OK''\\)\")",
+      "Bash(python -c \"from reportlab.lib.pagesizes import A4; print\\(''A4 OK''\\)\")",
+      "Bash(python generate_audit_report.py)",
+      "Bash('/c/Users/asus/Documents/Project main/plateforme/academy-backend/.env.example':*)",
+      "Bash('/c/Users/asus/Documents/Project main/plateforme/academy-backend/src/main/resources/db/migration/V7__admin_password_policy.sql':*)",
+      "Bash('/c/Users/asus/Documents/Project main/plateforme/template/.env.example':*)",
+      "Bash(sort find:*)",
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
+      "Bash(xargs grep:*)",
+      "Bash(mvn dependency:get -Dartifact=me.paulschwarz:spring-dotenv:4.0.0 -q)",
+      "Bash(./mvnw dependency:get -Dartifact=me.paulschwarz:spring-dotenv:4.0.0 -q)",
+      "Read(//c//**)",
+      "Bash(cmd //c 'where java')"
     ]
   }
 }

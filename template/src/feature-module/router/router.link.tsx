@@ -45,6 +45,8 @@ import BlogLeftSidebar from "../blog/blog-layouts/blogLeftSidebar";
 import BlogRightSidebar from "../blog/blog-layouts/blogRightSidebar";
 import BlogDetailsLeftSidebar from "../blog/blog-details/blogDetailsLeftSidebar";
 import BlogDetailsRightSidebar from "../blog/blog-details/blogDetailsRightSidebar";
+import CommunityPage from "../community/CommunityPage";
+import CommunityPostDetail from "../community/CommunityPostDetail";
 import InstructorGrid from "../Pages/instructor/instructor-grid/instructorGrid";
 import InstructorList from "../Pages/instructor/instructor-list/instructorList";
 import InstructorDetails from "../Pages/instructor/instructor-details/instructor-details";
@@ -100,6 +102,15 @@ import AdminCategories from "../admin/categories/adminCategories";
 import AdminTransactions from "../admin/transactions/adminTransactions";
 import AdminTickets from "../admin/tickets/adminTickets";
 import AdminSettings from "../admin/settings/adminSettings";
+import AdminAnalytics from "../admin/analytics/adminAnalytics";
+import AdminSubscriptions from "../admin/subscriptions/adminSubscriptions";
+import AdminReports from "../admin/reports/adminReports";
+
+// Instructor stub imports
+import InstructorWishlist from "../Instructor/instructor-wishlist/instructorWishlist";
+import InstructorReviews from "../Instructor/instructor-reviews/instructorReviews";
+import InstructorOrders from "../Instructor/instructor-orders/instructorOrders";
+import InstructorReferral from "../Instructor/instructor-referral/instructorReferral";
 
 const routes = all_routes;
 
@@ -262,6 +273,36 @@ export const publicRoutes = [
   {
     path: routes.instructorWithdraw,
     element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorWithdraw  /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.instructorWishlist,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorWishlist /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.instructorReviews,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorReviews /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.instructorQuizAttempts,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorQuizResult /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.instructorOrders,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorOrders /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.instructorChat,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorMessage /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.instructorReferral,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorReferral /></RoleGuard>,
     route: Route,
   },
   {
@@ -538,6 +579,31 @@ export const publicRoutes = [
   {
     path: routes.adminSettings,
     element: <RoleGuard allowedRoles={['ADMIN']}><AdminSettings  /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.adminAnalytics,
+    element: <RoleGuard allowedRoles={['ADMIN']}><AdminAnalytics /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.adminSubscriptions,
+    element: <RoleGuard allowedRoles={['ADMIN']}><AdminSubscriptions /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.adminReports,
+    element: <RoleGuard allowedRoles={['ADMIN']}><AdminReports /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.community,
+    element: <CommunityPage />,
+    route: Route,
+  },
+  {
+    path: routes.communityPost,
+    element: <CommunityPostDetail />,
     route: Route,
   },
 ];

@@ -91,12 +91,10 @@ class CourseService {
   async getCategories(): Promise<CourseCategory[]> {
     try {
       const response = await api.get('/categories');
-      console.log('courseService.getCategories response.data:', response.data);
       // The axios interceptor already unwraps ApiResponse
       if (Array.isArray(response.data)) {
         return response.data;
       }
-      console.warn('getCategories: response.data is not an array:', response.data);
       return [];
     } catch (error) {
       console.error('courseService.getCategories error:', error);

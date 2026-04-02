@@ -153,12 +153,10 @@ class AdminService {
   async getCategories(): Promise<CourseCategory[]> {
     try {
       const response = await api.get('/categories');
-      console.log('adminService.getCategories response.data:', response.data);
       // The axios interceptor already unwraps ApiResponse
       if (Array.isArray(response.data)) {
         return response.data;
       }
-      console.warn('getCategories: response.data is not an array:', response.data);
       return [];
     } catch (error) {
       console.error('adminService.getCategories error:', error);
@@ -169,9 +167,7 @@ class AdminService {
   // Create category
   async createCategory(data: { name: string; description?: string; displayOrder?: number }): Promise<CourseCategory> {
     try {
-      console.log('Creating category:', data);
       const response = await api.post('/categories', data);
-      console.log('adminService.createCategory response.data:', response.data);
       return response.data;
     } catch (error) {
       console.error('adminService.createCategory error:', error);
@@ -182,9 +178,7 @@ class AdminService {
   // Update category
   async updateCategory(categoryId: string, data: { name?: string; description?: string; displayOrder?: number }): Promise<CourseCategory> {
     try {
-      console.log('Updating category:', categoryId, data);
       const response = await api.put(`/categories/${categoryId}`, data);
-      console.log('adminService.updateCategory response.data:', response.data);
       return response.data;
     } catch (error) {
       console.error('adminService.updateCategory error:', error);
@@ -202,11 +196,9 @@ class AdminService {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      console.log('Uploading image for category:', categoryId);
       const response = await api.post(`/categories/${categoryId}/image`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      console.log('adminService.uploadCategoryImage response.data:', response.data);
       return response.data;
     } catch (error) {
       console.error('adminService.uploadCategoryImage error:', error);

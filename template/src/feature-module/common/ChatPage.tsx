@@ -8,6 +8,7 @@ import { Spin } from 'antd';
 import { useAppSelector } from '../../core/redux/hooks';
 import { messageService, ConversationInfo, ChatMessage } from '../../services/api/message.service';
 import { getFileUrl } from '../../environment';
+import wsService from '../../services/websocket/websocketService';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -72,12 +73,16 @@ const ChatPage: React.FC<ChatPageProps> = ({
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
 
+  // ── ws connection state ───────────────────────────────────────────────────
+  const [wsConnected, setWsConnected] = useState(false);
+
   // ── refs ──────────────────────────────────────────────────────────────────
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const convPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const msgPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeConvIdRef = useRef<string | null>(null);
+  const wsSubIdRef = useRef<string | null>(null);
+  const wsConvSubIdRef = useRef<string | null>(null);
   const initializedRef = useRef(false);
 
   // ── load conversations ────────────────────────────────────────────────────
@@ -113,8 +118,11 @@ const ChatPage: React.FC<ChatPageProps> = ({
       activeConvIdRef.current = conv.participantId;
       setMessages([]);
 
-      // Clear old message poll
-      if (msgPollRef.current) clearInterval(msgPollRef.current);
+      // Unsubscribe from previous conversation topic
+      if (wsSubIdRef.current) {
+        wsService.unsubscribe(wsSubIdRef.current);
+        wsSubIdRef.current = null;
+      }
 
       await loadMessages(conv.participantId);
 
@@ -128,20 +136,80 @@ const ChatPage: React.FC<ChatPageProps> = ({
         )
       );
 
-      // Poll every 3 seconds for new messages
-      msgPollRef.current = setInterval(() => {
-        if (activeConvIdRef.current) {
-          loadMessages(activeConvIdRef.current, true);
-        }
-      }, 3_000);
+      // Subscribe to real-time messages for this conversation via WebSocket
+      if (wsService.isConnected) {
+        wsSubIdRef.current = wsService.subscribe(
+          `/user/queue/messages`,
+          (frame) => {
+            try {
+              const incoming: ChatMessage = JSON.parse(frame.body);
+              // Only append if message belongs to the active conversation
+              if (
+                incoming.senderId === activeConvIdRef.current ||
+                incoming.receiverId === activeConvIdRef.current
+              ) {
+                setMessages((prev) => {
+                  // Deduplicate by id
+                  if (prev.some((m) => m.id === incoming.id)) return prev;
+                  return [...prev, incoming];
+                });
+                // Update conversation preview
+                setConversations((prev) =>
+                  prev.map((c) =>
+                    c.participantId === incoming.senderId
+                      ? { ...c, lastMessage: incoming.content, lastMessageAt: incoming.createdAt, unreadCount: 0 }
+                      : c
+                  )
+                );
+                messageService.markConversationAsRead(incoming.senderId).catch(() => {});
+              }
+            } catch {
+              // malformed frame — ignore
+            }
+          },
+          `conv-${conv.participantId}`
+        );
+      }
     },
     [loadMessages]
   );
 
-  // ── bootstrap: load convs, then optionally open initial participant ────────
+  // ── bootstrap: WebSocket + load convs ─────────────────────────────────────
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
+
+    // Connect WebSocket
+    wsService.connect()
+      .then(() => {
+        setWsConnected(true);
+
+        // Subscribe to new-conversation notifications (incoming messages from new contacts)
+        wsConvSubIdRef.current = wsService.subscribe(
+          '/user/queue/conversations',
+          (frame) => {
+            try {
+              const updated: ConversationInfo = JSON.parse(frame.body);
+              setConversations((prev) => {
+                const exists = prev.some((c) => c.participantId === updated.participantId);
+                if (exists) {
+                  return prev.map((c) =>
+                    c.participantId === updated.participantId ? { ...c, ...updated } : c
+                  );
+                }
+                return [updated, ...prev];
+              });
+            } catch {
+              // ignore
+            }
+          },
+          'conv-list-updates'
+        );
+      })
+      .catch(() => {
+        // WebSocket unavailable — fall back to polling
+        convPollRef.current = setInterval(loadConversations, 10_000);
+      });
 
     loadConversations().then((convs) => {
       if (initialParticipantId) {
@@ -149,7 +217,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
         if (existing) {
           openConversation(existing);
         } else {
-          // Create a virtual conversation entry for a new conversation
           const virtual: ConversationInfo = {
             participantId: initialParticipantId,
             participantName: initialParticipantName ?? 'User',
@@ -165,12 +232,11 @@ const ChatPage: React.FC<ChatPageProps> = ({
       }
     });
 
-    // Conversation list polling (every 10 s)
-    convPollRef.current = setInterval(loadConversations, 10_000);
-
     return () => {
       if (convPollRef.current) clearInterval(convPollRef.current);
-      if (msgPollRef.current) clearInterval(msgPollRef.current);
+      if (wsSubIdRef.current) wsService.unsubscribe(wsSubIdRef.current);
+      if (wsConvSubIdRef.current) wsService.unsubscribe(wsConvSubIdRef.current);
+      wsService.disconnect();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

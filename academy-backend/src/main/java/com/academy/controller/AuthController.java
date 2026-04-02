@@ -4,17 +4,14 @@ import com.academy.dto.request.*;
 import com.academy.dto.response.ApiResponse;
 import com.academy.dto.response.AuthResponse;
 import com.academy.dto.response.UserResponse;
-import com.academy.exception.ForbiddenException;
 import com.academy.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -23,7 +20,6 @@ import java.util.Arrays;
 public class AuthController {
 
     private final AuthService authService;
-    private final Environment environment;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user")
@@ -32,13 +28,9 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Registration successful", response));
     }
     @PostMapping("/register-admin")
-    @Operation(summary = "Register admin user - DEVELOPMENT ONLY")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Register a new admin user — requires ADMIN role")
     public ResponseEntity<ApiResponse<AuthResponse>> registerAdmin(@Valid @RequestBody RegisterRequest request) {
-        // Only enable in development profile
-        if (!Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
-            throw new ForbiddenException("This endpoint is only available in development mode");
-        }
-
         AuthResponse response = authService.registerAdmin(request);
         return ResponseEntity.ok(ApiResponse.success("Admin registration successful", response));
     }

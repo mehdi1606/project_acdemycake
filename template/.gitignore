@@ -9,12 +9,21 @@
 /coverage
 
 # production
+/build
+build_output*.txt
+ts_errors.txt
+tmp_*.js
 
 # misc
 .DS_Store
+
+# Environment files — NEVER commit secrets
+.env
 .env.local
+.env.development
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
 
 npm-debug.log*

@@ -65,14 +65,11 @@ const AddNewCourse = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        console.log('Fetching categories...');
         const categories = await courseService.getCategories();
-        console.log('Categories received:', categories);
         const options = categories.map((cat: CourseCategoryType) => ({
           label: cat.name,
           value: cat.id.toString()
         }));
-        console.log('Category options:', options);
         setCategoryOptions(options);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -87,8 +84,6 @@ const AddNewCourse = () => {
 
   // Debug log for CourseLevel
   useEffect(() => {
-    console.log('CourseLevel options:', CourseLevel);
-    console.log('Language options:', Language);
   }, []);
 
   // Form data state
@@ -216,15 +211,6 @@ const AddNewCourse = () => {
         const shortDescValid = formData.shortDescription.trim().length >= 20;
         const descriptionText = formData.description.replace(/<[^>]*>/g, '').trim();
         const descriptionValid = descriptionText.length >= 50;
-
-        console.log('Step 1 Validation:', {
-          title: formData.title, titleValid,
-          category: formData.category, categoryValid,
-          level: formData.level, levelValid,
-          language: formData.language, languageValid,
-          shortDescription: formData.shortDescription.length, shortDescValid,
-          descriptionLength: descriptionText.length, descriptionValid
-        });
 
         return titleValid && categoryValid && levelValid && languageValid && shortDescValid && descriptionValid;
       case 2:
@@ -359,7 +345,6 @@ const AddNewCourse = () => {
 
     if (validationErrors.length > 0) {
       message.error(validationErrors[0]);
-      console.log('Validation errors:', validationErrors);
       return;
     }
 
@@ -383,18 +368,15 @@ const AddNewCourse = () => {
         tags: Array.isArray(value1) ? value1.join(',') : (value1 || ''),
       };
 
-      console.log('Submitting course:', courseData);
 
       // Create the course
       const createdCourse = await instructorService.createCourse(courseData);
-      console.log('Course created:', createdCourse);
       setCreatedCourseId(createdCourse.id);
 
       // Upload thumbnail if provided
       if (formData.thumbnail) {
         try {
           await instructorService.uploadThumbnail(createdCourse.id, formData.thumbnail);
-          console.log('Thumbnail uploaded successfully');
         } catch (thumbError) {
           console.error('Thumbnail upload failed:', thumbError);
           message.warning('Course created, but thumbnail upload failed. You can add it later.');
