@@ -17,6 +17,10 @@ public interface SubscriptionService {
 
     void cancelSubscription();
 
+    SubscriptionResponse reactivateSubscription();
+
+    PageResponse<SubscriptionResponse> getAllSubscriptions(int page, int size, String status);
+
     PageResponse<SubscriptionResponse> getSubscriptionHistory(int page, int size);
 
     void processSuccessfulPayment(String transactionId, String payzoneTransactionId);

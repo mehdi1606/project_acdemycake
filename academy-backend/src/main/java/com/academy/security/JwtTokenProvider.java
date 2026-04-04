@@ -68,6 +68,10 @@ public class JwtTokenProvider {
         return UUID.fromString(claims.getSubject());
     }
 
+    /**
+     * Validates the token silently — returns false on any failure.
+     * Kept for backward compatibility.
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -87,6 +91,24 @@ public class JwtTokenProvider {
             log.error("JWT validation error: {}", ex.getMessage());
         }
         return false;
+    }
+
+    /**
+     * Validates the token and propagates typed exceptions so the caller can
+     * distinguish between an expired token and a malformed/invalid one.
+     *
+     * @throws ExpiredJwtException      if the token has expired
+     * @throws MalformedJwtException    if the token structure is invalid
+     * @throws UnsupportedJwtException  if the token type is not supported
+     * @throws IllegalArgumentException if the token is empty/null
+     * @return true if valid
+     */
+    public boolean validateTokenStrict(String token) {
+        Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token);
+        return true;
     }
 
     public long getAccessTokenExpirationMs() {

@@ -698,3 +698,61 @@ export interface CourseQueryParams extends PaginationParams {
   minRating?: number;
   instructorId?: string;
 }
+
+// ============================================
+// Assignment Types
+// ============================================
+
+export type AssignmentStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED';
+
+export interface Assignment {
+  id: string;
+  courseId: string;
+  courseTitle?: string;
+  instructorId?: string;
+  title: string;
+  description?: string;
+  instructions?: string;
+  dueDate?: string;
+  totalMark: number;
+  status: AssignmentStatus;
+  submissionsCount?: number;
+  createdAt: string;
+}
+
+export interface CreateAssignmentRequest {
+  courseId: string;
+  title: string;
+  description?: string;
+  instructions?: string;
+  dueDate?: string;
+  totalMark?: number;
+  status?: AssignmentStatus;
+}
+
+export interface SubmitAssignmentRequest {
+  content: string;
+  fileUrl?: string;
+}
+
+export interface GradeSubmissionRequest {
+  grade: number;
+  feedback?: string;
+}
+
+export interface Submission {
+  id: string;
+  assignmentId: string;
+  assignmentTitle: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  content: string;
+  fileUrl?: string;
+  grade?: number;
+  totalMark: number;
+  feedback?: string;
+  gradedAt?: string;
+  gradedByName?: string;
+  submittedAt: string;
+}

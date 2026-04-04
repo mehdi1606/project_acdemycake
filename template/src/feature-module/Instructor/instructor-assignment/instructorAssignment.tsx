@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout'
 import { instructorService, Assignment, AssignmentStatus } from '../../../services/api/instructor.service'
-import { Course } from '../../../services/api/types'
+import { Course, Submission } from '../../../services/api/types'
+import { assignmentService } from '../../../services/api/assignment.service'
+import { extractApiError } from '../../../services/api/error.utils'
 
-type ModalState = 'none' | 'add' | 'view' | 'edit' | 'delete'
+type ModalState = 'none' | 'add' | 'view' | 'edit' | 'delete' | 'submissions'
 
 interface AssignmentForm {
   courseId: string
@@ -113,6 +115,15 @@ const InstructorAssignment: React.FC = () => {
   const [submitting, setSubmitting] = useState<boolean>(false)
   const [deleteSubmitting, setDeleteSubmitting] = useState<boolean>(false)
 
+  // Submissions state
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [submissionsLoading, setSubmissionsLoading] = useState(false)
+  const [submissionsError, setSubmissionsError] = useState<string | null>(null)
+  const [gradingId, setGradingId] = useState<string | null>(null)
+  const [gradeValue, setGradeValue] = useState('')
+  const [gradeFeedback, setGradeFeedback] = useState('')
+  const [grading, setGrading] = useState(false)
+
   const fetchAssignments = useCallback(async (page: number) => {
     try {
       setLoading(true)
@@ -150,6 +161,48 @@ const InstructorAssignment: React.FC = () => {
 
   const formatDate = (dateStr?: string) =>
     dateStr ? new Date(dateStr).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+  const openSubmissions = useCallback(async (a: Assignment) => {
+    setSelected(a)
+    setSubmissions([])
+    setSubmissionsError(null)
+    setGradingId(null)
+    setGradeValue('')
+    setGradeFeedback('')
+    setModal('submissions')
+    setSubmissionsLoading(true)
+    try {
+      const data = await assignmentService.getSubmissionsForAssignment(a.id, 0, 50)
+      setSubmissions(data.content)
+    } catch (e) {
+      setSubmissionsError(extractApiError(e, 'Failed to load submissions'))
+    } finally {
+      setSubmissionsLoading(false)
+    }
+  }, [])
+
+  const startGrading = (sub: Submission) => {
+    setGradingId(sub.id)
+    setGradeValue(sub.grade !== undefined && sub.grade !== null ? String(sub.grade) : '')
+    setGradeFeedback(sub.feedback || '')
+  }
+
+  const cancelGrading = () => { setGradingId(null); setGradeValue(''); setGradeFeedback('') }
+
+  const submitGrade = async (submissionId: string) => {
+    const grade = parseInt(gradeValue)
+    if (isNaN(grade) || grade < 0) return
+    setGrading(true)
+    try {
+      const updated = await assignmentService.gradeSubmission(submissionId, { grade, feedback: gradeFeedback.trim() || undefined })
+      setSubmissions(prev => prev.map(s => s.id === submissionId ? updated : s))
+      cancelGrading()
+    } catch (e) {
+      setSubmissionsError(extractApiError(e, 'Failed to save grade'))
+    } finally {
+      setGrading(false)
+    }
+  }
 
   const openAdd = () => { setForm(emptyForm()); setModal('add'); }
   const openView = (a: Assignment) => { setSelected(a); setModal('view'); }
@@ -298,6 +351,7 @@ const InstructorAssignment: React.FC = () => {
                     <td><StatusBadge status={a.status} /></td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
+                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openSubmissions(a)} title="Submissions"><i className="isax isax-document-text" /></button>
                         <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openView(a)} title="View"><i className="isax isax-eye" /></button>
                         <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openEdit(a)} title="Edit"><i className="isax isax-edit-2" /></button>
                         <button type="button" className="lx-btn lx-btn-sm" onClick={() => openDelete(a)} title="Delete" style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}><i className="isax isax-trash" /></button>
@@ -372,6 +426,100 @@ const InstructorAssignment: React.FC = () => {
               </button>
             </div>
           </form>
+        </GlassModal>
+      )}
+
+      {/* Submissions Modal */}
+      {modal === 'submissions' && selected && (
+        <GlassModal maxWidth={800}>
+          <ModalHeader title={`Submissions — ${selected.title}`} />
+          <div style={{ padding: 24, maxHeight: '60vh', overflowY: 'auto' }}>
+            {submissionsLoading ? (
+              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lx-text-muted)' }}>Loading…</div>
+            ) : submissionsError ? (
+              <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(139,35,53,0.06)', color: '#8B2335', fontSize: 13 }}>{submissionsError}</div>
+            ) : submissions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lx-text-muted)', fontSize: 14 }}>
+                <i className="isax isax-document" style={{ fontSize: 32, display: 'block', marginBottom: 8, opacity: 0.4 }} />
+                No submissions yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {submissions.map(sub => (
+                  <div key={sub.id} style={{ border: '1px solid var(--lx-border)', borderRadius: 10, padding: '14px 16px', background: 'var(--lx-bg)' }}>
+                    {/* Student header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <div>
+                        <span style={{ fontWeight: 600, fontSize: 14 }}>{sub.studentName}</span>
+                        <span style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginLeft: 8 }}>{sub.studentEmail}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {sub.grade !== undefined && sub.grade !== null ? (
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#16a34a' }}>{sub.grade}/{sub.totalMark}</span>
+                        ) : (
+                          <span style={{ fontSize: 12, color: '#d97706', fontWeight: 600 }}>Ungraded</span>
+                        )}
+                        {gradingId !== sub.id && (
+                          <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => startGrading(sub)}>
+                            {sub.grade !== undefined && sub.grade !== null ? 'Re-grade' : 'Grade'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Submission content */}
+                    <div style={{ fontSize: 13, color: 'var(--lx-text)', background: 'rgba(107,29,42,0.02)', borderRadius: 6, padding: '8px 10px', marginBottom: 8, whiteSpace: 'pre-wrap', maxHeight: 120, overflowY: 'auto' }}>
+                      {sub.content}
+                    </div>
+                    {sub.fileUrl && (
+                      <a href={sub.fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--lx-primary)', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                        <i className="isax isax-paperclip-2" />Attachment
+                      </a>
+                    )}
+                    {sub.feedback && gradingId !== sub.id && (
+                      <div style={{ fontSize: 12, color: 'var(--lx-text-muted)', fontStyle: 'italic' }}>Feedback: {sub.feedback}</div>
+                    )}
+
+                    {/* Grade form */}
+                    {gradingId === sub.id && (
+                      <div style={{ marginTop: 10, padding: '12px 14px', background: 'rgba(107,29,42,0.03)', borderRadius: 8, border: '1px solid rgba(107,29,42,0.08)' }}>
+                        <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+                          <div style={{ flex: '0 0 100px' }}>
+                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Grade (/{sub.totalMark})</label>
+                            <input
+                              type="number" min={0} max={sub.totalMark}
+                              value={gradeValue}
+                              onChange={e => setGradeValue(e.target.value)}
+                              style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid var(--lx-border)', fontSize: 13, outline: 'none' }}
+                            />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Feedback (optional)</label>
+                            <input
+                              type="text"
+                              value={gradeFeedback}
+                              onChange={e => setGradeFeedback(e.target.value)}
+                              placeholder="Great work! / Needs improvement…"
+                              style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid var(--lx-border)', fontSize: 13, outline: 'none' }}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button type="button" className="lx-btn lx-btn-sm lx-btn-primary" disabled={grading || gradeValue === ''} onClick={() => submitGrade(sub.id)}>
+                            {grading ? 'Saving…' : 'Save Grade'}
+                          </button>
+                          <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={cancelGrading}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ padding: '14px 24px', borderTop: '1px solid rgba(107,29,42,0.08)', display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Close</button>
+          </div>
         </GlassModal>
       )}
 

@@ -1,5 +1,6 @@
 package com.academy.service.impl;
 
+import com.academy.dto.request.AdminCreateUserRequest;
 import com.academy.dto.request.ChangePasswordRequest;
 import com.academy.dto.request.UpdateProfileRequest;
 import com.academy.dto.response.PageResponse;
@@ -9,6 +10,7 @@ import com.academy.exception.BadRequestException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.repository.UserRepository;
 import com.academy.security.UserPrincipal;
+import com.academy.service.EmailService;
 import com.academy.service.FileStorageService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -33,6 +36,44 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
+    private final EmailService emailService;
+
+    private static final String PASSWORD_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    @Override
+    @Transactional
+    public UserResponse adminCreateUser(AdminCreateUserRequest request) {
+        String email = request.getEmail().toLowerCase().trim();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new BadRequestException("A user with this email already exists");
+        }
+
+        String rawPassword = generatePassword(12);
+
+        User user = User.builder()
+                .email(email)
+                .fullName(request.getFullName().trim())
+                .role(request.getRole())
+                .passwordHash(passwordEncoder.encode(rawPassword))
+                .isEmailVerified(true)
+                .build();
+
+        User saved = userRepository.save(user);
+        emailService.sendAccountCreatedEmail(saved, rawPassword);
+
+        log.info("Admin created user: {} with role: {}", email, request.getRole());
+        return UserResponse.fromEntity(saved);
+    }
+
+    private String generatePassword(int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(PASSWORD_CHARS.charAt(SECURE_RANDOM.nextInt(PASSWORD_CHARS.length())));
+        }
+        return sb.toString();
+    }
 
     @Override
     public User findById(UUID id) {

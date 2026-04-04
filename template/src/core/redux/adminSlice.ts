@@ -104,7 +104,7 @@ export const fetchUsers = createAsyncThunk(
 
 export const banUser = createAsyncThunk(
   'admin/banUser',
-  async ({ userId, reason }: { userId: number; reason?: string }, { rejectWithValue }) => {
+  async ({ userId, reason }: { userId: string; reason?: string }, { rejectWithValue }) => {
     try {
       await adminService.banUser(userId, reason);
       return userId;
@@ -117,7 +117,7 @@ export const banUser = createAsyncThunk(
 
 export const unbanUser = createAsyncThunk(
   'admin/unbanUser',
-  async (userId: number, { rejectWithValue }) => {
+  async (userId: string, { rejectWithValue }) => {
     try {
       await adminService.unbanUser(userId);
       return userId;
@@ -130,7 +130,7 @@ export const unbanUser = createAsyncThunk(
 
 export const deleteUser = createAsyncThunk(
   'admin/deleteUser',
-  async (userId: number, { rejectWithValue }) => {
+  async (userId: string, { rejectWithValue }) => {
     try {
       await adminService.deleteUser(userId);
       return userId;

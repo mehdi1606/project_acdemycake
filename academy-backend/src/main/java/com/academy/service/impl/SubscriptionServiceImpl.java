@@ -150,6 +150,47 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional
+    public SubscriptionResponse reactivateSubscription() {
+        User user = getCurrentUser();
+
+        Subscription subscription = subscriptionRepository
+                .findByUserAndStatus(user, SubscriptionStatus.CANCELLED)
+                .orElseThrow(() -> new ResourceNotFoundException("No cancelled subscription found"));
+
+        if (subscription.getCurrentPeriodEnd().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Subscription has already expired. Please subscribe again.");
+        }
+
+        subscription.setCancelAtPeriodEnd(false);
+        subscription.setCancelledAt(null);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription = subscriptionRepository.save(subscription);
+
+        log.info("Subscription reactivated for user: {}", user.getEmail());
+        return SubscriptionResponse.fromEntity(subscription);
+    }
+
+    @Override
+    public PageResponse<SubscriptionResponse> getAllSubscriptions(int page, int size, String status) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Subscription> subscriptions;
+
+        if (status != null && !status.isBlank()) {
+            try {
+                SubscriptionStatus subStatus = SubscriptionStatus.valueOf(status.toUpperCase());
+                subscriptions = subscriptionRepository.findByStatus(subStatus, pageRequest);
+            } catch (IllegalArgumentException e) {
+                subscriptions = subscriptionRepository.findAll(pageRequest);
+            }
+        } else {
+            subscriptions = subscriptionRepository.findAll(pageRequest);
+        }
+
+        return PageResponse.from(subscriptions, SubscriptionResponse::fromEntity);
+    }
+
+    @Override
+    @Transactional
     public void processSuccessfulPayment(String orderId, String payzoneTransactionId) {
         PaymentTransaction transaction = transactionRepository.findByPayzoneOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));

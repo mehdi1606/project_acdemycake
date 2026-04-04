@@ -39,6 +39,11 @@ export const studentSidebarData = [
         subRoute: all_routes.studentQuizQuestion
     },
     {
+        title:'Assignments',
+        icon:'isax isax-document-text5',
+        route: all_routes.studentAssignments
+    },
+    {
         title:'Order History',
         icon:'isax isax-shopping-cart5',
         route: all_routes.studentOrderHistory

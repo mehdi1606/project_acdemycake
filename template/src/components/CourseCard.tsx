@@ -307,4 +307,4 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, layout = 'grid' }) => {
   );
 };
 
-export default CourseCard;
+export default React.memo(CourseCard);

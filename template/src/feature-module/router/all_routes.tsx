@@ -75,6 +75,8 @@ export const all_routes = {
     studentLinkedAccounts: '/student/student-linked-accounts',
     studentNotification: '/student/student-notifications',
     studentBillingAddress: '/student/student-billing-address',
+    studentSubscription: '/student/student-subscription',
+    studentAssignments: '/student/student-assignments',
 
     // Admin Routes
     adminDashboard: '/admin/dashboard',

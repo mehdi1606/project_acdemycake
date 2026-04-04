@@ -27,9 +27,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.academy.config.CacheConfig;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -57,12 +60,14 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.COURSE_DETAIL, key = "#id")
     public CourseResponse getCourseById(UUID id) {
         Course course = findById(id);
         return buildResponse(course);
     }
 
     @Override
+    @Cacheable(value = CacheConfig.COURSE_DETAIL, key = "'slug-' + #slug")
     public CourseResponse getCourseBySlug(String slug) {
         Course course = courseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "slug", slug));
@@ -105,6 +110,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.COURSES, key = "'popular-' + #page + '-' + #size")
     public PageResponse<CourseResponse> getPopularCourses(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Course> courses = courseRepository.findPopularCourses(pageRequest);
@@ -112,6 +118,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.COURSES, key = "'latest-' + #page + '-' + #size")
     public PageResponse<CourseResponse> getLatestCourses(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Course> courses = courseRepository.findLatestCourses(pageRequest);
@@ -156,6 +163,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public CourseResponse createCourse(CreateCourseRequest request) {
         User instructor = getCurrentUser();
 
@@ -198,6 +206,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL}, allEntries = true)
     public CourseResponse updateCourse(UUID id, UpdateCourseRequest request) {
         Course course = findById(id);
         verifyInstructorAccess(course);
@@ -381,6 +390,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.PLATFORM_STATS, key = "'stats'")
     public PlatformStatsResponse getPlatformStats() {
         long totalCourses = courseRepository.countPublishedCourses();
         long totalEnrollments = courseEnrollmentRepository.count();

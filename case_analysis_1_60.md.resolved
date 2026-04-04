@@ -33,11 +33,12 @@ Case 10: GET /api/v1/certificates/verify/CERT-2024-001 → 200 { valid, studentN
 
 ---
 
+
 ## 🔐 AUTHENTICATION (Cases 16–25)
 
-| # | Feature | Status | Backend | Frontend | Issues |
-|---|---------|--------|---------|----------|--------|
-| 16 | Register | ✅ | `POST /api/v1/auth/register` → `AuthResponse` | [Register](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/auth/register/register.tsx#30-559) component (561 lines) with password strength validation | None found |
+| # | Feature | Status | Backend | Frontend                | Issues |
+|---|---------|--------|---------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+|16 | Register| ✅     | `POST /api/v1/auth/register` → `AuthResponse` | [Register](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/auth/register/register.tsx#30-559) component (561 lines) with password strength validation | None found |
 | 17 | Email Verification | ✅ | `GET /api/v1/auth/verify-email?token=` | No dedicated frontend page — relies on email link hitting backend directly | ⚠️ No UI feedback page after verification; backend redirects unclear |
 | 18 | Resend Verification | ⚠️ | `POST /api/v1/auth/resend-verification` exists in [AuthController](file:///c:/Users/asus/Documents/Project%20main/plateforme/academy-backend/src/main/java/com/academy/controller/AuthController.java#19-108) | Not found in [auth.service.ts](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/services/api/auth.service.ts) frontend API | 🐛 Backend endpoint exists but frontend doesn't call it |
 | 19 | Login | ✅ | `POST /api/v1/auth/login` → `AuthResponse` | [Login](file:///c:/Users/asus/Documents/Project%20main/plateforme/template/src/feature-module/auth/login/login.tsx#17-361) component dispatches `authSlice.login` thunk | None found |

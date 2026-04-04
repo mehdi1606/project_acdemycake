@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, LoginRequest, RegisterRequest } from '../../services/api/types';
 import authService from '../../services/api/auth.service';
+import { extractApiError } from '../../services/api/error.utils';
 
 interface AuthState {
   user: User | null;
@@ -24,10 +25,7 @@ export const login = createAsyncThunk(
       const response = await authService.login(credentials);
       return response.user;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(
-        axiosError.response?.data?.message || 'Login failed'
-      );
+      return rejectWithValue(extractApiError(error, 'Login failed. Please try again.'));
     }
   }
 );
@@ -39,10 +37,7 @@ export const register = createAsyncThunk(
       const response = await authService.register(userData);
       return response;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(
-        axiosError.response?.data?.message || 'Registration failed'
-      );
+      return rejectWithValue(extractApiError(error, 'Registration failed. Please try again.'));
     }
   }
 );
@@ -58,10 +53,7 @@ export const fetchCurrentUser = createAsyncThunk(
       const user = await authService.getCurrentUser();
       return user;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(
-        axiosError.response?.data?.message || 'Failed to fetch user'
-      );
+      return rejectWithValue(extractApiError(error, 'Failed to fetch user profile.'));
     }
   }
 );

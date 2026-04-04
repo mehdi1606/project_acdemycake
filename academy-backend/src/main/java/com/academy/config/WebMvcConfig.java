@@ -8,12 +8,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Value("${app.file.upload-dir}")
     private String uploadDir;
+
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -26,7 +30,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/files/**")
-                .allowedOrigins("*")
+                .allowedOrigins(allowedOrigins.toArray(new String[0]))
                 .allowedMethods("GET", "HEAD", "OPTIONS");
     }
 }

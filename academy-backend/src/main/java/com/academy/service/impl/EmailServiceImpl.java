@@ -172,6 +172,19 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
+    public void sendAccountCreatedEmail(User user, String temporaryPassword) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", user.getFullName());
+        variables.put("email", user.getEmail());
+        variables.put("password", temporaryPassword);
+        variables.put("role", user.getRole().name());
+        variables.put("loginUrl", frontendUrl + "/login");
+
+        sendTemplatedEmail(user.getEmail(), "Your Cake Design Academy Account", "account-created", variables);
+    }
+
+    @Override
+    @Async
     public void sendGenericEmail(String to, String subject, String templateName, Object context) {
         if (context instanceof Map) {
             sendTemplatedEmail(to, subject, templateName, (Map<String, Object>) context);

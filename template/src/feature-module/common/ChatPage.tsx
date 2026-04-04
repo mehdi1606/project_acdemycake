@@ -37,8 +37,8 @@ const formatFullTime = (iso?: string | null) => {
 // ─── interfaces ───────────────────────────────────────────────────────────────
 
 interface ChatPageProps {
-  /** Sidebar component injected by the parent page */
-  sidebar: React.ReactNode;
+  /** Optional sidebar injected by the parent page. Pass null to use full width. */
+  sidebar?: React.ReactNode;
   /** ProfileCard component — accepted but rendered by parent; kept for API compat */
   profileCard: React.ReactNode;
   /**
@@ -53,7 +53,7 @@ interface ChatPageProps {
 // ─── component ────────────────────────────────────────────────────────────────
 
 const ChatPage: React.FC<ChatPageProps> = ({
-  sidebar,
+  sidebar = null,
   initialParticipantId,
   initialParticipantName,
 }) => {
@@ -306,9 +306,13 @@ const ChatPage: React.FC<ChatPageProps> = ({
   // ── render ────────────────────────────────────────────────────────────────
   return (
     <div className="row">
-      {sidebar}
+      {sidebar && (
+        <div className="col-lg-3">
+          {sidebar}
+        </div>
+      )}
 
-      <div className="col-lg-9">
+      <div className={sidebar ? 'col-lg-9' : 'col-lg-12'}>
         <div className="instructor-message">
           <h5 className="page-title d-flex align-items-center gap-2">
             Messages

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cake Design Academy Account</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 40px 0;">
+                <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #6B1D2A; padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 26px; letter-spacing: 0.5px;">Cake Design Academy</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 36px;">
+                            <h2 style="color: #1a1a1a; margin-top: 0; font-size: 22px;">Your account is ready</h2>
+
+                            <p style="color: #555555; font-size: 15px; line-height: 1.7;">
+                                Hi <strong th:text="${name}">User</strong>,
+                            </p>
+                            <p style="color: #555555; font-size: 15px; line-height: 1.7;">
+                                An administrator has created an account for you on <strong>Cake Design Academy</strong>.
+                                Your role is <strong th:text="${role}">STUDENT</strong>.
+                            </p>
+
+                            <!-- Credentials box -->
+                            <table role="presentation" style="width: 100%; background-color: #fdf6f7; border: 1.5px solid #e8c8cc; border-radius: 8px; margin: 28px 0;">
+                                <tr>
+                                    <td style="padding: 24px 28px;">
+                                        <p style="margin: 0 0 6px; font-size: 12px; font-weight: bold; color: #6B1D2A; text-transform: uppercase; letter-spacing: 0.8px;">Your Login Credentials</p>
+                                        <table role="presentation" style="width: 100%; margin-top: 14px;">
+                                            <tr>
+                                                <td style="width: 90px; padding: 6px 0; font-size: 13px; color: #888888; font-weight: bold;">Email</td>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #1a1a1a;" th:text="${email}">user@example.com</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 90px; padding: 6px 0; font-size: 13px; color: #888888; font-weight: bold;">Password</td>
+                                                <td style="padding: 6px 0;">
+                                                    <code style="font-size: 16px; font-family: 'Courier New', monospace; color: #6B1D2A; font-weight: bold; letter-spacing: 1px;" th:text="${password}">Temp1234!</code>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #cc3300; font-size: 13px; line-height: 1.6; margin-bottom: 28px;">
+                                ⚠️ For your security, please change this password immediately after your first login.
+                            </p>
+
+                            <!-- CTA -->
+                            <table role="presentation" style="width: 100%; margin-bottom: 10px;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a th:href="${loginUrl}"
+                                           style="display: inline-block; padding: 14px 36px; background-color: #6B1D2A; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 15px; font-weight: bold;">
+                                            Login to Your Account
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #999999; font-size: 13px; line-height: 1.6; margin-top: 28px;">
+                                If you weren't expecting this email, you can safely ignore it or contact our support team.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f5f5; padding: 20px 30px; text-align: center; border-top: 1px solid #f0e8e8;">
+                            <p style="color: #aaaaaa; font-size: 12px; margin: 0;">
+                                © 2024 Cake Design Academy. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

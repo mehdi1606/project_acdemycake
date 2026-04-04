@@ -1,12 +1,16 @@
 package com.academy.config;
 
+import com.academy.security.CustomAccessDeniedHandler;
 import com.academy.security.CustomUserDetailsService;
 import com.academy.security.JwtAuthenticationEntryPoint;
 import com.academy.security.JwtAuthenticationFilter;
+import com.academy.security.RateLimitingFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -34,7 +38,10 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
+    private final Environment environment;
 
     @Value("${app.cors.allowed-origins}")
     private List<String> allowedOrigins;
@@ -77,7 +84,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -105,8 +113,17 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         // Actuator: ADMIN only
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
-                        // Swagger: dev only (disabled in prod via application.yml)
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // Swagger: public in dev, ADMIN-only in prod
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html")
+                            .access((authentication, context) -> {
+                                if (environment.acceptsProfiles(Profiles.of("prod"))) {
+                                    return new org.springframework.security.authorization.AuthorizationDecision(
+                                        authentication.get().getAuthorities().stream()
+                                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))
+                                    );
+                                }
+                                return new org.springframework.security.authorization.AuthorizationDecision(true);
+                            })
                         // Admin endpoints
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         // Instructor endpoints
@@ -115,6 +132,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

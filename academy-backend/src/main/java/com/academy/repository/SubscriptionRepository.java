@@ -38,6 +38,10 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
             @Param("end") LocalDateTime end
     );
 
+    Page<Subscription> findAll(Pageable pageable);
+
+    Page<Subscription> findByStatus(SubscriptionStatus status, Pageable pageable);
+
     @Query("SELECT COUNT(s) FROM Subscription s WHERE s.status = 'ACTIVE'")
     long countActiveSubscriptions();
 

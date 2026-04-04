@@ -1,15 +1,22 @@
 package com.academy.service.impl;
 
 import com.academy.dto.request.CreateAssignmentRequest;
+import com.academy.dto.request.GradeSubmissionRequest;
+import com.academy.dto.request.SubmitAssignmentRequest;
 import com.academy.dto.response.AssignmentResponse;
 import com.academy.dto.response.PageResponse;
+import com.academy.dto.response.SubmissionResponse;
 import com.academy.entity.Assignment;
+import com.academy.entity.AssignmentSubmission;
 import com.academy.entity.Course;
 import com.academy.entity.User;
 import com.academy.entity.enums.AssignmentStatus;
+import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.repository.AssignmentRepository;
+import com.academy.repository.AssignmentSubmissionRepository;
+import com.academy.repository.CourseEnrollmentRepository;
 import com.academy.repository.CourseRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.AssignmentService;
@@ -23,6 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -33,6 +41,8 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     private final AssignmentRepository assignmentRepository;
     private final CourseRepository courseRepository;
+    private final AssignmentSubmissionRepository assignmentSubmissionRepository;
+    private final CourseEnrollmentRepository courseEnrollmentRepository;
     private final UserService userService;
 
     @Override
@@ -125,6 +135,108 @@ public class AssignmentServiceImpl implements AssignmentService {
         assignmentRepository.delete(assignment);
         log.info("Assignment deleted: {}", id);
     }
+
+    // ── Student-facing ────────────────────────────────────────────────────────
+
+    @Override
+    public PageResponse<AssignmentResponse> getStudentAssignments(int page, int size) {
+        User student = getCurrentUser();
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // Fetch assignments from courses the student is enrolled in and that are PUBLISHED
+        Page<Assignment> assignments = assignmentRepository.findPublishedByEnrolledStudent(student, pageRequest);
+        return PageResponse.from(assignments, AssignmentResponse::fromEntity);
+    }
+
+    @Override
+    @Transactional
+    public SubmissionResponse submitAssignment(UUID assignmentId, SubmitAssignmentRequest request) {
+        User student = getCurrentUser();
+        Assignment assignment = findAssignmentById(assignmentId);
+
+        if (assignment.getStatus() != AssignmentStatus.PUBLISHED) {
+            throw new BadRequestException("Assignment is not open for submission");
+        }
+
+        if (assignment.getDueDate() != null && LocalDateTime.now().isAfter(assignment.getDueDate().atStartOfDay())) {
+            throw new BadRequestException("Assignment due date has passed");
+        }
+
+        boolean enrolled = courseEnrollmentRepository.existsByUserAndCourse(student, assignment.getCourse());
+        if (!enrolled) {
+            throw new ForbiddenException("You are not enrolled in this course");
+        }
+
+        if (assignmentSubmissionRepository.existsByAssignmentAndStudent(assignment, student)) {
+            throw new BadRequestException("You have already submitted this assignment");
+        }
+
+        AssignmentSubmission submission = AssignmentSubmission.builder()
+                .assignment(assignment)
+                .student(student)
+                .content(request.getContent())
+                .fileUrl(request.getFileUrl())
+                .build();
+
+        AssignmentSubmission saved = assignmentSubmissionRepository.save(submission);
+        log.info("Assignment {} submitted by student: {}", assignmentId, student.getEmail());
+        return SubmissionResponse.fromEntity(saved);
+    }
+
+    @Override
+    public SubmissionResponse getMySubmission(UUID assignmentId) {
+        User student = getCurrentUser();
+        Assignment assignment = findAssignmentById(assignmentId);
+
+        return assignmentSubmissionRepository.findByAssignmentAndStudent(assignment, student)
+                .map(SubmissionResponse::fromEntity)
+                .orElseThrow(() -> new ResourceNotFoundException("Submission", "assignmentId", assignmentId));
+    }
+
+    // ── Instructor-facing ─────────────────────────────────────────────────────
+
+    @Override
+    public PageResponse<SubmissionResponse> getSubmissionsForAssignment(UUID assignmentId, int page, int size) {
+        User instructor = getCurrentUser();
+        Assignment assignment = findAssignmentById(assignmentId);
+
+        if (!assignment.getInstructor().getId().equals(instructor.getId())) {
+            throw new ForbiddenException("You don't have access to this assignment");
+        }
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"));
+        Page<AssignmentSubmission> submissions = assignmentSubmissionRepository.findByAssignment(assignment, pageRequest);
+        return PageResponse.from(submissions, SubmissionResponse::fromEntity);
+    }
+
+    @Override
+    @Transactional
+    public SubmissionResponse gradeSubmission(UUID submissionId, GradeSubmissionRequest request) {
+        User instructor = getCurrentUser();
+
+        AssignmentSubmission submission = assignmentSubmissionRepository.findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Submission", "id", submissionId));
+
+        if (!submission.getAssignment().getInstructor().getId().equals(instructor.getId())) {
+            throw new ForbiddenException("You don't have access to this submission");
+        }
+
+        int totalMark = submission.getAssignment().getTotalMark();
+        if (request.getGrade() > totalMark) {
+            throw new BadRequestException("Grade cannot exceed total mark of " + totalMark);
+        }
+
+        submission.setGrade(request.getGrade());
+        submission.setFeedback(request.getFeedback());
+        submission.setGradedAt(LocalDateTime.now());
+        submission.setGradedBy(instructor);
+
+        AssignmentSubmission saved = assignmentSubmissionRepository.save(submission);
+        log.info("Submission {} graded by instructor: {}", submissionId, instructor.getEmail());
+        return SubmissionResponse.fromEntity(saved);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private Assignment findAssignmentById(UUID id) {
         return assignmentRepository.findById(id)

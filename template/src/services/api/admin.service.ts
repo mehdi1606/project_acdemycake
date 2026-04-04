@@ -34,6 +34,21 @@ interface Analytics {
   }[];
 }
 
+interface SubscriptionItem {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userFullName: string;
+  planType: string;
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  amount: number;
+  currency: string;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+}
+
 interface Report {
   id: number;
   type: string;
@@ -73,23 +88,29 @@ class AdminService {
   }
 
   // Get user details
-  async getUserById(userId: number): Promise<AdminUser> {
+  async getUserById(userId: string | number): Promise<AdminUser> {
     const response = await api.get<AdminUser>(`/admin/users/${userId}`);
     return response.data;
   }
 
   // Ban user
-  async banUser(userId: number, reason?: string): Promise<void> {
+  async banUser(userId: string | number, reason?: string): Promise<void> {
     await api.post(`/admin/users/${userId}/ban`, null, { params: { reason } });
   }
 
   // Unban user
-  async unbanUser(userId: number): Promise<void> {
+  async unbanUser(userId: string | number): Promise<void> {
     await api.post(`/admin/users/${userId}/unban`);
   }
 
+  // Create user (admin) — generates password and sends credentials email
+  async createUser(data: { fullName: string; email: string; role: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' }): Promise<AdminUser> {
+    const response = await api.post<{ data: AdminUser; message: string }>('/admin/users', data);
+    return response.data.data;
+  }
+
   // Delete user
-  async deleteUser(userId: number): Promise<void> {
+  async deleteUser(userId: string | number): Promise<void> {
     await api.delete(`/admin/users/${userId}`);
   }
 
@@ -151,59 +172,32 @@ class AdminService {
 
   // Get all categories
   async getCategories(): Promise<CourseCategory[]> {
-    try {
-      const response = await api.get('/categories');
-      // The axios interceptor already unwraps ApiResponse
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      return [];
-    } catch (error) {
-      console.error('adminService.getCategories error:', error);
-      throw error;
-    }
+    const response = await api.get('/categories');
+    if (Array.isArray(response.data)) return response.data;
+    return [];
   }
 
-  // Create category
   async createCategory(data: { name: string; description?: string; displayOrder?: number }): Promise<CourseCategory> {
-    try {
-      const response = await api.post('/categories', data);
-      return response.data;
-    } catch (error) {
-      console.error('adminService.createCategory error:', error);
-      throw error;
-    }
+    const response = await api.post('/categories', data);
+    return response.data;
   }
 
-  // Update category
   async updateCategory(categoryId: string, data: { name?: string; description?: string; displayOrder?: number }): Promise<CourseCategory> {
-    try {
-      const response = await api.put(`/categories/${categoryId}`, data);
-      return response.data;
-    } catch (error) {
-      console.error('adminService.updateCategory error:', error);
-      throw error;
-    }
+    const response = await api.put(`/categories/${categoryId}`, data);
+    return response.data;
   }
 
-  // Delete category
   async deleteCategory(categoryId: string): Promise<void> {
     await api.delete(`/categories/${categoryId}`);
   }
 
-  // Upload category image
   async uploadCategoryImage(categoryId: string, file: File): Promise<string> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await api.post(`/categories/${categoryId}/image`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('adminService.uploadCategoryImage error:', error);
-      throw error;
-    }
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/categories/${categoryId}/image`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
   }
 
   // ============================================
@@ -226,6 +220,17 @@ class AdminService {
   async getReports(type?: string, page = 0, size = 20): Promise<PaginatedResponse<Report>> {
     const response = await api.get<PaginatedResponse<Report>>('/admin/reports', {
       params: { type, page, size },
+    });
+    return response.data;
+  }
+
+  // ============================================
+  // Subscriptions
+  // ============================================
+
+  async getSubscriptions(page = 0, size = 20, status?: string): Promise<PaginatedResponse<SubscriptionItem>> {
+    const response = await api.get<PaginatedResponse<SubscriptionItem>>('/admin/subscriptions', {
+      params: { page, size, status },
     });
     return response.data;
   }

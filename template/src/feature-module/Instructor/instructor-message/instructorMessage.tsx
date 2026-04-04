@@ -1,28 +1,22 @@
-import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-
-
-
+import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import ChatPage from '../../common/ChatPage';
 
 const InstructorMessage = () => {
   const [searchParams] = useSearchParams();
-  const initialParticipantId = searchParams.get('studentId') ?? undefined;
+  const initialParticipantId   = searchParams.get('studentId')   ?? undefined;
   const initialParticipantName = searchParams.get('studentName') ?? undefined;
 
   return (
-    <>
-      <div className="content">
-        <div className="container">
-          <ChatPage
-            sidebar={<div />}
-            profileCard={null}
-            initialParticipantId={initialParticipantId}
-            initialParticipantName={initialParticipantName}
-          />
-        </div>
-      </div>
-    </>
+    <LuxuryDashboardLayout>
+      <ChatPage
+        sidebar={null}
+        profileCard={null}
+        initialParticipantId={initialParticipantId}
+        initialParticipantName={initialParticipantName}
+      />
+    </LuxuryDashboardLayout>
   );
 };
 

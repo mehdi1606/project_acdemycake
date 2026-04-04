@@ -13,6 +13,10 @@ import { courseService } from '../../../services/api/course.service';
 import { instructorService } from '../../../services/api/instructor.service';
 import { CourseCategory as CourseCategoryType, CourseLevel as CourseLevelType } from '../../../services/api/types';
 
+interface Lesson { id: string; name: string; isPreview: boolean; }
+interface Topic { id: string; title: string; lessons: Lesson[]; }
+interface Faq { id: string; question: string; answer: string; }
+
 // Form data interface
 interface CourseFormData {
   // Step 1 - Basic Info
@@ -281,20 +285,61 @@ const AddNewCourse = () => {
     setValue(newValue);
     handleInputChange('description', newValue);
   };
-  const [items, setItems] = useState<string[]>([]);
+  // Curriculum state
+  const [curriculum, setCurriculum] = useState<Topic[]>([]);
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+  const [newTopicTitle, setNewTopicTitle] = useState('');
+  const [activeLessonTopicId, setActiveLessonTopicId] = useState<string | null>(null);
+  const [newLessonName, setNewLessonName] = useState('');
+  const [newLessonIsPreview, setNewLessonIsPreview] = useState(false);
 
-  const addNewItem = () => {
-    setItems([...items, ""]);
+  // FAQ state
+  const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [newFaqQuestion, setNewFaqQuestion] = useState('');
+  const [newFaqAnswer, setNewFaqAnswer] = useState('');
+
+  const handleAddTopic = () => {
+    if (!newTopicTitle.trim()) return;
+    const newTopic: Topic = { id: `topic-${Date.now()}`, title: newTopicTitle.trim(), lessons: [] };
+    setCurriculum(prev => [...prev, newTopic]);
+    setExpandedTopics(prev => { const s = new Set(prev); s.add(newTopic.id); return s; });
+    setNewTopicTitle('');
   };
 
-  const updateItem = (index: number, value: string) => {
-    const newItems = [...items];
-    newItems[index] = value;
-    setItems(newItems);
+  const handleRemoveTopic = (topicId: string) => {
+    setCurriculum(prev => prev.filter(t => t.id !== topicId));
   };
 
-  const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
+  const handleAddLesson = () => {
+    if (!newLessonName.trim() || !activeLessonTopicId) return;
+    const newLesson: Lesson = { id: `lesson-${Date.now()}`, name: newLessonName.trim(), isPreview: newLessonIsPreview };
+    setCurriculum(prev => prev.map(t => t.id === activeLessonTopicId ? { ...t, lessons: [...t.lessons, newLesson] } : t));
+    setNewLessonName('');
+    setNewLessonIsPreview(false);
+  };
+
+  const handleRemoveLesson = (topicId: string, lessonId: string) => {
+    setCurriculum(prev => prev.map(t => t.id === topicId ? { ...t, lessons: t.lessons.filter(l => l.id !== lessonId) } : t));
+  };
+
+  const handleAddFaq = () => {
+    if (!newFaqQuestion.trim()) return;
+    const newFaq: Faq = { id: `faq-${Date.now()}`, question: newFaqQuestion.trim(), answer: newFaqAnswer.trim() };
+    setFaqs(prev => [...prev, newFaq]);
+    setNewFaqQuestion('');
+    setNewFaqAnswer('');
+  };
+
+  const handleRemoveFaq = (faqId: string) => {
+    setFaqs(prev => prev.filter(f => f.id !== faqId));
+  };
+
+  const toggleTopic = (topicId: string) => {
+    setExpandedTopics(prev => {
+      const s = new Set(prev);
+      if (s.has(topicId)) s.delete(topicId); else s.add(topicId);
+      return s;
+    });
   };
 
   const [showModal, setShowModal] = useState(false);
@@ -676,53 +721,46 @@ const AddNewCourse = () => {
                               <h6 className="mb-2">
                                 What will students learn in your course?
                               </h6>
-                              <div className="input-block" id="input-block">
-                                <div className="d-flex align-items-center add-new-input">
-                                  <input
-                                    type="text"
-                                    className="form-control"
-                                    defaultValue="Become a UX designer"
-                                  />
-                                  <Link to="#" className="link-trash">
-                                    <i className="isax isax-trash" />
-                                  </Link>
-                                </div>
-                                <div id="input-block">
-                                  {items.map((item, index) => (
-                                    <div key={index} className="d-flex align-items-center add-new-input">
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Enter new item"
-                                        value={item}
-                                        onChange={(e) => updateItem(index, e.target.value)}
-                                      />
+                              <div className="input-block">
+                                {formData.learningObjectives.map((obj, index) => (
+                                  <div key={index} className="d-flex align-items-center add-new-input">
+                                    <input
+                                      type="text"
+                                      className="form-control"
+                                      placeholder="e.g. Build a complete web application"
+                                      value={obj}
+                                      onChange={(e) => {
+                                        const updated = [...formData.learningObjectives];
+                                        updated[index] = e.target.value;
+                                        handleInputChange('learningObjectives', updated);
+                                      }}
+                                    />
+                                    {formData.learningObjectives.length > 1 && (
                                       <Link
                                         to="#"
                                         className="link-trash"
                                         onClick={(e) => {
                                           e.preventDefault();
-                                          removeItem(index);
+                                          handleInputChange('learningObjectives', formData.learningObjectives.filter((_, i) => i !== index));
                                         }}
                                       >
-                                        <i className="isax isax-trash"></i>
+                                        <i className="isax isax-trash" />
                                       </Link>
-                                    </div>
-                                  ))}
-                                </div>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
-
                               <div className="d-flex align-items-center justify-content-end">
                                 <Link
                                   to="#"
                                   className="d-flex align-items-center add-new-topic"
-                                  id="add-new-topic-btn"
-                                  onClick={addNewItem}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleInputChange('learningObjectives', [...formData.learningObjectives, '']);
+                                  }}
                                 >
                                   <i className="isax isax-add me-1" /> Add New Item
                                 </Link>
-                                <div>
-                                </div>
                               </div>
 
                             </div>
@@ -730,18 +768,43 @@ const AddNewCourse = () => {
                           <div className="col-md-6">
                             <div className="bg-light border	 p-4 rounded-3">
                               <h6 className="mb-2">Requirements</h6>
-                              <div className="input-block">
-                                <div className="d-flex align-items-center add-new-input">
-                                  <input type="text" className="form-control" />
-                                  <Link to="#" className="link-trash">
-                                    <i className="isax isax-trash" />
-                                  </Link>
-                                </div>
+                                <div className="input-block">
+                                {formData.requirements.map((req, index) => (
+                                  <div key={index} className="d-flex align-items-center add-new-input">
+                                    <input
+                                      type="text"
+                                      className="form-control"
+                                      placeholder="e.g. Basic knowledge of HTML"
+                                      value={req}
+                                      onChange={(e) => {
+                                        const updated = [...formData.requirements];
+                                        updated[index] = e.target.value;
+                                        handleInputChange('requirements', updated);
+                                      }}
+                                    />
+                                    {formData.requirements.length > 1 && (
+                                      <Link
+                                        to="#"
+                                        className="link-trash"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          handleInputChange('requirements', formData.requirements.filter((_, i) => i !== index));
+                                        }}
+                                      >
+                                        <i className="isax isax-trash" />
+                                      </Link>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
                               <div className="d-flex align-items-center justify-content-end">
                                 <Link
                                   to="#"
                                   className="d-flex align-items-center add-new-topic"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleInputChange('requirements', [...formData.requirements, '']);
+                                  }}
                                 >
                                   <i className="isax isax-add me-1" /> Add New Item
                                 </Link>
@@ -1031,271 +1094,82 @@ const AddNewCourse = () => {
                           </div>
                         </div>
                         <div>
-                          <div
-                            className="accordions-items-seperate"
-                            id="accordionSpacingExample"
-                          >
-                            <div className="accordion-item">
-                              <h2 className="accordion-header" id="headingSpacingOne">
-                                <Link
-                                  to="#"
-                                  className="accordion-button collapsed"
-                                  data-bs-toggle="collapse"
-                                  data-bs-target="#SpacingOne"
-                                  aria-expanded="false"
-                                  aria-controls="SpacingOne"
-                                >
-                                  <span className="d-flex align-items-center mb-0">
-                                    <i className="isax isax-menu-15 me-2" />
-                                    Introduction of Digital Marketing
-                                  </span>
-                                </Link>
-                              </h2>
-                              <div
-                                id="SpacingOne"
-                                className="accordion-collapse collapse show"
-                                aria-labelledby="headingSpacingOne"
-                                data-bs-parent="#accordionSpacingExample"
-                              >
-                                <div className="accordion-body">
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Describe SEO Engine
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Know about all marketing
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center justify-content-between">
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="btn add-edit-btn d-inline-flex align-items-center"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#add-lesson"
-                                      >
-                                        <i className="isax isax-add-circle5 me-2" />
-                                        Add Lesson
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
+                          {curriculum.length === 0 && (
+                            <div className="text-center text-muted py-5 border rounded-3">
+                              <i className="isax isax-book fs-1 mb-2 d-block" />
+                              <p className="mb-0">No topics yet. Click "Add New Topic" to get started.</p>
                             </div>
-                            <div className="accordion-item">
-                              <h2 className="accordion-header" id="headingSpacingTwo">
-                                <Link
-                                  to="#"
-                                  className="accordion-button collapsed"
-                                  data-bs-toggle="collapse"
-                                  data-bs-target="#SpacingTwo"
-                                  aria-expanded="false"
-                                  aria-controls="SpacingTwo"
-                                >
-                                  <span className="d-flex align-items-center mb-0">
-                                    <i className="isax isax-menu-15 me-2" />
-                                    Installing Development Software
-                                  </span>
-                                </Link>
-                              </h2>
-                              <div
-                                id="SpacingTwo"
-                                className="accordion-collapse collapse"
-                                aria-labelledby="headingSpacingTwo"
-                                data-bs-parent="#accordionSpacingExample"
-                              >
-                                <div className="accordion-body">
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Describe SEO Engine
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
+                          )}
+                          <div className="accordions-items-seperate">
+                            {curriculum.map((topic) => (
+                              <div key={topic.id} className="accordion-item">
+                                <h2 className="accordion-header">
+                                  <div
+                                    className={`accordion-button d-flex align-items-center justify-content-between ${expandedTopics.has(topic.id) ? '' : 'collapsed'}`}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => toggleTopic(topic.id)}
+                                  >
+                                    <span className="d-flex align-items-center mb-0">
+                                      <i className="isax isax-menu-15 me-2" />
+                                      {topic.title}
+                                      <span className="badge bg-secondary ms-2 small">{topic.lessons.length} lesson{topic.lessons.length !== 1 ? 's' : ''}</span>
+                                    </span>
+                                    <div className="d-flex align-items-center gap-2 ms-auto" onClick={(e) => e.stopPropagation()}>
                                       <Link
                                         to="#"
                                         className="delete-btn1"
+                                        onClick={(e) => { e.preventDefault(); handleRemoveTopic(topic.id); }}
                                       >
                                         <i className="isax isax-trash fs-16" />
                                       </Link>
                                     </div>
                                   </div>
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Know about all marketing
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
+                                </h2>
+                                {expandedTopics.has(topic.id) && (
+                                  <div className="accordion-collapse">
+                                    <div className="accordion-body">
+                                      {topic.lessons.length === 0 && (
+                                        <p className="text-muted small text-center py-2">No lessons yet.</p>
+                                      )}
+                                      {topic.lessons.map((lesson) => (
+                                        <div key={lesson.id} className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
+                                          <div className="d-flex align-items-center">
+                                            <span>
+                                              <i className="isax isax-play-circle5 text-success fs-24 me-1" />
+                                            </span>
+                                            <p className="fw-medium text-gray-5 mb-0">{lesson.name}</p>
+                                            {lesson.isPreview && (
+                                              <span className="badge bg-success ms-2 small">Preview</span>
+                                            )}
+                                          </div>
+                                          <div className="d-flex align-items-center">
+                                            <Link
+                                              to="#"
+                                              className="delete-btn1"
+                                              onClick={(e) => { e.preventDefault(); handleRemoveLesson(topic.id, lesson.id); }}
+                                            >
+                                              <i className="isax isax-trash fs-16" />
+                                            </Link>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      <div className="d-flex align-items-center justify-content-between">
+                                        <button
+                                          type="button"
+                                          className="btn add-edit-btn d-inline-flex align-items-center"
+                                          data-bs-toggle="modal"
+                                          data-bs-target="#add-lesson"
+                                          onClick={() => setActiveLessonTopicId(topic.id)}
+                                        >
+                                          <i className="isax isax-add-circle5 me-2" />
+                                          Add Lesson
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
-                                  <div className="d-flex align-items-center justify-content-between">
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="btn btn-primary d-inline-flex align-items-center"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#add-lesson"
-                                      >
-                                        <i className="isax isax-add-circle5 me-2" />
-                                        Add Lesson
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
+                                )}
                               </div>
-                            </div>
-                            <div className="accordion-item">
-                              <h2 className="accordion-header" id="headingSpacingThree">
-                                <Link
-                                  to="#"
-                                  className="accordion-button collapsed"
-                                  data-bs-toggle="collapse"
-                                  data-bs-target="#SpacingThree"
-                                  aria-expanded="false"
-                                  aria-controls="SpacingThree"
-                                >
-                                  <span className="d-flex align-items-center mb-0">
-                                    <i className="isax isax-menu-15 me-2" />
-                                    Hello World Project from GitHub
-                                  </span>
-                                </Link>
-                              </h2>
-                              <div
-                                id="SpacingThree"
-                                className="accordion-collapse collapse"
-                                aria-labelledby="headingSpacingThree"
-                                data-bs-parent="#accordionSpacingExample"
-                              >
-                                <div className="accordion-body">
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Describe SEO Engine
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Know about all marketing
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center justify-content-between">
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="btn btn-primary d-inline-flex align-items-center"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#add-lesson"
-                                      >
-                                        <i className="isax isax-add-circle5 me-2" />
-                                        Add Lesson
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                            ))}
                           </div>
                         </div>
                         <div className="add-form-btn widget-next-btn submit-btn">
@@ -1342,159 +1216,31 @@ const AddNewCourse = () => {
                           </div>
                         </div>
                         <div className="pb-3 border-bottom mb-3">
-                          <div
-                            className="accordions-items-seperate"
-                            id="accordionSpacingExample1"
-                          >
-                            <div className="accordion-item">
-                              <h2 className="accordion-header" id="headingSpacingFour">
+                          {faqs.length === 0 && (
+                            <div className="text-center text-muted py-4 border rounded-3">
+                              <i className="isax isax-message-question fs-1 mb-2 d-block" />
+                              <p className="mb-0">No FAQs yet. Click "Add New" to add your first FAQ.</p>
+                            </div>
+                          )}
+                          {faqs.map((faq) => (
+                            <div key={faq.id} className="border rounded-3 p-3 mb-3 bg-white">
+                              <div className="d-flex align-items-start justify-content-between">
+                                <div className="flex-grow-1">
+                                  <p className="fw-medium mb-1">{faq.question}</p>
+                                  {faq.answer && (
+                                    <p className="text-muted small mb-0">{faq.answer}</p>
+                                  )}
+                                </div>
                                 <Link
                                   to="#"
-                                  className="accordion-button collapsed"
-                                  data-bs-toggle="collapse"
-                                  data-bs-target="#Spacingthree"
-                                  aria-expanded="false"
-                                  aria-controls="Spacingthree"
+                                  className="delete-btn1 ms-3"
+                                  onClick={(e) => { e.preventDefault(); handleRemoveFaq(faq.id); }}
                                 >
-                                  <span className="d-flex align-items-center text-gray-9 mb-0">
-                                    <i className="isax isax-menu-15 me-2" />
-                                    Hello World Project from GitHub
-                                  </span>
+                                  <i className="isax isax-trash fs-16" />
                                 </Link>
-                              </h2>
-                              <div
-                                id="Spacingthree"
-                                className="accordion-collapse collapse"
-                                aria-labelledby="headingSpacingFour"
-                                data-bs-parent="#accordionSpacingExample1"
-                              >
-                                <div className="accordion-body">
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Describe SEO Engine
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Know about all marketing
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
                               </div>
                             </div>
-                            <div className="accordion-item">
-                              <h2 className="accordion-header" id="headingSpacingFive">
-                                <Link
-                                  to="#"
-                                  className="accordion-button collapsed"
-                                  data-bs-toggle="collapse"
-                                  data-bs-target="#Spacingone"
-                                  aria-expanded="false"
-                                  aria-controls="Spacingone"
-                                >
-                                  <span className="d-flex align-items-center text-gray-9">
-                                    <i className="isax isax-menu-15 me-2" />
-                                    New Update
-                                  </span>
-                                </Link>
-                              </h2>
-                              <div
-                                id="Spacingone"
-                                className="accordion-collapse collapse"
-                                aria-labelledby="headingSpacingFive"
-                                data-bs-parent="#accordionSpacingExample"
-                              >
-                                <div className="accordion-body">
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Describe SEO Engine
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="isax isax-play-circle5 text-success fs-24 me-1" />
-                                      </span>
-                                      <p className="fw-medium text-gray-5 mb-0">
-                                        Know about all marketing
-                                      </p>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                      <Link
-                                        to="#"
-                                        className="edit-btn1"
-                                      >
-                                        <i className="isax isax-edit-25 fs-16" />
-                                      </Link>
-                                      <Link
-                                        to="#"
-                                        className="delete-btn1"
-                                      >
-                                        <i className="isax isax-trash fs-16" />
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                         <div className="pb-3 border-bottom mb-3">
                           <div className="input-block mb-0">
@@ -1760,6 +1506,7 @@ const AddNewCourse = () => {
                 className="btn-close custom-btn-close"
                 data-bs-dismiss="modal"
                 aria-label="Close"
+                onClick={() => setNewTopicTitle('')}
               >
                 <i className="isax isax-close-circle5" />
               </button>
@@ -1768,9 +1515,15 @@ const AddNewCourse = () => {
               <div className="modal-body">
                 <div className="input-block">
                   <label className="form-label">
-                    Add Name<span className="text-danger ms-1">*</span>
+                    Topic Title<span className="text-danger ms-1">*</span>
                   </label>
-                  <input type="text" className="form-control" />
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. Introduction to JavaScript"
+                    value={newTopicTitle}
+                    onChange={(e) => setNewTopicTitle(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="modal-footer">
@@ -1778,11 +1531,18 @@ const AddNewCourse = () => {
                   type="button"
                   className="btn me-2 btn-light"
                   data-bs-dismiss="modal"
+                  onClick={() => setNewTopicTitle('')}
                 >
                   Cancel
                 </button>
-                <button type="button" data-bs-dismiss="modal" className="btn btn-secondary">
-                  Add New
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                  onClick={handleAddTopic}
+                  disabled={!newTopicTitle.trim()}
+                >
+                  Add Topic
                 </button>
               </div>
             </form>
@@ -1801,50 +1561,50 @@ const AddNewCourse = () => {
                 className="btn-close custom-btn-close"
                 data-bs-dismiss="modal"
                 aria-label="Close"
+                onClick={() => { setNewLessonName(''); setNewLessonIsPreview(false); }}
               >
                 <i className="isax isax-close-circle5" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="modal-body">
                 <div className="input-block mb-4">
                   <label className="form-label">
-                    Add Lesson<span className="text-danger ms-1">*</span>
+                    Lesson Title<span className="text-danger ms-1">*</span>
                   </label>
-                  <input type="text" className="form-control" />
-                </div>
-                <div className="input-block mb-4">
-                  <label className="form-label">
-                    Video link<span className="text-danger ms-1">*</span>
-                  </label>
-                  <input type="text" className="form-control" />
-                </div>
-                <div className="input-block mb-4">
-                  <label className="form-label">Course Description</label>
-                  <textarea className="form-control" defaultValue={""} />
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. Variables and Data Types"
+                    value={newLessonName}
+                    onChange={(e) => setNewLessonName(e.target.value)}
+                  />
                 </div>
                 <div className="d-flex align-items-center">
                   <div className="form-check me-3">
                     <input
                       className="form-check-input"
                       type="radio"
-                      name="flexRadioDefault"
-                      id="flexRadioDefault4"
-                      defaultChecked
+                      name="lessonPreview"
+                      id="lessonPreviewNo"
+                      checked={!newLessonIsPreview}
+                      onChange={() => setNewLessonIsPreview(false)}
                     />
-                    <label className="form-check-label" htmlFor="flexRadioDefault4">
-                      free
+                    <label className="form-check-label" htmlFor="lessonPreviewNo">
+                      Premium
                     </label>
                   </div>
                   <div className="form-check">
                     <input
                       className="form-check-input"
                       type="radio"
-                      name="flexRadioDefault"
-                      id="flexRadioDefault5"
+                      name="lessonPreview"
+                      id="lessonPreviewYes"
+                      checked={newLessonIsPreview}
+                      onChange={() => setNewLessonIsPreview(true)}
                     />
-                    <label className="form-check-label" htmlFor="flexRadioDefault5">
-                      Premium
+                    <label className="form-check-label" htmlFor="lessonPreviewYes">
+                      Free Preview
                     </label>
                   </div>
                 </div>
@@ -1854,11 +1614,18 @@ const AddNewCourse = () => {
                   type="button"
                   className="btn me-2 btn-light"
                   data-bs-dismiss="modal"
+                  onClick={() => { setNewLessonName(''); setNewLessonIsPreview(false); }}
                 >
                   Cancel
                 </button>
-                <button type="button" data-bs-dismiss="modal" className="btn btn-secondary">
-                  Add New
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                  onClick={handleAddLesson}
+                  disabled={!newLessonName.trim()}
+                >
+                  Add Lesson
                 </button>
               </div>
             </form>
@@ -1877,48 +1644,35 @@ const AddNewCourse = () => {
                 className="btn-close custom-btn-close"
                 data-bs-dismiss="modal"
                 aria-label="Close"
+                onClick={() => { setNewFaqQuestion(''); setNewFaqAnswer(''); }}
               >
                 <i className="isax isax-close-circle5" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="modal-body">
                 <div className="input-block mb-4">
                   <label className="form-label">
                     Question<span className="text-danger ms-1">*</span>
                   </label>
-                  <input type="text" className="form-control" />
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. What are the prerequisites?"
+                    value={newFaqQuestion}
+                    onChange={(e) => setNewFaqQuestion(e.target.value)}
+                  />
                 </div>
                 <div className="input-block mb-4">
                   <label className="form-label">
                     Answer<span className="text-danger ms-1">*</span>
                   </label>
-                  <textarea className="form-control" defaultValue={""} />
-                </div>
-                <div className="d-flex align-items-center">
-                  <div className="form-check me-3">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="flexRadioDefault"
-                      id="flexRadioDefault6"
-                      defaultChecked
-                    />
-                    <label className="form-check-label" htmlFor="flexRadioDefault6">
-                      Enable
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="flexRadioDefault"
-                      id="flexRadioDefault7"
-                    />
-                    <label className="form-check-label" htmlFor="flexRadioDefault7">
-                      Disable
-                    </label>
-                  </div>
+                  <textarea
+                    className="form-control"
+                    placeholder="e.g. No prior experience needed."
+                    value={newFaqAnswer}
+                    onChange={(e) => setNewFaqAnswer(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="modal-footer">
@@ -1926,11 +1680,18 @@ const AddNewCourse = () => {
                   type="button"
                   className="btn me-2 btn-light"
                   data-bs-dismiss="modal"
+                  onClick={() => { setNewFaqQuestion(''); setNewFaqAnswer(''); }}
                 >
                   Cancel
                 </button>
-                <button type="button" data-bs-dismiss="modal" className="btn btn-secondary">
-                  Add New
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                  onClick={handleAddFaq}
+                  disabled={!newFaqQuestion.trim()}
+                >
+                  Add FAQ
                 </button>
               </div>
             </form>

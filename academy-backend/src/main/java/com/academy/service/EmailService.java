@@ -31,4 +31,6 @@ public interface EmailService {
     void sendNewMessageNotification(User user, String senderName);
 
     void sendGenericEmail(String to, String subject, String templateName, Object context);
+
+    void sendAccountCreatedEmail(User user, String temporaryPassword);
 }

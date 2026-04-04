@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import ReactApexChart from 'react-apexcharts';
@@ -33,7 +33,7 @@ const InstructorDashboard = () => {
     })();
   }, []);
 
-  const chartData = (() => {
+  const chartData = useMemo(() => {
     if (dashboardData?.earningsChart?.length) {
       return {
         categories: dashboardData.earningsChart.map((e) => e.month),
@@ -44,7 +44,7 @@ const InstructorDashboard = () => {
       categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
       data: [0,0,0,0,0,0,0,0,0,0,0,0],
     };
-  })();
+  }, [dashboardData?.earningsChart]);
 
   const earningsChart = {
     chart:  { height: 260, type: 'bar', stacked: true, toolbar: { show: false } },

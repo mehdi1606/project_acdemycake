@@ -104,7 +104,14 @@
       "Bash(mvn dependency:get -Dartifact=me.paulschwarz:spring-dotenv:4.0.0 -q)",
       "Bash(./mvnw dependency:get -Dartifact=me.paulschwarz:spring-dotenv:4.0.0 -q)",
       "Read(//c//**)",
-      "Bash(cmd //c 'where java')"
+      "Bash(cmd //c 'where java')",
+      "Bash(git config:*)",
+      "Bash(grep -rn console.log /c/Users/PC/Plateform/template/src --include=*.tsx --include=*.ts)",
+      "Bash(grep -v \"^.*//.*console\")",
+      "Bash(find C:UsersPCPlateformtemplatesrc -path *authentication* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
+      "Bash(find C:UsersPCPlateformtemplatesrc -path *login* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
+      "Bash(find C:UsersPCPlateformtemplatesrc -path *register* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
+      "Bash(grep -r \"students learn\\\\|What will students\\\\|Requirements\\\\|whatLearn\\\\|what_learn\\\\|objectives\" C:UsersPCPlateformtemplatesrc --include=*.tsx -l)"
     ]
   }
 }

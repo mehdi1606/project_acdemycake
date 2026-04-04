@@ -48,6 +48,13 @@ public class SubscriptionController {
         return ResponseEntity.ok(ApiResponse.success("Subscription will be cancelled at period end"));
     }
 
+    @PostMapping("/reactivate")
+    @Operation(summary = "Reactivate a cancelled subscription")
+    public ResponseEntity<ApiResponse<SubscriptionResponse>> reactivateSubscription() {
+        SubscriptionResponse response = subscriptionService.reactivateSubscription();
+        return ResponseEntity.ok(ApiResponse.success("Subscription reactivated", response));
+    }
+
     @GetMapping("/history")
     @Operation(summary = "Get subscription history")
     public ResponseEntity<ApiResponse<PageResponse<SubscriptionResponse>>> getSubscriptionHistory(

@@ -5,7 +5,7 @@ import { all_routes } from "../../router/all_routes";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { useAppDispatch, useAppSelector } from "../../../core/redux/hooks";
 import { login, clearError } from "../../../core/redux/authSlice";
-import { message, Spin, Alert } from "antd";
+import { Spin, Alert, App } from "antd";
 
 type PasswordField = "password" | "confirmPassword";
 
@@ -14,7 +14,14 @@ interface LocationState {
   email?: string;
 }
 
+interface FieldErrors {
+  email?: string;
+  password?: string;
+}
+
 const Login = () => {
+  const { message } = App.useApp();
+
   const loginSLider = {
     dots: true,
     infinite: true,
@@ -33,6 +40,7 @@ const Login = () => {
     password: "",
   });
 
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [rememberMe, setRememberMe] = useState(false);
   const [showVerificationAlert, setShowVerificationAlert] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
@@ -52,7 +60,6 @@ const Login = () => {
         setRegisteredEmail(locationState.email);
         setFormData(prev => ({ ...prev, email: locationState.email || "" }));
       }
-      // Clear the location state
       navigate(location.pathname, { replace: true });
     }
   }, [locationState, navigate, location.pathname]);
@@ -65,7 +72,6 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Redirect based on user role
       if (user.role === 'ADMIN') {
         navigate(route.adminDashboard);
       } else if (user.role === 'INSTRUCTOR') {
@@ -76,13 +82,6 @@ const Login = () => {
     }
   }, [isAuthenticated, user, navigate, route]);
 
-  // Show error message
-  useEffect(() => {
-    if (error) {
-      message.error(error);
-    }
-  }, [error]);
-
   const togglePasswordVisibility = (field: PasswordField) => {
     setPasswordVisibility((prevState) => ({
       ...prevState,
@@ -92,31 +91,57 @@ const Login = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear field error as user types
+    if (fieldErrors[name as keyof FieldErrors]) {
+      setFieldErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+    // Clear backend error when user modifies inputs
+    if (error) dispatch(clearError());
+  };
+
+  const validateField = (name: string, value: string): string | undefined => {
+    if (name === 'email') {
+      if (!value.trim()) return 'Email is required.';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address.';
+    }
+    if (name === 'password') {
+      if (!value) return 'Password is required.';
+    }
+    return undefined;
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const err = validateField(name, value);
+    setFieldErrors(prev => ({ ...prev, [name]: err }));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!formData.email || !formData.password) {
-      message.error("Please fill in all fields");
+    // Validate all fields
+    const errors: FieldErrors = {
+      email: validateField('email', formData.email),
+      password: validateField('password', formData.password),
+    };
+    const hasErrors = Object.values(errors).some(Boolean);
+    if (hasErrors) {
+      setFieldErrors(errors);
       return;
     }
 
     try {
       await dispatch(login(formData)).unwrap();
-      message.success("Login successful! Welcome back.");
-    } catch (err) {
-      // Error is handled by the slice
+      // Redirect is handled by the useEffect above
+    } catch (err: unknown) {
+      const errorMsg = typeof err === 'string' ? err : 'Invalid credentials. Please check your email and password.';
+      message.error({ content: errorMsg, duration: 5, key: 'login-error' });
     }
   };
 
   return (
     <>
-      {/* Main Wrapper */}
       <div className="main-wrapper">
         <div className="login-content">
           <div className="row">
@@ -126,22 +151,16 @@ const Login = () => {
                 <div>
                   <div className="login-carousel-section mb-3">
                     <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
+                      <ImageWithBasePath src="assets/img/auth/auth-1.svg" className="img-fluid" alt="Logo" />
                     </div>
                     <div className="mentor-course text-center">
                       <h3 className="mb-2">
                         Welcome to <br />
-                        SARA<span className="text-secondary">LÖWE</span>{" "}
-                        Academy
+                        SARA<span className="text-secondary">LÖWE</span> Academy
                       </h3>
                       <p>
-                        Master the art of luxury cake design with world-class
-                        instructors. Learn, create, and transform your passion
-                        into expertise.
+                        Master the art of luxury cake design with world-class instructors.
+                        Learn, create, and transform your passion into expertise.
                       </p>
                     </div>
                   </div>
@@ -149,67 +168,37 @@ const Login = () => {
                 <div>
                   <div className="login-carousel-section mb-3">
                     <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
+                      <ImageWithBasePath src="assets/img/auth/auth-1.svg" className="img-fluid" alt="Logo" />
                     </div>
                     <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Premium <br />
-                        <span className="text-secondary">Masterclasses</span>
-                      </h3>
-                      <p>
-                        Access exclusive courses from renowned pastry chefs.
-                        Learn techniques that will elevate your creations to
-                        the next level.
-                      </p>
+                      <h3 className="mb-2">Premium <br /><span className="text-secondary">Masterclasses</span></h3>
+                      <p>Access exclusive courses from renowned pastry chefs.</p>
                     </div>
                   </div>
                 </div>
                 <div>
                   <div className="login-carousel-section mb-3">
                     <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
+                      <ImageWithBasePath src="assets/img/auth/auth-1.svg" className="img-fluid" alt="Logo" />
                     </div>
                     <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Join Our <br />
-                        <span className="text-secondary">Community</span>
-                      </h3>
-                      <p>
-                        Connect with fellow cake artists from around the world.
-                        Share your creations and get inspired.
-                      </p>
+                      <h3 className="mb-2">Join Our <br /><span className="text-secondary">Community</span></h3>
+                      <p>Connect with fellow cake artists from around the world.</p>
                     </div>
                   </div>
                 </div>
               </Slider>
             </div>
-            {/* /Login Banner */}
+
             <div className="col-md-6 login-wrap-bg">
-              {/* Login */}
               <div className="login-wrapper">
                 <div className="loginbox">
                   <div className="w-100">
                     <div className="d-flex align-items-center justify-content-between login-header">
-                      <ImageWithBasePath
-                        src="assets/img/logo.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
-                      <Link to={route.homeone} className="link-1">
-                        Back to Home
-                      </Link>
+                      <ImageWithBasePath src="assets/img/logo.svg" className="img-fluid" alt="Logo" />
+                      <Link to={route.homeone} className="link-1">Back to Home</Link>
                     </div>
-                    <h1 className="fs-32 fw-bold topic">
-                      Sign into Your Account
-                    </h1>
+                    <h1 className="fs-32 fw-bold topic">Sign into Your Account</h1>
 
                     {/* Registration success alert */}
                     {showVerificationAlert && (
@@ -233,7 +222,21 @@ const Login = () => {
                       />
                     )}
 
-                    <form onSubmit={handleSubmit} className="mb-3 pb-3">
+                    {/* Backend error alert */}
+                    {error && (
+                      <Alert
+                        message={error}
+                        type="error"
+                        showIcon
+                        closable
+                        onClose={() => dispatch(clearError())}
+                        className="mb-3"
+                        style={{ borderRadius: 8 }}
+                      />
+                    )}
+
+                    <form onSubmit={handleSubmit} noValidate className="mb-3 pb-3">
+                      {/* Email */}
                       <div className="mb-3 position-relative">
                         <label className="form-label">
                           Email<span className="text-danger ms-1">*</span>
@@ -244,15 +247,24 @@ const Login = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            className="form-control form-control-lg"
+                            onBlur={handleBlur}
+                            className={`form-control form-control-lg${fieldErrors.email ? ' is-invalid' : ''}`}
                             placeholder="Enter your email"
-                            required
+                            disabled={isLoading}
                           />
                           <span>
                             <i className="isax isax-sms input-icon text-gray-7 fs-14" />
                           </span>
+                          {fieldErrors.email && (
+                            <div className="invalid-feedback d-block">
+                              <i className="isax isax-info-circle me-1" style={{ fontSize: 12 }} />
+                              {fieldErrors.email}
+                            </div>
+                          )}
                         </div>
                       </div>
+
+                      {/* Password */}
                       <div className="mb-3 position-relative">
                         <label className="form-label">
                           Password <span className="text-danger ms-1">*</span>
@@ -263,20 +275,26 @@ const Login = () => {
                             name="password"
                             value={formData.password}
                             onChange={handleInputChange}
-                            className="form-control form-control-lg pass-input"
+                            onBlur={handleBlur}
+                            className={`form-control form-control-lg pass-input${fieldErrors.password ? ' is-invalid' : ''}`}
                             placeholder="Enter your password"
-                            required
+                            disabled={isLoading}
                           />
                           <span
                             className={`isax toggle-passwords fs-14 ${
-                              passwordVisibility.password
-                                ? "isax-eye"
-                                : "isax-eye-slash"
+                              passwordVisibility.password ? "isax-eye" : "isax-eye-slash"
                             }`}
                             onClick={() => togglePasswordVisibility("password")}
-                          ></span>
+                          />
+                          {fieldErrors.password && (
+                            <div className="invalid-feedback d-block">
+                              <i className="isax isax-info-circle me-1" style={{ fontSize: 12 }} />
+                              {fieldErrors.password}
+                            </div>
+                          )}
                         </div>
                       </div>
+
                       <div className="d-flex align-items-center justify-content-between mb-4">
                         <div className="remember-me d-flex align-items-center">
                           <input
@@ -286,19 +304,15 @@ const Login = () => {
                             onChange={(e) => setRememberMe(e.target.checked)}
                             id="flexCheckDefault"
                           />
-                          <label
-                            className="form-check-label ms-2"
-                            htmlFor="flexCheckDefault"
-                          >
+                          <label className="form-check-label ms-2" htmlFor="flexCheckDefault">
                             Remember Me
                           </label>
                         </div>
-                        <div className="">
-                          <Link to={route.forgotpassword} className="link-2">
-                            Forgot Password ?
-                          </Link>
-                        </div>
+                        <Link to={route.forgotpassword} className="link-2">
+                          Forgot Password?
+                        </Link>
                       </div>
+
                       <div className="d-grid">
                         <button
                           className="btn btn-secondary btn-lg"
@@ -311,42 +325,27 @@ const Login = () => {
                               Signing In...
                             </>
                           ) : (
-                            <>
-                              Login <i className="isax isax-arrow-right-3 ms-1" />
-                            </>
+                            <>Login <i className="isax isax-arrow-right-3 ms-1" /></>
                           )}
                         </button>
                       </div>
                     </form>
-                    <div className="d-flex align-items-center justify-content-center or fs-14 mb-3">
-                      Or
-                    </div>
+
+                    <div className="d-flex align-items-center justify-content-center or fs-14 mb-3">Or</div>
                     <div className="d-flex align-items-center justify-content-center mb-3">
                       <Link to="#" className="btn btn-light me-2">
-                        <ImageWithBasePath
-                          src="assets/img/icons/google.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/img/icons/google.svg" alt="img" className="me-2" />
                         Google
                       </Link>
                       <Link to="#" className="btn btn-light">
-                        <ImageWithBasePath
-                          src="assets/img/icons/facebook.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/img/icons/facebook.svg" alt="img" className="me-2" />
                         Facebook
                       </Link>
                     </div>
                     <div className="fs-14 fw-normal d-flex align-items-center justify-content-center">
                       Don't have an account?
-                      <Link to={route.register} className="link-2 ms-1">
-                        {" "}
-                        Sign up
-                      </Link>
+                      <Link to={route.register} className="link-2 ms-1">Sign up</Link>
                     </div>
-                    {/* /Login */}
                   </div>
                 </div>
               </div>
@@ -354,7 +353,6 @@ const Login = () => {
           </div>
         </div>
       </div>
-      {/* /Main Wrapper */}
     </>
   );
 };

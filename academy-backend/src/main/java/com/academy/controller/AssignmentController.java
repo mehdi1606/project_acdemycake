@@ -1,9 +1,11 @@
 package com.academy.controller;
 
 import com.academy.dto.request.CreateAssignmentRequest;
+import com.academy.dto.request.GradeSubmissionRequest;
 import com.academy.dto.response.ApiResponse;
 import com.academy.dto.response.AssignmentResponse;
 import com.academy.dto.response.PageResponse;
+import com.academy.dto.response.SubmissionResponse;
 import com.academy.service.AssignmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,5 +64,23 @@ public class AssignmentController {
     public ResponseEntity<ApiResponse<Void>> deleteAssignment(@PathVariable UUID id) {
         assignmentService.deleteAssignment(id);
         return ResponseEntity.ok(ApiResponse.success("Assignment deleted successfully"));
+    }
+
+    @GetMapping("/{id}/submissions")
+    @Operation(summary = "Get all submissions for an assignment")
+    public ResponseEntity<ApiResponse<PageResponse<SubmissionResponse>>> getSubmissions(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success(assignmentService.getSubmissionsForAssignment(id, page, size)));
+    }
+
+    @PostMapping("/submissions/{submissionId}/grade")
+    @Operation(summary = "Grade a student submission")
+    public ResponseEntity<ApiResponse<SubmissionResponse>> gradeSubmission(
+            @PathVariable UUID submissionId,
+            @Valid @RequestBody GradeSubmissionRequest request) {
+        SubmissionResponse response = assignmentService.gradeSubmission(submissionId, request);
+        return ResponseEntity.ok(ApiResponse.success("Submission graded successfully", response));
     }
 }

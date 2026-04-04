@@ -1,5 +1,6 @@
 package com.academy.service;
 
+import com.academy.dto.request.AdminCreateUserRequest;
 import com.academy.dto.request.ChangePasswordRequest;
 import com.academy.dto.request.UpdateProfileRequest;
 import com.academy.dto.response.PageResponse;
@@ -10,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 public interface UserService {
+
+    UserResponse adminCreateUser(AdminCreateUserRequest request);
 
     User findById(UUID id);
 

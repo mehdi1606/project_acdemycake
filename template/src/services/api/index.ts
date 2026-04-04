@@ -18,3 +18,6 @@ export { quizService } from './quiz.service';
 
 // Types
 export * from './types';
+
+// Utilities
+export { extractApiError } from './error.utils';

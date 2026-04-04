@@ -1,5 +1,14 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_URL, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../../environment';
+import { extractApiError } from './error.utils';
+
+/**
+ * Fires a global notification event that UI components can listen to.
+ * Used for errors that happen outside a form context (e.g. background fetches).
+ */
+const emitGlobalError = (msg: string) => {
+  window.dispatchEvent(new CustomEvent('app:api-error', { detail: { message: msg } }));
+};
 
 // ─── Refresh mutex ─────────────────────────────────────────────────────────────
 // Prevents multiple simultaneous token-refresh calls when several requests
@@ -76,6 +85,20 @@ api.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status !== 401 || originalRequest._retry) {
+      // Emit a global notification for server / network errors.
+      // Auth forms handle their own 4xx errors inline; only broadcast unexpected failures.
+      const status = error.response?.status;
+      if (!status || status >= 500 || error.code === 'ECONNABORTED' || !error.response) {
+        emitGlobalError(extractApiError(error));
+      }
+      return Promise.reject(error);
+    }
+
+    // If there is no stored access token this is an unauthenticated request
+    // (e.g. login, register). Skip token refresh — just propagate the 401 so
+    // the component can show "Invalid email or password".
+    const storedToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!storedToken) {
       return Promise.reject(error);
     }
 
@@ -153,6 +176,12 @@ apiMultipart.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status !== 401 || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    // Skip refresh for unauthenticated requests
+    const storedTokenMultipart = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!storedTokenMultipart) {
       return Promise.reject(error);
     }
 

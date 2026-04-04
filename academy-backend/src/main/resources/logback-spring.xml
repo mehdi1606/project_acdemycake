@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Register Spring Boot's custom converters (%clr, %wEx, etc.) -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- ── Development profile: human-readable colored output ─────────────── -->
+    <springProfile name="!prod">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="com.academy" level="DEBUG"/>
+        <logger name="org.springframework.security" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql" level="TRACE"/>
+    </springProfile>
+
+    <!-- ── Production profile: JSON structured output ─────────────────────── -->
+    <springProfile name="prod">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","thread":"%thread","logger":"%logger{36}","message":"%replace(%msg){'\"','\\\"'}","app":"academy"}%n</pattern>
+            </encoder>
+        </appender>
+
+        <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/academy.json.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/academy.%d{yyyy-MM-dd}.json.log.gz</fileNamePattern>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","thread":"%thread","logger":"%logger{36}","message":"%replace(%msg){'\"','\\\"'}","app":"academy"}%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+            <appender-ref ref="JSON_FILE"/>
+        </root>
+
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+        <logger name="com.academy" level="INFO"/>
+    </springProfile>
+
+</configuration>

@@ -27,6 +27,8 @@ const LoginModal = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+    // Clear error as user types
+    if (error) dispatch(clearError());
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -111,8 +111,8 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
           <span className="notif-badge">3</span>
         </button>
 
-        {/* Premium badge / upgrade button (hidden for admins) */}
-        {user?.role !== 'ADMIN' && (
+        {/* Premium badge / upgrade button (students only) */}
+        {user?.role === 'STUDENT' && (
           user?.subscriptionStatus === 'ACTIVE' ? (
             <span className="premium-badge">
               <i className="isax isax-crown-1" />

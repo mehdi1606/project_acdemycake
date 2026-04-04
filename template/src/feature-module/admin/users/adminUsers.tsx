@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
-import { Link } from 'react-router-dom';
 import {
   Spin,
   message,
@@ -12,8 +11,33 @@ import {
 } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchUsers, banUser, unbanUser, deleteUser } from '../../../core/redux/adminSlice';
+import adminService from '../../../services/api/admin.service';
+import { extractApiError } from '../../../services/api/error.utils';
 
 const { Search } = Input;
+
+// ── Shared glass modal shell (matches InstructorAssignment design) ────────────
+const GlassModal: React.FC<{ children: React.ReactNode; onClose: () => void; maxWidth?: number }> = ({
+  children, onClose, maxWidth = 480,
+}) => (
+  <div
+    style={{
+      position: 'fixed', inset: 0, zIndex: 1050,
+      background: 'rgba(44, 24, 16, 0.40)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }}
+    onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+  >
+    <div style={{
+      width: '100%', maxWidth,
+      background: 'rgba(255,255,255,0.93)', backdropFilter: 'blur(32px)',
+      borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107,29,42,0.10)',
+      boxShadow: '0 24px 48px rgba(44,24,16,0.15)',
+    }}>
+      {children}
+    </div>
+  </div>
+);
 
 interface User {
   id: number | string;
@@ -42,8 +66,15 @@ const AdminUsers: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [banModalVisible, setBanModalVisible] = useState<boolean>(false);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [banReason, setBanReason] = useState<string>('');
+
+  // Create user state
+  const [createModal, setCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({ fullName: '', email: '', role: 'STUDENT' as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' });
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState(false);
 
   useEffect(() => {
     dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined }));
@@ -60,7 +91,7 @@ const AdminUsers: React.FC = () => {
 
   const handlePageChange = (page: number) => setCurrentPage(page - 1);
 
-  const handleBanUser = (userId: number) => {
+  const handleBanUser = (userId: string) => {
     setSelectedUserId(userId);
     setBanModalVisible(true);
   };
@@ -79,7 +110,7 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleUnbanUser = async (userId: number) => {
+  const handleUnbanUser = async (userId: string) => {
     try {
       await dispatch(unbanUser(userId)).unwrap();
       message.success('User unbanned successfully');
@@ -88,13 +119,42 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeleteUser = async (userId: string) => {
     try {
       await dispatch(deleteUser(userId)).unwrap();
       message.success('User deleted successfully');
     } catch {
       message.error('Failed to delete user');
     }
+  };
+
+  const openCreateModal = () => {
+    setCreateForm({ fullName: '', email: '', role: 'STUDENT' });
+    setCreateError(null);
+    setCreateSuccess(false);
+    setCreateModal(true);
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createForm.fullName.trim() || !createForm.email.trim()) return;
+    setCreating(true);
+    setCreateError(null);
+    try {
+      await adminService.createUser(createForm);
+      setCreateSuccess(true);
+      dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined }));
+    } catch (err) {
+      setCreateError(extractApiError(err, 'Failed to create user'));
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const closeCreateModal = () => {
+    setCreateModal(false);
+    setCreateSuccess(false);
+    setCreateError(null);
   };
 
   const getRoleBadge = (role: string) => {
@@ -148,7 +208,7 @@ const AdminUsers: React.FC = () => {
       <div className="lx-card">
         <div className="lx-card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
           <h6>All Users</h6>
-          <div className="d-flex flex-wrap gap-2">
+          <div className="d-flex flex-wrap gap-2 align-items-center">
             <Search
               placeholder="Search users..."
               allowClear
@@ -166,6 +226,15 @@ const AdminUsers: React.FC = () => {
                 { value: 'ADMIN', label: 'Admins' },
               ]}
             />
+            <button
+              type="button"
+              className="lx-btn lx-btn-gold"
+              onClick={openCreateModal}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <i className="isax isax-user-add" />
+              Create User
+            </button>
           </div>
         </div>
 
@@ -249,7 +318,7 @@ const AdminUsers: React.FC = () => {
                             <button
                               className="lx-btn lx-btn-outline lx-btn-sm"
                               style={{ color: 'var(--lx-green)', borderColor: 'rgba(45, 95, 63, 0.20)' }}
-                              onClick={() => handleUnbanUser(Number(user.id))}
+                              onClick={() => handleUnbanUser(String(user.id))}
                               title="Unban User"
                             >
                               <i className="isax isax-shield-tick" />
@@ -258,7 +327,7 @@ const AdminUsers: React.FC = () => {
                             <button
                               className="lx-btn lx-btn-outline lx-btn-sm"
                               style={{ color: 'var(--lx-gold)', borderColor: 'rgba(197, 151, 62, 0.20)' }}
-                              onClick={() => handleBanUser(Number(user.id))}
+                              onClick={() => handleBanUser(String(user.id))}
                               title="Ban User"
                               disabled={user.role === 'ADMIN'}
                             >
@@ -268,7 +337,7 @@ const AdminUsers: React.FC = () => {
                           <Popconfirm
                             title="Delete User"
                             description="Are you sure? This action cannot be undone."
-                            onConfirm={() => handleDeleteUser(Number(user.id))}
+                            onConfirm={() => handleDeleteUser(String(user.id))}
                             okText="Yes, Delete"
                             cancelText="Cancel"
                             okButtonProps={{ danger: true }}
@@ -317,6 +386,173 @@ const AdminUsers: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ── Create User Modal ── */}
+      {createModal && (
+        <GlassModal onClose={closeCreateModal}>
+          {/* Header */}
+          <div style={{
+            padding: '20px 24px', borderBottom: '1px solid rgba(107,29,42,0.08)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
+              Create New User
+            </h5>
+            <button
+              type="button"
+              onClick={closeCreateModal}
+              style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)', lineHeight: 1 }}
+            >
+              <i className="isax isax-close-circle" />
+            </button>
+          </div>
+
+          {/* Success state */}
+          {createSuccess ? (
+            <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+              <div style={{
+                width: 60, height: 60, borderRadius: '50%', margin: '0 auto 16px',
+                background: 'rgba(22,163,74,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <i className="isax isax-tick-circle" style={{ fontSize: 28, color: '#16a34a' }} />
+              </div>
+              <h5 style={{ fontWeight: 700, fontSize: 17, color: 'var(--lx-text)', marginBottom: 8 }}>
+                User Created!
+              </h5>
+              <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 28 }}>
+                The account was created and login credentials were sent to <strong>{createForm.email}</strong>.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
+                <button type="button" className="lx-btn lx-btn-gold" onClick={() => {
+                  setCreateSuccess(false);
+                  setCreateForm({ fullName: '', email: '', role: 'STUDENT' });
+                  setCreateError(null);
+                }}>
+                  Create Another
+                </button>
+                <button type="button" className="lx-btn lx-btn-outline" onClick={closeCreateModal}>
+                  Close
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Form */
+            <form onSubmit={handleCreateUser}>
+              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+                {createError && (
+                  <div style={{
+                    padding: '10px 14px', borderRadius: 8,
+                    background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)',
+                    color: '#8B2335', fontSize: 13,
+                  }}>
+                    <i className="isax isax-warning-2" style={{ marginRight: 6 }} />{createError}
+                  </div>
+                )}
+
+                {/* Full Name */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
+                    Full Name <span style={{ color: '#8B2335' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.fullName}
+                    onChange={e => setCreateForm(f => ({ ...f, fullName: e.target.value }))}
+                    placeholder="e.g. Sarah Johnson"
+                    style={{
+                      width: '100%', padding: '10px 14px',
+                      border: '1.5px solid rgba(107,29,42,0.12)', borderRadius: 'var(--lx-radius-sm)',
+                      fontSize: 14, outline: 'none', background: 'rgba(255,255,255,0.6)', color: 'var(--lx-text)',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
+                    Email Address <span style={{ color: '#8B2335' }}>*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={createForm.email}
+                    onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="e.g. sarah@example.com"
+                    style={{
+                      width: '100%', padding: '10px 14px',
+                      border: '1.5px solid rgba(107,29,42,0.12)', borderRadius: 'var(--lx-radius-sm)',
+                      fontSize: 14, outline: 'none', background: 'rgba(255,255,255,0.6)', color: 'var(--lx-text)',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                {/* Role */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
+                    Role <span style={{ color: '#8B2335' }}>*</span>
+                  </label>
+                  <select
+                    value={createForm.role}
+                    onChange={e => setCreateForm(f => ({ ...f, role: e.target.value as any }))}
+                    style={{
+                      width: '100%', padding: '10px 14px',
+                      border: '1.5px solid rgba(107,29,42,0.12)', borderRadius: 'var(--lx-radius-sm)',
+                      fontSize: 14, outline: 'none', background: 'rgba(255,255,255,0.6)', color: 'var(--lx-text)',
+                      cursor: 'pointer', appearance: 'auto',
+                    }}
+                  >
+                    <option value="STUDENT">Student</option>
+                    <option value="INSTRUCTOR">Instructor</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+
+                {/* Info hint */}
+                <div style={{
+                  display: 'flex', gap: 8, padding: '10px 14px', borderRadius: 8,
+                  background: 'rgba(107,29,42,0.04)', border: '1px solid rgba(107,29,42,0.08)',
+                }}>
+                  <i className="isax isax-info-circle" style={{ color: 'var(--lx-primary)', fontSize: 15, flexShrink: 0, marginTop: 1 }} />
+                  <p style={{ margin: 0, fontSize: 12.5, color: 'var(--lx-text-muted)', lineHeight: 1.5 }}>
+                    A secure password will be auto-generated and sent to the user's email address along with their login credentials.
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{
+                padding: '16px 24px', borderTop: '1px solid rgba(107,29,42,0.08)',
+                display: 'flex', justifyContent: 'flex-end', gap: 10,
+              }}>
+                <button type="button" className="lx-btn lx-btn-outline" onClick={closeCreateModal} disabled={creating}>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="lx-btn lx-btn-gold"
+                  disabled={creating || !createForm.fullName.trim() || !createForm.email.trim()}
+                >
+                  {creating ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+                      Creating…
+                    </span>
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <i className="isax isax-user-add" />
+                      Create &amp; Send Email
+                    </span>
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </GlassModal>
+      )}
 
       {/* ── Ban User Modal ── */}
       <Modal

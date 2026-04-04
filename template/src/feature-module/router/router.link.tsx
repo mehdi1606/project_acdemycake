@@ -1,116 +1,120 @@
+import React, { lazy } from "react";
 import { Route } from "react-router";
 import { all_routes } from "./all_routes";
 import SubscriptionGuard from "../common/SubscriptionGuard";
 import RoleGuard from "../common/RoleGuard";
-import HomeOne from "../HomePages/home-one/homeone";
-import CourseGrid from "../Courses/courses-grid/courseGrid";
-import CourseList from "../Courses/course-list/courseList";
-import CourseCategory from "../Courses/course-category/courseCategory";
-import CourseCategoryThree from "../Courses/course-category-three/courseCategoryThree";
-import CourseResume from "../Courses/course-resume/courseResume";
-import CourseWatch from "../Courses/course-watch/courseWatch";
-import CourseCart from "../Courses/course-cart/courseCart";
-import CourseCheckout from "../Courses/course-checkout/courseCheckout";
-import AddNewCourse from "../Courses/add-newCourse/addNewCourse";
-import InstructorDashboard from "../Instructor/instructor-dashboard/instructorDashboard";
-import InstructorProfile from "../Instructor/instructor-profile/instructorProfile";
-import InstructorCertificate from "../Instructor/instructor-certificate/instructorCertificate";
-import InstructorCourse from "../Instructor/instructor-course/instructorCourse";
-import InstructorAnnouncements from "../Instructor/instructor-announcements/instructorAnnouncements";
-import InstructorAssignment from "../Instructor/instructor-assignment/instructorAssignment";
-import StudentGrid from "../Instructor/student-grid/studentGrid";
-import StudentList from "../Instructor/student-list/studentList";
-import InstructorQuiz from "../Instructor/instructor-quiz/instructorQuiz";
-import InstructorQuizResult from "../Instructor/instructor-quiz-result/instructorQuizResult";
-import InstructorEarning from "../Instructor/instructor-earning/instructorEarning";
-import InstructorStatement from "../Instructor/instructor-statement/instructorStatement";
-import InstructorMessage from "../Instructor/instructor-message/instructorMessage";
-import InstructorChangePassoword from "../Instructor/instructor-settings/instructor-change-password/instructorChangePassoword";
-import InstructorPlanSettings from "../Instructor/instructor-settings/instructor-plans-settings/instructorPlanSettings";
-import InstructorSocialprofileSettings from "../Instructor/instructor-settings/instructor-socialprofile-settings/instructorSocialprofileSettings";
-import InstructorLinkedAccounts from "../Instructor/instructor-settings/instructor-linked-accounts/instructorLinkedAccounts";
-import InstructorNotification from "../Instructor/instructor-settings/instructor-notification/instructorNotification";
-import InstructorIntegrations from "../Instructor/instructor-settings/instructor-integrations/instructorIntegrations";
-import InstructorWithdraw from "../Instructor/instructor-settings/instructor-withdraw/instructorWithdraw";
-import CourseDetails from "../Courses/course-details/courseDetails";
-import CourseDetailsTwo from "../Courses/course-details-2/courseDetailsTwo";
-import CourseCategoryTwo from "../Courses/course-category-two/courseCategoryTwo";
-import StudentDashboard from "../student/dashboard/studentDashboard";
-import BlogGrid from "../blog/blog-layouts/blogGrid";
-import BlogGrid2 from "../blog/blog-layouts/blogGrid2";
-import BlogGrid3 from "../blog/blog-layouts/blogGrid3";
-import BlogCarousal from "../blog/blog-layouts/blogCarousal";
-import BlogMasonry from "../blog/blog-layouts/blogMasonry";
-import BlogLeftSidebar from "../blog/blog-layouts/blogLeftSidebar";
-import BlogRightSidebar from "../blog/blog-layouts/blogRightSidebar";
-import BlogDetailsLeftSidebar from "../blog/blog-details/blogDetailsLeftSidebar";
-import BlogDetailsRightSidebar from "../blog/blog-details/blogDetailsRightSidebar";
-import CommunityPage from "../community/CommunityPage";
-import CommunityPostDetail from "../community/CommunityPostDetail";
-import InstructorGrid from "../Pages/instructor/instructor-grid/instructorGrid";
-import InstructorList from "../Pages/instructor/instructor-list/instructorList";
-import InstructorDetails from "../Pages/instructor/instructor-details/instructor-details";
-import AboutUs from "../Pages/about-us/aboutUs";
-import ContactUs from "../Pages/contact-us/contactUs";
-import Notification from "../Pages/notification/notification";
-import BecomeInstructor from "../Pages/become-instructor/becomeInstructor";
-import Testimonials from "../Pages/testimonials/testimonials";
-import PricePlanning from "../Pages/price-planning/pricePlanning";
-import Faq from "../Pages/faq/faq";
-import TermsCondition from "../Pages/terms-condition/termsCondition";
-import PrivacyPolicy from "../Pages/privacy-policy/privacyPolicy";
-import Login from "../auth/login/login";
-import Register from "../auth/register/register";
-import ForgortPassword from "../auth/forgot-password/forgortPassword";
-import SetPassword from "../auth/set-password/setPassword";
-import Otp from "../auth/otp/otp";
-import LockScreen from "../auth/lock-screen/lockScreen";
-import Error404 from "../auth/error/error-404/error400";
-import Error500 from "../auth/error/error-500/error500";
-import ComingSoon from "../auth/coming-soon/comingSoon";
-import UnderConstruction from "../auth/underconstruction/underConstruction";
-import InstructorCourseGrid from "../Instructor/instructor-course/instructorCourseGrid";
-import CourseManage from "../Instructor/instructor-course/CourseManage";
 
-import StudentProfile from "../student/student-profile/studentProfile";
-import StudentCourse from "../student/student-course/studentCourse";
-import StudentCertificates from "../student/student-certificates/student-certificates";
-import StudentWishlist from "../student/student-wishlist/studentWishlist";
-import StudentReviews from "../student/student-reviews/studentReviews";
-import StudentQuiz from "../student/student-quiz/studentQuiz";
-import StudentOrder from "../student/student-order-history/studentOrder";
-import StudentRefferal from "../student/student-refferal/studentRefferal";
-import StudentMessage from "../student/student-message/studentMessage";
-import StudentsDetails from "../Instructor/student-details/studentsDetails";
-import InstructorQuizQuestions from "../Instructor/instructor-quiz-question/instructorQuizQuestions";
-import StudentTickets from "../student/student-tickets/studentTickets";
-import StudentSettings from "../student/student-settings/studentSettings";
-import StudentChangePassword from "../student/student-settings/student-change-password/studentChangePassword";
-import StudentSocialProfile from "../student/student-settings/student-social-profile/studentSocialProfile";
-import StudentLinkedAccounts from "../student/student-settings/student-linked-accounts/studentLinkedAccounts";
-import StudentNotification from "../student/student-settings/student-notifications/studentNotification";
-import StudentBillingAddress from "../student/student-settings/student-billing-address/studentBillingAddress";
-import StudentQuizQuestion from "../student/student-quiz-question/studentQuizQuestion";
-import InstructorProfileSettings from "../Instructor/instructor-settings/instructor-profile-settings/instructorProfile";
+// ── Lazy page imports (split each route into its own chunk) ──────────────────
+const HomeOne                       = lazy(() => import("../HomePages/home-one/homeone"));
+const CourseGrid                    = lazy(() => import("../Courses/courses-grid/courseGrid"));
+const CourseList                    = lazy(() => import("../Courses/course-list/courseList"));
+const CourseCategory                = lazy(() => import("../Courses/course-category/courseCategory"));
+const CourseCategoryTwo             = lazy(() => import("../Courses/course-category-two/courseCategoryTwo"));
+const CourseCategoryThree           = lazy(() => import("../Courses/course-category-three/courseCategoryThree"));
+const CourseResume                  = lazy(() => import("../Courses/course-resume/courseResume"));
+const CourseWatch                   = lazy(() => import("../Courses/course-watch/courseWatch"));
+const CourseCart                    = lazy(() => import("../Courses/course-cart/courseCart"));
+const CourseCheckout                = lazy(() => import("../Courses/course-checkout/courseCheckout"));
+const CourseDetails                 = lazy(() => import("../Courses/course-details/courseDetails"));
+const CourseDetailsTwo              = lazy(() => import("../Courses/course-details-2/courseDetailsTwo"));
+const AddNewCourse                  = lazy(() => import("../Courses/add-newCourse/addNewCourse"));
+const CourseManage                  = lazy(() => import("../Instructor/instructor-course/CourseManage"));
 
-// Admin imports
-import AdminDashboard from "../admin/dashboard/adminDashboard";
-import AdminUsers from "../admin/users/adminUsers";
-import AdminCourses from "../admin/courses/adminCourses";
-import AdminPendingCourses from "../admin/courses/adminPendingCourses";
-import AdminCategories from "../admin/categories/adminCategories";
-import AdminTransactions from "../admin/transactions/adminTransactions";
-import AdminTickets from "../admin/tickets/adminTickets";
-import AdminSettings from "../admin/settings/adminSettings";
-import AdminAnalytics from "../admin/analytics/adminAnalytics";
-import AdminSubscriptions from "../admin/subscriptions/adminSubscriptions";
-import AdminReports from "../admin/reports/adminReports";
+const InstructorDashboard           = lazy(() => import("../Instructor/instructor-dashboard/instructorDashboard"));
+const InstructorProfile             = lazy(() => import("../Instructor/instructor-profile/instructorProfile"));
+const InstructorCertificate         = lazy(() => import("../Instructor/instructor-certificate/instructorCertificate"));
+const InstructorCourse              = lazy(() => import("../Instructor/instructor-course/instructorCourse"));
+const InstructorCourseGrid          = lazy(() => import("../Instructor/instructor-course/instructorCourseGrid"));
+const InstructorAnnouncements       = lazy(() => import("../Instructor/instructor-announcements/instructorAnnouncements"));
+const InstructorAssignment          = lazy(() => import("../Instructor/instructor-assignment/instructorAssignment"));
+const InstructorQuiz                = lazy(() => import("../Instructor/instructor-quiz/instructorQuiz"));
+const InstructorQuizResult          = lazy(() => import("../Instructor/instructor-quiz-result/instructorQuizResult"));
+const InstructorQuizQuestions       = lazy(() => import("../Instructor/instructor-quiz-question/instructorQuizQuestions"));
+const InstructorEarning             = lazy(() => import("../Instructor/instructor-earning/instructorEarning"));
+const InstructorStatement           = lazy(() => import("../Instructor/instructor-statement/instructorStatement"));
+const InstructorMessage             = lazy(() => import("../Instructor/instructor-message/instructorMessage"));
+const InstructorWishlist            = lazy(() => import("../Instructor/instructor-wishlist/instructorWishlist"));
+const InstructorReviews             = lazy(() => import("../Instructor/instructor-reviews/instructorReviews"));
+const InstructorOrders              = lazy(() => import("../Instructor/instructor-orders/instructorOrders"));
+const InstructorReferral            = lazy(() => import("../Instructor/instructor-referral/instructorReferral"));
+const InstructorProfileSettings     = lazy(() => import("../Instructor/instructor-settings/instructor-profile-settings/instructorProfile"));
+const InstructorChangePassoword     = lazy(() => import("../Instructor/instructor-settings/instructor-change-password/instructorChangePassoword"));
+const InstructorPlanSettings        = lazy(() => import("../Instructor/instructor-settings/instructor-plans-settings/instructorPlanSettings"));
+const InstructorSocialprofileSettings = lazy(() => import("../Instructor/instructor-settings/instructor-socialprofile-settings/instructorSocialprofileSettings"));
+const InstructorLinkedAccounts      = lazy(() => import("../Instructor/instructor-settings/instructor-linked-accounts/instructorLinkedAccounts"));
+const InstructorNotification        = lazy(() => import("../Instructor/instructor-settings/instructor-notification/instructorNotification"));
+const InstructorIntegrations        = lazy(() => import("../Instructor/instructor-settings/instructor-integrations/instructorIntegrations"));
+const InstructorWithdraw            = lazy(() => import("../Instructor/instructor-settings/instructor-withdraw/instructorWithdraw"));
+const StudentGrid                   = lazy(() => import("../Instructor/student-grid/studentGrid"));
+const StudentList                   = lazy(() => import("../Instructor/student-list/studentList"));
+const StudentsDetails               = lazy(() => import("../Instructor/student-details/studentsDetails"));
 
-// Instructor stub imports
-import InstructorWishlist from "../Instructor/instructor-wishlist/instructorWishlist";
-import InstructorReviews from "../Instructor/instructor-reviews/instructorReviews";
-import InstructorOrders from "../Instructor/instructor-orders/instructorOrders";
-import InstructorReferral from "../Instructor/instructor-referral/instructorReferral";
+const StudentDashboard              = lazy(() => import("../student/dashboard/studentDashboard"));
+const StudentProfile                = lazy(() => import("../student/student-profile/studentProfile"));
+const StudentCourse                 = lazy(() => import("../student/student-course/studentCourse"));
+const StudentCertificates           = lazy(() => import("../student/student-certificates/student-certificates"));
+const StudentWishlist               = lazy(() => import("../student/student-wishlist/studentWishlist"));
+const StudentReviews                = lazy(() => import("../student/student-reviews/studentReviews"));
+const StudentQuiz                   = lazy(() => import("../student/student-quiz/studentQuiz"));
+const StudentQuizQuestion           = lazy(() => import("../student/student-quiz-question/studentQuizQuestion"));
+const StudentAssignment             = lazy(() => import("../student/student-assignment/studentAssignment"));
+const StudentSubscription           = lazy(() => import("../student/student-subscription/studentSubscription"));
+const StudentOrder                  = lazy(() => import("../student/student-order-history/studentOrder"));
+const StudentRefferal               = lazy(() => import("../student/student-refferal/studentRefferal"));
+const StudentMessage                = lazy(() => import("../student/student-message/studentMessage"));
+const StudentTickets                = lazy(() => import("../student/student-tickets/studentTickets"));
+const StudentSettings               = lazy(() => import("../student/student-settings/studentSettings"));
+const StudentChangePassword         = lazy(() => import("../student/student-settings/student-change-password/studentChangePassword"));
+const StudentSocialProfile          = lazy(() => import("../student/student-settings/student-social-profile/studentSocialProfile"));
+const StudentLinkedAccounts         = lazy(() => import("../student/student-settings/student-linked-accounts/studentLinkedAccounts"));
+const StudentNotification           = lazy(() => import("../student/student-settings/student-notifications/studentNotification"));
+const StudentBillingAddress         = lazy(() => import("../student/student-settings/student-billing-address/studentBillingAddress"));
+
+const AdminDashboard                = lazy(() => import("../admin/dashboard/adminDashboard"));
+const AdminUsers                    = lazy(() => import("../admin/users/adminUsers"));
+const AdminCourses                  = lazy(() => import("../admin/courses/adminCourses"));
+const AdminPendingCourses           = lazy(() => import("../admin/courses/adminPendingCourses"));
+const AdminCategories               = lazy(() => import("../admin/categories/adminCategories"));
+const AdminTransactions             = lazy(() => import("../admin/transactions/adminTransactions"));
+const AdminTickets                  = lazy(() => import("../admin/tickets/adminTickets"));
+const AdminSettings                 = lazy(() => import("../admin/settings/adminSettings"));
+const AdminAnalytics                = lazy(() => import("../admin/analytics/adminAnalytics"));
+const AdminSubscriptions            = lazy(() => import("../admin/subscriptions/adminSubscriptions"));
+const AdminReports                  = lazy(() => import("../admin/reports/adminReports"));
+
+const BlogGrid                      = lazy(() => import("../blog/blog-layouts/blogGrid"));
+const BlogGrid2                     = lazy(() => import("../blog/blog-layouts/blogGrid2"));
+const BlogGrid3                     = lazy(() => import("../blog/blog-layouts/blogGrid3"));
+const BlogCarousal                  = lazy(() => import("../blog/blog-layouts/blogCarousal"));
+const BlogMasonry                   = lazy(() => import("../blog/blog-layouts/blogMasonry"));
+const BlogLeftSidebar               = lazy(() => import("../blog/blog-layouts/blogLeftSidebar"));
+const BlogRightSidebar              = lazy(() => import("../blog/blog-layouts/blogRightSidebar"));
+const BlogDetailsLeftSidebar        = lazy(() => import("../blog/blog-details/blogDetailsLeftSidebar"));
+const BlogDetailsRightSidebar       = lazy(() => import("../blog/blog-details/blogDetailsRightSidebar"));
+const CommunityPage                 = lazy(() => import("../community/CommunityPage"));
+const CommunityPostDetail           = lazy(() => import("../community/CommunityPostDetail"));
+const InstructorGrid                = lazy(() => import("../Pages/instructor/instructor-grid/instructorGrid"));
+const InstructorList                = lazy(() => import("../Pages/instructor/instructor-list/instructorList"));
+const InstructorDetails             = lazy(() => import("../Pages/instructor/instructor-details/instructor-details"));
+const AboutUs                       = lazy(() => import("../Pages/about-us/aboutUs"));
+const ContactUs                     = lazy(() => import("../Pages/contact-us/contactUs"));
+const Notification                  = lazy(() => import("../Pages/notification/notification"));
+const BecomeInstructor              = lazy(() => import("../Pages/become-instructor/becomeInstructor"));
+const Testimonials                  = lazy(() => import("../Pages/testimonials/testimonials"));
+const PricePlanning                 = lazy(() => import("../Pages/price-planning/pricePlanning"));
+const Faq                           = lazy(() => import("../Pages/faq/faq"));
+const TermsCondition                = lazy(() => import("../Pages/terms-condition/termsCondition"));
+const PrivacyPolicy                 = lazy(() => import("../Pages/privacy-policy/privacyPolicy"));
+const Login                         = lazy(() => import("../auth/login/login"));
+const Register                      = lazy(() => import("../auth/register/register"));
+const ForgortPassword               = lazy(() => import("../auth/forgot-password/forgortPassword"));
+const SetPassword                   = lazy(() => import("../auth/set-password/setPassword"));
+const Otp                           = lazy(() => import("../auth/otp/otp"));
+const LockScreen                    = lazy(() => import("../auth/lock-screen/lockScreen"));
+const Error404                      = lazy(() => import("../auth/error/error-404/error400"));
+const Error500                      = lazy(() => import("../auth/error/error-500/error500"));
+const ComingSoon                    = lazy(() => import("../auth/coming-soon/comingSoon"));
+const UnderConstruction             = lazy(() => import("../auth/underconstruction/underConstruction"));
 
 const routes = all_routes;
 
@@ -533,6 +537,16 @@ export const publicRoutes = [
   {
     path: routes.studentQuizQuestion,
     element: <SubscriptionGuard><StudentQuizQuestion /></SubscriptionGuard>,
+    route: Route,
+  },
+  {
+    path: routes.studentSubscription,
+    element: <RoleGuard allowedRoles={['STUDENT']}><StudentSubscription /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: '/student/student-assignments',
+    element: <SubscriptionGuard><StudentAssignment /></SubscriptionGuard>,
     route: Route,
   },
   {

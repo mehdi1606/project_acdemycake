@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchMyEnrollments } from '../../../core/redux/studentSlice';
-import { Spin } from 'antd';
+import { SkeletonCardGrid } from '../../../components/Skeleton';
 import { getFileUrl } from '../../../environment';
+
 
 type FilterTab = 'all' | 'active' | 'completed';
 
@@ -118,8 +119,8 @@ const StudentCourse: React.FC = () => {
 
       {/* ── Loading ── */}
       {isLoading ? (
-        <div className="d-flex justify-content-center py-5">
-          <Spin size="large" />
+        <div style={{ marginTop: 8 }}>
+          <SkeletonCardGrid count={6} />
         </div>
       ) : filteredEnrollments.length === 0 ? (
         /* ── Empty state ── */

@@ -1,14 +1,17 @@
 package com.academy.controller;
 
+import com.academy.dto.request.AdminCreateUserRequest;
 import com.academy.dto.response.*;
 import com.academy.entity.PaymentTransaction;
 import com.academy.service.*;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
@@ -22,6 +25,7 @@ public class AdminController {
     private final AdminService adminService;
     private final UserService userService;
     private final CourseService courseService;
+    private final SubscriptionService subscriptionService;
 
     @GetMapping("/dashboard")
     @Operation(summary = "Get admin dashboard")
@@ -31,6 +35,14 @@ public class AdminController {
     }
 
     // User Management
+    @PostMapping("/users")
+    @Operation(summary = "Create a new user account and send credentials via email")
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @Valid @RequestBody AdminCreateUserRequest request) {
+        UserResponse response = userService.adminCreateUser(request);
+        return ResponseEntity.ok(ApiResponse.success("User created and credentials sent by email", response));
+    }
+
     @GetMapping("/users")
     @Operation(summary = "Get all users with pagination")
     public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getUsers(
@@ -116,6 +128,18 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable UUID id) {
         courseService.deleteCourse(id);
         return ResponseEntity.ok(ApiResponse.success("Course deleted"));
+    }
+
+    // Subscriptions
+    @GetMapping("/subscriptions")
+    @Operation(summary = "Get all subscriptions (admin)")
+    public ResponseEntity<ApiResponse<PageResponse<SubscriptionResponse>>> getAllSubscriptions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String status) {
+
+        PageResponse<SubscriptionResponse> response = subscriptionService.getAllSubscriptions(page, size, status);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // Transactions
