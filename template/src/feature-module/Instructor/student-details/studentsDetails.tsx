@@ -7,6 +7,7 @@ import {
   InstructorStudentDetail,
   StudentCourseEnrollment,
 } from '../../../services/api/instructor.service'
+import { getFileUrl } from '../../../environment'
 
 const StudentsDetails = () => {
   const [searchParams] = useSearchParams()
@@ -93,7 +94,7 @@ const StudentsDetails = () => {
                     <div className="instructor-img">
                       {student.avatarUrl ? (
                         <img
-                          src={student.avatarUrl}
+                          src={getFileUrl(student.avatarUrl) ?? student.avatarUrl}
                           alt={student.fullName}
                           className="img-fluid rounded-3"
                           style={{ width: 120, height: 120, objectFit: 'cover' }}
@@ -166,7 +167,7 @@ const StudentsDetails = () => {
                             <div className="card border h-100">
                               {course.courseThumbnail && (
                                 <img
-                                  src={course.courseThumbnail}
+                                  src={getFileUrl(course.courseThumbnail) ?? course.courseThumbnail}
                                   alt={course.courseTitle}
                                   className="card-img-top"
                                   style={{ height: 120, objectFit: 'cover' }}

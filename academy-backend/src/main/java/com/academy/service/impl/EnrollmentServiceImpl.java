@@ -30,6 +30,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -174,7 +175,49 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         User user = getCurrentUser();
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "enrolledAt"));
         Page<CourseEnrollment> enrollments = enrollmentRepository.findByUserAndIsActiveTrue(user, pageRequest);
-        return PageResponse.from(enrollments, EnrollmentResponse::fromEntity);
+        return PageResponse.from(enrollments, enrollment -> buildEnrollmentResponseWithLiveProgress(enrollment, user));
+    }
+
+    /**
+     * Builds an EnrollmentResponse with progress computed live from LessonProgress records
+     * instead of the potentially stale cached values in CourseEnrollment.
+     */
+    private EnrollmentResponse buildEnrollmentResponseWithLiveProgress(CourseEnrollment enrollment, User user) {
+        EnrollmentResponse response = EnrollmentResponse.fromEntity(enrollment);
+        try {
+            Course course = enrollment.getCourse();
+
+            // Count total lessons from course modules
+            long totalLessons = 0;
+            if (course.getModules() != null) {
+                for (var module : course.getModules()) {
+                    if (module.getLessons() != null) {
+                        totalLessons += module.getLessons().size();
+                    }
+                }
+            }
+
+            // Count actual completed lessons from LessonProgress table (always accurate)
+            long completedLessons = lessonProgressRepository.countCompletedLessonsByUserAndCourse(user, course);
+
+            // Compute live progress percentage
+            BigDecimal liveProgress = totalLessons > 0
+                    ? BigDecimal.valueOf(completedLessons)
+                            .divide(BigDecimal.valueOf(totalLessons), 2, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100))
+                    : BigDecimal.ZERO;
+
+            boolean isNowComplete = totalLessons > 0 && completedLessons == totalLessons;
+
+            response.setProgressPercentage(liveProgress);
+            response.setCompletedLessons((int) completedLessons);
+            response.setTotalLessons((int) totalLessons);
+            response.setIsCompleted(isNowComplete);
+        } catch (Exception e) {
+            log.warn("Failed to compute live progress for enrollment {}: {}", enrollment.getId(), e.getMessage());
+            // Fall back to whatever fromEntity already set
+        }
+        return response;
     }
 
     @Override
@@ -183,7 +226,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         PageRequest pageRequest = PageRequest.of(0, limit);
         List<CourseEnrollment> enrollments = enrollmentRepository.findContinueWatching(user, pageRequest);
         return enrollments.stream()
-                .map(EnrollmentResponse::fromEntity)
+                .map(enrollment -> buildEnrollmentResponseWithLiveProgress(enrollment, user))
                 .collect(Collectors.toList());
     }
 
@@ -230,27 +273,49 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         enrollment.setProgressPercentage(progress);
 
+        // Sync completedLessonsJson so EnrollmentResponse.fromEntity() reports the correct count
+        if (completedLessons == 0) {
+            enrollment.setCompletedLessonsJson(null);
+        } else {
+            StringBuilder sb = new StringBuilder("[");
+            for (long i = 0; i < completedLessons; i++) {
+                if (i > 0) sb.append(",");
+                sb.append("\"").append(i).append("\"");
+            }
+            sb.append("]");
+            enrollment.setCompletedLessonsJson(sb.toString());
+        }
+
         if (completedLessons == totalLessons && !enrollment.getIsCompleted()) {
             enrollment.setIsCompleted(true);
             enrollment.setCompletedAt(LocalDateTime.now());
+
+            // Save completion status first — independent of certificate generation
             enrollmentRepository.save(enrollment);
 
-            // Auto-generate certificate now that the course is complete
+            // Auto-generate certificate in its own separate transaction (REQUIRES_NEW).
+            // If certificate generation fails it rolls back only itself and never
+            // poisons this transaction, so lesson progress is always saved correctly.
             try {
                 var cert = certificateService.generateCertificate(
                         enrollment.getUser(), enrollment.getCourse());
+                // Link the certificate ID and save again
                 enrollment.setCertificateId(cert.getId());
+                enrollmentRepository.save(enrollment);
                 log.info("Certificate auto-generated: {} for user: {} course: {}",
                         cert.getCertificateNumber(),
                         enrollment.getUser().getEmail(),
                         enrollment.getCourse().getTitle());
             } catch (Exception e) {
-                log.error("Failed to auto-generate certificate for user: {} course: {}",
-                        enrollment.getUser().getEmail(), enrollment.getCourse().getTitle(), e);
+                // Certificate failure must never block lesson completion — just log it
+                log.warn("Certificate auto-generation skipped for user: {} course: {} — reason: {}",
+                        enrollment.getUser().getEmail(),
+                        enrollment.getCourse().getTitle(),
+                        e.getMessage());
             }
+        } else {
+            enrollmentRepository.save(enrollment);
         }
-
-        enrollmentRepository.save(enrollment);
     }
 
     @Override

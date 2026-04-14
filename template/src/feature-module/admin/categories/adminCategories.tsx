@@ -6,6 +6,7 @@ import type { UploadProps } from 'antd';
 import { all_routes } from '../../router/all_routes';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import adminService from '../../../services/api/admin.service';
+import { getFileUrl } from '../../../environment';
 import { CourseCategory } from '../../../services/api/types';
 
 const { TextArea } = Input;
@@ -228,7 +229,7 @@ const AdminCategories = () => {
                 >
                   {category.imageUrl ? (
                     <img
-                      src={category.imageUrl}
+                      src={getFileUrl(category.imageUrl) ?? category.imageUrl}
                       alt={category.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
@@ -341,7 +342,7 @@ const AdminCategories = () => {
             <div style={{ marginTop: 8 }}>
               <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 4 }}>Current image:</p>
               <img
-                src={editingCategory.imageUrl}
+                src={getFileUrl(editingCategory.imageUrl) ?? editingCategory.imageUrl}
                 alt="Current"
                 style={{ maxWidth: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 'var(--lx-radius)' }}
               />

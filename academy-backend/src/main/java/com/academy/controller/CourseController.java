@@ -2,17 +2,24 @@ package com.academy.controller;
 
 import com.academy.dto.request.CreateReviewRequest;
 import com.academy.dto.response.*;
+import com.academy.entity.Course;
 import com.academy.entity.enums.CourseLevel;
+import com.academy.repository.LessonProgressRepository;
+import com.academy.security.UserPrincipal;
 import com.academy.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/courses")
@@ -24,6 +31,8 @@ public class CourseController {
     private final EnrollmentService enrollmentService;
     private final ReviewService reviewService;
     private final WishlistService wishlistService;
+    private final UserService userService;
+    private final LessonProgressRepository lessonProgressRepository;
 
     @GetMapping("/stats")
     @Operation(summary = "Get public platform statistics")
@@ -131,6 +140,28 @@ public class CourseController {
     public ResponseEntity<ApiResponse<CurriculumResponse>> getCourseCurriculum(@PathVariable UUID id) {
         CurriculumResponse response = courseService.getCourseCurriculum(id);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/{id}/my-progress")
+    @Operation(summary = "Get completed lesson IDs for current student in a course")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyProgress(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        try {
+            var user = userService.findById(principal.getId());
+            Course course = courseService.findById(id);
+            List<UUID> completedIds = lessonProgressRepository
+                    .findCompletedByUserAndCourse(user, course)
+                    .stream()
+                    .map(lp -> lp.getLesson().getId())
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(ApiResponse.success(
+                    Map.of("completedLessonIds", completedIds)));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.success(
+                    Map.of("completedLessonIds", List.of())));
+        }
     }
 
     @PostMapping("/{id}/enroll")

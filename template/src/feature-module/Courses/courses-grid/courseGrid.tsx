@@ -5,7 +5,7 @@ import { Slider, Spin } from 'antd';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
-import { fetchCourses, fetchCategories } from '../../../core/redux/courseSlice';
+import { fetchCourses, fetchCategories, fetchWishlist } from '../../../core/redux/courseSlice';
 import CourseCard from '../../../components/CourseCard';
 import { CourseLevel, CourseQueryParams } from '../../../services/api/types';
 
@@ -26,19 +26,26 @@ const CourseGrid = () => {
     minRating: undefined,
   });
 
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('createdAt,desc');
+  const [sortBy, setSortBy] = useState('newest');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<CourseLevel[]>([]);
   const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
   const [selectedRating, setSelectedRating] = useState<number | undefined>(undefined);
 
+  // Fetch wishlist once so hearts show correctly
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  // (auth selector also used by CourseCard internally)
+  useEffect(() => {
+    if (isAuthenticated) dispatch(fetchWishlist());
+  }, [dispatch, isAuthenticated]);
+
   // Fetch courses on mount and when filters change
   useEffect(() => {
     const queryParams: CourseQueryParams = {
       ...filters,
-      sort: sortBy,
+      sortBy,                                                       // ← correct param name
       categoryId: selectedCategories.length === 1 ? selectedCategories[0] : undefined,
       level: selectedLevels.length === 1 ? selectedLevels[0] : undefined,
       isFree: priceFilter === 'free' ? true : priceFilter === 'paid' ? false : undefined,
@@ -94,8 +101,9 @@ const CourseGrid = () => {
     setSelectedLevels([]);
     setPriceFilter('all');
     setSelectedRating(undefined);
-    setPriceRange([0, 5000]);
+    setPriceRange([0, 500]);
     setSearchTerm('');
+    setSortBy('newest');
     setFilters({
       page: 0,
       size: 9,
@@ -266,7 +274,7 @@ const CourseGrid = () => {
                             range
                             tooltip={{ formatter }}
                             min={0}
-                            max={5000}
+                            max={500}
                             value={priceRange}
                             onChange={(value) => setPriceRange(value as [number, number])}
                           />
@@ -400,13 +408,13 @@ const CourseGrid = () => {
                           <select
                             className="form-select"
                             value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
+                            onChange={(e) => { setSortBy(e.target.value); setFilters((p) => ({ ...p, page: 0 })); }}
                           >
-                            <option value="createdAt,desc">Newly Published</option>
-                            <option value="enrolledCount,desc">Trending Courses</option>
-                            <option value="ratingAverage,desc">Top Rated</option>
-                            <option value="price,asc">Price: Low to High</option>
-                            <option value="price,desc">Price: High to Low</option>
+                            <option value="newest">Newly Published</option>
+                            <option value="popular">Trending Courses</option>
+                            <option value="rating">Top Rated</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
                           </select>
                           <div className="search-group">
                             <i className="isax isax-search-normal-1" />

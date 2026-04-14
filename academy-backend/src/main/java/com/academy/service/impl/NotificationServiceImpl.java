@@ -156,13 +156,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public void sendMessageNotification(User user, String senderName, String preview) {
+    public void sendMessageNotification(User user, String senderName, String preview, UUID senderId) {
         createNotification(
                 user,
                 "New Message from " + senderName,
                 preview,
                 NotificationType.MESSAGE,
-                "/messages"
+                "/messages?userId=" + senderId
         );
     }
 

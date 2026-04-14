@@ -3,6 +3,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { instructorService, InstructorStudentInfo } from '../../../services/api/instructor.service';
+import { getFileUrl } from '../../../environment';
 
 const StudentList: React.FC = () => {
   const [students, setStudents] = useState<InstructorStudentInfo[]>([]);
@@ -185,7 +186,7 @@ const StudentList: React.FC = () => {
                       <div className="d-flex align-items-center">
                         {student.avatarUrl ? (
                           <img
-                            src={student.avatarUrl}
+                            src={getFileUrl(student.avatarUrl) ?? student.avatarUrl}
                             alt={student.fullName}
                             className="avatar avatar-md avatar-rounded flex-shrink-0 me-2"
                             style={{ objectFit: 'cover' }}

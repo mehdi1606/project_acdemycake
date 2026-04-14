@@ -1,4 +1,4 @@
-import api, { apiMultipart } from './axios.config';
+import api from './axios.config';
 import { Certificate } from './types';
 
 interface CertificatePageResponse {
@@ -54,32 +54,6 @@ class CertificateService {
     const response = await api.get(`/instructor/certificates/${id}/download`, {
       responseType: 'blob',
     });
-    return response.data;
-  }
-
-  /**
-   * Upload (or replace) the certificate template image for a course.
-   * PNG / JPG landscape image recommended.
-   * Returns the public URL of the stored template.
-   */
-  async uploadCertificateTemplate(
-    courseId: string,
-    file: File,
-    onProgress?: (percent: number) => void
-  ): Promise<string> {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await apiMultipart.post<string>(
-      `/instructor/courses/${courseId}/certificate-template`,
-      formData,
-      {
-        onUploadProgress: (evt) => {
-          if (onProgress && evt.total) {
-            onProgress(Math.round((evt.loaded * 100) / evt.total));
-          }
-        },
-      }
-    );
     return response.data;
   }
 

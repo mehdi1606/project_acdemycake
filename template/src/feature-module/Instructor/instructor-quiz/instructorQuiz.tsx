@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { InputNumber, message, Popconfirm, Switch } from 'antd';
 import { instructorService } from '../../../services/api/instructor.service';
@@ -14,6 +14,7 @@ interface Question { id: string; type: QuestionType; text: string; points: numbe
 interface QuizFormData {
   courseId: string; title: string; description: string; passingScore: number; duration: number;
   shuffleQuestions: boolean; showCorrectAnswers: boolean; allowRetake: boolean; maxAttempts: number; questions: Question[];
+  lessonId?: string; // optional: links this quiz to a specific QUIZ-type lesson
 }
 
 const generateId = () => Math.random().toString(36).slice(2, 10);
@@ -44,6 +45,10 @@ const labelStyle: React.CSSProperties = {
 };
 
 const InstructorQuiz: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const urlLessonId = searchParams.get('lessonId') ?? undefined;
+  const urlCourseId = searchParams.get('courseId') ?? undefined;
+
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesError, setCoursesError] = useState<string | null>(null);
   const [loadingCourses, setLoadingCourses] = useState<boolean>(true);
@@ -56,6 +61,10 @@ const InstructorQuiz: React.FC = () => {
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question>(createEmptyQuestion());
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [linkedQuiz, setLinkedQuiz] = useState<Quiz | null>(null);
+  const [linkingQuizId, setLinkingQuizId] = useState<string>('');
+  const [linkingLoading, setLinkingLoading] = useState(false);
+  const [showLinkPanel, setShowLinkPanel] = useState(false);
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -73,9 +82,22 @@ const InstructorQuiz: React.FC = () => {
       catch (e) { console.error(e); setQuizzes([]); }
       finally { setLoadingQuizzes(false); }
     };
+    const checkLinkedQuiz = async () => {
+      if (!urlLessonId) return;
+      try {
+        const quiz = await quizService.getInstructorQuizByLessonId(urlLessonId);
+        if (quiz) {
+          setLinkedQuiz(quiz);
+        }
+        // else: show the warning banner — let instructor choose to create new or link existing
+      } catch {
+        // ignore — banner will show
+      }
+    };
     loadCourses();
     loadQuizzes();
-  }, []);
+    checkLinkedQuiz();
+  }, [urlLessonId, urlCourseId]);
 
   const totalPoints = useMemo<number>(() => quizForm.questions.reduce<number>((sum, q) => sum + (q.points || 0), 0), [quizForm.questions]);
 
@@ -178,6 +200,7 @@ const InstructorQuiz: React.FC = () => {
         duration: quizForm.duration, shuffleQuestions: quizForm.shuffleQuestions,
         showCorrectAnswers: quizForm.showCorrectAnswers, allowRetake: quizForm.allowRetake,
         maxAttempts: quizForm.maxAttempts, questions: apiQuestions,
+        ...(quizForm.lessonId ? { lessonId: quizForm.lessonId } : {}),
       };
       const created = await quizService.createQuiz(payload);
       message.success('Quiz created successfully!');
@@ -207,6 +230,22 @@ const InstructorQuiz: React.FC = () => {
     }
   };
 
+  const handleLinkExistingQuiz = async () => {
+    if (!linkingQuizId || !urlLessonId) return;
+    setLinkingLoading(true);
+    try {
+      const updated = await quizService.updateQuiz(linkingQuizId, { lessonId: urlLessonId } as any);
+      setLinkedQuiz(updated);
+      setLinkingQuizId('');
+      setShowLinkPanel(false);
+      message.success('Quiz linked to this lesson successfully!');
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Failed to link quiz.');
+    } finally {
+      setLinkingLoading(false);
+    }
+  };
+
   const stepTitle = (n: number) => ['Basic Info', 'Questions', 'Settings', 'Review'][n - 1] || '';
 
   // Stepper
@@ -226,10 +265,114 @@ const InstructorQuiz: React.FC = () => {
     <LuxuryDashboardLayout>
       {!showQuizBuilder ? (
         <>
+          {/* Lesson-linked quiz banner */}
+          {urlLessonId && linkedQuiz && (
+            <div style={{
+              marginBottom: 20, padding: '14px 18px', borderRadius: 'var(--lx-radius)',
+              background: 'rgba(34, 139, 34, 0.06)', border: '1px solid rgba(34,139,34,0.18)',
+              display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+            }}>
+              <i className="isax isax-award" style={{ color: '#1a6e1a', fontSize: 20 }} />
+              <div style={{ flex: 1 }}>
+                <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>Linked Quiz: {linkedQuiz.title}</strong>
+                <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 12 }}>
+                  {linkedQuiz.questionCount ?? 0} questions · {linkedQuiz.duration ?? 0} min · Pass at {linkedQuiz.passingScore ?? 70}% ·{' '}
+                  <span style={{ color: linkedQuiz.status === 'PUBLISHED' ? '#1a6e1a' : '#C5973E', fontWeight: 600 }}>{linkedQuiz.status}</span>
+                </p>
+              </div>
+              <button
+                className="lx-btn lx-btn-sm"
+                style={{ background: 'rgba(34,139,34,0.10)', color: '#1a6e1a', border: '1px solid rgba(34,139,34,0.25)' }}
+                onClick={() => {
+                  setQuizForm({
+                    courseId: linkedQuiz.courseId ?? urlCourseId ?? '',
+                    title: linkedQuiz.title ?? '',
+                    description: linkedQuiz.description ?? '',
+                    passingScore: linkedQuiz.passingScore ?? 70,
+                    duration: linkedQuiz.duration ?? 30,
+                    shuffleQuestions: linkedQuiz.shuffleQuestions ?? false,
+                    showCorrectAnswers: linkedQuiz.showCorrectAnswers ?? true,
+                    allowRetake: linkedQuiz.allowRetake ?? true,
+                    maxAttempts: linkedQuiz.maxAttempts ?? 3,
+                    questions: [],
+                    lessonId: urlLessonId,
+                  });
+                  setShowQuizBuilder(true);
+                }}
+              >
+                <i className="isax isax-edit-2" style={{ marginRight: 4 }} /> Edit Quiz
+              </button>
+            </div>
+          )}
+
+          {/* Link existing quiz banner — shown when coming from a lesson with no quiz linked */}
+          {urlLessonId && !linkedQuiz && (
+            <div style={{
+              marginBottom: 20, padding: '14px 18px', borderRadius: 'var(--lx-radius)',
+              background: 'rgba(197, 151, 62, 0.06)', border: '1px solid rgba(197, 151, 62, 0.22)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: showLinkPanel ? 14 : 0, flexWrap: 'wrap' }}>
+                <i className="isax isax-link" style={{ color: '#C5973E', fontSize: 18 }} />
+                <div style={{ flex: 1 }}>
+                  <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>No quiz linked to this lesson yet</strong>
+                  <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 12 }}>
+                    Create a new quiz below, or link one of your existing quizzes to this lesson.
+                  </p>
+                </div>
+                <button
+                  className="lx-btn lx-btn-sm"
+                  style={{ background: 'rgba(197,151,62,0.12)', color: '#C5973E', border: '1px solid rgba(197,151,62,0.28)', whiteSpace: 'nowrap' }}
+                  onClick={() => setShowLinkPanel((v) => !v)}
+                >
+                  <i className={`isax ${showLinkPanel ? 'isax-minus-cirlce' : 'isax-link'}`} style={{ marginRight: 4 }} />
+                  {showLinkPanel ? 'Cancel' : 'Link Existing Quiz'}
+                </button>
+              </div>
+
+              {showLinkPanel && (
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <select
+                    value={linkingQuizId}
+                    onChange={(e) => setLinkingQuizId(e.target.value)}
+                    style={{
+                      flex: 1, minWidth: 200, padding: '9px 12px',
+                      border: '1.5px solid rgba(197,151,62,0.25)', borderRadius: 'var(--lx-radius-sm)',
+                      fontSize: 13, background: 'rgba(255,255,255,0.7)', color: 'var(--lx-text)', outline: 'none',
+                    }}
+                  >
+                    <option value="">— Select a quiz to link —</option>
+                    {quizzes
+                      .filter((q) => !q.lessonId) // only show unlinked quizzes
+                      .map((q) => (
+                        <option key={q.id} value={q.id}>
+                          {q.title} ({q.status}) · {q.questionCount ?? 0} questions
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    className="lx-btn lx-btn-gold lx-btn-sm"
+                    onClick={handleLinkExistingQuiz}
+                    disabled={!linkingQuizId || linkingLoading}
+                  >
+                    {linkingLoading ? (
+                      <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                      <i className="isax isax-link" />
+                    )}
+                    Link Quiz
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Quiz List */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>My Quizzes</h5>
-            <button className="lx-btn lx-btn-gold" onClick={() => setShowQuizBuilder(true)} disabled={!loadingCourses && courses.length === 0}>
+            <button className="lx-btn lx-btn-gold" onClick={() => {
+              setQuizForm({ ...emptyQuizForm, courseId: urlCourseId ?? '', lessonId: urlLessonId });
+              setShowQuizBuilder(true);
+            }} disabled={!loadingCourses && courses.length === 0}>
               <i className="isax isax-add-circle" style={{ marginRight: 6 }} /> Create New Quiz
             </button>
           </div>
@@ -290,7 +433,7 @@ const InstructorQuiz: React.FC = () => {
                             : <><i className="isax isax-send-2" style={{ marginRight: 4 }} />Publish</>
                         }
                       </button>
-                      <Link to={all_routes.instructorQuizResult} className="lx-btn lx-btn-outline lx-btn-sm">
+                      <Link to={`${all_routes.instructorQuizResult}?quizId=${quiz.id}`} className="lx-btn lx-btn-outline lx-btn-sm">
                         <i className="isax isax-chart" style={{ marginRight: 4 }} /> Results
                       </Link>
                       <Popconfirm title="Delete Quiz" description="Are you sure? This cannot be undone." okText="Yes" cancelText="Cancel" okButtonProps={{ danger: true }} onConfirm={() => handleDeleteQuiz(quiz.id)}>
@@ -328,7 +471,13 @@ const InstructorQuiz: React.FC = () => {
 
                 <div style={{ marginBottom: 16 }}>
                   <label style={labelStyle}>Select Course <span style={{ color: '#8B2335' }}>*</span></label>
-                  {loadingCourses ? (
+                  {urlLessonId && urlCourseId ? (
+                    // Locked to the course from the lesson link
+                    <div style={{ ...inputStyle, color: 'var(--lx-text-muted)', display: 'flex', alignItems: 'center', gap: 8, cursor: 'not-allowed', opacity: 0.8 }}>
+                      <i className="isax isax-lock" style={{ fontSize: 14, color: 'var(--lx-primary)' }} />
+                      {courses.find(c => c.id === urlCourseId)?.title ?? 'Loading course…'}
+                    </div>
+                  ) : loadingCourses ? (
                     <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--lx-text-muted)' }}>
                       <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
                       Loading courses…
@@ -347,6 +496,12 @@ const InstructorQuiz: React.FC = () => {
                   )}
                   {!loadingCourses && !coursesError && courses.length === 0 && (
                     <p style={{ margin: '8px 0 0', fontSize: 12, color: '#C5973E' }}>You have no courses yet. Create a course first.</p>
+                  )}
+                  {urlLessonId && (
+                    <p style={{ margin: '6px 0 0', fontSize: 11, color: '#C5973E' }}>
+                      <i className="isax isax-award" style={{ marginRight: 4 }} />
+                      This quiz will be linked to the lesson automatically.
+                    </p>
                   )}
                 </div>
 

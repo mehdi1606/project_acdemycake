@@ -207,7 +207,12 @@ const courseSlice = createSlice({
       })
       .addCase(fetchCourses.fulfilled, (state, action: PayloadAction<PaginatedResponse<Course>>) => {
         state.isLoading = false;
-        state.courses = action.payload.content;
+        // Cross-reference with known wishlist IDs so hearts show correctly
+        const wishlistIds = new Set(state.wishlist.map((c) => c.id));
+        state.courses = action.payload.content.map((c) => ({
+          ...c,
+          isWishlisted: wishlistIds.has(c.id) || c.isWishlisted,
+        }));
         state.totalPages = action.payload.totalPages;
         state.totalElements = action.payload.totalElements;
         state.currentPage = action.payload.number;
@@ -289,10 +294,15 @@ const courseSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Fetch wishlist
+    // Fetch wishlist — also mark matching courses in state.courses as wishlisted
     builder
       .addCase(fetchWishlist.fulfilled, (state, action: PayloadAction<Course[]>) => {
         state.wishlist = action.payload;
+        const wishlistIds = new Set(action.payload.map((c) => c.id));
+        state.courses = state.courses.map((c) => ({
+          ...c,
+          isWishlisted: wishlistIds.has(c.id),
+        }));
       });
 
     // Add to wishlist

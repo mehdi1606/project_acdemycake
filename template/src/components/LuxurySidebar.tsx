@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../core/redux/hooks';
 import { logout } from '../core/redux/authSlice';
 import { all_routes } from '../feature-module/router/all_routes';
+import { getFileUrl } from '../environment';
 
 interface SidebarItem {
   title: string;
@@ -180,7 +181,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
           }}
         >
           {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.fullName} />
+            <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} />
           ) : (
             <span style={{ color: roleColor }}>
               {user?.fullName?.charAt(0).toUpperCase() || 'U'}

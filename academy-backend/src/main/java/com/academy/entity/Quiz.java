@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "quizzes", indexes = {
@@ -56,6 +57,9 @@ public class Quiz extends BaseEntity {
     @Column(name = "max_attempts")
     @Builder.Default
     private Integer maxAttempts = 3;
+
+    @Column(name = "lesson_id")
+    private UUID lessonId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

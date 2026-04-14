@@ -4,6 +4,7 @@ import { all_routes } from "../../../feature-module/router/all_routes";
 import { setDataTheme } from "../../redux/themeSettingSlice";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { logout } from "../../redux/authSlice";
+import { getFileUrl } from "../../../environment";
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -17,6 +18,7 @@ const Header = () => {
 
   const dataTheme = useAppSelector((state) => state.themeSetting.dataTheme);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const cartCount = useAppSelector((state) => state.cart.items.length);
 
   const handleDataThemeChange = (theme: string) => {
     dispatch(setDataTheme(theme));
@@ -182,19 +184,21 @@ const Header = () => {
                   textDecoration: 'none',
                 }}
               >
+                {/* SVG Logo — gold (#c5912c) variant, perfect on dark bg */}
                 <img
-                  src={`${process.env.PUBLIC_URL}/assets/img/logo-white.png`}
-                  alt=""
-                  style={{ height: 36, objectFit: 'contain' }}
+                  src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+                  alt="SARALÖWE Academy"
+                  style={{ height: 42, width: 42, objectFit: 'contain' }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
                 <span style={{
-                  fontSize: 20, fontWeight: 800, color: '#fff',
-                  letterSpacing: -0.5, lineHeight: 1,
+                  fontFamily: '"Playfair Display", serif',
+                  fontSize: 18, fontWeight: 700, color: 'var(--sl-blush, #F5DADF)',
+                  letterSpacing: '0.12em', lineHeight: 1, textTransform: 'uppercase',
                 }}>
-                  SARALOWE
+                  SARALÖWE
                 </span>
               </Link>
             </div>
@@ -254,12 +258,26 @@ const Header = () => {
                   width: 38, height: 38, borderRadius: 10, textDecoration: 'none',
                   background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  position: 'relative',
                   fontSize: 18, transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
               >
                 <i className="isax isax-shopping-cart" />
+                {cartCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: 4, right: 4,
+                    minWidth: 15, height: 15, borderRadius: 8,
+                    background: '#C5973E', color: '#fff',
+                    fontSize: 9, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 3px', lineHeight: 1,
+                    border: '1.5px solid rgba(107,29,42,0.8)',
+                  }}>
+                    {cartCount > 9 ? '9+' : cartCount}
+                  </span>
+                )}
               </Link>
 
               {isAuthenticated && user ? (
@@ -332,7 +350,7 @@ const Header = () => {
                         border: '2px solid rgba(255,255,255,0.15)',
                       }}>
                         {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           user.fullName?.charAt(0).toUpperCase() || 'U'
                         )}
@@ -378,7 +396,7 @@ const Header = () => {
                             border: '2px solid rgba(255,255,255,0.15)',
                           }}>
                             {user.avatarUrl ? (
-                              <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               user.fullName?.charAt(0).toUpperCase() || 'U'
                             )}
@@ -489,7 +507,15 @@ const Header = () => {
             {/* Mobile Header */}
             <div style={{ padding: '0 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>SARALOWE</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img
+                    src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+                    alt="SARALÖWE"
+                    style={{ height: 34, width: 34, objectFit: 'contain' }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <span style={{ fontFamily: '"Playfair Display", serif', fontSize: 16, fontWeight: 700, color: 'var(--sl-blush, #F5DADF)', letterSpacing: '0.1em' }}>SARALÖWE</span>
+                </div>
                 <button
                   type="button" onClick={onhandleCloseMenu}
                   style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 20, cursor: 'pointer', padding: 4 }}

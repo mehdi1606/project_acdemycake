@@ -4,8 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { instructorService } from '../../../services/api/instructor.service';
 import { courseService } from '../../../services/api/course.service';
 import { Course, CourseModule, CourseLesson } from '../../../services/api/types';
-import { message } from 'antd';
+import { App } from 'antd';
 import { all_routes } from '../../router/all_routes';
+import { getFileUrl } from '../../../environment';
 
 /* ── Shared Styles ─────────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
@@ -39,6 +40,83 @@ const focusHandlers = {
   onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)';
   },
+};
+
+/* ── Rich Text Toolbar ────────────────────────────────── */
+type RichToolbarProps = { editorRef: React.RefObject<HTMLDivElement | null> };
+const RichToolbar: React.FC<RichToolbarProps> = ({ editorRef }) => {
+  const exec = (cmd: string, val?: string) => {
+    editorRef.current?.focus();
+    document.execCommand(cmd, false, val ?? undefined);
+  };
+  const btn = (
+    icon: string, cmd: string, title: string, val?: string,
+    style?: React.CSSProperties
+  ) => (
+    <button
+      type="button" title={title} onMouseDown={(e) => { e.preventDefault(); exec(cmd, val); }}
+      style={{
+        border: 'none', background: 'transparent', cursor: 'pointer',
+        padding: '4px 7px', borderRadius: 5, fontSize: 13, color: '#4b5563',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'background 0.15s', ...style,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107,29,42,0.08)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      {icon.startsWith('fa-') ? <i className={`fa-solid ${icon}`} /> : icon}
+    </button>
+  );
+  const sep = () => (
+    <span style={{ width: 1, height: 20, background: 'rgba(107,29,42,0.12)', margin: '0 4px', display: 'inline-block', verticalAlign: 'middle' }} />
+  );
+  return (
+    <div style={{
+      display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2,
+      padding: '6px 10px', background: 'rgba(107,29,42,0.02)',
+      borderRadius: '8px 8px 0 0', border: '1.5px solid rgba(107,29,42,0.12)',
+      borderBottom: 'none',
+    }}>
+      {btn('fa-bold',          'bold',          'Bold')}
+      {btn('fa-italic',        'italic',        'Italic')}
+      {btn('fa-underline',     'underline',     'Underline')}
+      {btn('fa-strikethrough', 'strikeThrough', 'Strikethrough')}
+      {sep()}
+      {btn('H1', 'formatBlock', 'Heading 1', '<h1>', { fontSize: 12, fontWeight: 800 })}
+      {btn('H2', 'formatBlock', 'Heading 2', '<h2>', { fontSize: 12, fontWeight: 700 })}
+      {btn('H3', 'formatBlock', 'Heading 3', '<h3>', { fontSize: 12, fontWeight: 600 })}
+      {btn('¶',  'formatBlock', 'Paragraph', '<p>',  { fontSize: 14 })}
+      {sep()}
+      {btn('fa-list-ul',      'insertUnorderedList', 'Bullet List')}
+      {btn('fa-list-ol',      'insertOrderedList',   'Numbered List')}
+      {sep()}
+      {btn('fa-quote-left',   'formatBlock', 'Blockquote', '<blockquote>')}
+      {btn('fa-code',         'formatBlock', 'Code Block', '<pre>')}
+      {sep()}
+      {btn('fa-align-left',   'justifyLeft',   'Align Left')}
+      {btn('fa-align-center', 'justifyCenter', 'Align Center')}
+      {btn('fa-align-right',  'justifyRight',  'Align Right')}
+      {sep()}
+      <button
+        type="button" title="Insert Link"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          const url = window.prompt('Enter URL:', 'https://');
+          if (url) { editorRef.current?.focus(); document.execCommand('createLink', false, url); }
+        }}
+        style={{
+          border: 'none', background: 'transparent', cursor: 'pointer',
+          padding: '4px 7px', borderRadius: 5, fontSize: 13, color: '#4b5563',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107,29,42,0.08)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      >
+        <i className="fa-solid fa-link" />
+      </button>
+      {btn('fa-eraser', 'removeFormat', 'Clear Formatting')}
+    </div>
+  );
 };
 
 /* ── Glass Modal ──────────────────────────────────────── */
@@ -144,6 +222,7 @@ interface ModuleWithLessons extends CourseModule {
 const CourseManage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -177,6 +256,114 @@ const CourseManage: React.FC = () => {
   const [lessonDesc, setLessonDesc] = useState('');
   const [lessonType, setLessonType] = useState<'VIDEO' | 'TEXT' | 'QUIZ'>('VIDEO');
   const [submitting, setSubmitting] = useState(false);
+
+  // Text content editor states
+  const [textModalVisible,   setTextModalVisible]   = useState(false);
+  const [textLesson,         setTextLesson]         = useState<CourseLesson | null>(null);
+  const [textLessonTitle,    setTextLessonTitle]    = useState('');
+  const [textLoadingContent, setTextLoadingContent] = useState(false);
+  const [savingContent,      setSavingContent]      = useState(false);
+  const [resources,          setResources]          = useState<{ id: string; name: string; url: string; type: string; size?: number }[]>([]);
+  const [uploadingResource,  setUploadingResource]  = useState(false);
+  const editorRef   = useRef<HTMLDivElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+
+  /* ── Text Content Editor ── */
+  const handleOpenTextEditor = useCallback(async (lesson: CourseLesson) => {
+    setTextLesson(lesson);
+    setTextLessonTitle(lesson.title);
+    setResources([]);
+    setTextModalVisible(true);
+    setTextLoadingContent(true);
+    try {
+      const detail = await instructorService.getLessonDetail(lesson.id);
+      const html = detail.textContent || '';
+      setResources(detail.resources || []);
+      setTimeout(() => {
+        if (editorRef.current) editorRef.current.innerHTML = html;
+      }, 80);
+    } catch {
+      // Open empty editor — instructor can still write and save content
+      setTimeout(() => {
+        if (editorRef.current) editorRef.current.innerHTML = '';
+      }, 80);
+    } finally {
+      setTextLoadingContent(false);
+    }
+  }, []);
+
+  const handleSaveTextContent = useCallback(async () => {
+    if (!textLesson) return;
+    const html = editorRef.current?.innerHTML ?? '';
+    try {
+      setSavingContent(true);
+      // Backend requires all fields on PUT — send full lesson data + updated textContent
+      await instructorService.updateLesson(textLesson.id, {
+        title:        textLesson.title,
+        description:  textLesson.description,
+        contentType:  textLesson.contentType as 'VIDEO' | 'TEXT' | 'QUIZ',
+        orderIndex:   textLesson.orderIndex,
+        isFreePreview: textLesson.isFreePreview ?? false,
+        textContent:  html,
+      });
+      message.success('Content saved successfully!');
+      setTextModalVisible(false);
+    } catch (err: any) {
+      const serverMsg: string = err?.response?.data?.message ?? '';
+      message.error(serverMsg || 'Failed to save content');
+    } finally {
+      setSavingContent(false);
+    }
+  }, [textLesson, message]);
+
+  const handleResourceUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !textLesson) return;
+    const allowedTypes = [
+      'application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain', 'image/png', 'image/jpeg', 'image/gif',
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      message.error('Unsupported file type. Use PDF, DOC, DOCX, PPT, PPTX, TXT, or images.');
+      if (pdfInputRef.current) pdfInputRef.current.value = '';
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      message.error('File too large (max 50MB)');
+      if (pdfInputRef.current) pdfInputRef.current.value = '';
+      return;
+    }
+    try {
+      setUploadingResource(true);
+      const res = await instructorService.uploadLessonResource(textLesson.id, file, file.name);
+      setResources((prev) => [...prev, res]);
+      message.success(`"${file.name}" uploaded successfully!`);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 500 || status === 501 || status === 404) {
+        message.warning('File attachment is not supported by the server yet. You can still write and save text content.');
+      } else {
+        message.error('Failed to upload file. Please try again.');
+      }
+    } finally {
+      setUploadingResource(false);
+      if (pdfInputRef.current) pdfInputRef.current.value = '';
+    }
+  }, [textLesson, message]);
+
+  const handleDeleteResource = useCallback(async (resourceId: string, name: string) => {
+    if (!textLesson) return;
+    try {
+      await instructorService.deleteLessonResource(textLesson.id, resourceId);
+      setResources((prev) => prev.filter((r) => r.id !== resourceId));
+      message.success(`"${name}" removed`);
+    } catch {
+      message.error('Failed to remove file');
+    }
+  }, [textLesson, message]);
 
   const fetchCourseData = useCallback(async () => {
     if (!courseId) return;
@@ -616,14 +803,40 @@ const CourseManage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
                           {lesson.contentType === 'VIDEO' && (lesson as any).videoStatus !== 'ready' && (
                             <button
                               type="button" className="lx-btn lx-btn-sm lx-btn-gold"
                               onClick={() => handleUploadVideoClick(lesson.id)}
                               style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                             >
-                              <i className="isax isax-video-add" style={{ fontSize: 13 }} /> Upload
+                              <i className="isax isax-video-add" style={{ fontSize: 13 }} /> Upload Video
+                            </button>
+                          )}
+                          {lesson.contentType === 'TEXT' && (
+                            <button
+                              type="button" className="lx-btn lx-btn-sm"
+                              onClick={() => handleOpenTextEditor(lesson)}
+                              style={{
+                                fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4,
+                                background: 'rgba(59,130,246,0.08)', color: '#3B82F6',
+                                border: '1px solid rgba(59,130,246,0.2)',
+                              }}
+                            >
+                              <i className="isax isax-document-text" style={{ fontSize: 13 }} /> Edit Content
+                            </button>
+                          )}
+                          {lesson.contentType === 'QUIZ' && (
+                            <button
+                              type="button" className="lx-btn lx-btn-sm"
+                              onClick={() => navigate(`${all_routes.instructorQuiz}?lessonId=${lesson.id}&courseId=${courseId}`)}
+                              style={{
+                                fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4,
+                                background: 'rgba(197,151,62,0.10)', color: '#C5973E',
+                                border: '1px solid rgba(197,151,62,0.25)',
+                              }}
+                            >
+                              <i className="isax isax-award" style={{ fontSize: 13 }} /> Manage Quiz
                             </button>
                           )}
                           <ActionBtn icon="isax-edit-2" title="Edit" onClick={() => handleEditLesson(lesson, module.id)} />
@@ -869,6 +1082,220 @@ const CourseManage: React.FC = () => {
             Your video will be automatically transcoded for optimal streaming. This may take a few minutes after upload completes.
           </span>
         </div>
+      </GlassModal>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* ── MODAL: Text / Article Content Editor ── */}
+      <GlassModal
+        open={textModalVisible}
+        onClose={() => { if (!savingContent) setTextModalVisible(false); }}
+        title={`✏️ Edit Content — ${textLessonTitle}`}
+        maxWidth={820}
+        closable={!savingContent}
+      >
+        {textLoadingContent ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{
+              width: 32, height: 32, border: '3px solid rgba(107,29,42,0.1)',
+              borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite', margin: '0 auto 12px',
+            }} />
+            <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading content…</p>
+          </div>
+        ) : (
+          <>
+            {/* ─ Rich Text Editor ─ */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ ...labelStyle, marginBottom: 8 }}>
+                <i className="fa-solid fa-pen-to-square" style={{ marginRight: 6, color: '#6B1D2A' }} />
+                Lesson Content
+              </label>
+
+              {/* Toolbar */}
+              <RichToolbar editorRef={editorRef} />
+
+              {/* Editable area */}
+              <div
+                ref={editorRef}
+                contentEditable
+                suppressContentEditableWarning
+                style={{
+                  minHeight: 260, padding: '14px 16px',
+                  border: '1.5px solid rgba(107,29,42,0.12)',
+                  borderRadius: '0 0 8px 8px',
+                  fontSize: 14, lineHeight: 1.75, color: '#374151',
+                  background: '#fff', outline: 'none', overflowY: 'auto',
+                  fontFamily: 'inherit',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107,29,42,0.3)'; }}
+                onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(107,29,42,0.12)'; }}
+              />
+              <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginTop: 4, marginBottom: 0 }}>
+                Tip: Select text and use the toolbar to format. Supports bold, headings, lists, code blocks & more.
+              </p>
+            </div>
+
+            {/* ─ Attachments (PDF, Docs, etc.) ─ */}
+            <div style={{
+              marginBottom: 24, padding: 18,
+              background: 'rgba(107,29,42,0.015)', borderRadius: 10,
+              border: '1.5px solid rgba(107,29,42,0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <label style={{ ...labelStyle, margin: 0 }}>
+                  <i className="fa-solid fa-paperclip" style={{ marginRight: 6, color: '#6B1D2A' }} />
+                  Attachments &amp; Resources
+                </label>
+                <label style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 14px', borderRadius: 8, cursor: uploadingResource ? 'wait' : 'pointer',
+                  background: uploadingResource ? 'rgba(107,29,42,0.04)' : 'rgba(107,29,42,0.06)',
+                  color: '#6B1D2A', fontWeight: 600, fontSize: 12,
+                  border: '1px solid rgba(107,29,42,0.12)',
+                  opacity: uploadingResource ? 0.7 : 1,
+                }}>
+                  <i className={`fa-solid ${uploadingResource ? 'fa-spinner fa-spin' : 'fa-plus'}`} />
+                  {uploadingResource ? 'Uploading…' : 'Attach File'}
+                  <input
+                    ref={pdfInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.gif"
+                    style={{ display: 'none' }}
+                    onChange={handleResourceUpload}
+                    disabled={uploadingResource}
+                  />
+                </label>
+              </div>
+
+              <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 12 }}>
+                Supported: PDF, DOC, DOCX, PPT, PPTX, TXT, Images — Max 50MB each
+              </p>
+
+              {/* File list */}
+              {resources.length === 0 ? (
+                <div style={{
+                  textAlign: 'center', padding: '20px 0',
+                  border: '2px dashed rgba(107,29,42,0.1)', borderRadius: 8,
+                  color: 'var(--lx-text-muted)',
+                }}>
+                  <i className="fa-solid fa-file-arrow-up" style={{ fontSize: 28, marginBottom: 8, display: 'block', opacity: 0.4 }} />
+                  <p style={{ margin: 0, fontSize: 13 }}>No attachments yet. Click "Attach File" to add resources.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {resources.map((res) => {
+                    const ext = res.name.split('.').pop()?.toLowerCase() ?? '';
+                    const iconMap: Record<string, { icon: string; color: string }> = {
+                      pdf:  { icon: 'fa-file-pdf',          color: '#EF4444' },
+                      doc:  { icon: 'fa-file-word',         color: '#2563EB' },
+                      docx: { icon: 'fa-file-word',         color: '#2563EB' },
+                      ppt:  { icon: 'fa-file-powerpoint',   color: '#F97316' },
+                      pptx: { icon: 'fa-file-powerpoint',   color: '#F97316' },
+                      txt:  { icon: 'fa-file-lines',        color: '#6B7280' },
+                      png:  { icon: 'fa-file-image',        color: '#8B5CF6' },
+                      jpg:  { icon: 'fa-file-image',        color: '#8B5CF6' },
+                      jpeg: { icon: 'fa-file-image',        color: '#8B5CF6' },
+                      gif:  { icon: 'fa-file-image',        color: '#8B5CF6' },
+                    };
+                    const fi = iconMap[ext] ?? { icon: 'fa-file', color: '#6B7280' };
+                    const sizeLabel = res.size
+                      ? res.size > 1024 * 1024
+                        ? `${(res.size / 1024 / 1024).toFixed(1)} MB`
+                        : `${Math.round(res.size / 1024)} KB`
+                      : '';
+
+                    return (
+                      <div key={res.id} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 14px', borderRadius: 8, background: '#fff',
+                        border: '1px solid rgba(107,29,42,0.06)',
+                        boxShadow: '0 1px 4px rgba(107,29,42,0.04)',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                          <i className={`fa-solid ${fi.icon}`} style={{ fontSize: 22, color: fi.color, flexShrink: 0 }} />
+                          <div style={{ minWidth: 0 }}>
+                            <a
+                              href={getFileUrl(res.url) ?? res.url}
+                              target="_blank" rel="noopener noreferrer"
+                              style={{
+                                fontSize: 13, fontWeight: 600, color: '#2C1810',
+                                textDecoration: 'none', display: 'block',
+                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {res.name}
+                            </a>
+                            {sizeLabel && (
+                              <span style={{ fontSize: 11, color: 'var(--lx-text-muted)' }}>{sizeLabel}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                          <a
+                            href={getFileUrl(res.url) ?? res.url}
+                            target="_blank" rel="noopener noreferrer"
+                            title="Preview / Download"
+                            style={{
+                              width: 30, height: 30, borderRadius: 7,
+                              background: 'rgba(59,130,246,0.06)',
+                              border: '1px solid rgba(59,130,246,0.15)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#3B82F6', textDecoration: 'none', fontSize: 13,
+                            }}
+                          >
+                            <i className="fa-solid fa-arrow-down-to-line" />
+                          </a>
+                          <button
+                            type="button"
+                            title="Remove"
+                            onClick={() => handleDeleteResource(res.id, res.name)}
+                            style={{
+                              width: 30, height: 30, borderRadius: 7, border: 'none',
+                              background: 'rgba(139,35,53,0.06)', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#8B2335', fontSize: 13,
+                            }}
+                          >
+                            <i className="fa-solid fa-trash" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* ─ Action buttons ─ */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                type="button" className="lx-btn lx-btn-outline"
+                onClick={() => setTextModalVisible(false)}
+                disabled={savingContent}
+              >
+                Cancel
+              </button>
+              <button
+                type="button" className="lx-btn lx-btn-gold"
+                onClick={handleSaveTextContent}
+                disabled={savingContent}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, opacity: savingContent ? 0.7 : 1 }}
+              >
+                {savingContent ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-floppy-disk" />
+                    Save Content
+                  </>
+                )}
+              </button>
+            </div>
+          </>
+        )}
       </GlassModal>
 
       {/* ── Confirm Modal ── */}

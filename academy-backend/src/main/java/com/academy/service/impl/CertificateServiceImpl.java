@@ -9,26 +9,19 @@ import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.repository.CertificateRepository;
-import com.academy.repository.CourseRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.CertificateService;
-import com.academy.service.FileStorageService;
 import com.academy.service.UserService;
-import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.Document;
-import com.itextpdf.layout.borders.Border;
-import com.itextpdf.layout.element.Cell;
-import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.UnitValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,8 +29,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
@@ -51,11 +44,23 @@ import java.util.UUID;
 public class CertificateServiceImpl implements CertificateService {
 
     private final CertificateRepository certificateRepository;
-    private final CourseRepository courseRepository;
-    private final FileStorageService fileStorageService;
     private final UserService userService;
 
-    // ── Student methods ────────────────────────────────────────────────────
+    // ── Colours matching the site's luxury theme ───────────────────────────────
+    /** Deep maroon — primary brand colour */
+    private static final DeviceRgb MAROON        = new DeviceRgb(107, 29, 42);
+    /** Darker maroon for headers */
+    private static final DeviceRgb MAROON_DARK   = new DeviceRgb(75, 18, 28);
+    /** Gold accent */
+    private static final DeviceRgb GOLD          = new DeviceRgb(197, 151, 62);
+    /** Light gold / cream */
+    private static final DeviceRgb GOLD_LIGHT    = new DeviceRgb(245, 235, 200);
+    /** Off-white background */
+    private static final DeviceRgb BG_CREAM      = new DeviceRgb(252, 248, 240);
+    /** Muted text */
+    private static final DeviceRgb GRAY_MID      = new DeviceRgb(120, 100, 90);
+
+    // ── Student methods ────────────────────────────────────────────────────────
 
     @Override
     public PageResponse<CertificateResponse> getMyCertificates(int page, int size) {
@@ -103,27 +108,17 @@ public class CertificateServiceImpl implements CertificateService {
         }
     }
 
-    // ── Auto-generation (called from EnrollmentServiceImpl) ───────────────
+    // ── Auto-generation (called from EnrollmentServiceImpl on course completion) ─
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CertificateResponse generateCertificate(User user, Course course) {
-        // Return existing certificate if already issued
+        // Return existing certificate if already issued — prevent duplicates
         if (certificateRepository.existsByUserAndCourse(user, course)) {
             Certificate existing = certificateRepository.findByUserAndCourse(user, course)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Certificate", "user and course", null));
             return CertificateResponse.fromEntity(existing);
-        }
-
-        // Certificate generation requires an instructor-uploaded template
-        if (course.getCertificateTemplatePath() == null
-                || course.getCertificateTemplatePath().isBlank()) {
-            log.info("No certificate template set for course '{}' — skipping generation.",
-                    course.getTitle());
-            throw new BadRequestException(
-                    "No certificate template uploaded for course: " + course.getTitle()
-                    + ". Please upload a template from the Certificates section.");
         }
 
         String certificateNumber = generateCertificateNumber();
@@ -146,7 +141,7 @@ public class CertificateServiceImpl implements CertificateService {
         return CertificateResponse.fromEntity(certificate);
     }
 
-    // ── Instructor methods ─────────────────────────────────────────────────
+    // ── Instructor methods ─────────────────────────────────────────────────────
 
     @Override
     public PageResponse<CertificateResponse> getInstructorCertificates(int page, int size) {
@@ -173,187 +168,216 @@ public class CertificateServiceImpl implements CertificateService {
         }
     }
 
-    @Override
-    @Transactional
-    public String uploadCertificateTemplate(UUID courseId, MultipartFile file) {
-        User instructor = getCurrentUser();
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
+    // ── PDF generation — luxury site-matching design ───────────────────────────
 
-        // Ownership check
-        if (!course.getInstructor().getId().equals(instructor.getId())) {
-            throw new ForbiddenException("You don't have permission to modify this course");
-        }
-
-        // Delete old template if one exists
-        if (course.getCertificateTemplatePath() != null
-                && !course.getCertificateTemplatePath().isBlank()) {
-            try {
-                fileStorageService.deleteFile(course.getCertificateTemplatePath());
-            } catch (Exception e) {
-                log.warn("Could not delete old certificate template: {}", e.getMessage());
-            }
-        }
-
-        // Store the new template image
-        String filePath = fileStorageService.storeFile(file, "certificate-templates");
-        course.setCertificateTemplatePath(filePath);
-        courseRepository.save(course);
-
-        log.info("Certificate template uploaded for course '{}' by instructor '{}'",
-                course.getTitle(), instructor.getEmail());
-
-        return fileStorageService.getFileUrl(filePath);
-    }
-
-    // ── PDF generation ─────────────────────────────────────────────────────
-
-    /**
-     * Entry point: uses the instructor's template image if available,
-     * otherwise falls back to the built-in decorative layout.
-     */
     private byte[] generatePdf(Certificate certificate) throws Exception {
-        String templatePath = certificate.getCourse().getCertificateTemplatePath();
-        if (templatePath != null && !templatePath.isBlank()) {
-            return generatePdfWithTemplate(certificate, templatePath);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(baos));
+
+        // Landscape A4  (841.9 × 595.3 pt)
+        PageSize landscape = PageSize.A4.rotate();
+        pdfDoc.addNewPage(landscape);
+
+        float W = landscape.getWidth();   // ~841.9
+        float H = landscape.getHeight();  // ~595.3
+
+        PdfCanvas pdfCanvas = new PdfCanvas(pdfDoc.getFirstPage());
+        Canvas canvas = new Canvas(pdfCanvas, landscape);
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
+        String completionDateStr = certificate.getCompletionDate() != null
+                ? certificate.getCompletionDate().format(fmt) : "N/A";
+
+        // ── 1. Background fill — cream ──────────────────────────────────────
+        pdfCanvas.setFillColor(BG_CREAM)
+                 .rectangle(0, 0, W, H)
+                 .fill();
+
+        // ── 2. Left maroon accent strip (≈28% width) ───────────────────────
+        float stripW = W * 0.28f;
+        pdfCanvas.setFillColor(MAROON_DARK)
+                 .rectangle(0, 0, stripW, H)
+                 .fill();
+
+        // ── 3. Gold vertical ribbons on the strip ──────────────────────────
+        float ribbonW = 12f;
+        float ribbonGap = 20f;
+        float ribbonX = stripW * 0.55f;
+        // Three ribbons, decreasing height
+        float[] ribbonHeights = { H * 0.72f, H * 0.60f, H * 0.48f };
+        for (int i = 0; i < 3; i++) {
+            pdfCanvas.setFillColor(GOLD)
+                     .rectangle(ribbonX + i * (ribbonW + ribbonGap),
+                                H - ribbonHeights[i],
+                                ribbonW, ribbonHeights[i])
+                     .fill();
         }
-        return generatePdfDefault(certificate);
-    }
 
-    /**
-     * Template-based PDF: loads the instructor's image as a full-page background
-     * and writes the student's name (+ cert number) on top.
-     */
-    private byte[] generatePdfWithTemplate(Certificate certificate, String templatePath)
-            throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfDocument pdf = new PdfDocument(new PdfWriter(baos));
+        // ── 4. Gold medal / rosette on strip ──────────────────────────────
+        float medalCX = stripW * 0.40f;
+        float medalCY = H * 0.32f;
+        float medalR  = 52f;
+        // Outer spiky ring (drawn as larger circle)
+        pdfCanvas.setFillColor(GOLD)
+                 .circle(medalCX, medalCY, medalR + 10)
+                 .fill();
+        // Inner circle
+        pdfCanvas.setFillColor(GOLD_LIGHT)
+                 .circle(medalCX, medalCY, medalR - 6)
+                 .fill();
 
-        // Landscape A4
-        Document document = new Document(pdf, PageSize.A4.rotate());
-        document.setMargins(0, 0, 0, 0);
+        // ── 5. Outer decorative border on the right panel ─────────────────
+        float borderInset = 14f;
+        float rightPanelX = stripW + borderInset;
+        float rightPanelW = W - stripW - borderInset * 2;
+        pdfCanvas.setStrokeColor(GOLD)
+                 .setLineWidth(2f)
+                 .rectangle(rightPanelX, borderInset, rightPanelW, H - borderInset * 2)
+                 .stroke();
+        // Thin inner border
+        pdfCanvas.setStrokeColor(GOLD)
+                 .setLineWidth(0.5f)
+                 .rectangle(rightPanelX + 7, borderInset + 7,
+                            rightPanelW - 14, H - borderInset * 2 - 14)
+                 .stroke();
 
-        float pageWidth  = PageSize.A4.rotate().getWidth();   // ~841.9 pt
-        float pageHeight = PageSize.A4.rotate().getHeight();  // ~595.3 pt
-
-        // ── Full-page background: instructor's template ──────────────────
-        byte[] templateBytes = fileStorageService.loadFile(templatePath);
-        Image bg = new Image(ImageDataFactory.create(templateBytes));
-        bg.setFixedPosition(0, 0);
-        bg.setWidth(pageWidth);
-        bg.setHeight(pageHeight);
-        document.add(bg);
-
-        // ── Student name – centered at ~42 % from bottom ─────────────────
-        DeviceRgb nameColor = new DeviceRgb(139, 69, 19);   // warm brown
-        document.add(new Paragraph(certificate.getStudentName())
-                .setFontSize(44)
-                .setFontColor(nameColor)
+        // ── 6. Site logo / name on the strip ──────────────────────────────
+        canvas.add(new Paragraph("SARALOWE")
+                .setFontColor(GOLD)
+                .setFontSize(14f)
                 .setBold()
-                .setFixedPosition(0, pageHeight * 0.42f, pageWidth)
+                .setCharacterSpacing(4f)
+                .setFixedPosition(0, H * 0.82f, stripW)
                 .setTextAlignment(TextAlignment.CENTER));
 
-        // ── Certificate number – bottom center ────────────────────────────
-        document.add(new Paragraph(
-                "Certificate #: " + certificate.getCertificateNumber())
-                .setFontSize(10)
-                .setFontColor(ColorConstants.DARK_GRAY)
-                .setFixedPosition(10, 16, pageWidth - 20)
+        canvas.add(new Paragraph("ACADEMY")
+                .setFontColor(GOLD_LIGHT)
+                .setFontSize(8f)
+                .setCharacterSpacing(5f)
+                .setFixedPosition(0, H * 0.77f, stripW)
                 .setTextAlignment(TextAlignment.CENTER));
 
-        document.close();
+        // ── 7. "CERTIFICATE" heading ───────────────────────────────────────
+        float contentX = stripW + 32f;
+        float contentW = W - stripW - 64f;
+
+        canvas.add(new Paragraph("CERTIFICATE")
+                .setFontColor(MAROON_DARK)
+                .setFontSize(40f)
+                .setBold()
+                .setCharacterSpacing(8f)
+                .setFixedPosition(contentX, H - 110f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        canvas.add(new Paragraph("OF COMPLETION")
+                .setFontColor(GOLD)
+                .setFontSize(13f)
+                .setCharacterSpacing(5f)
+                .setFixedPosition(contentX, H - 133f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        // ── 8. "This certificate is proudly presented to" ─────────────────
+        canvas.add(new Paragraph("This certificate is proudly presented to")
+                .setFontColor(GRAY_MID)
+                .setFontSize(11f)
+                .setFixedPosition(contentX, H - 175f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        // ── 9. Student name (script style — italic bold) ──────────────────
+        canvas.add(new Paragraph(certificate.getStudentName())
+                .setFontColor(MAROON)
+                .setFontSize(36f)
+                .setBold()
+                .setItalic()
+                .setFixedPosition(contentX, H - 228f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        // Gold underline below student name
+        float lineY = H - 238f;
+        float lineHalfW = Math.min(contentW * 0.42f, 200f);
+        float lineCX = contentX + contentW / 2f;
+        pdfCanvas.setStrokeColor(GOLD)
+                 .setLineWidth(1.2f)
+                 .moveTo(lineCX - lineHalfW, lineY)
+                 .lineTo(lineCX + lineHalfW, lineY)
+                 .stroke();
+
+        // ── 10. "has successfully completed" ─────────────────────────────
+        canvas.add(new Paragraph("has successfully completed the course")
+                .setFontColor(GRAY_MID)
+                .setFontSize(11f)
+                .setFixedPosition(contentX, H - 263f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        // ── 11. Course title ──────────────────────────────────────────────
+        canvas.add(new Paragraph(certificate.getCourseTitle())
+                .setFontColor(MAROON_DARK)
+                .setFontSize(20f)
+                .setBold()
+                .setFixedPosition(contentX, H - 295f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        // ── 12. Completion date ────────────────────────────────────────────
+        canvas.add(new Paragraph("Completed on  " + completionDateStr)
+                .setFontColor(GRAY_MID)
+                .setFontSize(10f)
+                .setFixedPosition(contentX, H - 320f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        // ── 13. Signature table ───────────────────────────────────────────
+        float sigY = borderInset + 55f;
+        float sigW = contentW * 0.75f;
+        float sigX = contentX + (contentW - sigW) / 2f;
+
+        // Two signature lines
+        float sig1X = sigX + sigW * 0.05f;
+        float sig2X = sigX + sigW * 0.55f;
+        float sigLineW = sigW * 0.38f;
+
+        pdfCanvas.setStrokeColor(MAROON)
+                 .setLineWidth(0.8f)
+                 .moveTo(sig1X, sigY + 18f).lineTo(sig1X + sigLineW, sigY + 18f).stroke()
+                 .moveTo(sig2X, sigY + 18f).lineTo(sig2X + sigLineW, sigY + 18f).stroke();
+
+        canvas.add(new Paragraph(certificate.getInstructorName())
+                .setFontColor(MAROON_DARK).setFontSize(10f).setBold()
+                .setFixedPosition(sig1X, sigY + 1f, sigLineW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        canvas.add(new Paragraph("Course Instructor")
+                .setFontColor(GRAY_MID).setFontSize(8f)
+                .setCharacterSpacing(1f)
+                .setFixedPosition(sig1X, sigY - 11f, sigLineW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        canvas.add(new Paragraph("Saralowe Academy")
+                .setFontColor(MAROON_DARK).setFontSize(10f).setBold()
+                .setFixedPosition(sig2X, sigY + 1f, sigLineW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        canvas.add(new Paragraph("Academy Director")
+                .setFontColor(GRAY_MID).setFontSize(8f)
+                .setCharacterSpacing(1f)
+                .setFixedPosition(sig2X, sigY - 11f, sigLineW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        // ── 14. Certificate number & verify URL ────────────────────────────
+        canvas.add(new Paragraph("Certificate No: " + certificate.getCertificateNumber())
+                .setFontColor(GRAY_MID).setFontSize(8f)
+                .setFixedPosition(contentX, borderInset + 20f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        canvas.add(new Paragraph("Verify at: saralowe.academy/verify/" + certificate.getCertificateNumber())
+                .setFontColor(GOLD).setFontSize(7.5f)
+                .setFixedPosition(contentX, borderInset + 10f, contentW)
+                .setTextAlignment(TextAlignment.CENTER));
+
+        canvas.close();
+        pdfDoc.close();
         return baos.toByteArray();
     }
 
-    /**
-     * Fallback: built-in decorative layout used when no template has been set.
-     */
-    private byte[] generatePdfDefault(Certificate certificate) throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfDocument pdf = new PdfDocument(new PdfWriter(baos));
-
-        Document document = new Document(pdf, PageSize.A4.rotate());
-        document.setMargins(40, 40, 40, 40);
-
-        DeviceRgb primaryColor = new DeviceRgb(139, 69, 19);
-        DeviceRgb goldColor    = new DeviceRgb(218, 165, 32);
-
-        document.add(new Paragraph("CERTIFICATE OF COMPLETION")
-                .setFontSize(32).setFontColor(primaryColor).setBold()
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(30));
-
-        document.add(new Paragraph("Cake Design Academy")
-                .setFontSize(24).setFontColor(goldColor)
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(10));
-
-        document.add(new Paragraph("______________________________")
-                .setFontSize(14).setFontColor(goldColor)
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(20));
-
-        document.add(new Paragraph("This is to certify that")
-                .setFontSize(16).setFontColor(ColorConstants.DARK_GRAY)
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(30));
-
-        document.add(new Paragraph(certificate.getStudentName())
-                .setFontSize(36).setFontColor(primaryColor).setBold()
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(15));
-
-        document.add(new Paragraph("has successfully completed the course")
-                .setFontSize(16).setFontColor(ColorConstants.DARK_GRAY)
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(20));
-
-        document.add(new Paragraph(certificate.getCourseTitle())
-                .setFontSize(28).setFontColor(primaryColor).setBold().setItalic()
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(15));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
-        document.add(new Paragraph(
-                "Completed on " + certificate.getCompletionDate().format(formatter))
-                .setFontSize(14).setFontColor(ColorConstants.DARK_GRAY)
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(30));
-
-        Table signatureTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
-                .setWidth(UnitValue.createPercentValue(80))
-                .setHorizontalAlignment(HorizontalAlignment.CENTER)
-                .setMarginTop(40);
-
-        Cell instructorCell = new Cell()
-                .add(new Paragraph("_______________________")
-                        .setTextAlignment(TextAlignment.CENTER))
-                .add(new Paragraph(certificate.getInstructorName())
-                        .setTextAlignment(TextAlignment.CENTER).setBold())
-                .add(new Paragraph("Course Instructor")
-                        .setTextAlignment(TextAlignment.CENTER).setFontSize(10))
-                .setBorder(Border.NO_BORDER);
-
-        Cell academyCell = new Cell()
-                .add(new Paragraph("_______________________")
-                        .setTextAlignment(TextAlignment.CENTER))
-                .add(new Paragraph("Cake Design Academy")
-                        .setTextAlignment(TextAlignment.CENTER).setBold())
-                .add(new Paragraph("Academy Director")
-                        .setTextAlignment(TextAlignment.CENTER).setFontSize(10))
-                .setBorder(Border.NO_BORDER);
-
-        signatureTable.addCell(instructorCell);
-        signatureTable.addCell(academyCell);
-        document.add(signatureTable);
-
-        document.add(new Paragraph(
-                "Certificate Number: " + certificate.getCertificateNumber())
-                .setFontSize(10).setFontColor(ColorConstants.GRAY)
-                .setTextAlignment(TextAlignment.CENTER).setMarginTop(30));
-
-        document.add(new Paragraph(
-                "Verify at: cakedesign.academy/verify/" + certificate.getCertificateNumber())
-                .setFontSize(10).setFontColor(ColorConstants.GRAY)
-                .setTextAlignment(TextAlignment.CENTER));
-
-        document.close();
-        return baos.toByteArray();
-    }
-
-    // ── Helpers ────────────────────────────────────────────────────────────
+    // ── Helpers ────────────────────────────────────────────────────────────────
 
     private String generateCertificateNumber() {
         String timestamp = String.valueOf(System.currentTimeMillis());

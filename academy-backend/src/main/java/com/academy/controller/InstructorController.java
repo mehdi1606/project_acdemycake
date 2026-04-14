@@ -306,12 +306,4 @@ public class InstructorController {
                 .body(pdfBytes);
     }
 
-    @PostMapping("/courses/{courseId}/certificate-template")
-    @Operation(summary = "Upload or replace the certificate template image for a course")
-    public ResponseEntity<ApiResponse<String>> uploadCertificateTemplate(
-            @PathVariable UUID courseId,
-            @RequestParam("file") MultipartFile file) {
-        String templateUrl = certificateService.uploadCertificateTemplate(courseId, file);
-        return ResponseEntity.ok(ApiResponse.success("Certificate template uploaded", templateUrl));
-    }
 }

@@ -25,7 +25,7 @@ public interface NotificationService {
 
     void sendSubscriptionNotification(User user, String title, String message);
 
-    void sendMessageNotification(User user, String senderName, String preview);
+    void sendMessageNotification(User user, String senderName, String preview, UUID senderId);
 
     void cleanupOldNotifications();
 }

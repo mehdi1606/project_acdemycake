@@ -1,178 +1,176 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import ImageWithBasePath from '../../../core/common/imageWithBasePath'
 import { all_routes } from '../../router/all_routes'
 
 const Footer = () => {
-  return (
-    <footer className="footer footer-one">
-  <div className="footer-top">
-    <div className="container">
-      <div className="row row-gap-4">
-        <div className="col-lg-4">
-          <div className="footer-about">
-            <div className="footer-logo">
-              <ImageWithBasePath src="assets/img/logo-white.png" alt="" />
-            </div>
-            <p>
-              Platform designed to help organizations, educators, and learners
-              manage, deliver, and track learning and training activities.
-            </p>
-            <div className="d-flex align-items-center">
-              <Link to="#" className="me-2">
-                <ImageWithBasePath src="assets/img/icon/appstore.svg" alt="" />
-              </Link>
-              <Link to="#">
-                <ImageWithBasePath src="assets/img/icon/googleplay.svg" alt="" />
-              </Link>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-5">
-          <div className="row row-gap-4">
-            <div className="col-lg-4 col-md-4">
-              <div className="footer-widget footer-menu">
-                <h5 className="footer-title">Support</h5>
-                <ul>
-                  <li>
-                    <Link to={all_routes.courseGrid}>Education</Link>
-                  </li>
-                  <li>
-                    <Link to={all_routes.addNewCourse}>Enroll Course</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Orders</Link>
-                  </li>
-                  <li>
-                    <Link to={all_routes.pricingPlan}>Payments</Link>
-                  </li>
-                  <li>
-                    <Link to={all_routes.blogGrid}>Blogs</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-4">
-              <div className="footer-widget footer-menu">
-                <h5 className="footer-title">About</h5>
-                <ul>
-                  <li>
-                    <Link to={all_routes.courseCategory}>Categories</Link>
-                  </li>
-                  <li>
-                    <Link to={all_routes.courseList}>Courses</Link>
-                  </li>
-                  <li>
-                    <Link to={all_routes.about_us}>About Us</Link>
-                  </li>
-                  <li>
-                    <Link to={all_routes.FAQ}>Faq</Link>
-                  </li>
-                  <li>
-                    <Link to={all_routes.contactUs}>Contacts</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-4">
-              <div className="footer-widget footer-menu">
-                <h5 className="footer-title">Useful Links</h5>
-                <ul>
-                  <li>
-                    <Link to="#">Our values</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Our advisory board</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Our partners</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Become a partner</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Work at Future Learn</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-3">
-          <div className="footer-widget footer-contact">
-            <h5 className="footer-title">Subscribe Newsletter</h5>
-            <div className="footer-newsletter">
-              <p>Sign up to get updates &amp; news.</p>
-              <form action="#">
-                <div className="subscribe-form">
-                  <span>
-                    <i className="isax isax-message-text" />
-                  </span>
-                  <input
-                    type="email"
-                    className="form-control"
-                    placeholder="Email Address"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="btn btn-secondary btn-xl w-100"
-                >
-                  Subscribe
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div className="footer-bottom">
-    <div className="container">
-      <div className="row row-gap-2">
-        <div className="col-lg-5">
-          <div className="text-center text-lg-start">
-            <p>
-              Copyright 2025 © <span className="text-secondary">SARALOWE</span>
-              . All right reserved.
-            </p>
-          </div>
-        </div>
-        <div className="col-lg-4">
-          <ul className="d-flex align-items-center justify-content-center footer-link">
-            <li>
-              <Link to={all_routes.termsConditions}>Terms &amp; Conditions</Link>
-            </li>
-            <li>
-              <Link to={all_routes.privacyPolicy}>Privacy Policy</Link>
-            </li>
-          </ul>
-        </div>
-        <div className="col-lg-3">
-          <div className="social-icon">
-            <Link to="#">
-              <i className="fa-brands fa-facebook-f" />
-            </Link>
-            <Link to="#">
-              <i className="fa-brands fa-instagram" />
-            </Link>
-            <Link to="#">
-              <i className="fa-brands fa-x-twitter" />
-            </Link>
-            <Link to="#">
-              <i className="fa-brands fa-youtube" />
-            </Link>
-            <Link to="#">
-              <i className="fa-brands fa-linkedin" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</footer>
+    const route = all_routes
 
-  )
+    return (
+        <footer className="sl-footer" style={{ position: 'relative', overflow: 'hidden' }}>
+            {/* Decorative toile cover as ultra-faint footer bg */}
+            <div
+                style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `url(${process.env.PUBLIC_URL}/assets/img/cover/A5 cover.jpg)`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center top',
+                    opacity: 0.03,
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                }}
+            />
+
+            <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="row row-gap-5">
+
+                    {/* ── Brand column ── */}
+                    <div className="col-lg-4">
+                        {/* SVG Logo — gold on dark */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '0.5rem' }}>
+                            <img
+                                src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+                                alt="SARALÖWE Academy"
+                                style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                            <div>
+                                <div className="sl-footer__brand-name">SARALÖWE</div>
+                                <div className="sl-footer__brand-sub">Academy of Couture Pastry Design</div>
+                            </div>
+                        </div>
+
+                        <div className="sl-footer__divider" />
+
+                        <p className="sl-footer__description">
+                            The world's premier online destination for luxury cake design education.
+                            Expert-led programmes, industry-recognised certificates, and a global
+                            community of passionate pastry artists.
+                        </p>
+                        <div className="sl-footer__tagline">l'art du gâteau</div>
+
+                        <div className="sl-footer__social">
+                            <a href="#" aria-label="Instagram"><i className="fa-brands fa-instagram" /></a>
+                            <a href="#" aria-label="Facebook"><i className="fa-brands fa-facebook-f" /></a>
+                            <a href="#" aria-label="Pinterest"><i className="fa-brands fa-pinterest-p" /></a>
+                            <a href="#" aria-label="YouTube"><i className="fa-brands fa-youtube" /></a>
+                            <a href="#" aria-label="TikTok"><i className="fa-brands fa-tiktok" /></a>
+                        </div>
+                    </div>
+
+                    {/* ── Links columns ── */}
+                    <div className="col-lg-5">
+                        <div className="row row-gap-4">
+                            <div className="col-6 col-md-4">
+                                <div className="sl-footer__heading">Learn</div>
+                                <ul className="sl-footer__links">
+                                    <li><Link to={route.courseList}>All Courses</Link></li>
+                                    <li><Link to={route.courseCategory}>Categories</Link></li>
+                                    <li><Link to={route.instructorList}>Instructors</Link></li>
+                                    <li><Link to={route.pricingPlan}>Pricing</Link></li>
+                                    <li><Link to={route.courseGrid}>Certificates</Link></li>
+                                </ul>
+                            </div>
+                            <div className="col-6 col-md-4">
+                                <div className="sl-footer__heading">Academy</div>
+                                <ul className="sl-footer__links">
+                                    <li><Link to={route.about_us}>About Us</Link></li>
+                                    <li><Link to={route.instructorList}>Our Artists</Link></li>
+                                    <li><Link to={route.blogGrid}>Journal</Link></li>
+                                    <li><Link to={route.FAQ}>FAQs</Link></li>
+                                    <li><Link to={route.contactUs}>Contact</Link></li>
+                                </ul>
+                            </div>
+                            <div className="col-6 col-md-4">
+                                <div className="sl-footer__heading">Legal</div>
+                                <ul className="sl-footer__links">
+                                    <li><Link to={route.termsConditions}>Terms of Use</Link></li>
+                                    <li><Link to={route.privacyPolicy}>Privacy Policy</Link></li>
+                                    <li><Link to="#">Cookie Policy</Link></li>
+                                    <li><Link to="#">Refund Policy</Link></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Newsletter column ── */}
+                    <div className="col-lg-3">
+                        <div className="sl-footer__heading">Studio Newsletter</div>
+                        <p style={{
+                            fontFamily: 'var(--sl-font-body)', fontSize: '0.8rem',
+                            color: 'rgba(245,218,223,0.42)', lineHeight: 1.7, marginBottom: '1.25rem',
+                        }}>
+                            Receive new course announcements, technique tips, and exclusive student offers.
+                        </p>
+                        <form onSubmit={e => e.preventDefault()}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <input
+                                    type="email"
+                                    placeholder="Your email address"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid rgba(245,218,223,0.12)',
+                                        color: 'rgba(245,218,223,0.8)',
+                                        fontFamily: 'var(--sl-font-body)',
+                                        fontSize: '0.8rem',
+                                        padding: '0.75rem 1rem',
+                                        outline: 'none',
+                                        width: '100%',
+                                    }}
+                                />
+                                <button
+                                    type="submit"
+                                    className="sl-btn-gold"
+                                    style={{ justifyContent: 'center', width: '100%' }}
+                                >
+                                    Subscribe
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Trust badges */}
+                        <div style={{
+                            marginTop: '2rem',
+                            padding: '1rem',
+                            border: '1px solid rgba(197,145,44,0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                        }}>
+                            <img
+                                src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+                                alt=""
+                                style={{ width: 32, height: 32, opacity: 0.7 }}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                            <div style={{
+                                fontFamily: 'var(--sl-font-body)',
+                                fontSize: '0.62rem',
+                                color: 'rgba(245,218,223,0.4)',
+                                letterSpacing: '0.08em',
+                                lineHeight: 1.6,
+                            }}>
+                                Crafted by Science.<br />
+                                Elevated by Art.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Bottom bar ── */}
+                <div className="sl-footer__border" />
+                <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <p className="sl-footer__copy mb-0">
+                        © {new Date().getFullYear()} SARALÖWE Academy. All rights reserved.
+                    </p>
+                    <div className="sl-footer__bottom-links">
+                        <Link to={route.termsConditions}>Terms</Link>
+                        <Link to={route.privacyPolicy}>Privacy</Link>
+                        <Link to="#">Cookies</Link>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    )
 }
 
 export default Footer

@@ -67,11 +67,24 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.COURSE_DETAIL, key = "'slug-' + #slug")
     public CourseResponse getCourseBySlug(String slug) {
         Course course = courseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "slug", slug));
-        return buildResponse(course);
+        CourseResponse response = buildResponse(course);
+        // Enrich with enrollment status for logged-in users (not cached — user-specific)
+        try {
+            User user = getCurrentUserSafe();
+            if (user != null) {
+                boolean enrolled = courseEnrollmentRepository.existsByUserAndCourse(user, course);
+                response.setIsEnrolled(enrolled);
+                if (enrolled) {
+                    courseEnrollmentRepository.findByUserAndCourse(user, course).ifPresent(e ->
+                        response.setEnrollmentProgress(
+                            e.getProgressPercentage() != null ? e.getProgressPercentage().intValue() : 0));
+                }
+            }
+        } catch (Exception ignored) { /* unauthenticated — skip */ }
+        return response;
     }
 
     @Override
@@ -518,5 +531,18 @@ public class CourseServiceImpl implements CourseService {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         return userService.findById(userPrincipal.getId());
+    }
+
+    /** Returns the current user or null if the request is not authenticated. */
+    private User getCurrentUserSafe() {
+        try {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UserPrincipal)) {
+                return null;
+            }
+            return userService.findById(((UserPrincipal) auth.getPrincipal()).getId());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -5,6 +5,7 @@ import { Spin, message, Pagination, Popconfirm, Select } from 'antd';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchCourses, deleteCourse } from '../../../core/redux/adminSlice';
+import { getFileUrl } from '../../../environment';
 
 const AdminCourses = () => {
   const dispatch = useAppDispatch();
@@ -154,7 +155,7 @@ const AdminCourses = () => {
                       <td>
                         <div className="d-flex align-items-center gap-3">
                           <img
-                            src={course.thumbnailUrl || '/assets/img/course/course-01.jpg'}
+                            src={course.thumbnailUrl ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl) : '/assets/img/course/course-01.jpg'}
                             alt=""
                             style={{
                               width: 50,

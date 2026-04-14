@@ -1,210 +1,144 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import { all_routes } from '../../../router/all_routes';
-import { courseService } from '../../../../services/api/course.service';
-import { Course } from '../../../../services/api/types';
-import { getFileUrl } from '../../../../environment';
-import { Spin } from 'antd';
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import Slider from 'react-slick'
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
+import { all_routes } from '../../../router/all_routes'
+import { courseService } from '../../../../services/api/course.service'
+import { Course } from '../../../../services/api/types'
+import { getFileUrl } from '../../../../environment'
 
 const Featuredcourse = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const route = all_routes
+    const [courses, setCourses] = useState<Course[]>([])
+    const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        const response = await courseService.getLatestCourses(8);
-        // Handle different response formats
-        if (Array.isArray(response)) {
-          setCourses(response);
-        } else if (response && typeof response === 'object') {
-          // Handle paginated response or wrapped response
-          const data = (response as any).content || (response as any).data || [];
-          setCourses(Array.isArray(data) ? data : []);
-        } else {
-          setCourses([]);
-        }
-      } catch (err) {
-        setError('Failed to load courses');
-        console.error('Error fetching courses:', err);
-        setCourses([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    useEffect(() => {
+        courseService.getLatestCourses(8)
+            .then(res => {
+                if (Array.isArray(res)) setCourses(res)
+                else setCourses((res as any).content || (res as any).data || [])
+            })
+            .catch(() => setCourses([]))
+            .finally(() => setLoading(false))
+    }, [])
 
-    fetchCourses();
-  }, []);
+    const sliderSettings = {
+        dots: true,
+        infinite: courses.length > 3,
+        speed: 500,
+        slidesToShow: 3,
+        slidesToScroll: 1,
+        responsive: [
+            { breakpoint: 1200, settings: { slidesToShow: 3 } },
+            { breakpoint: 992, settings: { slidesToShow: 2 } },
+            { breakpoint: 640, settings: { slidesToShow: 1 } },
+        ],
+    }
 
-  const featurecourseslider = {
-    dots: false,
-    infinite: true,
-    speed: 300,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    responsive: [
-      {
-        breakpoint: 1300,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 992,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        },
-      },
-    ],
-  };
+    const getThumbnail = (course: Course) =>
+        getFileUrl(course.thumbnailUrl) ?? 'assets/img/course/course-01.jpg'
 
-  const route = all_routes;
+    const getAvatar = (course: Course) =>
+        getFileUrl(course.instructor?.avatarUrl) ?? 'assets/img/user/user-01.jpg'
 
-  const getThumbnailUrl = (course: Course) =>
-    getFileUrl(course.thumbnailUrl) ?? 'assets/img/course/course-01.jpg';
+    const getPrice = (course: Course) =>
+        !course.requiresPurchase ? 'Free' : `$${course.price || 0}`
 
-  const getInstructorAvatar = (course: Course) =>
-    getFileUrl(course.instructor?.avatarUrl) ?? 'assets/img/user/user-01.jpg';
-
-  const getDisplayPrice = (course: Course) => {
-    if (!course.requiresPurchase) return 'Free';
-    return `$${course.price || 0}`;
-  };
-
-  if (loading) {
     return (
-      <section className="featured-courses-section">
-        <div className="container text-center py-5">
-          <Spin size="large" />
-          <p className="mt-3">Loading courses...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (error || courses.length === 0) {
-    return (
-      <section className="featured-courses-section">
-        <div className="container">
-          <div className="section-header text-center">
-            <span className="fw-medium text-secondary text-decoration-underline mb-2 d-inline-block">
-              Featured Courses
-            </span>
-            <h2>What's New in SARALOWE</h2>
-            <p>
-              {error || 'No courses available at the moment. Check back soon!'}
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <>
-      <section className="featured-courses-section">
-        <div className="container">
-          <div className="section-header text-center">
-            <span className="fw-medium text-secondary text-decoration-underline mb-2 d-inline-block">
-              Featured Courses
-            </span>
-            <h2>What's New in SARALOWE</h2>
-            <p>
-              Discover our featured courses, specially curated to help you gain
-              in-demand skills
-            </p>
-          </div>
-          <div className="feature-course-slider-22 top-courses-slider">
-            <Slider {...featurecourseslider}>
-              {courses.map((course) => (
-                <div key={course.id}>
-                  <div className="course-item">
-                    <div className="course-img">
-                      <Link to={`${route.courseDetails}/${course.slug}`}>
-                        <img
-                          src={getThumbnailUrl(course)}
-                          alt={course.title}
-                          className="img-fluid"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg';
-                          }}
-                        />
-                      </Link>
-                      <div className="position-absolute start-0 top-0 d-flex align-items-start w-100 z-index-2 p-2">
-                        <span className="price-badge ms-auto">{getDisplayPrice(course)}</span>
-                      </div>
+        <section className="sl-section sl-section--white">
+            <div className="container">
+                <div className="sl-section__header center" data-aos="fade-up" data-aos-duration="800">
+                    <div className="sl-ornament justify-content-center">
+                        <span className="sl-script" style={{ fontSize: '1.6rem' }}>Programmes</span>
                     </div>
-                    <div className="d-flex align-items-center justify-content-between">
-                      <span className="badge badge-md badge-soft-info rounded-pill">
-                        {course.category?.name || 'General'}
-                      </span>
-                      <Link to="#" className="fav-icon">
-                        <i className={`isax ${course.isWishlisted ? 'isax-heart5 text-danger' : 'isax-heart'}`} />
-                      </Link>
-                    </div>
-                    <div className="pb-3 border-bottom mb-3">
-                      <h5>
-                        <Link to={`${route.courseDetails}/${course.slug}`}>
-                          {course.title}
-                        </Link>
-                      </h5>
-                    </div>
-                    <div className="d-flex align-items-center justify-content-between mb-4">
-                      <div className="course-rating">
-                        <span className="course-user">
-                          <Link to={route.instructorDetails}>
-                            <img
-                              src={getInstructorAvatar(course)}
-                              alt={course.instructor?.fullName}
-                              className="img-fluid"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'assets/img/user/user-01.jpg';
-                              }}
-                            />
-                          </Link>
-                        </span>
-                        <Link to={route.instructorDetails}>
-                          {course.instructor?.fullName || 'Instructor'}
-                        </Link>
-                      </div>
-                      <div className="d-flex">
-                        <span className="d-flex align-items-center rating">
-                          <i className="fa-solid fa-star text-warning me-2" />
-                          {course.ratingAverage?.toFixed(1) || '0.0'}
-                        </span>
-                      </div>
-                    </div>
-                    <Link to={`${route.courseDetails}/${course.slug}`} className="btn buy-course-btn">
-                      {!course.requiresPurchase ? 'Enroll Free' : 'Buy Course Now'}
-                    </Link>
-                  </div>
+                    <h2>Featured Courses</h2>
+                    <p>
+                        Discover our most-loved programmes, curated by industry-leading pastry artists
+                        for every level of cake designer.
+                    </p>
                 </div>
-              ))}
-            </Slider>
-          </div>
-          <div className="d-flex align-items-center justify-content-center">
-            <Link to={route.courseList} className="btn btn-primary btn-md">
-              View All Courses
-            </Link>
-          </div>
-        </div>
-      </section>
-    </>
-  );
-};
 
-export default Featuredcourse;
+                {loading ? (
+                    <div className="text-center py-5" style={{ color: 'var(--sl-burgundy)', fontFamily: 'var(--sl-font-body)', letterSpacing: '0.1em' }}>
+                        Loading courses…
+                    </div>
+                ) : courses.length === 0 ? (
+                    <div className="text-center py-5" style={{ color: 'rgba(101,28,50,0.5)', fontFamily: 'var(--sl-font-body)' }}>
+                        No courses available yet. Check back soon.
+                    </div>
+                ) : (
+                    <div className="sl-slider-wrap" data-aos="fade-up" data-aos-delay="100" data-aos-duration="900">
+                        <Slider {...sliderSettings}>
+                            {courses.map(course => (
+                                <div key={course.id} className="px-2">
+                                    <div className="sl-course-card">
+                                        {/* Image */}
+                                        <div className="sl-course-card__img">
+                                            <img
+                                                src={getThumbnail(course)}
+                                                alt={course.title}
+                                                onError={e => { (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg' }}
+                                            />
+                                            <div className="sl-course-card__img-overlay" />
+                                            <div className="sl-course-card__badge">
+                                                {course.category?.name || 'Cake Design'}
+                                            </div>
+                                        </div>
+
+                                        {/* Body */}
+                                        <div className="sl-course-card__body">
+                                            <div className="sl-course-card__meta">
+                                                <Link to={route.instructorDetails} className="sl-course-card__instructor">
+                                                    <img
+                                                        src={getAvatar(course)}
+                                                        alt={course.instructor?.fullName}
+                                                        onError={e => { (e.target as HTMLImageElement).src = 'assets/img/user/user-01.jpg' }}
+                                                    />
+                                                    <span>{course.instructor?.fullName || 'Instructor'}</span>
+                                                </Link>
+                                                <span className="sl-course-card__category">
+                                                    {course.category?.name || 'Design'}
+                                                </span>
+                                            </div>
+
+                                            <div className="sl-course-card__title">
+                                                <Link to={`${route.courseDetails}/${course.slug}`}>
+                                                    {course.title}
+                                                </Link>
+                                            </div>
+
+                                            <div className="sl-course-card__rating">
+                                                <span className="stars">
+                                                    {[1,2,3,4,5].map(i => (
+                                                        <i key={i} className="fa-solid fa-star" style={{ fontSize: '0.7rem', marginRight: '1px' }} />
+                                                    ))}
+                                                </span>
+                                                <span>{course.ratingAverage?.toFixed(1) || '5.0'}</span>
+                                            </div>
+
+                                            <div className="sl-course-card__footer">
+                                                <span className="sl-course-card__price">{getPrice(course)}</span>
+                                                <Link to={`${route.courseDetails}/${course.slug}`} className="sl-course-card__cta">
+                                                    {!course.requiresPurchase ? 'Enrol Free' : 'View Course'}
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </Slider>
+                    </div>
+                )}
+
+                <div className="text-center mt-5">
+                    <Link to={route.courseList} className="sl-btn-dark">
+                        View All Courses <i className="isax isax-arrow-right-1" />
+                    </Link>
+                </div>
+            </div>
+        </section>
+    )
+}
+
+export default Featuredcourse

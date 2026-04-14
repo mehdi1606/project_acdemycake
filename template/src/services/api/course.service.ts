@@ -251,6 +251,16 @@ class CourseService {
     });
     return response.data;
   }
+
+  // Get completed lesson IDs for the current user in a course
+  async getMyProgress(courseId: string): Promise<string[]> {
+    try {
+      const response = await api.get<{ completedLessonIds: string[] }>(`/courses/${courseId}/my-progress`);
+      return response.data?.completedLessonIds ?? [];
+    } catch {
+      return [];
+    }
+  }
 }
 
 export const courseService = new CourseService();

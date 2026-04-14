@@ -2,6 +2,7 @@ package com.academy.service.impl;
 
 import com.academy.dto.request.CreateQuizRequest;
 import com.academy.dto.response.PageResponse;
+import com.academy.dto.response.QuizAttemptResponse;
 import com.academy.dto.response.QuizResponse;
 import com.academy.entity.*;
 import com.academy.entity.enums.AttemptStatus;
@@ -11,11 +12,14 @@ import com.academy.entity.enums.QuizStatus;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
+import com.academy.repository.CourseLessonRepository;
 import com.academy.repository.CourseEnrollmentRepository;
 import com.academy.repository.CourseRepository;
+import com.academy.repository.LessonProgressRepository;
 import com.academy.repository.QuizAttemptRepository;
 import com.academy.repository.QuizRepository;
 import com.academy.security.UserPrincipal;
+import com.academy.service.EnrollmentService;
 import com.academy.service.QuizService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 @Slf4j
 @Service
@@ -41,6 +47,9 @@ public class QuizServiceImpl implements QuizService {
     private final CourseRepository courseRepository;
     private final CourseEnrollmentRepository courseEnrollmentRepository;
     private final QuizAttemptRepository quizAttemptRepository;
+    private final CourseLessonRepository courseLessonRepository;
+    private final LessonProgressRepository lessonProgressRepository;
+    private final EnrollmentService enrollmentService;
     private final UserService userService;
 
     // ── Instructor ────────────────────────────────────────────────────────────
@@ -90,6 +99,7 @@ public class QuizServiceImpl implements QuizService {
                 .showCorrectAnswers(request.getShowCorrectAnswers() != null ? request.getShowCorrectAnswers() : true)
                 .allowRetake(request.getAllowRetake() != null ? request.getAllowRetake() : true)
                 .maxAttempts(request.getMaxAttempts() != null ? request.getMaxAttempts() : 3)
+                .lessonId(request.getLessonId())
                 .status(QuizStatus.DRAFT)
                 .questions(new ArrayList<>())
                 .build();
@@ -150,6 +160,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setShowCorrectAnswers(request.getShowCorrectAnswers() != null ? request.getShowCorrectAnswers() : true);
         quiz.setAllowRetake(request.getAllowRetake() != null ? request.getAllowRetake() : true);
         quiz.setMaxAttempts(request.getMaxAttempts() != null ? request.getMaxAttempts() : 3);
+        if (request.getLessonId() != null) quiz.setLessonId(request.getLessonId());
         
         quiz.getQuestions().clear();
         
@@ -313,6 +324,32 @@ public class QuizServiceImpl implements QuizService {
             throw new BadRequestException("You have reached the maximum number of attempts (" + quiz.getMaxAttempts() + ")");
         }
 
+        // ── Prerequisite check: if quiz is linked to a lesson, verify all
+        //    earlier lessons in the same module are completed before allowing start ──
+        if (quiz.getLessonId() != null) {
+            courseLessonRepository.findById(quiz.getLessonId()).ifPresent(quizLesson -> {
+                var module = quizLesson.getModule();
+                if (module != null && module.getLessons() != null) {
+                    List<CourseLesson> ordered = new ArrayList<>(module.getLessons());
+                    ordered.sort(Comparator.comparingInt(l -> l.getOrderIndex() != null ? l.getOrderIndex() : 0));
+                    for (CourseLesson lesson : ordered) {
+                        if (lesson.getId().equals(quizLesson.getId())) break; // reached the quiz lesson — stop
+                        // Only require non-QUIZ lessons to be completed
+                        if (lesson.getContentType() != com.academy.entity.enums.ContentType.QUIZ) {
+                            boolean completed = lessonProgressRepository
+                                    .findByUserAndLesson(student, lesson)
+                                    .map(lp -> Boolean.TRUE.equals(lp.getIsCompleted()))
+                                    .orElse(false);
+                            if (!completed) {
+                                throw new ForbiddenException(
+                                        "Please complete all lessons in this module before taking the quiz.");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         LocalDateTime now = LocalDateTime.now();
         QuizAttempt attempt = QuizAttempt.builder()
                 .quiz(quiz)
@@ -427,6 +464,37 @@ public class QuizServiceImpl implements QuizService {
 
         log.info("Attempt {} submitted: {}/{} pts ({}%) passed={} violated={}", attemptId, score, totalPoints, roundedPct, passed, violated);
 
+        // Auto-complete the linked QUIZ lesson when student passes, then update enrollment progress
+        if (passed && quiz.getLessonId() != null) {
+            try {
+                courseLessonRepository.findById(quiz.getLessonId()).ifPresent(lesson -> {
+                    LessonProgress progress = lessonProgressRepository
+                            .findByUserAndLesson(student, lesson)
+                            .orElseGet(() -> LessonProgress.builder()
+                                    .user(student)
+                                    .lesson(lesson)
+                                    .build());
+                    if (!Boolean.TRUE.equals(progress.getIsCompleted())) {
+                        progress.markComplete();
+                        lessonProgressRepository.save(progress);
+                        log.info("Auto-completed lesson {} for student {} via quiz pass", lesson.getId(), student.getId());
+                    }
+                    // Recalculate enrollment progress % so My Courses card reflects 100%
+                    try {
+                        Course course = lesson.getModule().getCourse();
+                        if (course != null) {
+                            courseEnrollmentRepository.findByUserAndCourse(student, course)
+                                    .ifPresent(enrollment -> enrollmentService.updateProgress(enrollment.getId()));
+                        }
+                    } catch (Exception ex) {
+                        log.warn("Failed to update enrollment progress after quiz pass: {}", ex.getMessage());
+                    }
+                });
+            } catch (Exception e) {
+                log.warn("Failed to auto-complete lesson for quiz {}: {}", quiz.getId(), e.getMessage());
+            }
+        }
+
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("score", score);
         result.put("totalPoints", totalPoints);
@@ -434,6 +502,29 @@ public class QuizServiceImpl implements QuizService {
         result.put("passed", passed);
         result.put("violated", violated);
         return result;
+    }
+
+    // ── Lesson-linked quiz lookup ─────────────────────────────────────────────
+
+    @Override
+    public Optional<QuizResponse> getQuizByLessonId(UUID lessonId, boolean forStudent) {
+        return quizRepository.findByLessonId(lessonId)
+                .map(quiz -> forStudent
+                        ? QuizResponse.fromEntitySummary(quiz)
+                        : QuizResponse.fromEntitySummary(quiz));
+    }
+
+    // ── Student: my attempts ─────────────────────────────────────────────────
+
+    @Override
+    public List<QuizAttemptResponse> getMyQuizAttempts(UUID quizId) {
+        User student = getCurrentUser();
+        Quiz quiz = findQuizById(quizId);
+        return quizAttemptRepository
+                .findByQuizAndStudentOrderByCreatedAtDesc(quiz, student)
+                .stream()
+                .map(QuizAttemptResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

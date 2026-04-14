@@ -9,19 +9,19 @@ class NotificationService {
     type?: NotificationType
   ): Promise<PaginatedResponse<Notification>> {
     const response = await api.get<PaginatedResponse<Notification>>('/notifications', {
-      params: { page, size, type },
+      params: { page, size, ...(type ? { type } : {}) },
     });
     return response.data;
   }
 
-  // Get unread count
+  // Get unread count — backend returns ApiResponse<Long>, interceptor unwraps to bare number
   async getUnreadCount(): Promise<number> {
-    const response = await api.get<{ count: number }>('/notifications/unread-count');
-    return response.data.count;
+    const response = await api.get<number>('/notifications/unread-count');
+    return typeof response.data === 'number' ? response.data : 0;
   }
 
-  // Mark notification as read
-  async markAsRead(notificationId: number): Promise<void> {
+  // Mark notification as read (UUID id)
+  async markAsRead(notificationId: string): Promise<void> {
     await api.put(`/notifications/${notificationId}/read`);
   }
 
@@ -30,8 +30,8 @@ class NotificationService {
     await api.put('/notifications/read-all');
   }
 
-  // Delete notification
-  async deleteNotification(notificationId: number): Promise<void> {
+  // Delete notification (UUID id)
+  async deleteNotification(notificationId: string): Promise<void> {
     await api.delete(`/notifications/${notificationId}`);
   }
 }

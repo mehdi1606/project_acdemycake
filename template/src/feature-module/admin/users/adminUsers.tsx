@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchUsers, banUser, unbanUser, deleteUser } from '../../../core/redux/adminSlice';
 import adminService from '../../../services/api/admin.service';
 import { extractApiError } from '../../../services/api/error.utils';
+import { getFileUrl } from '../../../environment';
 
 const { Search } = Input;
 
@@ -268,7 +269,7 @@ const AdminUsers: React.FC = () => {
                       <td>
                         <div className="d-flex align-items-center gap-2">
                           <img
-                            src={user.avatarUrl || '/assets/img/user/user-01.jpg'}
+                            src={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : '/assets/img/user/user-01.jpg'}
                             alt=""
                             style={{
                               width: 38,

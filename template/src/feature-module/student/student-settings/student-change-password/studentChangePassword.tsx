@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import SettingsLinks from '../settingsLinks/settingsLinks';
-import { Link } from 'react-router-dom';
+import { message } from 'antd';
+import { useAppSelector } from '../../../../core/redux/hooks';
+import profileService from '../../../../services/api/profile.service';
+import { extractApiError } from '../../../../services/api/error.utils';
 
 const hasNumber = (v: string) => /[0-9]/.test(v);
-const hasMixed = (v: string) => /[a-z]/.test(v) && /[A-Z]/.test(v);
 const hasSpecial = (v: string) => /[!#@$%^&*)(+=._-]/.test(v);
 
 const inputStyle: React.CSSProperties = {
@@ -29,34 +31,57 @@ const eyeStyle: React.CSSProperties = {
 type StrengthLevel = '' | 'poor' | 'weak' | 'strong' | 'heavy';
 
 const strengthMeta: Record<string, { color: string; label: string; width: string }> = {
-  poor: { color: '#8B2335', label: 'Weak — Must contain at least 8 characters', width: '25%' },
-  weak: { color: '#C5973E', label: 'Average — Must contain at least 1 number', width: '50%' },
-  strong: { color: '#4A7DAA', label: 'Almost — Must contain a special symbol', width: '75%' },
-  heavy: { color: '#2D5F3F', label: 'Strong — You have a secure password!', width: '100%' },
+  poor:  { color: '#8B2335', label: 'Weak — at least 8 characters required', width: '25%' },
+  weak:  { color: '#C5973E', label: 'Average — add a number', width: '50%' },
+  strong:{ color: '#4A7DAA', label: 'Almost — add a special symbol', width: '75%' },
+  heavy: { color: '#2D5F3F', label: 'Strong password!', width: '100%' },
+};
+
+const calcStrength = (v: string): StrengthLevel => {
+  if (!v) return '';
+  if (v.length < 8) return 'poor';
+  if (!hasNumber(v)) return 'weak';
+  if (!hasSpecial(v)) return 'strong';
+  return 'heavy';
 };
 
 const StudentChangePassword = () => {
+  const { user } = useAppSelector((s) => s.auth);
+
   const [currentPwVisible, setCurrentPwVisible] = useState(false);
   const [newPwVisible, setNewPwVisible] = useState(false);
   const [confirmPwVisible, setConfirmPwVisible] = useState(false);
 
-  const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [strength, setStrength] = useState<StrengthLevel>('');
+  const [saving, setSaving] = useState(false);
 
-  const calcStrength = (v: string): StrengthLevel => {
-    if (!v) return '';
-    if (v.length < 8) return 'poor';
-    if (!hasNumber(v)) return 'weak';
-    if (!hasSpecial(v)) return 'strong';
-    return 'heavy';
-  };
-
-  useEffect(() => {
-    setStrength(calcStrength(password));
-  }, [password]);
-
+  const strength = calcStrength(newPassword);
   const meta = strength ? strengthMeta[strength] : null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword.trim()) { message.error('Please enter your current password'); return; }
+    if (strength !== 'heavy' && newPassword.length > 0) {
+      if (newPassword.length < 8) { message.error('New password must be at least 8 characters'); return; }
+    }
+    if (newPassword !== confirmPassword) { message.error('Passwords do not match'); return; }
+    if (newPassword.length < 8) { message.error('New password must be at least 8 characters'); return; }
+
+    setSaving(true);
+    try {
+      await profileService.changePassword({ currentPassword, newPassword, confirmPassword });
+      message.success('Password changed successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      message.error(extractApiError(err, 'Failed to change password'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <LuxuryDashboardLayout>
@@ -67,20 +92,17 @@ const StudentChangePassword = () => {
 
       <div className="lx-card">
         <div className="lx-card-body">
-          {/* ── Change Password ── */}
+          {/* Change Password */}
           <div style={{ paddingBottom: 28, marginBottom: 28, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
             <div style={{ maxWidth: 520 }}>
               <h6 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
                 Change Password
               </h6>
               <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--lx-text-muted)' }}>
-                Can't remember your current password?{' '}
-                <Link to="#" style={{ color: 'var(--lx-primary)', textDecoration: 'underline', fontWeight: 500 }}>
-                  Reset your password via email
-                </Link>
+                Update your password to keep your account secure.
               </p>
 
-              <form>
+              <form onSubmit={handleSubmit}>
                 {/* Current Password */}
                 <div style={{ marginBottom: 16 }}>
                   <label style={labelStyle}>
@@ -91,6 +113,8 @@ const StudentChangePassword = () => {
                       type={currentPwVisible ? 'text' : 'password'}
                       style={inputStyle}
                       placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
                       onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
                     />
@@ -110,8 +134,8 @@ const StudentChangePassword = () => {
                       type={newPwVisible ? 'text' : 'password'}
                       style={inputStyle}
                       placeholder="Enter new password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
                       onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
                     />
@@ -119,26 +143,12 @@ const StudentChangePassword = () => {
                       <i className={`isax ${newPwVisible ? 'isax-eye' : 'isax-eye-slash'}`} />
                     </button>
                   </div>
-
-                  {/* Strength Bar */}
-                  {password && (
+                  {newPassword && (
                     <div style={{ marginTop: 10 }}>
-                      <div style={{
-                        height: 4, borderRadius: 2, background: 'rgba(107, 29, 42, 0.06)',
-                        overflow: 'hidden', marginBottom: 6,
-                      }}>
-                        <div style={{
-                          height: '100%', borderRadius: 2,
-                          width: meta?.width || '0%',
-                          background: meta?.color || 'transparent',
-                          transition: 'all 0.3s ease',
-                        }} />
+                      <div style={{ height: 4, borderRadius: 2, background: 'rgba(107, 29, 42, 0.06)', overflow: 'hidden', marginBottom: 6 }}>
+                        <div style={{ height: '100%', borderRadius: 2, width: meta?.width || '0%', background: meta?.color || 'transparent', transition: 'all 0.3s ease' }} />
                       </div>
-                      {meta && (
-                        <span style={{ fontSize: 12, color: meta.color, fontWeight: 500 }}>
-                          {meta.label}
-                        </span>
-                      )}
+                      {meta && <span style={{ fontSize: 12, color: meta.color, fontWeight: 500 }}>{meta.label}</span>}
                     </div>
                   )}
                 </div>
@@ -162,48 +172,33 @@ const StudentChangePassword = () => {
                       <i className={`isax ${confirmPwVisible ? 'isax-eye' : 'isax-eye-slash'}`} />
                     </button>
                   </div>
-                  {confirmPassword && password && confirmPassword !== password && (
+                  {confirmPassword && newPassword && confirmPassword !== newPassword && (
                     <span style={{ fontSize: 12, color: '#8B2335', marginTop: 6, display: 'block' }}>
                       Passwords do not match
                     </span>
                   )}
                 </div>
 
-                <button className="lx-btn lx-btn-gold" type="submit">
-                  Change Password
+                <button className="lx-btn lx-btn-gold" type="submit" disabled={saving}>
+                  {saving ? 'Saving...' : 'Change Password'}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* ── Change Email ── */}
+          {/* Email (read-only, informational) */}
           <div style={{ maxWidth: 520 }}>
             <h6 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-              Change Email
+              Your Email
             </h6>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--lx-text-muted)' }}>
+            <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--lx-text-muted)' }}>
               Your current email address is{' '}
-              <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>richard@example.com</span>
+              <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{user?.email ?? '—'}</span>
             </p>
-
-            <form>
-              <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>
-                  New Email Address <span style={{ color: '#8B2335' }}>*</span>
-                </label>
-                <input
-                  type="email"
-                  style={{ ...inputStyle, paddingRight: 14 }}
-                  placeholder="Enter new email address"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
-                />
-              </div>
-
-              <button className="lx-btn lx-btn-gold" type="submit">
-                Save Changes
-              </button>
-            </form>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--lx-text-muted)', padding: '10px 14px', background: 'rgba(107, 29, 42, 0.03)', borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(107, 29, 42, 0.05)' }}>
+              <i className="isax isax-info-circle me-2" />
+              Email changes are not supported at this time. Contact support if you need to update your email.
+            </p>
           </div>
         </div>
       </div>

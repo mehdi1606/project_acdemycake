@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector } from '../../../core/redux/hooks';
 import ImageWithBasePath from '../../../core/common/imageWithBasePath';
+import { getFileUrl } from '../../../environment';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -46,7 +47,7 @@ const AdminSettings = () => {
               border: '3px solid rgba(107, 29, 42, 0.1)',
             }}>
               {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <ImageWithBasePath src="assets/img/user/user-01.jpg" alt="" className="img-fluid" />
               )}

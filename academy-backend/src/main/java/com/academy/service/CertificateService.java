@@ -4,7 +4,6 @@ import com.academy.dto.response.CertificateResponse;
 import com.academy.dto.response.PageResponse;
 import com.academy.entity.Course;
 import com.academy.entity.User;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -18,6 +17,7 @@ public interface CertificateService {
 
     byte[] downloadCertificate(UUID id);
 
+    /** Auto-called when a student completes a course — generates the certificate */
     CertificateResponse generateCertificate(User user, Course course);
 
     /** Instructor: list all certificates issued for their courses */
@@ -25,7 +25,4 @@ public interface CertificateService {
 
     /** Instructor: download a certificate from one of their courses */
     byte[] downloadCertificateByInstructor(UUID id);
-
-    /** Instructor: upload a certificate template image for a course */
-    String uploadCertificateTemplate(UUID courseId, MultipartFile file);
 }

@@ -2,10 +2,12 @@ package com.academy.service;
 
 import com.academy.dto.request.CreateQuizRequest;
 import com.academy.dto.response.PageResponse;
+import com.academy.dto.response.QuizAttemptResponse;
 import com.academy.dto.response.QuizResponse;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface QuizService {
@@ -28,6 +30,9 @@ public interface QuizService {
 
     QuizResponse unpublishQuiz(UUID quizId);
 
+    /** Returns the quiz linked to a lesson, or empty if none */
+    Optional<QuizResponse> getQuizByLessonId(UUID lessonId, boolean forStudent);
+
     // ── Student – browse ──────────────────────────────────────────────────────
 
     PageResponse<QuizResponse> getStudentQuizzes(int page, int size);
@@ -45,4 +50,7 @@ public interface QuizService {
 
     /** Grades and saves the attempt; returns {score, totalPoints, percentage, passed, violated} */
     Map<String, Object> submitAttempt(UUID attemptId, List<Map<String, Object>> answers, boolean violated);
+
+    /** Returns all attempts the current student made on a quiz, newest first */
+    List<QuizAttemptResponse> getMyQuizAttempts(UUID quizId);
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { all_routes } from '../../router/all_routes'
 import ImageWithBasePath from '../../../core/common/imageWithBasePath'
 import { useAppSelector } from '../../../core/redux/hooks'
+import { getFileUrl } from '../../../environment'
 
 const ProfileCard = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -31,7 +32,7 @@ const ProfileCard = () => {
         <div className="d-flex align-items-center">
           <span className="avatar flex-shrink-0 avatar-xxl avatar-rounded me-3 border border-white border-3 position-relative">
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <span
                 style={{

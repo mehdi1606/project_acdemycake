@@ -121,7 +121,8 @@ public class MessageServiceImpl implements MessageService {
         notificationService.sendMessageNotification(
                 receiver,
                 currentUser.getFullName(),
-                truncateMessage(request.getContent())
+                truncateMessage(request.getContent()),
+                currentUser.getId()
         );
 
         return response;

@@ -6,6 +6,7 @@ import com.academy.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -19,4 +20,7 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, UUID> 
     long countByQuizAndStudent(Quiz quiz, User student);
 
     Optional<QuizAttempt> findByIdAndStudent(UUID id, User student);
+
+    /** Returns all attempts a student made on a quiz, newest first */
+    List<QuizAttempt> findByQuizAndStudentOrderByCreatedAtDesc(Quiz quiz, User student);
 }

@@ -16,7 +16,11 @@ public interface ReviewService {
 
     ReviewResponse updateReview(UUID courseId, UUID reviewId, CreateReviewRequest request);
 
+    ReviewResponse updateMyReview(UUID reviewId, CreateReviewRequest request);
+
     void deleteReview(UUID courseId, UUID reviewId);
+
+    void deleteMyReview(UUID reviewId);
 
     void updateCourseRating(UUID courseId);
 }

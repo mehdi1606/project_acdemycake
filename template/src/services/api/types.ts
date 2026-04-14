@@ -338,43 +338,45 @@ export interface Certificate {
 // Community Types
 // ============================================
 
-export type PostType = 'DISCUSSION' | 'QUESTION' | 'SHOWCASE' | 'ANNOUNCEMENT';
+export type PostType = 'DISCUSSION' | 'QUESTION' | 'ANNOUNCEMENT' | 'RESOURCE';
 
 export interface CommunityPost {
-  id: number;
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
   title: string;
   content: string;
-  type: PostType;
-  author: {
-    id: number;
-    fullName: string;
-    avatarUrl?: string;
-    role: UserRole;
-  };
+  images?: string[];
+  postType: PostType;
+  isPinned: boolean;
   likesCount: number;
   commentsCount: number;
-  isLiked?: boolean;
+  viewsCount: number;
+  isEdited: boolean;
+  isLikedByCurrentUser: boolean;
   createdAt: string;
   updatedAt?: string;
 }
 
 export interface CommunityComment {
-  id: number;
+  id: string;
+  postId: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
   content: string;
-  author: {
-    id: number;
-    fullName: string;
-    avatarUrl?: string;
-  };
   likesCount: number;
-  isLiked?: boolean;
+  isEdited: boolean;
+  isLikedByCurrentUser: boolean;
+  replies?: CommunityComment[];
   createdAt: string;
 }
 
 export interface CreatePostRequest {
   title: string;
   content: string;
-  type: PostType;
+  postType: PostType;
 }
 
 // ============================================
@@ -420,12 +422,13 @@ export type NotificationType =
   | 'ANNOUNCEMENT';
 
 export interface Notification {
-  id: number;
+  id: string;
   type: NotificationType;
   title: string;
   message: string;
   isRead: boolean;
-  data?: Record<string, unknown>;
+  linkUrl?: string;
+  imageUrl?: string;
   createdAt: string;
 }
 
@@ -604,6 +607,7 @@ export interface Quiz {
   id: string; // UUID
   courseId: string; // UUID
   courseName?: string;
+  lessonId?: string; // UUID — linked lesson (nullable)
   title: string;
   description?: string;
   passingScore: number;
@@ -622,6 +626,7 @@ export interface Quiz {
 
 export interface CreateQuizRequest {
   courseId: string; // UUID string
+  lessonId?: string; // UUID string — optional lesson link
   title: string;
   description?: string;
   passingScore: number;
@@ -638,17 +643,22 @@ export interface UpdateQuizRequest extends Partial<CreateQuizRequest> {}
 // Quiz Attempt Types (for students)
 export interface QuizAttempt {
   id: string; // UUID
-  quizId: string; // UUID
-  quizTitle: string;
-  studentId: string; // UUID
+  quizId?: string; // UUID
+  quizTitle?: string;
+  studentId?: string; // UUID
+  studentName?: string;
+  studentEmail?: string;
   score: number;
   totalPoints: number;
   percentage: number;
   passed: boolean;
-  startedAt: string;
+  violated?: boolean;
+  status?: string;
+  startedAt?: string;
+  submittedAt?: string;
   completedAt?: string;
-  timeSpent: number; // in seconds
-  attemptNumber: number;
+  timeSpent?: number; // in seconds
+  attemptNumber?: number;
 }
 
 export interface QuizAnswer {
@@ -697,6 +707,7 @@ export interface CourseQueryParams extends PaginationParams {
   isFree?: boolean;
   minRating?: number;
   instructorId?: string;
+  sortBy?: string;   // backend-expected sort keyword: newest | popular | rating | price_asc | price_desc
 }
 
 // ============================================

@@ -111,7 +111,15 @@
       "Bash(find C:UsersPCPlateformtemplatesrc -path *authentication* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
       "Bash(find C:UsersPCPlateformtemplatesrc -path *login* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
       "Bash(find C:UsersPCPlateformtemplatesrc -path *register* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
-      "Bash(grep -r \"students learn\\\\|What will students\\\\|Requirements\\\\|whatLearn\\\\|what_learn\\\\|objectives\" C:UsersPCPlateformtemplatesrc --include=*.tsx -l)"
+      "Bash(grep -r \"students learn\\\\|What will students\\\\|Requirements\\\\|whatLearn\\\\|what_learn\\\\|objectives\" C:UsersPCPlateformtemplatesrc --include=*.tsx -l)",
+      "Bash(\"C:\\\\Users\\\\PC\\\\Plateform\\\\template\\\\src\\\\services\\\\api\\\\community.service.ts\")",
+      "Bash(\"C:\\\\Users\\\\PC\\\\Plateform\\\\template\\\\src\\\\core\\\\redux\\\\cartSlice.ts\")",
+      "Bash(find /c/Users/PC/Plateform/academy-backend -name StudentAttemptController.java -o -name *AttemptController.java)",
+      "Bash(find /c/Users/PC/Plateform -type f -name *ertificate*)",
+      "Bash(xargs basename:*)",
+      "Bash(npm root:*)",
+      "Bash(npm init:*)",
+      "Bash(node generate_cahier_charges.js)"
     ]
   }
 }

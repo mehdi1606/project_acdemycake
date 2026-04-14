@@ -6,6 +6,8 @@ import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchMyEnrollments } from '../../../core/redux/studentSlice';
 import { SkeletonCardGrid } from '../../../components/Skeleton';
 import { getFileUrl } from '../../../environment';
+import certificateService from '../../../services/api/certificate.service';
+import { Certificate } from '../../../services/api/types';
 
 
 type FilterTab = 'all' | 'active' | 'completed';
@@ -21,6 +23,7 @@ type Enrollment = {
   courseCategory?: string;
   completedLessons: number;
   totalLessons: number;
+  certificateId?: string;
 };
 
 const PAGE_SIZE = 9;
@@ -40,6 +43,48 @@ const StudentCourse: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [page, setPage] = useState<number>(0);
+
+  // ── Certificate modal state ──
+  const [certModal, setCertModal] = useState(false);
+  const [certData, setCertData] = useState<Certificate | null>(null);
+  const [certLoading, setCertLoading] = useState(false);
+  const [certDownloading, setCertDownloading] = useState(false);
+
+  const openCertificate = async (enrollment: Enrollment) => {
+    if (!enrollment.certificateId) return;
+    setCertLoading(true);
+    setCertModal(true);
+    try {
+      const cert = await certificateService.getCertificateById(enrollment.certificateId);
+      setCertData(cert);
+    } catch {
+      setCertData(null);
+    } finally {
+      setCertLoading(false);
+    }
+  };
+
+  const closeCertModal = () => {
+    setCertModal(false);
+    setCertData(null);
+  };
+
+  const handleCertDownload = async (cert: Certificate) => {
+    setCertDownloading(true);
+    try {
+      const blob = await certificateService.downloadCertificate(cert.id);
+      certificateService.triggerDownload(blob, `certificate-${cert.courseTitle.replace(/\s+/g, '-')}.pdf`);
+    } catch {
+      // ignore
+    } finally {
+      setCertDownloading(false);
+    }
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
 
   useEffect(() => {
     dispatch(fetchMyEnrollments({ page, size: PAGE_SIZE }));
@@ -213,14 +258,25 @@ const StudentCourse: React.FC = () => {
 
                   <div className="d-flex align-items-center gap-2">
                     {enrollment.isCompleted ? (
-                      <Link
-                        to={`${all_routes.courseDetails}/${enrollment.courseSlug}`}
-                        className="lx-btn lx-btn-outline lx-btn-sm"
-                        style={{ flex: 1, justifyContent: 'center' }}
-                      >
-                        <i className="isax isax-medal" />
-                        View Certificate
-                      </Link>
+                      enrollment.certificateId ? (
+                        <button
+                          onClick={() => openCertificate(enrollment)}
+                          className="lx-btn lx-btn-gold lx-btn-sm"
+                          style={{ flex: 1, justifyContent: 'center' }}
+                        >
+                          <i className="isax isax-medal-star" />
+                          View Certificate
+                        </button>
+                      ) : (
+                        <Link
+                          to={all_routes.studentCertificates ?? '/student/certificates'}
+                          className="lx-btn lx-btn-outline lx-btn-sm"
+                          style={{ flex: 1, justifyContent: 'center' }}
+                        >
+                          <i className="isax isax-medal" />
+                          My Certificates
+                        </Link>
+                      )
                     ) : (
                       <Link
                         to={`${all_routes.courseWatch}/${enrollment.courseSlug}`}
@@ -293,6 +349,131 @@ const StudentCourse: React.FC = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── Certificate Modal ── */}
+      {certModal && (
+        <>
+          <div
+            onClick={closeCertModal}
+            style={{
+              position: 'fixed', inset: 0,
+              background: 'rgba(44, 24, 16, 0.45)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              zIndex: 1040,
+            }}
+          />
+          <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050, padding: 16 }}>
+            <div style={{
+              width: '100%', maxWidth: 660, maxHeight: '90vh', overflowY: 'auto',
+              background: 'rgba(255,255,255,0.94)',
+              backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+              borderRadius: 'var(--lx-radius-lg)',
+              border: '1px solid rgba(107, 29, 42, 0.10)',
+              boxShadow: '0 24px 48px rgba(44, 24, 16, 0.18)',
+              overflow: 'hidden',
+            }}>
+              {/* Modal header */}
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>
+                  <i className="isax isax-medal-star" style={{ color: 'var(--lx-gold)', marginRight: 8 }} />
+                  Certificate of Completion
+                </h5>
+                <button onClick={closeCertModal} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}>
+                  <i className="isax isax-close-circle" />
+                </button>
+              </div>
+
+              {/* Modal body */}
+              <div style={{ padding: 24 }}>
+                {certLoading ? (
+                  <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+                    <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading certificate...</p>
+                  </div>
+                ) : !certData ? (
+                  <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                    <i className="isax isax-warning-2" style={{ fontSize: 32, color: '#8B2335', display: 'block', marginBottom: 12 }} />
+                    <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>Could not load certificate. Please try again.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Certificate preview */}
+                    <div style={{
+                      padding: '40px 32px', borderRadius: 'var(--lx-radius)',
+                      background: 'linear-gradient(135deg, var(--lx-bg-warm, #fdf8f3) 0%, var(--lx-bg-structure, #f8f4ef) 100%)',
+                      border: '1.5px solid rgba(197, 151, 62, 0.18)',
+                      textAlign: 'center', marginBottom: 24,
+                    }}>
+                      <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(197,151,62,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                        <i className="isax isax-medal-star" style={{ fontSize: 36, color: 'var(--lx-gold, #C5973E)' }} />
+                      </div>
+                      <p style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 700, color: 'var(--lx-text-muted)', letterSpacing: '1px', marginBottom: 12 }}>
+                        Certificate of Completion
+                      </p>
+                      <p style={{ fontSize: 15, color: 'var(--lx-text-muted)', marginBottom: 6 }}>This is to certify that</p>
+                      <h3 style={{ fontWeight: 800, color: 'var(--lx-text)', marginBottom: 6, fontSize: 22 }}>{certData.studentName}</h3>
+                      <p style={{ fontSize: 15, color: 'var(--lx-text-muted)', marginBottom: 6 }}>has successfully completed</p>
+                      <h4 style={{ fontWeight: 700, color: 'var(--lx-primary)', marginBottom: 16, fontSize: 18 }}>{certData.courseTitle}</h4>
+                      {certData.instructorName && (
+                        <p style={{ fontSize: 14, color: 'var(--lx-text-muted)', marginBottom: 4 }}>
+                          Instructor: <strong style={{ color: 'var(--lx-text)' }}>{certData.instructorName}</strong>
+                        </p>
+                      )}
+                      <p style={{ fontSize: 14, color: 'var(--lx-text-muted)', marginBottom: 16 }}>
+                        Completed on {formatDate(certData.completionDate || certData.issuedAt)}
+                      </p>
+                      <div style={{ display: 'inline-block', padding: '4px 16px', borderRadius: 20, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}>
+                        <span style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginRight: 4 }}>Certificate #:</span>
+                        <code style={{ fontSize: 12, fontWeight: 700 }}>{certData.certificateNumber}</code>
+                      </div>
+                    </div>
+
+                    {/* Details grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      {[
+                        { label: 'Student Name', value: certData.studentName },
+                        { label: 'Course', value: certData.courseTitle },
+                        { label: 'Certificate #', value: certData.certificateNumber, code: true },
+                        { label: 'Issued Date', value: formatDate(certData.issuedAt) },
+                        ...(certData.instructorName ? [{ label: 'Instructor', value: certData.instructorName }] : []),
+                      ].map((item) => (
+                        <div key={item.label}>
+                          <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</p>
+                          {item.code ? (
+                            <code style={{ fontSize: 12, background: 'rgba(107,29,42,0.04)', padding: '2px 8px', borderRadius: 4 }}>{item.value}</code>
+                          ) : (
+                            <p style={{ fontWeight: 500, marginBottom: 0, color: 'var(--lx-text)', fontSize: 14 }}>{item.value}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Modal footer */}
+              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107,29,42,0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                <button className="lx-btn lx-btn-outline" onClick={closeCertModal}>Close</button>
+                {certData && (
+                  <button
+                    className="lx-btn lx-btn-gold"
+                    onClick={() => handleCertDownload(certData)}
+                    disabled={certDownloading}
+                  >
+                    {certDownloading ? (
+                      <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                      <i className="isax isax-import" />
+                    )}
+                    Download PDF
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </LuxuryDashboardLayout>
   );

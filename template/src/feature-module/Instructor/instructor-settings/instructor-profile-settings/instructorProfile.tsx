@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
-import { DatePicker } from 'antd';
+import { DatePicker, App } from 'antd';
+import { useAppSelector, useAppDispatch } from '../../../../core/redux/hooks';
+import { getFileUrl } from '../../../../environment';
+import { profileService } from '../../../../services/api/profile.service';
+import { setUser } from '../../../../core/redux/authSlice';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
@@ -34,6 +38,27 @@ const FormField = ({ label, children, required = true }: { label: string; childr
 
 const InstructorProfileSettings = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const { message } = App.useApp();
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploading(true);
+      const avatarUrl = await profileService.uploadAvatar(file);
+      if (user) dispatch(setUser({ ...user, avatarUrl }));
+      message.success('Profile photo updated!');
+    } catch {
+      message.error('Failed to upload photo');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const glassInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input
@@ -65,40 +90,47 @@ const InstructorProfileSettings = () => {
                 width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
                 background: 'rgba(107, 29, 42, 0.06)', overflow: 'hidden',
                 border: '2px solid rgba(107, 29, 42, 0.08)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <img
-                  src="assets/img/user/user-01.jpg" alt="Avatar"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
+                {user?.avatarUrl ? (
+                  <img
+                    src={getFileUrl(user.avatarUrl) ?? user.avatarUrl}
+                    alt={user.fullName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <span style={{ fontSize: 28, fontWeight: 700, color: '#6B1D2A' }}>
+                    {user?.fullName?.charAt(0).toUpperCase() || 'I'}
+                  </span>
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <h6 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>
-                  Your Avatar
+                  {user?.fullName || 'Instructor'}
                 </h6>
                 <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--lx-text-muted)' }}>
                   PNG or JPG no bigger than 800px width and height
                 </p>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <label style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    cursor: uploading ? 'not-allowed' : 'pointer',
                     padding: '6px 14px', borderRadius: 'var(--lx-radius-sm)', fontSize: 13, fontWeight: 500,
                     background: 'rgba(107, 29, 42, 0.05)', color: 'var(--lx-text-mid)',
                     border: '1px solid rgba(107, 29, 42, 0.08)',
+                    opacity: uploading ? 0.6 : 1,
                   }}>
-                    <i className="isax isax-gallery-export" style={{ fontSize: 14 }} />
-                    Upload
-                    <input type="file" style={{ display: 'none' }} accept="image/*" />
+                    <i className={`isax ${uploading ? 'isax-refresh' : 'isax-gallery-export'}`} style={{ fontSize: 14 }} />
+                    {uploading ? 'Uploading…' : 'Upload Photo'}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      style={{ display: 'none' }}
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      disabled={uploading}
+                    />
                   </label>
-                  <button
-                    type="button"
-                    className="lx-btn lx-btn-sm"
-                    style={{
-                      background: 'rgba(139, 35, 53, 0.06)', color: '#8B2335',
-                      border: '1px solid rgba(139, 35, 53, 0.1)',
-                    }}
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             </div>

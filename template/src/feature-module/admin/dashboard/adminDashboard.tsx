@@ -7,6 +7,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchAdminDashboard } from '../../../core/redux/adminSlice';
+import { getFileUrl } from '../../../environment';
 
 const AdminDashboard = () => {
   const dispatch = useAppDispatch();
@@ -216,7 +217,7 @@ const AdminDashboard = () => {
                             <td>
                               <div className="d-flex align-items-center gap-2">
                                 <img
-                                  src={item.course?.thumbnailUrl || 'assets/img/course/course-01.jpg'}
+                                  src={item.course?.thumbnailUrl ? (getFileUrl(item.course.thumbnailUrl) ?? item.course.thumbnailUrl) : 'assets/img/course/course-01.jpg'}
                                   alt=""
                                   style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                                 />
@@ -266,7 +267,7 @@ const AdminDashboard = () => {
                             <td>
                               <div className="d-flex align-items-center gap-2">
                                 <img
-                                  src={item.user?.avatarUrl || 'assets/img/user/user-01.jpg'}
+                                  src={item.user?.avatarUrl ? (getFileUrl(item.user.avatarUrl) ?? item.user.avatarUrl) : 'assets/img/user/user-01.jpg'}
                                   alt=""
                                   style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
                                 />

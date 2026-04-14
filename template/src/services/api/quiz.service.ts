@@ -128,6 +128,18 @@ class QuizService {
   // Student Quiz Operations
   // ============================================
 
+  // Get the quiz linked to a lesson (instructor view) — returns null if none
+  async getInstructorQuizByLessonId(lessonId: string): Promise<Quiz | null> {
+    const response = await api.get<Quiz | null>(`/instructor/quizzes/lesson/${lessonId}`);
+    return response.data ?? null;
+  }
+
+  // Get the quiz linked to a lesson (student view) — returns null if none
+  async getStudentQuizByLessonId(lessonId: string): Promise<Quiz | null> {
+    const response = await api.get<Quiz | null>(`/student/quizzes/lesson/${lessonId}`);
+    return response.data ?? null;
+  }
+
   // Get quiz for taking (without answers)
   async getQuizForStudent(quizId: string): Promise<Omit<Quiz, 'questions'> & {
     questions: {
@@ -196,6 +208,12 @@ class QuizService {
   async getMyAttempts(courseId: number): Promise<QuizAttempt[]> {
     const response = await api.get<QuizAttempt[]>(`/student/courses/${courseId}/quiz-attempts`);
     return response.data;
+  }
+
+  // Get all my attempts for a specific quiz (newest first)
+  async getMyQuizAttempts(quizId: string): Promise<QuizAttempt[]> {
+    const response = await api.get<QuizAttempt[]>(`/student/quizzes/${quizId}/my-attempts`);
+    return response.data ?? [];
   }
 
   // Get specific attempt result

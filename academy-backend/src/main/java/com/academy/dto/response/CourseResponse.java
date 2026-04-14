@@ -48,6 +48,10 @@ public class CourseResponse {
     private LocalDateTime createdAt;
     private Boolean hasCertificateTemplate;
 
+    // ── Authenticated-user fields (set at request time, never cached) ──────────
+    private Boolean isEnrolled;
+    private Integer enrollmentProgress; // 0–100
+
     @Data
     @Builder
     @NoArgsConstructor

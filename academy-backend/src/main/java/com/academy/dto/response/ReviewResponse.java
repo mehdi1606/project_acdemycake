@@ -16,6 +16,8 @@ import java.util.UUID;
 public class ReviewResponse {
     private UUID id;
     private UUID courseId;
+    private String courseTitle;
+    private String courseSlug;
     private UUID userId;
     private String userName;
     private String userAvatar;
@@ -30,6 +32,8 @@ public class ReviewResponse {
         return ReviewResponse.builder()
                 .id(review.getId())
                 .courseId(review.getCourse().getId())
+                .courseTitle(review.getCourse().getTitle())
+                .courseSlug(review.getCourse().getSlug())
                 .userId(review.getUser().getId())
                 .userName(review.getUser().getFullName())
                 .userAvatar(review.getUser().getAvatarUrl())

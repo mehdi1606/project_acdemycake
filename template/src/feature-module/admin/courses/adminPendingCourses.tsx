@@ -5,6 +5,7 @@ import { message, Pagination } from 'antd';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchPendingCourses, approveCourse, deleteCourse } from '../../../core/redux/adminSlice';
+import { getFileUrl } from '../../../environment';
 
 const levelBadge = (level: string) => {
   const map: Record<string, string> = {
@@ -155,7 +156,7 @@ const AdminPendingCourses = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <img
-                          src={course.thumbnailUrl || '/assets/img/course/course-01.jpg'}
+                          src={course.thumbnailUrl ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl) : '/assets/img/course/course-01.jpg'}
                           alt=""
                           style={{ width: 56, height: 42, objectFit: 'cover', borderRadius: 'var(--lx-radius-sm)' }}
                         />
@@ -170,7 +171,7 @@ const AdminPendingCourses = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <img
-                          src={course.instructor?.avatarUrl || '/assets/img/user/user-01.jpg'}
+                          src={course.instructor?.avatarUrl ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl) : '/assets/img/user/user-01.jpg'}
                           alt=""
                           style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: '50%' }}
                         />

@@ -23,6 +23,7 @@ public class QuizResponse {
     private UUID id;
     private UUID courseId;
     private String courseName;
+    private UUID lessonId;
     private String title;
     private String description;
     private Integer passingScore;
@@ -92,6 +93,7 @@ public class QuizResponse {
                 .id(quiz.getId())
                 .courseId(quiz.getCourse().getId())
                 .courseName(quiz.getCourse().getTitle())
+                .lessonId(quiz.getLessonId())
                 .title(quiz.getTitle())
                 .description(quiz.getDescription())
                 .passingScore(quiz.getPassingScore())
@@ -139,6 +141,7 @@ public class QuizResponse {
                 .id(quiz.getId())
                 .courseId(quiz.getCourse().getId())
                 .courseName(quiz.getCourse().getTitle())
+                .lessonId(quiz.getLessonId())
                 .title(quiz.getTitle())
                 .description(quiz.getDescription())
                 .passingScore(quiz.getPassingScore())
@@ -162,6 +165,7 @@ public class QuizResponse {
                 .id(quiz.getId())
                 .courseId(quiz.getCourse().getId())
                 .courseName(quiz.getCourse().getTitle())
+                .lessonId(quiz.getLessonId())
                 .title(quiz.getTitle())
                 .description(quiz.getDescription())
                 .passingScore(quiz.getPassingScore())

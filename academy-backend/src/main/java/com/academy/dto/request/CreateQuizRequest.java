@@ -13,6 +13,9 @@ public class CreateQuizRequest {
     @NotNull(message = "Course ID is required")
     private UUID courseId;
 
+    // Optional: links this quiz to a specific QUIZ-type lesson
+    private UUID lessonId;
+
     @NotBlank(message = "Quiz title is required")
     @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")
     private String title;

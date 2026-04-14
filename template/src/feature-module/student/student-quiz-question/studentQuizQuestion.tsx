@@ -326,17 +326,32 @@ const StudentQuizQuestion = () => {
   );
 
   const renderViolation = () => (
-    <div className="text-center py-5">
-      <div className="mb-3">
-        <i className="isax isax-warning-2 fs-1 text-warning" />
+    <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center', padding: '32px 0' }}>
+      <div style={{
+        width: 80, height: 80, borderRadius: '50%', margin: '0 auto 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(197,151,62,0.12)', border: '3px solid rgba(197,151,62,0.3)',
+      }}>
+        <i className="isax isax-warning-2" style={{ fontSize: 40, color: '#C5973E' }} />
       </div>
-      <h4 className="text-danger mb-2">Quiz Terminated</h4>
-      <p className="text-muted mb-1">
-        You switched tabs or windows during the quiz. As per the anti-cheat policy, your attempt has been
-        submitted with a <strong>score of 0</strong>.
+      <h3 style={{ fontSize: 22, fontWeight: 800, color: '#8B2335', marginBottom: 12 }}>Quiz Terminated</h3>
+      <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 6 }}>
+        You switched tabs or windows during the quiz. As per the anti-cheat policy,
+        your attempt has been submitted with a <strong style={{ color: '#8B2335' }}>score of 0</strong>.
       </p>
-      <p className="text-muted mb-4 small">This action is logged and cannot be reversed.</p>
-      <Link to={route.studentQuiz} className="btn btn-primary">
+      <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 28 }}>
+        This action is logged and cannot be reversed.
+      </p>
+      <Link
+        to={route.studentQuiz}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '10px 24px', borderRadius: 'var(--lx-radius)',
+          background: 'var(--lx-primary)', color: '#fff',
+          textDecoration: 'none', fontSize: 14, fontWeight: 600,
+        }}
+      >
+        <i className="isax isax-arrow-left" />
         Back to Quizzes
       </Link>
     </div>
@@ -345,65 +360,171 @@ const StudentQuizQuestion = () => {
   const renderResult = () => {
     if (!result || !quiz) return null;
     const passed = result.passed;
+    const pct = typeof result.percentage === 'number' ? Math.round(result.percentage * 10) / 10 : 0;
+    const score = result.score ?? 0;
+    const totalPts = result.totalPoints ?? 0;
+
+    const statCards = [
+      {
+        label: 'Points Earned',
+        value: score,
+        icon: 'isax-star',
+        color: passed ? '#2D5F3F' : '#8B2335',
+        bg: passed ? 'rgba(45,95,63,0.07)' : 'rgba(139,35,53,0.07)',
+      },
+      {
+        label: 'Total Points',
+        value: totalPts,
+        icon: 'isax-chart',
+        color: '#C5973E',
+        bg: 'rgba(197,151,62,0.08)',
+      },
+      {
+        label: 'Your Score',
+        value: `${pct}%`,
+        icon: 'isax-percentage-square',
+        color: passed ? '#2D5F3F' : '#8B2335',
+        bg: passed ? 'rgba(45,95,63,0.07)' : 'rgba(139,35,53,0.07)',
+      },
+    ];
+
     return (
-      <div className="text-center py-4">
-        <div className="mb-3">
-          <div
-            className={`d-inline-flex align-items-center justify-content-center rounded-circle mb-3 ${passed ? "bg-success" : "bg-danger"} bg-opacity-15`}
-            style={{ width: 80, height: 80 }}
-          >
-            <i className={`isax fs-1 ${passed ? "isax-tick-circle text-success" : "isax-close-circle text-danger"}`} />
-          </div>
-        </div>
-        <h4 className={`mb-1 ${passed ? "text-success" : "text-danger"}`}>
-          {passed ? "🎉 You Passed!" : "You Did Not Pass"}
-        </h4>
-        <p className="text-muted mb-4">
-          {passed
-            ? "Congratulations! You've successfully completed this quiz."
-            : `You need ${quiz.passingScore}% to pass. Keep practising!`}
-        </p>
-
-        <div className="row justify-content-center g-3 mb-4">
-          <div className="col-4">
-            <div className="border rounded-3 p-3">
-              <div className="fs-4 fw-bold text-primary">{result.score}</div>
-              <div className="text-muted small">Points Earned</div>
-            </div>
-          </div>
-          <div className="col-4">
-            <div className="border rounded-3 p-3">
-              <div className="fs-4 fw-bold text-primary">{result.totalPoints}</div>
-              <div className="text-muted small">Total Points</div>
-            </div>
-          </div>
-          <div className="col-4">
-            <div className="border rounded-3 p-3">
-              <div className={`fs-4 fw-bold ${passed ? "text-success" : "text-danger"}`}>
-                {result.percentage}%
-              </div>
-              <div className="text-muted small">Score</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="mb-4 px-2">
-          <div className="d-flex justify-content-between small text-muted mb-1">
-            <span>Your score</span>
-            <span>Passing: {quiz.passingScore}%</span>
-          </div>
-          <div className="progress" style={{ height: 10 }}>
-            <div
-              className={`progress-bar ${passed ? "bg-success" : "bg-danger"}`}
-              style={{ width: `${result.percentage}%` }}
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '16px 0' }}>
+        {/* ── Status hero ─── */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{
+            width: 88, height: 88, borderRadius: '50%', margin: '0 auto 20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: passed ? 'rgba(45,95,63,0.12)' : 'rgba(139,35,53,0.10)',
+            border: `3px solid ${passed ? 'rgba(45,95,63,0.3)' : 'rgba(139,35,53,0.25)'}`,
+          }}>
+            <i
+              className={`isax ${passed ? 'isax-tick-circle' : 'isax-close-circle'}`}
+              style={{ fontSize: 44, color: passed ? '#2D5F3F' : '#8B2335' }}
             />
           </div>
+          <h3 style={{
+            fontSize: 26, fontWeight: 800, margin: '0 0 8px',
+            color: passed ? '#2D5F3F' : '#8B2335',
+          }}>
+            {passed ? '🎉 You Passed!' : 'Not Passed'}
+          </h3>
+          <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, margin: 0 }}>
+            {passed
+              ? "Congratulations! You've successfully completed this quiz."
+              : `You need ${quiz.passingScore}% to pass. Keep practising and try again!`}
+          </p>
         </div>
 
-        <Link to={route.studentQuiz} className="btn btn-primary">
-          Back to Quizzes
-        </Link>
+        {/* ── Stat cards ─── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 28 }}>
+          {statCards.map(card => (
+            <div key={card.label} style={{
+              padding: '18px 14px',
+              borderRadius: 'var(--lx-radius)',
+              background: card.bg,
+              border: `1px solid ${card.color}22`,
+              textAlign: 'center',
+            }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 'var(--lx-radius-sm)',
+                background: `${card.color}14`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 10px',
+              }}>
+                <i className={`isax ${card.icon}`} style={{ fontSize: 20, color: card.color }} />
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: card.color, lineHeight: 1.1, marginBottom: 4 }}>
+                {card.value}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--lx-text-muted)', fontWeight: 500 }}>
+                {card.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Progress bar ─── */}
+        <div style={{
+          padding: '18px 20px',
+          borderRadius: 'var(--lx-radius)',
+          background: 'rgba(255,255,255,0.6)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(107,29,42,0.07)',
+          marginBottom: 28,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text)' }}>Your Score</span>
+            <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
+              Passing threshold: <strong style={{ color: passed ? '#2D5F3F' : '#8B2335' }}>{quiz.passingScore}%</strong>
+            </span>
+          </div>
+          {/* Track */}
+          <div style={{ height: 14, borderRadius: 7, background: 'rgba(107,29,42,0.06)', position: 'relative', overflow: 'visible' }}>
+            {/* Passing threshold marker */}
+            <div style={{
+              position: 'absolute',
+              left: `${quiz.passingScore}%`,
+              top: -4, bottom: -4,
+              width: 2,
+              background: 'rgba(107,29,42,0.3)',
+              borderRadius: 2,
+              zIndex: 2,
+            }} />
+            {/* Score fill */}
+            <div style={{
+              height: '100%', borderRadius: 7,
+              width: `${Math.min(pct, 100)}%`,
+              background: passed
+                ? 'linear-gradient(90deg,#2D5F3F,#4CAF50)'
+                : 'linear-gradient(90deg,#8B2335,#C5973E)',
+              transition: 'width 0.6s ease',
+              position: 'relative', zIndex: 1,
+            }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+            <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>0%</span>
+            <span style={{
+              fontSize: 13, fontWeight: 700,
+              color: passed ? '#2D5F3F' : '#8B2335',
+            }}>
+              {pct}%
+            </span>
+            <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>100%</span>
+          </div>
+        </div>
+
+        {/* ── Actions ─── */}
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <Link
+            to={route.studentQuiz}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 24px', borderRadius: 'var(--lx-radius)',
+              background: 'rgba(107,29,42,0.07)', color: 'var(--lx-primary)',
+              border: '1px solid rgba(107,29,42,0.18)',
+              textDecoration: 'none', fontSize: 14, fontWeight: 600,
+            }}
+          >
+            <i className="isax isax-arrow-left" />
+            Back to Quizzes
+          </Link>
+          {!passed && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '10px 24px', borderRadius: 'var(--lx-radius)',
+                background: 'var(--lx-primary)', color: '#fff',
+                border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              <i className="isax isax-refresh" />
+              Try Again
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -584,7 +705,14 @@ const StudentQuizQuestion = () => {
 
   return (
     <LuxuryDashboardLayout>
-      <div className="card border-0 shadow-sm p-4">
+      <div style={{
+        background: 'rgba(255,255,255,0.65)',
+        backdropFilter: 'blur(18px)',
+        borderRadius: 'var(--lx-radius)',
+        border: '1px solid rgba(107,29,42,0.08)',
+        padding: 28,
+        boxShadow: '0 4px 24px rgba(107,29,42,0.06)',
+      }}>
         {phase === "loading" && renderLoading()}
         {phase === "error" && renderError()}
         {phase === "violation" && renderViolation()}

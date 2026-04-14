@@ -124,6 +124,42 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
+    public ReviewResponse updateMyReview(UUID reviewId, CreateReviewRequest request) {
+        User currentUser = getCurrentUser();
+        CourseReview review = findById(reviewId);
+
+        if (!review.getUser().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("You can only update your own reviews");
+        }
+
+        review.setRating(request.getRating());
+        if (request.getReviewText() != null) {
+            review.setReviewText(request.getReviewText());
+        }
+
+        review = reviewRepository.save(review);
+        updateCourseRating(review.getCourse().getId());
+
+        return ReviewResponse.fromEntity(review);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMyReview(UUID reviewId) {
+        User currentUser = getCurrentUser();
+        CourseReview review = findById(reviewId);
+
+        if (currentUser.getRole() != UserRole.ADMIN && !review.getUser().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("You don't have permission to delete this review");
+        }
+
+        UUID courseId = review.getCourse().getId();
+        reviewRepository.delete(review);
+        updateCourseRating(courseId);
+    }
+
+    @Override
+    @Transactional
     public void deleteReview(UUID courseId, UUID reviewId) {
         User currentUser = getCurrentUser();
         CourseReview review = findById(reviewId);

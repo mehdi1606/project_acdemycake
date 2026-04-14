@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Select } from 'antd';
+import { useSearchParams } from 'react-router-dom';
 import { quizService } from '../../../services/api/quiz.service';
 import { Quiz, QuizAttempt } from '../../../services/api/types';
 
 const InstructorQuizResult: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const urlQuizId = searchParams.get('quizId');
+
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loadingQuizzes, setLoadingQuizzes] = useState(true);
-  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(urlQuizId);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [loadingAttempts, setLoadingAttempts] = useState(false);
@@ -17,7 +21,12 @@ const InstructorQuizResult: React.FC = () => {
     const fetchQuizzes = async () => {
       try {
         const response = await quizService.getMyQuizzes(0, 100);
-        setQuizzes(response.content || []);
+        const list = response.content || [];
+        setQuizzes(list);
+        // Auto-select from URL param
+        if (urlQuizId && list.some((q: Quiz) => q.id === urlQuizId)) {
+          setSelectedQuizId(urlQuizId);
+        }
       } catch {
         setQuizzes([]);
       } finally {
@@ -25,6 +34,7 @@ const InstructorQuizResult: React.FC = () => {
       }
     };
     fetchQuizzes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -47,12 +57,6 @@ const InstructorQuizResult: React.FC = () => {
     };
     fetchAttempts();
   }, [selectedQuizId, quizzes]);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  };
 
   const avgScore = attempts.length > 0
     ? Math.round(attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length)
@@ -207,10 +211,8 @@ const InstructorQuizResult: React.FC = () => {
                       <th>Student</th>
                       <th>Score</th>
                       <th>Percentage</th>
-                      <th>Status</th>
-                      <th>Attempt</th>
-                      <th>Time Spent</th>
-                      <th>Completed At</th>
+                      <th>Result</th>
+                      <th>Submitted At</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -218,7 +220,14 @@ const InstructorQuizResult: React.FC = () => {
                       <tr key={attempt.id}>
                         <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{index + 1}</td>
                         <td>
-                          <span style={{ fontWeight: 500, fontSize: 13 }}>Student #{attempt.studentId}</span>
+                          <div>
+                            <span style={{ fontWeight: 500, fontSize: 13, display: 'block' }}>
+                              {attempt.studentName ?? '—'}
+                            </span>
+                            {attempt.studentEmail && (
+                              <span style={{ fontSize: 11, color: 'var(--lx-text-muted)' }}>{attempt.studentEmail}</span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <span style={{ fontWeight: 600, fontSize: 13 }}>
@@ -242,16 +251,19 @@ const InstructorQuizResult: React.FC = () => {
                           </div>
                         </td>
                         <td>
-                          <span className={`lx-badge ${attempt.passed ? 'badge-success' : 'badge-danger'}`}>
-                            {attempt.passed ? 'Passed' : 'Failed'}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <span className={`lx-badge ${attempt.passed ? 'badge-success' : 'badge-danger'}`}>
+                              {attempt.passed ? 'Passed' : 'Failed'}
+                            </span>
+                            {attempt.violated && (
+                              <span className="lx-badge badge-warning" style={{ fontSize: 10 }}>Violated</span>
+                            )}
+                          </div>
                         </td>
-                        <td>
-                          <span className="lx-badge badge-slate">#{attempt.attemptNumber}</span>
-                        </td>
-                        <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatTime(attempt.timeSpent)}</td>
                         <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>
-                          {attempt.completedAt ? new Date(attempt.completedAt).toLocaleString() : '—'}
+                          {(attempt.submittedAt ?? attempt.completedAt)
+                            ? new Date((attempt.submittedAt ?? attempt.completedAt)!).toLocaleString()
+                            : '—'}
                         </td>
                       </tr>
                     ))}

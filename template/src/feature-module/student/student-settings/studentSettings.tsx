@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import LuxuryDashboardLayout from "../../../components/LuxuryDashboardLayout"
 import { all_routes } from "../../router/all_routes"
 import { Link } from "react-router-dom"
@@ -8,7 +8,9 @@ import SettingsModal from "./settingsModal/settingsModal"
 import { useAppSelector, useAppDispatch } from "../../../core/redux/hooks"
 import { setUser } from "../../../core/redux/authSlice"
 import profileService from "../../../services/api/profile.service"
-import { message } from "antd"
+import { extractApiError } from "../../../services/api/error.utils"
+import { getFileUrl } from "../../../environment"
+import { App } from "antd"
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -33,9 +35,11 @@ const StudentSettings = () => {
   const route = all_routes
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
+  const { message } = App.useApp()
 
   const [saving, setSaving] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -82,8 +86,7 @@ const StudentSettings = () => {
       }
       message.success("Profile photo updated successfully")
     } catch (error) {
-      console.error("Failed to upload avatar:", error)
-      message.error("Failed to upload profile photo. Please try again.")
+      message.error(extractApiError(error, "Failed to upload profile photo. Please try again."))
     } finally {
       setAvatarUploading(false)
     }
@@ -112,8 +115,7 @@ const StudentSettings = () => {
       dispatch(setUser(updatedUser))
       message.success("Profile updated successfully")
     } catch (error) {
-      console.error("Failed to update profile:", error)
-      message.error("Failed to update profile. Please try again.")
+      message.error(extractApiError(error, "Failed to update profile. Please try again."))
     } finally {
       setSaving(false)
     }
@@ -149,7 +151,7 @@ const StudentSettings = () => {
                 {avatarUploading ? (
                   <div style={{ width: 24, height: 24, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
                 ) : user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <ImageWithBasePath src="assets/img/user/user-02.jpg" alt="Img" className="img-fluid" />
                 )}
@@ -161,17 +163,23 @@ const StudentSettings = () => {
                 <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: '0 0 10px' }}>
                   PNG or JPG no bigger than 800px width and height
                 </p>
-                <div style={{ position: 'relative' }}>
+                <div>
                   <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={handleAvatarChange}
                     disabled={avatarUploading}
-                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                    style={{ display: 'none' }}
                   />
-                  <span className="lx-btn lx-btn-outline lx-btn-sm">
-                    {avatarUploading ? "Uploading..." : "Upload"}
-                  </span>
+                  <button
+                    type="button"
+                    className="lx-btn lx-btn-outline lx-btn-sm"
+                    disabled={avatarUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {avatarUploading ? "Uploading..." : "Upload Photo"}
+                  </button>
                 </div>
               </div>
             </div>

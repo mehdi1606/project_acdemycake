@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -76,6 +77,14 @@ public class QuizController {
     public ResponseEntity<ApiResponse<QuizResponse>> unpublishQuiz(@PathVariable UUID id) {
         QuizResponse response = quizService.unpublishQuiz(id);
         return ResponseEntity.ok(ApiResponse.success("Quiz unpublished", response));
+    }
+
+    @GetMapping("/lesson/{lessonId}")
+    @Operation(summary = "Get the quiz linked to a specific lesson")
+    public ResponseEntity<ApiResponse<QuizResponse>> getQuizByLesson(@PathVariable UUID lessonId) {
+        Optional<QuizResponse> quiz = quizService.getQuizByLessonId(lessonId, false);
+        return quiz.map(q -> ResponseEntity.ok(ApiResponse.success(q)))
+                .orElse(ResponseEntity.ok(ApiResponse.success(null)));
     }
 
     @GetMapping("/{id}/attempts")

@@ -15,6 +15,7 @@ export { certificateService } from './certificate.service';
 export { instructorService } from './instructor.service';
 export { adminService } from './admin.service';
 export { quizService } from './quiz.service';
+export { reviewService } from './review.service';
 
 // Types
 export * from './types';

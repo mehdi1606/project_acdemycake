@@ -3,6 +3,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { instructorService, InstructorStudentInfo } from '../../../services/api/instructor.service';
+import { getFileUrl } from '../../../environment';
 
 const StudentGrid: React.FC = () => {
   const [students, setStudents] = useState<InstructorStudentInfo[]>([]);
@@ -172,7 +173,7 @@ const StudentGrid: React.FC = () => {
                     <div className="mb-3 text-center">
                       {student.avatarUrl ? (
                         <img
-                          src={student.avatarUrl}
+                          src={getFileUrl(student.avatarUrl) ?? student.avatarUrl}
                           className="rounded-3"
                           alt={student.fullName}
                           style={{ width: '100%', height: 140, objectFit: 'cover' }}

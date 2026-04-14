@@ -1,105 +1,92 @@
 import api from './axios.config';
-import {
-  CommunityPost,
-  CommunityComment,
-  CreatePostRequest,
-  PaginatedResponse,
-  PostType,
-} from './types';
+import { CommunityPost, CommunityComment, PostType, PaginatedResponse, CreatePostRequest } from './types';
 
 class CommunityService {
-  // ============================================
-  // Posts
-  // ============================================
+  private base = '/community';
 
-  // Get posts
+  // ── Posts ──────────────────────────────────────────────────────────────────
+
   async getPosts(
     page = 0,
-    size = 20,
-    type?: PostType,
+    size = 10,
+    postType?: PostType,
     search?: string
   ): Promise<PaginatedResponse<CommunityPost>> {
-    const response = await api.get<PaginatedResponse<CommunityPost>>('/community/posts', {
-      params: { page, size, type, search },
+    const response = await api.get<PaginatedResponse<CommunityPost>>(`${this.base}/posts`, {
+      params: { page, size, ...(postType ? { postType } : {}), ...(search ? { search } : {}) },
     });
     return response.data;
   }
 
-  // Get post details
-  async getPostById(postId: number): Promise<CommunityPost> {
-    const response = await api.get<CommunityPost>(`/community/posts/${postId}`);
+  async getPostById(id: string): Promise<CommunityPost> {
+    const response = await api.get<CommunityPost>(`${this.base}/posts/${id}`);
     return response.data;
   }
 
-  // Create post
   async createPost(data: CreatePostRequest): Promise<CommunityPost> {
-    const response = await api.post<CommunityPost>('/community/posts', data);
+    const response = await api.post<CommunityPost>(`${this.base}/posts`, data);
     return response.data;
   }
 
-  // Update post
-  async updatePost(postId: number, data: CreatePostRequest): Promise<CommunityPost> {
-    const response = await api.put<CommunityPost>(`/community/posts/${postId}`, data);
+  async updatePost(id: string, data: CreatePostRequest): Promise<CommunityPost> {
+    const response = await api.put<CommunityPost>(`${this.base}/posts/${id}`, data);
     return response.data;
   }
 
-  // Delete post
-  async deletePost(postId: number): Promise<void> {
-    await api.delete(`/community/posts/${postId}`);
+  async deletePost(id: string): Promise<void> {
+    await api.delete(`${this.base}/posts/${id}`);
   }
 
-  // Like post
-  async likePost(postId: number): Promise<void> {
-    await api.post(`/community/posts/${postId}/like`);
+  async likePost(id: string): Promise<void> {
+    await api.post(`${this.base}/posts/${id}/like`);
   }
 
-  // Unlike post
-  async unlikePost(postId: number): Promise<void> {
-    await api.delete(`/community/posts/${postId}/like`);
+  async unlikePost(id: string): Promise<void> {
+    await api.delete(`${this.base}/posts/${id}/like`);
   }
 
-  // Report post
-  async reportPost(postId: number, reason: string): Promise<void> {
-    await api.post(`/community/posts/${postId}/report`, { reason });
-  }
+  // ── Comments ───────────────────────────────────────────────────────────────
 
-  // ============================================
-  // Comments
-  // ============================================
-
-  // Get comments for a post
   async getPostComments(
-    postId: number,
+    postId: string,
     page = 0,
     size = 20
   ): Promise<PaginatedResponse<CommunityComment>> {
-    const response = await api.get<PaginatedResponse<CommunityComment>>(`/community/posts/${postId}/comments`, {
-      params: { page, size },
-    });
+    const response = await api.get<PaginatedResponse<CommunityComment>>(
+      `${this.base}/posts/${postId}/comments`,
+      { params: { page, size } }
+    );
     return response.data;
   }
 
-  // Add comment
-  async addComment(postId: number, content: string): Promise<CommunityComment> {
-    const response = await api.post<CommunityComment>(`/community/posts/${postId}/comments`, {
-      content,
-    });
+  // Alias for getPostComments
+  async getComments(postId: string, page = 0, size = 20): Promise<PaginatedResponse<CommunityComment>> {
+    return this.getPostComments(postId, page, size);
+  }
+
+  async addComment(postId: string, content: string): Promise<CommunityComment> {
+    const response = await api.post<CommunityComment>(
+      `${this.base}/posts/${postId}/comments`,
+      { content }
+    );
     return response.data;
   }
 
-  // Delete comment
-  async deleteComment(commentId: number): Promise<void> {
-    await api.delete(`/community/comments/${commentId}`);
+  // Alias for addComment
+  async createComment(postId: string, content: string): Promise<CommunityComment> {
+    return this.addComment(postId, content);
   }
 
-  // Like comment
-  async likeComment(commentId: number): Promise<void> {
-    await api.post(`/community/comments/${commentId}/like`);
+  async deleteComment(id: string): Promise<void> {
+    await api.delete(`${this.base}/comments/${id}`);
   }
 
-  // Unlike comment
-  async unlikeComment(commentId: number): Promise<void> {
-    await api.delete(`/community/comments/${commentId}/like`);
+  async likeComment(id: string): Promise<void> {
+    await api.post(`${this.base}/comments/${id}/like`);
+  }
+
+  async unlikeComment(id: string): Promise<void> {
+    await api.delete(`${this.base}/comments/${id}/like`);
   }
 }
 

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { logout } from '../../../core/redux/authSlice';
+import { getFileUrl } from '../../../environment';
 
 const adminSidebarData = [
   {
@@ -78,10 +79,20 @@ const AdminSidebar = () => {
                   color: '#fff',
                   fontWeight: 'bold',
                   fontSize: '20px',
-                  border: '2px solid rgba(255,255,255,0.2)'
+                  border: '2px solid rgba(255,255,255,0.2)',
+                  overflow: 'hidden',
+                  flexShrink: 0,
                 }}
               >
-                {user?.fullName?.charAt(0).toUpperCase() || 'A'}
+                {user?.avatarUrl ? (
+                  <img
+                    src={getFileUrl(user.avatarUrl) ?? user.avatarUrl}
+                    alt={user.fullName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  user?.fullName?.charAt(0).toUpperCase() || 'A'
+                )}
               </div>
               <div className="ms-3">
                 <h6 className="mb-0 text-white">{user?.fullName || 'Admin'}</h6>

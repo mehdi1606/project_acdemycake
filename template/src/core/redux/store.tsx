@@ -6,6 +6,7 @@ import courseSlice from './courseSlice';
 import studentSlice from './studentSlice';
 import instructorSlice from './instructorSlice';
 import adminSlice from './adminSlice';
+import cartSlice from './cartSlice';
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     student: studentSlice,
     instructor: instructorSlice,
     admin: adminSlice,
+    cart: cartSlice,
   },
 });
 
