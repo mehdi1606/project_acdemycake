@@ -1,25 +1,82 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
 import { courseService } from '../../../../services/api/course.service'
 import { PlatformStats } from '../../../../services/api/types'
+import { useScrollParallax } from '../hooks/useScrollParallax'
+import { useCountUp } from '../hooks/useCountUp'
+import { useInView } from '../hooks/useInView'
 
-const formatCount = (count: number): string => {
-    if (count >= 1000) return `${Math.floor(count / 1000)}K+`
-    return count.toString()
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const formatK = (n: number): { value: number; suffix: string } => {
+    if (n >= 1000) return { value: Math.floor(n / 1000), suffix: 'K+' }
+    return { value: n, suffix: '+' }
 }
 
-const BannerSection = () => {
+// ── Animated stat counter ─────────────────────────────────────────────────────
+const StatItem: React.FC<{
+    rawValue: number
+    label: string
+    delay?: number
+    inView: boolean
+}> = ({ rawValue, label, delay = 0, inView }) => {
+    const { value, suffix } = formatK(rawValue)
+    const count = useCountUp(value, 2000, 0, inView)
+    return (
+        <div style={{ textAlign: 'center', minWidth: 80 }}>
+            <div style={{
+                fontFamily: 'var(--sl-font-display)',
+                fontSize: '2rem', fontWeight: 700,
+                color: 'var(--sl-gold)', lineHeight: 1,
+                animationDelay: `${delay}ms`,
+            }}>
+                <span className="sl-stat-number" style={{ '--delay': `${delay}ms` } as React.CSSProperties}>
+                    {count}
+                </span>
+                <span style={{ fontSize: '1.1rem', color: 'var(--sl-gold-lt)' }}>{suffix}</span>
+            </div>
+            <div style={{
+                fontFamily: 'var(--sl-font-body)',
+                fontSize: '0.58rem', letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'rgba(245,218,223,0.45)',
+                marginTop: '0.3rem',
+            }}>
+                {label}
+            </div>
+        </div>
+    )
+}
+
+// ── Main Banner ───────────────────────────────────────────────────────────────
+const BannerSection: React.FC = () => {
     const route = all_routes
     const navigate = useNavigate()
+    const scrollY = useScrollParallax()
+    const { ref: statsRef, inView: statsVisible } = useInView<HTMLDivElement>(0.3)
     const [stats, setStats] = useState<PlatformStats | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
-    const [imgError, setImgError] = useState(false)
+    const [imgLoaded, setImgLoaded] = useState(false)
+
+    // Mouse-tracking for 3D mockup tilt
+    const mockupRef = useRef<HTMLDivElement>(null)
+    const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+        const el = mockupRef.current
+        if (!el) return
+        const rect = el.getBoundingClientRect()
+        const x = (e.clientX - rect.left) / rect.width - 0.5
+        const y = (e.clientY - rect.top) / rect.height - 0.5
+        el.style.transition = 'transform 0.1s linear'
+        el.style.transform = `perspective(900px) rotateX(${-y * 10}deg) rotateY(${x * 14}deg) scale(1.02)`
+    }, [])
+    const handleMouseLeave = useCallback(() => {
+        if (!mockupRef.current) return
+        mockupRef.current.style.transition = 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        mockupRef.current.style.transform = 'perspective(900px) rotateX(0) rotateY(0) scale(1)'
+    }, [])
 
     useEffect(() => {
-        courseService.getPlatformStats()
-            .then(setStats)
-            .catch(() => {})
+        courseService.getPlatformStats().then(setStats).catch(() => {})
     }, [])
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -27,28 +84,74 @@ const BannerSection = () => {
         navigate(route.courseList)
     }
 
+    // Scroll-driven values
+    const bgParallax = scrollY * 0.3
+    const graphicParallax = scrollY * 0.15
+    const contentParallax = scrollY * 0.08
+
     return (
-        <section className="sl-banner">
-            {/* ── Decorative graphic ring (top-right) ── */}
+        <section
+            className="sl-banner"
+            style={{ cursor: 'default' }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+        >
+            {/* ── Layer 1: Graphic element (slowest parallax) ── */}
             <img
                 src={`${process.env.PUBLIC_URL}/assets/img/Graphics/Graphics Elements-09.svg`}
                 alt=""
                 aria-hidden="true"
                 style={{
-                    position: 'absolute', top: '-60px', right: '-80px',
-                    width: '520px', opacity: 0.07, pointerEvents: 'none',
+                    position: 'absolute', top: '-80px', right: '-100px',
+                    width: '560px', opacity: 0.07, pointerEvents: 'none',
                     zIndex: 1,
+                    transform: `translateY(${graphicParallax * 0.5}px) rotate(${graphicParallax * 0.01}deg)`,
+                    transition: 'transform 0.1s linear',
+                }}
+            />
+            <img
+                src={`${process.env.PUBLIC_URL}/assets/img/Graphics/Graphics Elements-13.svg`}
+                alt=""
+                aria-hidden="true"
+                style={{
+                    position: 'absolute', bottom: '-40px', left: '-60px',
+                    width: '380px', opacity: 0.05, pointerEvents: 'none',
+                    zIndex: 1,
+                    transform: `translateY(${-graphicParallax * 0.3}px)`,
+                    transition: 'transform 0.1s linear',
                 }}
             />
 
-            <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-                <div className="row align-items-center g-5">
+            {/* ── Particle floaters ── */}
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', overflow: 'hidden' }}>
+                {[...Array(6)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="sl-particle"
+                        style={{
+                            left: `${12 + i * 15}%`,
+                            bottom: `${10 + (i % 3) * 8}%`,
+                            animationDelay: `${i * 0.8}s`,
+                        }}
+                    />
+                ))}
+            </div>
 
-                    {/* ── Left column — copy ── */}
-                    <div className="col-lg-6 col-xl-6">
+            <div
+                className="container"
+                style={{
+                    position: 'relative', zIndex: 2,
+                    transform: `translateY(${contentParallax}px)`,
+                    transition: 'transform 0.1s linear',
+                }}
+            >
+                <div className="row align-items-center g-5 g-lg-4">
+
+                    {/* ── Left — Copy ── */}
+                    <div className="col-lg-6">
                         <div className="sl-banner__content">
 
-                            {/* Overline */}
+                            {/* Eyebrow badge */}
                             <div
                                 className="sl-banner__badge"
                                 data-aos="fade-down"
@@ -57,39 +160,49 @@ const BannerSection = () => {
                                 <span>Couture Pastry · Academy Est. 2010</span>
                             </div>
 
-                            {/* Script tagline */}
+                            {/* Animated title block */}
                             <div
-                                className="sl-banner__tagline"
+                                className="sl-text-reveal"
+                                style={{ overflow: 'hidden', marginBottom: '0.25rem' }}
                                 data-aos="fade-up"
-                                data-aos-delay="80"
-                                data-aos-duration="800"
+                                data-aos-delay="60"
+                                data-aos-duration="1000"
                             >
-                                The Art of Cake
+                                <span
+                                    className="sl-banner__tagline"
+                                    style={{ display: 'block' }}
+                                >
+                                    The Art of Cake
+                                </span>
                             </div>
 
-                            {/* Main title */}
-                            <h1
-                                className="sl-banner__title"
+                            <div
+                                className="sl-text-reveal"
                                 data-aos="fade-up"
-                                data-aos-delay="150"
-                                data-aos-duration="900"
+                                data-aos-delay="140"
+                                data-aos-duration="1000"
                             >
-                                SARALÖWE
-                            </h1>
+                                <h1
+                                    className="sl-banner__title sl-shimmer-text"
+                                    style={{ marginBottom: '0.2rem' }}
+                                >
+                                    SARALÖWE
+                                </h1>
+                            </div>
+
                             <p
                                 className="sl-banner__sub"
                                 data-aos="fade-up"
-                                data-aos-delay="200"
+                                data-aos-delay="220"
                                 data-aos-duration="700"
                             >
                                 Academy of Couture Pastry Design
                             </p>
 
-                            {/* Description */}
                             <p
                                 className="sl-banner__description"
                                 data-aos="fade-up"
-                                data-aos-delay="260"
+                                data-aos-delay="300"
                                 data-aos-duration="800"
                             >
                                 Master the world's most coveted sugar art techniques under elite
@@ -97,21 +210,18 @@ const BannerSection = () => {
                                 recognised by luxury hospitality brands globally.
                             </p>
 
-                            {/* Search bar */}
+                            {/* Search */}
                             <form
                                 onSubmit={handleSubmit}
                                 className="sl-banner__search"
                                 data-aos="fade-up"
-                                data-aos-delay="320"
+                                data-aos-delay="380"
                                 data-aos-duration="700"
                             >
-                                <button
-                                    type="button"
-                                    className="sl-search-category"
-                                    onClick={() => navigate(route.courseList)}
-                                >
+                                <button type="button" className="sl-search-category"
+                                    onClick={() => navigate(route.courseList)}>
                                     All Disciplines
-                                    <i className="isax isax-arrow-down5" style={{ fontSize: '0.7rem', marginLeft: '4px' }} />
+                                    <i className="isax isax-arrow-down5" style={{ fontSize: '0.7rem', marginLeft: 4 }} />
                                 </button>
                                 <div className="search-divider" />
                                 <input
@@ -125,171 +235,117 @@ const BannerSection = () => {
                                 </button>
                             </form>
 
-                            {/* CTA row */}
+                            {/* CTAs */}
                             <div
                                 className="d-flex align-items-center gap-3 flex-wrap mb-5"
                                 data-aos="fade-up"
-                                data-aos-delay="380"
+                                data-aos-delay="440"
                                 data-aos-duration="700"
                             >
-                                <Link to={route.courseList} className="sl-btn-gold">
-                                    Explore Courses
-                                    <i className="isax isax-arrow-right-1" />
+                                <Link to={route.courseList} className="sl-btn-gold sl-btn-magnetic">
+                                    Explore Courses <i className="isax isax-arrow-right-1" />
                                 </Link>
                                 <Link to={route.register} className="sl-btn-outline">
                                     Enrol Free
                                 </Link>
                             </div>
 
-                            {/* Stats strip */}
+                            {/* Animated stats */}
                             <div
+                                ref={statsRef}
                                 className="d-flex align-items-center gap-4 flex-wrap"
                                 data-aos="fade-up"
-                                data-aos-delay="440"
+                                data-aos-delay="520"
                                 data-aos-duration="700"
                             >
-                                {[
-                                    { value: stats ? formatCount(stats.totalCourses) : '—', label: 'Courses' },
-                                    { value: stats ? formatCount(stats.totalEnrollments) : '—', label: 'Enrolments' },
-                                    { value: stats ? formatCount(stats.totalInstructors) : '—', label: 'Expert Tutors' },
-                                ].map((stat, i) => (
-                                    <React.Fragment key={i}>
-                                        {i > 0 && (
-                                            <div style={{ width: 1, height: 32, background: 'rgba(197,145,44,0.25)', flexShrink: 0 }} />
-                                        )}
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{
-                                                fontFamily: 'var(--sl-font-display)',
-                                                fontSize: '1.6rem', fontWeight: 700,
-                                                color: 'var(--sl-gold)', lineHeight: 1,
-                                            }}>
-                                                {stat.value}
-                                            </div>
-                                            <div style={{
-                                                fontFamily: 'var(--sl-font-body)',
-                                                fontSize: '0.6rem', letterSpacing: '0.18em',
-                                                textTransform: 'uppercase',
-                                                color: 'rgba(245,218,223,0.5)',
-                                                marginTop: '0.25rem',
-                                            }}>
-                                                {stat.label}
-                                            </div>
-                                        </div>
-                                    </React.Fragment>
-                                ))}
+                                {stats && (
+                                    <>
+                                        <StatItem rawValue={stats.totalCourses} label="Courses" inView={statsVisible} delay={0} />
+                                        <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
+                                        <StatItem rawValue={stats.totalEnrollments} label="Enrolments" inView={statsVisible} delay={200} />
+                                        <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
+                                        <StatItem rawValue={stats.totalInstructors} label="Expert Tutors" inView={statsVisible} delay={400} />
+                                    </>
+                                )}
+                                {!stats && (
+                                    <div style={{
+                                        fontFamily: 'var(--sl-font-body)',
+                                        fontSize: '0.7rem',
+                                        color: 'rgba(245,218,223,0.3)',
+                                        letterSpacing: '0.1em',
+                                    }}>
+                                        — Loading —
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* ── Right column — brand mockup ── */}
+                    {/* ── Right — 3D Mockup ── */}
                     <div
-                        className="col-lg-6 col-xl-6 d-none d-lg-flex justify-content-center align-items-center"
+                        className="col-lg-6 d-none d-lg-flex justify-content-center align-items-center"
                         data-aos="fade-left"
-                        data-aos-delay="200"
-                        data-aos-duration="1000"
+                        data-aos-delay="180"
+                        data-aos-duration="1100"
                     >
-                        <div style={{ position: 'relative', maxWidth: 480, width: '100%' }}>
-                            {/* Gold corner accents */}
+                        {/* 3D tilt container */}
+                        <div
+                            ref={mockupRef}
+                            className="sl-tilt-wrap"
+                            style={{
+                                position: 'relative',
+                                maxWidth: 480,
+                                width: '100%',
+                                transformStyle: 'preserve-3d',
+                            }}
+                        >
+                            {/* Outer gold frame */}
                             <div style={{
-                                position: 'absolute', top: -12, left: -12, right: -12, bottom: -12,
-                                border: '1px solid rgba(197,145,44,0.18)',
+                                position: 'absolute', top: -14, left: -14, right: -14, bottom: -14,
+                                border: '1px solid rgba(197,145,44,0.16)',
                                 pointerEvents: 'none', zIndex: 0,
                             }} />
-                            <div style={{
-                                position: 'absolute', top: -4, left: -4,
-                                width: 24, height: 24,
-                                borderTop: '2px solid var(--sl-gold)',
-                                borderLeft: '2px solid var(--sl-gold)',
-                                pointerEvents: 'none', zIndex: 2,
-                            }} />
-                            <div style={{
-                                position: 'absolute', bottom: -4, right: -4,
-                                width: 24, height: 24,
-                                borderBottom: '2px solid var(--sl-gold)',
-                                borderRight: '2px solid var(--sl-gold)',
-                                pointerEvents: 'none', zIndex: 2,
-                            }} />
+                            {/* Corner marks */}
+                            {[
+                                { top: -5, left: -5, borderTop: '2px solid var(--sl-gold)', borderLeft: '2px solid var(--sl-gold)' },
+                                { top: -5, right: -5, borderTop: '2px solid var(--sl-gold)', borderRight: '2px solid var(--sl-gold)' },
+                                { bottom: -5, left: -5, borderBottom: '2px solid var(--sl-gold)', borderLeft: '2px solid var(--sl-gold)' },
+                                { bottom: -5, right: -5, borderBottom: '2px solid var(--sl-gold)', borderRight: '2px solid var(--sl-gold)' },
+                            ].map((s, i) => (
+                                <div key={i} style={{
+                                    position: 'absolute', width: 22, height: 22,
+                                    pointerEvents: 'none', zIndex: 2, ...s,
+                                }} />
+                            ))}
 
-                            {/* Main hero mockup — cake + SARALÖWE branded stationery */}
-                            {!imgError ? (
-                                <img
-                                    src={`${process.env.PUBLIC_URL}/assets/img/Mockups/011.jpg`}
-                                    alt="SARALÖWE — Couture Cake Design"
-                                    onError={() => setImgError(true)}
-                                    style={{
-                                        width: '100%',
-                                        display: 'block',
-                                        position: 'relative',
-                                        zIndex: 1,
-                                        filter: 'brightness(0.97) contrast(1.03)',
-                                    }}
-                                />
-                            ) : (
-                                /* Fallback if image is missing */
-                                <div style={{
-                                    width: '100%', aspectRatio: '4/3',
-                                    background: 'rgba(255,255,255,0.04)',
-                                    border: '1px solid rgba(245,218,223,0.1)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}>
-                                    <img
-                                        src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
-                                        alt="SARALÖWE"
-                                        style={{ width: 120, opacity: 0.4 }}
-                                    />
-                                </div>
-                            )}
-
-                            {/* Floating accreditation badge */}
-                            <div
+                            {/* Hero mockup image */}
+                            <img
+                                src={`${process.env.PUBLIC_URL}/assets/img/Mockups/011.jpg`}
+                                alt="SARALÖWE — Couture Cake Design"
                                 style={{
-                                    position: 'absolute',
-                                    bottom: -24,
-                                    left: -24,
-                                    background: 'rgba(29, 60, 52, 0.95)',
-                                    border: '1px solid rgba(197,145,44,0.35)',
-                                    backdropFilter: 'blur(12px)',
-                                    padding: '1rem 1.4rem',
-                                    display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                    zIndex: 3,
+                                    width: '100%', display: 'block',
+                                    position: 'relative', zIndex: 1,
+                                    opacity: imgLoaded ? 1 : 0,
+                                    transition: 'opacity 0.8s ease, filter 0.5s ease',
+                                    filter: 'brightness(0.96) contrast(1.04) saturate(1.05)',
                                 }}
-                                data-aos="fade-right"
-                                data-aos-delay="600"
-                                data-aos-duration="700"
-                            >
-                                <img
-                                    src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
-                                    alt=""
-                                    style={{ width: 36, height: 36, objectFit: 'contain' }}
-                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                                />
-                                <div>
-                                    <div style={{
-                                        fontFamily: 'var(--sl-font-body)',
-                                        fontSize: '0.58rem', letterSpacing: '0.18em',
-                                        textTransform: 'uppercase', color: 'var(--sl-gold)',
-                                    }}>
-                                        Industry Recognised
-                                    </div>
-                                    <div style={{
-                                        fontFamily: 'var(--sl-font-display)',
-                                        fontSize: '0.82rem', color: 'var(--sl-blush)',
-                                    }}>
-                                        Certificates accepted worldwide
-                                    </div>
-                                </div>
-                            </div>
+                                onLoad={() => setImgLoaded(true)}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
 
-                            {/* Floating cover art */}
+                            {/* Parallax depth layer — floats slightly */}
                             <div
+                                className="sl-float"
                                 style={{
-                                    position: 'absolute', top: -28, right: -28,
-                                    width: 100, height: 100,
+                                    position: 'absolute', top: -32, right: -32,
+                                    width: 108, height: 108,
                                     borderRadius: '50%',
                                     overflow: 'hidden',
-                                    border: '3px solid rgba(197,145,44,0.4)',
-                                    boxShadow: '0 8px 32px rgba(74,20,37,0.4)',
-                                    zIndex: 3,
+                                    border: '3px solid rgba(197,145,44,0.45)',
+                                    boxShadow: '0 12px 40px rgba(74,20,37,0.5)',
+                                    zIndex: 4,
+                                    transformStyle: 'preserve-3d',
+                                    transform: 'translateZ(30px)',
                                 }}
                                 data-aos="zoom-in"
                                 data-aos-delay="700"
@@ -301,6 +357,45 @@ const BannerSection = () => {
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none' }}
                                 />
+                            </div>
+
+                            {/* Floating accreditation card */}
+                            <div
+                                data-aos="fade-right"
+                                data-aos-delay="650"
+                                data-aos-duration="700"
+                                style={{
+                                    position: 'absolute', bottom: -28, left: -28,
+                                    background: 'rgba(29,60,52,0.96)',
+                                    border: '1px solid rgba(197,145,44,0.32)',
+                                    backdropFilter: 'blur(20px)',
+                                    WebkitBackdropFilter: 'blur(20px)',
+                                    padding: '1rem 1.4rem',
+                                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                                    zIndex: 4,
+                                    transform: 'translateZ(20px)',
+                                    boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
+                                }}
+                            >
+                                <img
+                                    src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+                                    alt=""
+                                    style={{ width: 36, height: 36, objectFit: 'contain' }}
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                />
+                                <div>
+                                    <div style={{
+                                        fontFamily: 'var(--sl-font-body)', fontSize: '0.56rem',
+                                        letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--sl-gold)',
+                                    }}>
+                                        Industry Recognised
+                                    </div>
+                                    <div style={{
+                                        fontFamily: 'var(--sl-font-display)', fontSize: '0.8rem', color: 'var(--sl-blush)',
+                                    }}>
+                                        Certificates · Est. 2010
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

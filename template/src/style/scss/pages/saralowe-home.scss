@@ -1360,3 +1360,566 @@
     will-change: transform, opacity;
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 16. CINEMATIC ANIMATION SYSTEM
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Keyframes ────────────────────────────────────────────────────────────────
+@keyframes sl-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-12px) rotate(1deg); }
+  66%       { transform: translateY(-6px) rotate(-0.5deg); }
+}
+
+@keyframes sl-float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-18px); }
+}
+
+@keyframes sl-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes sl-gold-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 145, 44, 0); }
+  50%       { box-shadow: 0 0 0 12px rgba(197, 145, 44, 0); }
+}
+
+@keyframes sl-draw-border {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes sl-char-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0% 0 0);
+    opacity: 1;
+  }
+}
+
+@keyframes sl-rise {
+  from { opacity: 0; transform: translateY(60px) skewY(2deg); }
+  to   { opacity: 1; transform: translateY(0) skewY(0); }
+}
+
+@keyframes sl-fade-scale {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sl-particle {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0.7; }
+  100% { transform: translateY(-120px) translateX(var(--dx, 20px)) scale(0); opacity: 0; }
+}
+
+@keyframes sl-scan-line {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100vh); }
+}
+
+@keyframes sl-counter-flip {
+  from { transform: rotateX(-90deg); opacity: 0; }
+  to   { transform: rotateX(0deg); opacity: 1; }
+}
+
+@keyframes sl-border-draw {
+  0%   { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+  25%  { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+  50%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 100% 100%); }
+  75%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+
+@keyframes sl-spotlight {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.6; }
+}
+
+// ── Cinematic Text Reveal ────────────────────────────────────────────────────
+.sl-text-reveal {
+  overflow: hidden;
+  display: block;
+
+  &__inner {
+    display: block;
+    animation: sl-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--delay, 0s);
+  }
+}
+
+// ── Shimmer text (for titles on dark bg) ─────────────────────────────────────
+.sl-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--sl-gold) 0%,
+    #f0d080 30%,
+    var(--sl-gold-lt) 50%,
+    #f0d080 70%,
+    var(--sl-gold) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: sl-shimmer 4s linear infinite;
+}
+
+// ── Floating elements ─────────────────────────────────────────────────────────
+.sl-float { animation: sl-float 6s ease-in-out infinite; }
+.sl-float-slow { animation: sl-float-slow 8s ease-in-out infinite; }
+.sl-float-delay { animation: sl-float 6s ease-in-out 2s infinite; }
+
+// ── Cinematic section entrance ────────────────────────────────────────────────
+.sl-section-enter {
+  opacity: 0;
+  transform: translateY(48px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ── 3D Tilt card wrapper ───────────────────────────────────────────────────────
+.sl-tilt-wrap {
+  transform-style: preserve-3d;
+  will-change: transform;
+  cursor: pointer;
+
+  // Gloss sheen that reacts to tilt
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
+  &:hover::after { opacity: 1; }
+}
+
+// ── Magnetic button ────────────────────────────────────────────────────────────
+.sl-btn-magnetic {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border-radius: inherit;
+  }
+}
+
+// ── Spotlight overlay (used in hero + CTA) ───────────────────────────────────
+.sl-spotlight {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197, 145, 44, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  animation: sl-spotlight 3s ease-in-out infinite;
+}
+
+// ── Stats / counter flip ───────────────────────────────────────────────────────
+.sl-stat-number {
+  display: inline-block;
+  animation: sl-counter-flip 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--delay, 0s);
+}
+
+// ── Image parallax frame ───────────────────────────────────────────────────────
+.sl-parallax-frame {
+  overflow: hidden;
+  position: relative;
+
+  img {
+    will-change: transform;
+    transition: transform 0.1s linear;
+  }
+}
+
+// ── Stagger children (use with [data-stagger] attr for AOS) ──────────────────
+.sl-stagger-children > * {
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 80}ms; }
+  }
+}
+
+// ── Cinematic divider ─────────────────────────────────────────────────────────
+.sl-cinematic-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(197, 145, 44, 0.2) 20%,
+    rgba(197, 145, 44, 0.5) 50%,
+    rgba(197, 145, 44, 0.2) 80%,
+    transparent 100%
+  );
+  position: relative;
+  margin: 0;
+
+  &::before {
+    content: '✦';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--sl-gold);
+    font-size: 0.65rem;
+    background: inherit;
+    padding: 0 1rem;
+  }
+}
+
+// ── Why Choose Us section ─────────────────────────────────────────────────────
+.sl-why {
+  background: var(--sl-burg-dk);
+  position: relative;
+  overflow: hidden;
+
+  // Animated scan-line effect (subtle, removed by prefers-reduced-motion)
+  @media (prefers-reduced-motion: no-preference) {
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(197, 145, 44, 0.25), transparent);
+      animation: sl-scan-line 8s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+  }
+
+  &__stat {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    position: relative;
+    z-index: 2;
+    border: 1px solid rgba(197, 145, 44, 0.08);
+    transition: border-color 0.4s ease, background 0.4s ease;
+
+    &:hover {
+      border-color: rgba(197, 145, 44, 0.28);
+      background: rgba(197, 145, 44, 0.04);
+    }
+  }
+
+  &__number {
+    font-family: var(--sl-font-display);
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--sl-gold), #f0d080, var(--sl-gold-lt));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  &__suffix {
+    font-family: var(--sl-font-display);
+    font-size: 0.6em;
+    vertical-align: super;
+    -webkit-text-fill-color: var(--sl-gold);
+    color: var(--sl-gold);
+  }
+
+  &__label {
+    font-family: var(--sl-font-body);
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(245, 218, 223, 0.45);
+    margin-bottom: 0.75rem;
+  }
+
+  &__desc {
+    font-family: var(--sl-font-display);
+    font-style: italic;
+    font-size: 0.88rem;
+    color: rgba(245, 218, 223, 0.55);
+    line-height: 1.6;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+}
+
+// ── CTA Section ───────────────────────────────────────────────────────────────
+.sl-cinematic-cta {
+  position: relative;
+  overflow: hidden;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  background: var(--sl-burg-dk);
+
+  &__bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    will-change: transform;
+    transition: transform 0.1s linear;
+    filter: brightness(0.45) contrast(1.1);
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(74, 20, 37, 0.75) 0%,
+      rgba(101, 28, 50, 0.45) 50%,
+      rgba(29, 60, 52, 0.65) 100%
+    );
+    z-index: 1;
+  }
+
+  &__spotlight {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(197, 145, 44, 0.12) 0%, transparent 70%);
+    animation: sl-spotlight 4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    width: 100%;
+  }
+
+  &__eyebrow {
+    font-family: var(--sl-font-body);
+    font-size: 0.62rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--sl-gold);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+    &::before, &::after {
+      content: '';
+      width: 40px;
+      height: 1px;
+      background: rgba(197, 145, 44, 0.5);
+    }
+  }
+
+  &__title {
+    font-family: var(--sl-font-display);
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 700;
+    color: var(--sl-blush);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    letter-spacing: 0.04em;
+  }
+
+  &__script {
+    font-family: var(--sl-font-script);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    color: var(--sl-gold);
+    display: block;
+    margin-bottom: 1.5rem;
+    opacity: 0.85;
+  }
+
+  &__sub {
+    font-family: var(--sl-font-body);
+    font-size: 0.9rem;
+    color: rgba(245, 218, 223, 0.62);
+    max-width: 520px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.75;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  // Animated gold corner frame
+  &__frame {
+    position: absolute;
+    inset: 20px;
+    pointer-events: none;
+    z-index: 2;
+
+    @include respond-below(md) { display: none; }
+
+    &::before, &::after,
+    span::before, span::after {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 40px;
+    }
+
+    &::before {
+      top: 0; left: 0;
+      border-top: 1px solid rgba(197, 145, 44, 0.4);
+      border-left: 1px solid rgba(197, 145, 44, 0.4);
+    }
+    &::after {
+      top: 0; right: 0;
+      border-top: 1px solid rgba(197, 145, 44, 0.4);
+      border-right: 1px solid rgba(197, 145, 44, 0.4);
+    }
+
+    span::before {
+      bottom: 0; left: 0;
+      border-bottom: 1px solid rgba(197, 145, 44, 0.4);
+      border-left: 1px solid rgba(197, 145, 44, 0.4);
+    }
+    span::after {
+      bottom: 0; right: 0;
+      border-bottom: 1px solid rgba(197, 145, 44, 0.4);
+      border-right: 1px solid rgba(197, 145, 44, 0.4);
+    }
+  }
+}
+
+// ── 3D Course Card enhancements ───────────────────────────────────────────────
+.sl-course-card {
+  // Extend existing with 3D-ready base
+  transform-origin: center center;
+
+  // Shine effect on hover
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.04),
+      transparent
+    );
+    transform: skewX(-15deg);
+    transition: left 0.7s ease;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  &:hover::before { left: 160%; }
+
+  // Gold bottom border reveal on hover
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--sl-burgundy), var(--sl-gold));
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover::after { width: 100%; }
+}
+
+// ── Hero particle floaters ────────────────────────────────────────────────────
+.sl-particle {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--sl-gold);
+  opacity: 0;
+  animation: sl-particle 4s ease-out infinite;
+  pointer-events: none;
+
+  @for $i from 1 through 8 {
+    &:nth-child(#{$i}) {
+      left: #{random(90) + 5 + '%'};
+      bottom: #{random(20) + '%'};
+      animation-delay: #{$i * 0.7 + 's'};
+      animation-duration: #{3 + random(3) + 's'};
+      --dx: #{random(60) - 30 + 'px'};
+    }
+  }
+}
+
+// ── Cinematic section transition overlay ─────────────────────────────────────
+.sl-section-reveal {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(197, 145, 44, 0.3),
+      rgba(197, 145, 44, 0.6),
+      rgba(197, 145, 44, 0.3),
+      transparent
+    );
+  }
+}
+
+// ── Why Choose banner mockup frames ──────────────────────────────────────────
+.sl-why-mockup {
+  position: relative;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: brightness(0.88) saturate(1.1);
+  }
+
+  &:hover img {
+    transform: scale(1.04);
+    filter: brightness(0.95) saturate(1.2);
+  }
+
+  &__label {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(74, 20, 37, 0.85), transparent);
+    padding: 2rem 1.5rem 1rem;
+    font-family: var(--sl-font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--sl-blush);
+    letter-spacing: 0.04em;
+  }
+}
