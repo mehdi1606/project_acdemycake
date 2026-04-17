@@ -164,12 +164,7 @@ const Featuredcourse: React.FC = () => {
                         No courses available yet. Check back soon.
                     </div>
                 ) : (
-                    <div
-                        className="sl-slider-wrap"
-                        data-aos="fade-up"
-                        data-aos-delay="100"
-                        data-aos-duration="900"
-                    >
+                    <div className="sl-slider-wrap">
                         <Slider {...sliderSettings}>
                             {courses.map(course => (
                                 <div key={course.id} className="px-2">

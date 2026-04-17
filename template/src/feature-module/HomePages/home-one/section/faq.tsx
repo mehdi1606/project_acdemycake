@@ -1,256 +1,158 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import ImageWithBasePath from '../../../../core/common/imageWithBasePath'
+import React, { useState } from 'react'
 
-const Faq = () => {
-  return (
-    <>
-    {/* faq */}
-    <div className="faq-section faq-banner-bg">
-      <ImageWithBasePath
-        src="assets/img/bg/bg-21.svg"
-        alt="img"
-        className="d-lg-flex d-none faq-bg2"
-      />
-      <ImageWithBasePath
-        src="assets/img/bg/bg-22.svg"
-        alt="img"
-        className="d-lg-flex d-none faq-bg3"
-      />
-      <div className="container">
-        <div className="row align-items-center">
-          <div className="col-lg-6">
-            <div className="faq-img" data-aos="fade-up">
-              <ImageWithBasePath
-                className="img-fluid rounded-5"
-                src="assets/img/feature/feature-4.jpg"
-                alt="img"
-              />
-              <span>
-                <i className="isax isax-message-question5" />
-              </span>
+// ── FAQ data — edit here to add/remove/change questions ──────────────────────
+const FAQ_ITEMS = [
+    {
+        q: 'How do I enroll in a course?',
+        a: 'Simply browse our catalogue, select the programme that speaks to you, and click "Enrol". Free courses are accessible immediately; premium courses are unlocked after checkout.',
+    },
+    {
+        q: 'How long do I have access to a course?',
+        a: 'Once enrolled, your access is lifetime. You can revisit every lesson, download resources, and re-watch masterclasses at any time — on any device.',
+    },
+    {
+        q: 'What payment methods are accepted?',
+        a: 'We accept all major credit & debit cards (Visa, Mastercard, Amex), PayPal, and select regional payment methods. All transactions are secured with 256-bit SSL encryption.',
+    },
+    {
+        q: 'Will I receive a certificate after completing a course?',
+        a: 'Yes. Every completed programme earns you a personalised SARALÖWE Certificate of Excellence — printable, shareable, and verified on our platform.',
+    },
+    {
+        q: 'Can I learn at my own pace?',
+        a: 'Absolutely. All content is self-paced with no deadlines. Lessons are bite-sized so you can fit world-class pastry education into any schedule.',
+    },
+    {
+        q: 'What can I do with my certificate?',
+        a: 'Use it to showcase your skills to clients, add it to your portfolio or LinkedIn profile, and position yourself as a trained couture pastry designer.',
+    },
+]
+
+// ── Component ─────────────────────────────────────────────────────────────────
+const Faq: React.FC = () => {
+    const [openIndex, setOpenIndex] = useState<number | null>(0)
+
+    const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i)
+
+    return (
+        <section
+            className="sl-section sl-section--white"
+            style={{ paddingTop: '5rem', paddingBottom: '5rem' }}
+        >
+            <div className="container">
+                {/* Header */}
+                <div
+                    className="sl-section__header center"
+                    data-aos="fade-up"
+                    data-aos-duration="800"
+                >
+                    <div className="sl-ornament justify-content-center">
+                        <span className="sl-script" style={{ fontSize: '1.8rem' }}>
+                            Your Questions, Answered
+                        </span>
+                    </div>
+                    <h2 style={{ marginTop: '0.4rem' }}>Frequently Asked Questions</h2>
+                    <p>Everything you need to know before beginning your couture pastry journey.</p>
+                </div>
+
+                {/* Accordion */}
+                <div
+                    style={{ maxWidth: 780, margin: '0 auto' }}
+                    data-aos="fade-up"
+                    data-aos-delay="100"
+                    data-aos-duration="900"
+                >
+                    {FAQ_ITEMS.map((item, i) => {
+                        const isOpen = openIndex === i
+                        return (
+                            <div
+                                key={i}
+                                style={{
+                                    border: `1px solid ${isOpen ? 'rgba(197,145,44,0.35)' : 'rgba(101,28,50,0.1)'}`,
+                                    borderRadius: 4,
+                                    marginBottom: '0.75rem',
+                                    background: isOpen ? 'rgba(197,145,44,0.03)' : '#fff',
+                                    transition: 'border-color 0.3s ease, background 0.3s ease',
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {/* Question row */}
+                                <button
+                                    onClick={() => toggle(i)}
+                                    style={{
+                                        width: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '1.1rem 1.5rem',
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        textAlign: 'left',
+                                        gap: '1rem',
+                                    }}
+                                    aria-expanded={isOpen}
+                                >
+                                    <span
+                                        style={{
+                                            fontFamily: 'var(--sl-font-display)',
+                                            fontSize: '1rem',
+                                            fontWeight: 600,
+                                            color: isOpen ? 'var(--sl-crimson)' : 'var(--sl-burg-dk)',
+                                            transition: 'color 0.3s ease',
+                                            lineHeight: 1.4,
+                                        }}
+                                    >
+                                        {item.q}
+                                    </span>
+                                    <span
+                                        style={{
+                                            flexShrink: 0,
+                                            width: 28,
+                                            height: 28,
+                                            borderRadius: '50%',
+                                            border: `1.5px solid ${isOpen ? 'var(--sl-gold)' : 'rgba(101,28,50,0.25)'}`,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: isOpen ? 'var(--sl-gold)' : 'var(--sl-burg-dk)',
+                                            fontSize: '1.1rem',
+                                            transition: 'all 0.3s ease',
+                                            transform: isOpen ? 'rotate(45deg)' : 'none',
+                                        }}
+                                    >
+                                        +
+                                    </span>
+                                </button>
+
+                                {/* Answer */}
+                                <div
+                                    style={{
+                                        maxHeight: isOpen ? 300 : 0,
+                                        overflow: 'hidden',
+                                        transition: 'max-height 0.4s cubic-bezier(0.4,0,0.2,1)',
+                                    }}
+                                >
+                                    <p
+                                        style={{
+                                            fontFamily: 'var(--sl-font-body)',
+                                            fontSize: '0.93rem',
+                                            color: 'rgba(58,30,32,0.72)',
+                                            lineHeight: 1.7,
+                                            padding: '0 1.5rem 1.25rem',
+                                            margin: 0,
+                                        }}
+                                    >
+                                        {item.a}
+                                    </p>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
             </div>
-          </div>
-          <div className="col-lg-6">
-            <div className="faq-content">
-              <div className="section-header" data-aos="fade-up">
-                <span className="fw-medium text-secondary text-decoration-underline mb-2 d-inline-block">
-                  Your Questions are Answered
-                </span>
-                <h2 className="mb-1">Frequently Asked Questions</h2>
-                <p>
-                  Explore detailed answers to the most common questions about our
-                  platform.
-                </p>
-              </div>
-              <div
-                className="accordion accordion-customicon1 accordions-items-seperate"
-                id="accordioncustomicon1Example"
-              >
-                <div className="accordion-item" data-aos="fade-up">
-                  <h2 className="accordion-header" id="headingcustomicon1One">
-                   <Link
-                      to="#"
-                      className="accordion-button"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapsecustomicon1One"
-                      aria-expanded="true"
-                      aria-controls="collapsecustomicon1One"
-                    >
-                      How do I enroll in a course?{" "}
-                      <i className="isax isax-add fs-20 fw-semibold ms-1" />
-                    </Link>
-                  </h2>
-                  <div
-                    id="collapsecustomicon1One"
-                    className="accordion-collapse collapse show"
-                    aria-labelledby="headingcustomicon1One"
-                    data-bs-parent="#accordioncustomicon1Example"
-                  >
-                    <div className="accordion-body pt-0">
-                      <p>
-                        Many websites offer a Certificate of Completion for paid
-                        courses. Free courses may or may not include a
-                        certificate, depending on the platform’s policies.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="accordion-item"
-                  data-aos="fade-up"
-                  data-aos-delay={250}
-                >
-                  <h2 className="accordion-header" id="headingcustomicon1Two">
-                   <Link
-                      to="#"
-                      className="accordion-button collapsed"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapsecustomicon1Two"
-                      aria-expanded="false"
-                      aria-controls="collapsecustomicon1One"
-                    >
-                      How long do I have access to a course?{" "}
-                      <i className="isax isax-add fs-20 fw-semibold ms-1" />
-                    </Link>
-                  </h2>
-                  <div
-                    id="collapsecustomicon1Two"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingcustomicon1Two"
-                    data-bs-parent="#accordioncustomicon1Example"
-                  >
-                    <div className="accordion-body pt-0">
-                      <p>
-                        Many websites offer a Certificate of Completion for paid
-                        courses. Free courses may or may not include a
-                        certificate, depending on the platform’s policies.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="accordion-item"
-                  data-aos="fade-up"
-                  data-aos-delay={250}
-                >
-                  <h2 className="accordion-header" id="headingcustomicon1Three">
-                   <Link
-                      to="#"
-                      className="accordion-button collapsed"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapsecustomicon1Three"
-                      aria-expanded="false"
-                      aria-controls="collapsecustomicon1One"
-                    >
-                      What payment methods are accepted?{" "}
-                      <i className="isax isax-add fs-20 fw-semibold ms-1" />
-                    </Link>
-                  </h2>
-                  <div
-                    id="collapsecustomicon1Three"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingcustomicon1Three"
-                    data-bs-parent="#accordioncustomicon1Example"
-                  >
-                    <div className="accordion-body pt-0">
-                      <p>
-                        Many websites offer a Certificate of Completion for paid
-                        courses. Free courses may or may not include a
-                        certificate, depending on the platform’s policies.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="accordion-item"
-                  data-aos="fade-up"
-                  data-aos-delay={250}
-                >
-                  <h2 className="accordion-header" id="headingcustomicon1Four">
-                   <Link
-                      to="#"
-                      className="accordion-button collapsed"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapsecustomicon1Four"
-                      aria-expanded="false"
-                      aria-controls="collapsecustomicon1One"
-                    >
-                      Will I receive a certificate after completing a course?{" "}
-                      <i className="isax isax-add fs-20 fw-semibold ms-1" />
-                    </Link>
-                  </h2>
-                  <div
-                    id="collapsecustomicon1Four"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingcustomicon1Four"
-                    data-bs-parent="#accordioncustomicon1Example"
-                  >
-                    <div className="accordion-body pt-0">
-                      <p>
-                        Many websites offer a Certificate of Completion for paid
-                        courses. Free courses may or may not include a
-                        certificate, depending on the platform’s policies.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="accordion-item"
-                  data-aos="fade-up"
-                  data-aos-delay={250}
-                >
-                  <h2 className="accordion-header" id="headingcustomicon1Five">
-                   <Link
-                      to="#"
-                      className="accordion-button collapsed"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapsecustomicon1Five"
-                      aria-expanded="false"
-                      aria-controls="collapsecustomicon1One"
-                    >
-                      What is the purpose of this DreamLMS ?{" "}
-                      <i className="isax isax-add fs-20 fw-semibold ms-1" />
-                    </Link>
-                  </h2>
-                  <div
-                    id="collapsecustomicon1Five"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingcustomicon1Five"
-                    data-bs-parent="#accordioncustomicon1Example"
-                  >
-                    <div className="accordion-body pt-0">
-                      <p>
-                        Many websites offer a Certificate of Completion for paid
-                        courses. Free courses may or may not include a
-                        certificate, depending on the platform’s policies.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="accordion-item"
-                  data-aos="fade-up"
-                  data-aos-delay={250}
-                >
-                  <h2 className="accordion-header" id="headingcustomicon1Six">
-                   <Link
-                      to="#"
-                      className="accordion-button collapsed"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapsecustomicon1Six"
-                      aria-expanded="false"
-                      aria-controls="collapsecustomicon1One"
-                    >
-                      What can I do with my certificate?{" "}
-                      <i className="isax isax-add fs-20 fw-semibold ms-1" />
-                    </Link>
-                  </h2>
-                  <div
-                    id="collapsecustomicon1Six"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingcustomicon1Six"
-                    data-bs-parent="#accordioncustomicon1Example"
-                  >
-                    <div className="accordion-body pt-0">
-                      <p>
-                        Many websites offer a Certificate of Completion for paid
-                        courses. Free courses may or may not include a
-                        certificate, depending on the platform’s policies.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    {/* faq */}
-  </>
-  
-  )
+        </section>
+    )
 }
 
 export default Faq
