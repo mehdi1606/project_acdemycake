@@ -1,0 +1,8 @@
+
+node_modules/
+dist/
+target/
+*.zip
+*.mp4
+*.psd
+*.log
