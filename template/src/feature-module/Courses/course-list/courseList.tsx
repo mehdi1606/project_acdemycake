@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import Breadcrumb from '../../../core/common/Breadcrumb/breadcrumb';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import ImageWithBasePath from '../../../core/common/imageWithBasePath';
-import { Slider, Spin, Empty, Pagination, App } from 'antd';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import { Slider, App } from 'antd';
 import type { SliderSingleProps } from 'antd';
 import { all_routes } from '../../router/all_routes';
 import { courseService } from '../../../services/api/course.service';
@@ -10,181 +10,440 @@ import { Course, CourseCategory, CourseLevel } from '../../../services/api/types
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 
-/* ── map frontend sort value → backend sortBy keyword ── */
 const SORT_OPTIONS = [
-  { label: 'Newly Published', value: 'newest'    },
-  { label: 'Most Popular',    value: 'popular'   },
-  { label: 'Top Rated',       value: 'rating'    },
-  { label: 'Price: Low → High', value: 'price_asc'  },
+  { label: 'Newly Published',   value: 'newest' },
+  { label: 'Most Popular',      value: 'popular' },
+  { label: 'Top Rated',         value: 'rating' },
+  { label: 'Price: Low → High', value: 'price_asc' },
   { label: 'Price: High → Low', value: 'price_desc' },
 ];
 
-const CourseList = () => {
+const LEVELS: { value: CourseLevel; label: string }[] = [
+  { value: 'BEGINNER',     label: 'Beginner' },
+  { value: 'INTERMEDIATE', label: 'Intermediate' },
+  { value: 'ADVANCED',     label: 'Advanced' },
+  { value: 'ALL_LEVELS',   label: 'All Levels' },
+];
+
+// ── Stars renderer ────────────────────────────────────────────────────────────
+const Stars: React.FC<{ rating: number }> = ({ rating }) => (
+  <>
+    {Array.from({ length: 5 }, (_, i) => (
+      <i
+        key={i}
+        className="fa-solid fa-star"
+        style={{ color: i < Math.floor(rating) ? 'var(--sl-gold)' : 'rgba(197,145,44,0.22)', fontSize: '0.65rem' }}
+      />
+    ))}
+  </>
+);
+
+// ── 3D-tilt horizontal course card ───────────────────────────────────────────
+interface CourseListCardProps {
+  course: Course;
+  inWishlist: boolean;
+  isLoadingWishlist: boolean;
+  onWishlist: (id: string) => void;
+  getLevelDisplay: (level: CourseLevel) => string;
+  index: number;
+}
+
+const CourseListCard: React.FC<CourseListCardProps> = ({
+  course, inWishlist, isLoadingWishlist, onWishlist, getLevelDisplay, index,
+}) => {
+  const route   = all_routes;
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top)  / rect.height - 0.5;
+    el.style.transition = 'transform 0.12s linear';
+    el.style.transform  = `perspective(1200px) rotateX(${-y * 3}deg) rotateY(${x * 5}deg) scale(1.01)`;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    el.style.transition = 'transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94)';
+    el.style.transform  = 'perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1)';
+  }, []);
+
+  const thumb  = course.thumbnailUrl
+    ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl)
+    : `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
+
+  const avatar = course.instructor?.avatarUrl
+    ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl)
+    : `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
+
+  return (
+    <div
+      className="sl-cl-card sl-tilt-wrap"
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      data-aos="fade-up"
+      data-aos-delay={String(index * 55)}
+      data-aos-duration="700"
+    >
+      {/* Thumb */}
+      <Link to={`${route.courseDetails}/${course.slug}`} className="sl-cl-card__thumb">
+        <img
+          src={thumb}
+          alt={course.title}
+          onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }}
+        />
+        <div className="sl-cl-card__thumb-overlay" />
+
+        {/* Category ribbon */}
+        <span className="sl-cl-card__badge">{course.category?.name || 'Pastry Arts'}</span>
+
+        {/* Wishlist */}
+        <button
+          className={`sl-cl-card__wishlist${inWishlist ? ' active' : ''}`}
+          onClick={e => { e.preventDefault(); e.stopPropagation(); onWishlist(course.id); }}
+          disabled={isLoadingWishlist}
+          aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <i className={inWishlist ? 'fa-solid fa-heart' : 'fa-regular fa-heart'} />
+        </button>
+
+        {course.requiresPurchase && (
+          <span className="sl-cl-card__label sl-cl-card__label--premium">
+            <i className="isax isax-crown" /> Premium
+          </span>
+        )}
+        {course.isEnrolled && (
+          <span className="sl-cl-card__label sl-cl-card__label--enrolled">
+            <i className="fa-solid fa-check" /> Enrolled
+          </span>
+        )}
+      </Link>
+
+      {/* Body */}
+      <div className="sl-cl-card__body">
+        {/* Instructor + level */}
+        <div className="sl-cl-card__meta">
+          <Link
+            to={`${route.instructorDetails}/${course.instructor?.id}`}
+            className="sl-cl-card__instructor"
+          >
+            <img
+              src={avatar}
+              alt={course.instructor?.fullName}
+              onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`; }}
+            />
+            <span>{course.instructor?.fullName || 'Master Instructor'}</span>
+          </Link>
+          <span className="sl-cl-card__level-badge">{getLevelDisplay(course.level)}</span>
+        </div>
+
+        {/* Title */}
+        <h3 className="sl-cl-card__title">
+          <Link to={`${route.courseDetails}/${course.slug}`}>{course.title}</Link>
+        </h3>
+
+        {/* Description */}
+        {course.shortDescription && (
+          <p className="sl-cl-card__desc">{course.shortDescription}</p>
+        )}
+
+        {/* Gold divider */}
+        <div className="sl-gold-bar" style={{ margin: '1rem 0' }} />
+
+        {/* Stats row */}
+        <div className="sl-cl-card__stats">
+          <span className="sl-cl-card__rating">
+            <Stars rating={course.ratingAverage ?? 0} />
+            <span className="sl-cl-card__rating-value">{(course.ratingAverage ?? 0).toFixed(1)}</span>
+            <span className="sl-cl-card__rating-count">({course.ratingCount ?? 0})</span>
+          </span>
+          <span className="sl-cl-card__sep">✦</span>
+          <span className="sl-cl-card__lessons">
+            <i className="isax isax-video-play" />
+            {course.lessonsCount ?? 0} lessons
+          </span>
+        </div>
+
+        {/* Footer */}
+        <div className="sl-cl-card__footer">
+          <div className="sl-cl-card__price-wrap">
+            {course.isEnrolled ? (
+              <span className="sl-cl-card__price sl-cl-card__price--owned">
+                <i className="fa-solid fa-check-circle" /> Owned
+              </span>
+            ) : !course.requiresPurchase ? (
+              <span className="sl-cl-card__price sl-cl-card__price--free">Free</span>
+            ) : (
+              <>
+                <span className="sl-cl-card__price sl-cl-card__price--current">${course.price ?? 0}</span>
+                {course.originalPrice && course.originalPrice > (course.price ?? 0) && (
+                  <del className="sl-cl-card__price sl-cl-card__price--original">${course.originalPrice}</del>
+                )}
+              </>
+            )}
+          </div>
+
+          {course.isEnrolled ? (
+            <Link to={`${route.courseWatch}/${course.slug}`} className="sl-btn-gold sl-btn-magnetic sl-cl-card__cta">
+              Continue <i className="isax isax-arrow-right-1" />
+            </Link>
+          ) : (
+            <Link to={`${route.courseDetails}/${course.slug}`} className="sl-btn-dark sl-btn-magnetic sl-cl-card__cta">
+              View Course <i className="isax isax-arrow-right-1" />
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Luxury skeleton loader ────────────────────────────────────────────────────
+const SkeletonCard: React.FC<{ index: number }> = ({ index }) => (
+  <div className="sl-cl-skeleton" style={{ animationDelay: `${index * 0.08}s` }}>
+    <div className="sl-cl-skeleton__thumb" />
+    <div className="sl-cl-skeleton__body">
+      <div className="sl-cl-skeleton__line" style={{ width: '32%', height: 11, marginBottom: 14 }} />
+      <div className="sl-cl-skeleton__line" style={{ width: '88%', height: 20, marginBottom: 8 }} />
+      <div className="sl-cl-skeleton__line" style={{ width: '72%', height: 14, marginBottom: 20 }} />
+      <div className="sl-cl-skeleton__line" style={{ width: '52%', height: 11, marginBottom: 28 }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div className="sl-cl-skeleton__line" style={{ width: 64, height: 22 }} />
+        <div className="sl-cl-skeleton__line" style={{ width: 110, height: 38 }} />
+      </div>
+    </div>
+  </div>
+);
+
+// ── Sidebar filter ────────────────────────────────────────────────────────────
+interface SidebarFilterProps {
+  categories: CourseCategory[];
+  selectedCategory: string | null;
+  selectedLevel: CourseLevel | null;
+  priceRange: [number, number];
+  onCategoryChange: (id: string) => void;
+  onLevelChange: (l: CourseLevel) => void;
+  onPriceChange: (v: [number, number]) => void;
+  onClear: () => void;
+  hasActiveFilters: boolean;
+}
+
+const SidebarFilter: React.FC<SidebarFilterProps> = ({
+  categories, selectedCategory, selectedLevel, priceRange,
+  onCategoryChange, onLevelChange, onPriceChange, onClear, hasActiveFilters,
+}) => {
+  const [open, setOpen] = useState<Set<string>>(new Set(['categories', 'price', 'level']));
+  const toggle = (s: string) =>
+    setOpen(p => { const n = new Set(p); if (n.has(s)) n.delete(s); else n.add(s); return n; });
+
+  const priceFormatter: NonNullable<SliderSingleProps['tooltip']>['formatter'] = v => `$${v}`;
+
+  return (
+    <aside className="sl-cl-sidebar" data-aos="fade-right" data-aos-duration="700">
+      {/* Sidebar header */}
+      <div className="sl-cl-sidebar__header">
+        <div className="sl-ornament sl-ornament--left" style={{ marginBottom: '0.5rem' }}>
+          <span className="sl-script" style={{ fontSize: '1.3rem' }}>Refine</span>
+        </div>
+        <div className="sl-cl-sidebar__header-row">
+          <h5 className="sl-cl-sidebar__title">
+            <i className="isax isax-filter" /> Filters
+          </h5>
+          {hasActiveFilters && (
+            <button className="sl-cl-sidebar__clear" onClick={onClear}>Clear All</button>
+          )}
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div className={`sl-cl-filter-group${open.has('categories') ? ' is-open' : ''}`}>
+        <button className="sl-cl-filter-group__head" onClick={() => toggle('categories')}>
+          <span>Categories</span>
+          <i className={`fa-solid fa-chevron-${open.has('categories') ? 'up' : 'down'}`} />
+        </button>
+        {open.has('categories') && (
+          <div className="sl-cl-filter-group__body">
+            {categories.length > 0 ? categories.map(cat => (
+              <label key={cat.id} className="sl-cl-check">
+                <input
+                  type="checkbox"
+                  checked={selectedCategory === cat.id}
+                  onChange={() => onCategoryChange(cat.id)}
+                />
+                <span className="sl-cl-check__box" />
+                <span className="sl-cl-check__label">{cat.name}</span>
+                {cat.coursesCount !== undefined && (
+                  <span className="sl-cl-check__count">{cat.coursesCount}</span>
+                )}
+              </label>
+            )) : (
+              <p className="sl-cl-filter-empty">No categories available</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Price */}
+      <div className={`sl-cl-filter-group${open.has('price') ? ' is-open' : ''}`}>
+        <button className="sl-cl-filter-group__head" onClick={() => toggle('price')}>
+          <span>Price Range</span>
+          <i className={`fa-solid fa-chevron-${open.has('price') ? 'up' : 'down'}`} />
+        </button>
+        {open.has('price') && (
+          <div className="sl-cl-filter-group__body">
+            <Slider
+              range
+              tooltip={{ formatter: priceFormatter }}
+              min={0} max={500}
+              value={priceRange}
+              onChange={v => onPriceChange(v as [number, number])}
+              className="sl-cl-price-slider"
+            />
+            <div className="sl-cl-price-labels">
+              <span>{priceRange[0] === 0 ? 'Free' : `$${priceRange[0]}`}</span>
+              <span>{priceRange[1] >= 500 ? '$500+' : `$${priceRange[1]}`}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Level */}
+      <div className={`sl-cl-filter-group${open.has('level') ? ' is-open' : ''}`}>
+        <button className="sl-cl-filter-group__head" onClick={() => toggle('level')}>
+          <span>Skill Level</span>
+          <i className={`fa-solid fa-chevron-${open.has('level') ? 'up' : 'down'}`} />
+        </button>
+        {open.has('level') && (
+          <div className="sl-cl-filter-group__body">
+            {LEVELS.map(({ value, label }) => (
+              <label key={value} className="sl-cl-check">
+                <input
+                  type="checkbox"
+                  checked={selectedLevel === value}
+                  onChange={() => onLevelChange(value)}
+                />
+                <span className="sl-cl-check__box" />
+                <span className="sl-cl-check__label">{label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+};
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+const CourseList: React.FC = () => {
   const [searchParams] = useSearchParams();
   const route = all_routes;
   const { message } = App.useApp();
 
-  /* ── server data ── */
+  /* server data */
   const [courses,       setCourses]       = useState<Course[]>([]);
   const [categories,    setCategories]    = useState<CourseCategory[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages,    setTotalPages]    = useState(0);
 
-  /* ── wishlist: set of course IDs the user has wishlisted ── */
-  const [wishlist,      setWishlist]      = useState<Set<string>>(new Set());
-  const [wishlistReady, setWishlistReady] = useState(false);
+  /* wishlist */
+  const [wishlist,        setWishlist]        = useState<Set<string>>(new Set());
+  const [wishlistLoading, setWishlistLoading] = useState<Set<string>>(new Set());
 
-  /* ── filters ── */
+  /* filters */
   const [currentPage,      setCurrentPage]      = useState(parseInt(searchParams.get('page') || '1'));
   const [searchQuery,      setSearchQuery]       = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory]  = useState<string | null>(searchParams.get('category') || null);
   const [selectedLevel,    setSelectedLevel]     = useState<CourseLevel | null>(
     (searchParams.get('level') as CourseLevel) || null
   );
-  const [priceRange,  setPriceRange]  = useState<[number, number]>([0, 500]);
-  const [sortBy,      setSortBy]      = useState(searchParams.get('sort') || 'newest');
-  const [wishlistLoading, setWishlistLoading] = useState<Set<string>>(new Set());
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [sortBy,     setSortBy]     = useState(searchParams.get('sort') || 'newest');
 
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated } = useAppSelector(s => s.auth);
 
-  const formatter: NonNullable<SliderSingleProps['tooltip']>['formatter'] = (value) => `$${value}`;
-
-  /* ══ 1. Load user's wishlist IDs once ══ */
   useEffect(() => {
-    if (!isAuthenticated) {
-      setWishlistReady(true);
-      return;
-    }
-    courseService
-      .getWishlist(0, 500)
-      .then((result) => {
-        const ids = new Set((result.content || []).map((c) => c.id));
-        setWishlist(ids);
-      })
-      .catch(() => {})
-      .finally(() => setWishlistReady(true));
-  }, [isAuthenticated]);
-
-  /* ══ 2. Load categories once ══ */
-  useEffect(() => {
-    fetchCategories();
+    AOS.init({ once: true, easing: 'ease-out-cubic', duration: 800, offset: 40 });
   }, []);
 
-  /* ══ 3. Re-fetch courses when page / filters / sort change ══ */
   useEffect(() => {
-    fetchCourses();
-  }, [currentPage, selectedCategory, selectedLevel, sortBy]);
+    if (!isAuthenticated) return;
+    courseService.getWishlist(0, 500)
+      .then(res => setWishlist(new Set((res.content || []).map((c: Course) => c.id))))
+      .catch(() => {});
+  }, [isAuthenticated]);
 
-  /* ══ 4. Debounced re-fetch on search ══ */
+  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => { fetchCourses(); }, [currentPage, selectedCategory, selectedLevel, sortBy]);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (currentPage === 1) {
-        fetchCourses();
-      } else {
-        setCurrentPage(1); // will trigger effect above
-      }
+    const t = setTimeout(() => {
+      if (currentPage === 1) fetchCourses(); else setCurrentPage(1);
     }, 500);
-    return () => clearTimeout(timer);
+    return () => clearTimeout(t);
   }, [searchQuery]);
 
-  /* ══ 5. Client-side price filter applied to courses from server ══ */
   const displayedCourses = useMemo(() => {
     const [min, max] = priceRange;
-    if (min === 0 && max === 500) return courses; // no filter active
-    return courses.filter((c) => {
-      const price = c.price ?? 0;
-      return price >= min && price <= max;
-    });
+    if (min === 0 && max === 500) return courses;
+    return courses.filter(c => { const p = c.price ?? 0; return p >= min && p <= max; });
   }, [courses, priceRange]);
 
   const fetchCategories = async () => {
     try {
-      const response = await courseService.getCategories();
-      if (Array.isArray(response)) {
-        setCategories(response);
-      } else if (response && typeof response === 'object') {
-        const data = (response as any).content || (response as any).data || [];
-        setCategories(Array.isArray(data) ? data : []);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
+      const res = await courseService.getCategories();
+      setCategories(Array.isArray(res) ? res : ((res as any).content || (res as any).data || []));
+    } catch {}
   };
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const params: any = {
-        page: currentPage - 1,
-        size: 10,
-        sortBy,                              // ← correct param name for backend
-      };
-
+      const params: any = { page: currentPage - 1, size: 9, sortBy };
       if (searchQuery)      params.search     = searchQuery;
       if (selectedCategory) params.categoryId = selectedCategory;
       if (selectedLevel)    params.level      = selectedLevel;
-
-      const response = await courseService.getCourses(params);
-
-      if (response) {
-        setCourses(response.content || []);
-        setTotalElements(response.totalElements || 0);
-        setTotalPages(response.totalPages || 0);
+      const res = await courseService.getCourses(params);
+      if (res) {
+        setCourses(res.content || []);
+        setTotalElements(res.totalElements || 0);
+        setTotalPages(res.totalPages || 0);
       }
-    } catch (error) {
-      console.error('Error fetching courses:', error);
-      setCourses([]);
-    } finally {
-      setLoading(false);
-    }
+    } catch { setCourses([]); }
+    finally { setLoading(false); }
   };
 
-  /* ── toggle wishlist ── */
   const handleWishlist = async (courseId: string) => {
-    if (!isAuthenticated) {
-      message.warning('Please login to add courses to your wishlist');
-      return;
-    }
-    if (wishlistLoading.has(courseId)) return; // prevent double-click
-
-    setWishlistLoading((prev) => new Set(prev).add(courseId));
+    if (!isAuthenticated) { message.warning('Please login to save courses'); return; }
+    if (wishlistLoading.has(courseId)) return;
+    setWishlistLoading(p => new Set(p).add(courseId));
     try {
       if (wishlist.has(courseId)) {
         await courseService.removeFromWishlist(courseId);
-        setWishlist((prev) => {
-          const next = new Set(prev);
-          next.delete(courseId);
-          return next;
-        });
+        setWishlist(p => { const n = new Set(p); n.delete(courseId); return n; });
         message.success('Removed from wishlist');
       } else {
         await courseService.addToWishlist(courseId);
-        setWishlist((prev) => new Set(prev).add(courseId));
-        message.success('Added to wishlist');
+        setWishlist(p => new Set(p).add(courseId));
+        message.success('Saved to wishlist');
       }
-    } catch {
-      message.error('Failed to update wishlist');
-    } finally {
-      setWishlistLoading((prev) => {
-        const next = new Set(prev);
-        next.delete(courseId);
-        return next;
-      });
-    }
+    } catch { message.error('Failed to update wishlist'); }
+    finally { setWishlistLoading(p => { const n = new Set(p); n.delete(courseId); return n; }); }
   };
 
-  /* ── helpers ── */
-  const isWishlisted = (course: Course) =>
-    wishlist.has(course.id) || Boolean(course.isWishlisted);
+  const isWishlisted = (c: Course) => wishlist.has(c.id) || Boolean(c.isWishlisted);
 
-  const handleCategoryChange = (categoryId: string) => {
-    setSelectedCategory(selectedCategory === categoryId ? null : categoryId);
+  const handleCategoryChange = (id: string) => {
+    setSelectedCategory(p => p === id ? null : id);
     setCurrentPage(1);
   };
 
   const handleLevelChange = (level: CourseLevel) => {
-    setSelectedLevel(selectedLevel === level ? null : level);
+    setSelectedLevel(p => p === level ? null : level);
     setCurrentPage(1);
   };
 
@@ -197,422 +456,256 @@ const CourseList = () => {
     setCurrentPage(1);
   };
 
-  const getLevelDisplay = (level: CourseLevel) => {
-    switch (level) {
-      case 'BEGINNER':     return 'Beginner';
-      case 'INTERMEDIATE': return 'Intermediate';
-      case 'ADVANCED':     return 'Advanced';
-      case 'ALL_LEVELS':   return 'All Levels';
-      default:             return level;
-    }
-  };
+  const getLevelDisplay = (level: CourseLevel): string =>
+    ({ BEGINNER: 'Beginner', INTERMEDIATE: 'Intermediate', ADVANCED: 'Advanced', ALL_LEVELS: 'All Levels' }[level] ?? level);
 
-  const hasActiveFilters =
+  const hasActiveFilters = Boolean(
     searchQuery || selectedCategory || selectedLevel ||
-    priceRange[0] > 0 || priceRange[1] < 500 || sortBy !== 'newest';
+    priceRange[0] > 0 || priceRange[1] < 500 || sortBy !== 'newest'
+  );
+
+  const start = displayedCourses.length > 0 ? (currentPage - 1) * 9 + 1 : 0;
+  const end   = (currentPage - 1) * 9 + displayedCourses.length;
+
+  /* Pagination page array with ellipsis */
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1)
+    .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+    .reduce<(number | '…')[]>((acc, p, idx, arr) => {
+      if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('…');
+      acc.push(p);
+      return acc;
+    }, []);
 
   return (
     <>
-      <Breadcrumb title="Course List" />
-      <section className="course-content course-list-content">
-        <div className="container">
-          <div className="row align-items-baseline">
+      {/* ── Luxury hero strip ── */}
+      <div className="sl-cl-hero">
+        <div className="sl-cl-hero__toile" aria-hidden="true" />
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 1 }}>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="sl-particle" style={{ left: `${18 + i * 16}%`, bottom: '18%', animationDelay: `${i * 0.9}s` }} />
+          ))}
+        </div>
 
-            {/* ═══ Sidebar Filters ═══ */}
-            <div className="col-lg-3 theiaStickySidebar">
-              <div className="filter-clear">
-                <div className="clear-filter mb-4 pb-lg-2 d-flex align-items-center justify-content-between">
-                  <h5>
-                    <i className="feather-filter me-2" />
-                    Filters
-                  </h5>
-                  {hasActiveFilters && (
-                    <Link to="#" className="clear-text" onClick={(e) => { e.preventDefault(); clearFilters(); }}>
-                      Clear
-                    </Link>
-                  )}
-                </div>
-
-                <div className="accordion accordion-customicon1 accordions-items-seperate">
-
-                  {/* ── Categories ── */}
-                  <div className="accordion-item">
-                    <h2 className="accordion-header">
-                      <Link
-                        to="#"
-                        className="accordion-button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseCategories"
-                      >
-                        Categories <i className="fa-solid fa-chevron-down" />
-                      </Link>
-                    </h2>
-                    <div id="collapseCategories" className="accordion-collapse collapse show">
-                      <div className="accordion-body">
-                        {categories.length > 0 ? (
-                          categories.map((category) => (
-                            <div key={category.id}>
-                              <label className="custom_check" style={{ cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedCategory === category.id}
-                                  onChange={() => handleCategoryChange(category.id)}
-                                />
-                                <span className="checkmark" />
-                                {' '}{category.name}
-                                {category.coursesCount !== undefined && (
-                                  <span className="text-muted ms-1">({category.coursesCount})</span>
-                                )}
-                              </label>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted small">No categories available</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── Price Range ── */}
-                  <div className="accordion-item">
-                    <h2 className="accordion-header">
-                      <Link
-                        to="#"
-                        className="accordion-button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapsePrice"
-                      >
-                        Price Range <i className="fa-solid fa-chevron-down" />
-                      </Link>
-                    </h2>
-                    <div id="collapsePrice" className="accordion-collapse collapse show">
-                      <div className="accordion-body">
-                        <div className="filter-range">
-                          <Slider
-                            range
-                            tooltip={{ formatter }}
-                            min={0}
-                            max={500}
-                            value={priceRange}
-                            onChange={(value) => setPriceRange(value as [number, number])}
-                          />
-                          <div className="d-flex justify-content-between mt-2">
-                            <span className="text-muted small">
-                              {priceRange[0] === 0 ? 'Free' : `$${priceRange[0]}`}
-                            </span>
-                            <span className="text-muted small">
-                              {priceRange[1] >= 500 ? '$500+' : `$${priceRange[1]}`}
-                            </span>
-                          </div>
-                          {(priceRange[0] > 0 || priceRange[1] < 500) && (
-                            <div className="mt-2 text-center">
-                              <small className="text-primary fw-medium">
-                                Showing: ${priceRange[0]} – ${priceRange[1] >= 500 ? '500+' : priceRange[1]}
-                              </small>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── Level ── */}
-                  <div className="accordion-item">
-                    <h2 className="accordion-header">
-                      <Link
-                        to="#"
-                        className="accordion-button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseLevel"
-                      >
-                        Level <i className="fa-solid fa-chevron-down" />
-                      </Link>
-                    </h2>
-                    <div id="collapseLevel" className="accordion-collapse collapse show">
-                      <div className="accordion-body">
-                        {(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'ALL_LEVELS'] as CourseLevel[]).map((level) => (
-                          <div key={level}>
-                            <label className="custom_check custom_one" style={{ cursor: 'pointer' }}>
-                              <input
-                                type="checkbox"
-                                checked={selectedLevel === level}
-                                onChange={() => handleLevelChange(level)}
-                              />
-                              <span className="checkmark" /> {getLevelDisplay(level)}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+          <div className="sl-cl-hero__inner">
+            <div className="sl-ornament justify-content-center" data-aos="fade-up" data-aos-duration="600">
+              <span className="sl-script" style={{ fontSize: '1.7rem' }}>Catalogue</span>
             </div>
 
-            {/* ═══ Course List ═══ */}
+            <h1
+              className="sl-cl-hero__title"
+              data-aos="fade-up"
+              data-aos-delay="80"
+              data-aos-duration="700"
+            >
+              All Programmes
+            </h1>
+
+            <p
+              className="sl-cl-hero__sub"
+              data-aos="fade-up"
+              data-aos-delay="160"
+              data-aos-duration="700"
+            >
+              Curated by master pastry artists — discover your perfect atelier experience
+            </p>
+
+            {/* Search */}
+            <form
+              className="sl-cl-hero__search"
+              onSubmit={e => { e.preventDefault(); if (currentPage !== 1) setCurrentPage(1); else fetchCourses(); }}
+              data-aos="fade-up"
+              data-aos-delay="240"
+              data-aos-duration="700"
+            >
+              <i className="isax isax-search-normal-1" />
+              <input
+                type="text"
+                placeholder="Search programmes, techniques, instructors…"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className="sl-cl-hero__search-btn">
+                Search
+              </button>
+            </form>
+
+            {/* Breadcrumb */}
+            <nav
+              className="sl-cl-hero__breadcrumb"
+              data-aos="fade-up"
+              data-aos-delay="300"
+              data-aos-duration="700"
+            >
+              <Link to={route.homeone}>Home</Link>
+              <span>✦</span>
+              <span>All Programmes</span>
+            </nav>
+          </div>
+        </div>
+
+        <div className="sl-cinematic-divider" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }} />
+      </div>
+
+      {/* ── Main content ── */}
+      <section className="sl-cl-page">
+        <div className="container">
+          <div className="row g-4 g-lg-5 align-items-start">
+
+            {/* Sidebar */}
+            <div className="col-lg-3">
+              <SidebarFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                selectedLevel={selectedLevel}
+                priceRange={priceRange}
+                onCategoryChange={handleCategoryChange}
+                onLevelChange={handleLevelChange}
+                onPriceChange={setPriceRange}
+                onClear={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
+
+            {/* Course area */}
             <div className="col-lg-9">
 
-              {/* ── Filter Bar ── */}
-              <div className="showing-list mb-4">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="show-result text-center text-lg-start">
-                      <h6 className="fw-medium">
-                        {loading ? (
-                          'Loading…'
-                        ) : (
-                          <>
-                            Showing {displayedCourses.length > 0 ? (currentPage - 1) * 10 + 1 : 0}–
-                            {(currentPage - 1) * 10 + displayedCourses.length} of {totalElements} results
-                            {(priceRange[0] > 0 || priceRange[1] < 500) && (
-                              <span className="text-muted ms-1" style={{ fontSize: 12 }}>
-                                (price filtered)
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </h6>
-                    </div>
+              {/* Toolbar */}
+              <div className="sl-cl-toolbar" data-aos="fade-down" data-aos-duration="600">
+                <p className="sl-cl-toolbar__results">
+                  {loading ? 'Loading programmes…' : (
+                    <>Showing <strong>{start}–{end}</strong> of <strong>{totalElements}</strong> programmes</>
+                  )}
+                </p>
+                <div className="sl-cl-toolbar__controls">
+                  <div className="sl-cl-view-toggle">
+                    <Link to={route.courseGrid} className="sl-cl-view-toggle__btn" title="Grid view">
+                      <i className="feather-grid" />
+                    </Link>
+                    <button className="sl-cl-view-toggle__btn is-active" title="List view">
+                      <i className="isax isax-task" />
+                    </button>
                   </div>
-                  <div className="col-lg-8">
-                    <div className="show-filter add-course-info">
-                      <div className="d-sm-flex justify-content-center justify-content-lg-end mb-1 mb-lg-0">
-                        <div className="view-icons mb-2 mb-sm-0">
-                          <Link to={route.courseGrid} className="grid-view">
-                            <i className="feather-grid" />
-                          </Link>
-                          <Link to={route.courseList} className="list-view active">
-                            <i className="isax isax-task" />
-                          </Link>
-                        </div>
-                        <select
-                          className="form-select"
-                          value={sortBy}
-                          onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                        >
-                          {SORT_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                        <div className="search-group">
-                          <i className="isax isax-search-normal-1" />
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Search courses..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                  <div className="sl-cl-sort">
+                    <i className="isax isax-arrow-swap-vertical" />
+                    <select
+                      value={sortBy}
+                      onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}
+                    >
+                      {SORT_OPTIONS.map(o => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* ── Course Items ── */}
-              {loading ? (
-                <div className="text-center py-5">
-                  <Spin size="large" />
-                  <p className="mt-3 text-muted">Loading courses…</p>
-                </div>
-              ) : displayedCourses.length === 0 ? (
-                <Empty description="No courses found" className="py-5">
-                  <Link to={route.courseList} className="btn btn-primary" onClick={(e) => { e.preventDefault(); clearFilters(); }}>
-                    Clear Filters
-                  </Link>
-                </Empty>
-              ) : (
-                <div className="row course-list-wrap">
-                  {displayedCourses.map((course) => {
-                    const inWishlist = isWishlisted(course);
-                    const isLoadingWishlist = wishlistLoading.has(course.id);
-
-                    return (
-                      <div key={course.id} className="col-12">
-                        <div className="courses-list-item">
-                          <div className="d-md-flex align-items-center">
-
-                            {/* Thumbnail */}
-                            <div className="position-relative overflow-hidden rounded-3 card-image">
-                              <Link to={`${route.courseDetails}/${course.slug}`}>
-                                {course.thumbnailUrl ? (
-                                  <img
-                                    className="img-fluid rounded-3"
-                                    src={getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl}
-                                    alt={course.title}
-                                    style={{ width: '280px', height: '180px', objectFit: 'cover' }}
-                                  />
-                                ) : (
-                                  <ImageWithBasePath
-                                    className="img-fluid rounded-3"
-                                    src="./assets/img/course/course-01.jpg"
-                                    alt={course.title}
-                                  />
-                                )}
-                              </Link>
-
-                              {/* Wishlist + badges overlay */}
-                              <div className="position-absolute start-0 top-0 d-flex align-items-start w-100 z-index-2 p-2">
-                                <Link
-                                  to="#"
-                                  className={`like${inWishlist ? ' selected' : ''}`}
-                                  title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                                  style={{
-                                    opacity: isLoadingWishlist ? 0.5 : 1,
-                                    pointerEvents: isLoadingWishlist ? 'none' : 'auto',
-                                    transition: 'all 0.2s ease',
-                                  }}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleWishlist(course.id);
-                                  }}
-                                >
-                                  {/* Filled heart when wishlisted, outline otherwise */}
-                                  <i
-                                    className={inWishlist ? 'fa-solid fa-heart' : 'isax isax-heart'}
-                                    style={inWishlist ? { color: '#e53e3e', fontSize: 16 } : {}}
-                                  />
-                                </Link>
-
-                                {course.isEnrolled && (
-                                  <span className="badge bg-primary ms-1">
-                                    <i className="fa-solid fa-check me-1" />
-                                    Enrolled
-                                  </span>
-                                )}
-                                {course.requiresPurchase && (
-                                  <span className="badge bg-warning ms-auto">
-                                    <i className="isax isax-crown me-1" />
-                                    Premium
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Course details */}
-                            <div className="course-list-contents w-100 ps-0 ps-md-3 pt-4 pt-md-0">
-                              <div className="d-flex flex-wrap align-items-center justify-content-between">
-                                <div className="d-flex align-items-center">
-                                  <div className="avatar avatar-sm rounded-circle">
-                                    {course.instructor?.avatarUrl ? (
-                                      <img
-                                        className="img-fluid rounded-circle"
-                                        src={getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl}
-                                        alt={course.instructor.fullName}
-                                      />
-                                    ) : (
-                                      <ImageWithBasePath
-                                        className="img-fluid rounded-circle"
-                                        src="./assets/img/avatar/avatar1.jpg"
-                                        alt={course.instructor?.fullName || 'Instructor'}
-                                      />
-                                    )}
-                                  </div>
-                                  <p className="ms-2">
-                                    <Link to={`${route.instructorDetails}/${course.instructor?.id}`}>
-                                      {course.instructor?.fullName || 'Instructor'}
-                                    </Link>
-                                  </p>
-                                </div>
-                                <span>
-                                  <Link className="tag-btn" to={`${route.courseCategory}/${course.category?.slug}`}>
-                                    {course.category?.name || 'Course'}
-                                  </Link>
-                                </span>
-                              </div>
-
-                              <h4 className="mt-3 mb-2">
-                                <Link to={`${route.courseDetails}/${course.slug}`}>{course.title}</Link>
-                              </h4>
-
-                              <p
-                                className="text-muted mb-2"
-                                style={{
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                }}
-                              >
-                                {course.shortDescription}
-                              </p>
-
-                              <div className="d-flex align-items-center">
-                                <p className="d-flex align-items-center mb-0">
-                                  <i className="fa-solid fa-star text-warning me-2" />
-                                  {course.ratingAverage?.toFixed(1) || '0.0'}{' '}
-                                  ({course.ratingCount || 0} Reviews)
-                                </p>
-                                <span className="dot" />
-                                <p>{getLevelDisplay(course.level)}</p>
-                                <span className="dot" />
-                                <p>{course.lessonsCount || 0} Lessons</p>
-                              </div>
-
-                              <div className="d-flex justify-content-between mt-3 align-items-center">
-                                {course.isEnrolled ? (
-                                  <span className="badge bg-success-subtle text-success fs-12 fw-medium px-2 py-1">
-                                    <i className="fa-solid fa-check-circle me-1" />
-                                    Owned
-                                  </span>
-                                ) : !course.requiresPurchase ? (
-                                  <h5 className="text-success">Free</h5>
-                                ) : (
-                                  <h5 className="text-secondary">
-                                    {course.originalPrice && course.originalPrice > (course.price ?? 0) ? (
-                                      <>
-                                        ${course.price}{' '}
-                                        <del className="text-muted fs-14">${course.originalPrice}</del>
-                                      </>
-                                    ) : (
-                                      `$${course.price ?? 0}`
-                                    )}
-                                  </h5>
-                                )}
-
-                                {course.isEnrolled ? (
-                                  <Link
-                                    to={`${route.courseWatch}/${course.slug}`}
-                                    className="btn btn-primary btn-sm d-inline-flex align-items-center"
-                                  >
-                                    Continue Learning
-                                    <i className="fs-8 fas fa-angle-right ms-2" />
-                                  </Link>
-                                ) : (
-                                  <Link
-                                    to={`${route.courseDetails}/${course.slug}`}
-                                    className="btn btn-dark btn-sm d-inline-flex align-items-center"
-                                  >
-                                    Get Course
-                                    <i className="fs-8 fas fa-angle-right ms-2" />
-                                  </Link>
-                                )}
-                              </div>
-                            </div>
-
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* Active filter chips */}
+              {hasActiveFilters && (
+                <div className="sl-cl-chips" data-aos="fade-up" data-aos-duration="500">
+                  {selectedCategory && (() => {
+                    const cat = categories.find(c => c.id === selectedCategory);
+                    return cat ? (
+                      <span className="sl-cl-chip">
+                        {cat.name}
+                        <button onClick={() => { setSelectedCategory(null); setCurrentPage(1); }}>×</button>
+                      </span>
+                    ) : null;
+                  })()}
+                  {selectedLevel && (
+                    <span className="sl-cl-chip">
+                      {getLevelDisplay(selectedLevel)}
+                      <button onClick={() => { setSelectedLevel(null); setCurrentPage(1); }}>×</button>
+                    </span>
+                  )}
+                  {(priceRange[0] > 0 || priceRange[1] < 500) && (
+                    <span className="sl-cl-chip">
+                      ${priceRange[0]}–{priceRange[1] >= 500 ? '500+' : `$${priceRange[1]}`}
+                      <button onClick={() => setPriceRange([0, 500])}>×</button>
+                    </span>
+                  )}
+                  {sortBy !== 'newest' && (
+                    <span className="sl-cl-chip">
+                      {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+                      <button onClick={() => { setSortBy('newest'); setCurrentPage(1); }}>×</button>
+                    </span>
+                  )}
+                  <button className="sl-cl-chip sl-cl-chip--clear" onClick={clearFilters}>
+                    Clear All
+                  </button>
                 </div>
               )}
 
-              {/* ── Pagination ── */}
-              {totalPages > 1 && (
-                <div className="row align-items-center mt-4">
-                  <div className="col-12 d-flex justify-content-center">
-                    <Pagination
-                      current={currentPage}
-                      total={totalElements}
-                      pageSize={10}
-                      onChange={(page) => setCurrentPage(page)}
-                      showSizeChanger={false}
-                    />
+              {/* Course items */}
+              {loading ? (
+                <div className="sl-cl-list">
+                  {[...Array(5)].map((_, i) => <SkeletonCard key={i} index={i} />)}
+                </div>
+              ) : displayedCourses.length === 0 ? (
+                <div className="sl-cl-empty" data-aos="fade-up">
+                  <div className="sl-ornament">
+                    <span className="sl-script" style={{ fontSize: '2rem' }}>Oops</span>
                   </div>
+                  <i className="isax isax-search-status sl-cl-empty__icon" />
+                  <h4 className="sl-cl-empty__title">No programmes found</h4>
+                  <p className="sl-cl-empty__text">
+                    Adjust your filters or search terms to discover our full catalogue.
+                  </p>
+                  <button className="sl-btn-gold sl-btn-magnetic" onClick={clearFilters}>
+                    Browse All Programmes <i className="isax isax-arrow-right-1" />
+                  </button>
+                </div>
+              ) : (
+                <div className="sl-cl-list">
+                  {displayedCourses.map((course, i) => (
+                    <CourseListCard
+                      key={course.id}
+                      course={course}
+                      inWishlist={isWishlisted(course)}
+                      isLoadingWishlist={wishlistLoading.has(course.id)}
+                      onWishlist={handleWishlist}
+                      getLevelDisplay={getLevelDisplay}
+                      index={i}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Luxury pagination */}
+              {totalPages > 1 && (
+                <div className="sl-cl-pagination" data-aos="fade-up" data-aos-duration="600">
+                  <button
+                    className="sl-cl-pagination__arrow"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    aria-label="Previous"
+                  >
+                    <i className="fa-solid fa-chevron-left" />
+                  </button>
+
+                  {pageNumbers.map((p, i) =>
+                    p === '…' ? (
+                      <span key={`el-${i}`} className="sl-cl-pagination__ellipsis">…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        className={`sl-cl-pagination__page${currentPage === p ? ' is-active' : ''}`}
+                        onClick={() => setCurrentPage(p as number)}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    className="sl-cl-pagination__arrow"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next"
+                  >
+                    <i className="fa-solid fa-chevron-right" />
+                  </button>
                 </div>
               )}
 

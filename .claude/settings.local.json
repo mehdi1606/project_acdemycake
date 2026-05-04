@@ -119,7 +119,28 @@
       "Bash(xargs basename:*)",
       "Bash(npm root:*)",
       "Bash(npm init:*)",
-      "Bash(node generate_cahier_charges.js)"
+      "Bash(node generate_cahier_charges.js)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" log --oneline -5)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show --stat HEAD)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" log --all --oneline)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" ls-files)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" ls-files --deleted)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/feature-module/Courses/course-list/courseList.tsx)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/feature-module/HomePages/home-one/homeone.tsx)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/feature-module/HomePages/home-one/section/banner.tsx)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/style/scss/pages/saralowe-home.scss)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/feature-module/HomePages/home-one/section/featured-course.tsx)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/style/scss/components/_luxury-cards.scss)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" status --short)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/style/scss/pages/_course.scss)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" status --short \"template/src/\")",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" ls-files --error-unmatch \"template/src/feature-module/Courses/course-list/courseList.tsx\")",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" checkout HEAD -- \"template/src/\")",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/feature-module/HomePages/home-one/hooks/useMouseTilt.ts)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/style/scss/main.scss)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/style/scss/utils/variables.scss)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/style/scss/utils/_variables.scss)",
+      "Bash(git -C \"C:/Users/asus/Desktop/Academycake/project/project_acdemycake\" show HEAD:template/src/feature-module/router/all_routes.tsx)"
     ]
   }
 }
