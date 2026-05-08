@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 /**
  * Returns a ref to attach to any DOM element plus a boolean `inView`.
  * Triggers once when ≥ `threshold` of the element enters the viewport.
+ * Also fires immediately if the element is already visible on mount.
  */
 export const useInView = <T extends HTMLElement = HTMLDivElement>(
     threshold = 0.15
@@ -14,11 +15,21 @@ export const useInView = <T extends HTMLElement = HTMLDivElement>(
         const el = ref.current
         if (!el) return
 
+        // Fire immediately if element is already in viewport
+        const rect = el.getBoundingClientRect()
+        const alreadyVisible =
+            rect.top < window.innerHeight && rect.bottom > 0 && rect.width > 0
+
+        if (alreadyVisible) {
+            setInView(true)
+            return
+        }
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
                     setInView(true)
-                    observer.unobserve(el) // fire once
+                    observer.unobserve(el)
                 }
             },
             { threshold }

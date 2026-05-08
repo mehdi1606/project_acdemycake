@@ -5,6 +5,7 @@ export const all_routes = {
     homeone: "/",
 
     //Course Modules
+    masterclass: "/masterclass",
     courseGrid: "/course/course-grid",
     courseList: "/course/course-list",
     courseDetails: "/course/course-details",
@@ -90,10 +91,12 @@ export const all_routes = {
     adminAnalytics: '/admin/analytics',
     adminReports: '/admin/reports',
     adminSettings: '/admin/settings',
+    adminCoupons: '/admin/coupons',
 
     cart: '/cart',
     login: '/login',
     register: '/register',
+    verifyEmail: '/verify-email',
     forgotpassword: '/forgot-password',
     setpassowrd: '/set-password',
     otp: '/otp',
@@ -128,6 +131,9 @@ export const all_routes = {
     blogRightSidebar: "/blog/blog-right-sidebar",
     blogDetailsLeftSidebar: "/blog/blog-details-left-sidebar",
     blogDetailsRightSidebar: "/blog/blog-details-right-sidebar",
+
+    // Payment
+    paymentCallback: '/payment/callback',
 
     // Community
     community: '/community',

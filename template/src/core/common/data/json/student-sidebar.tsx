@@ -33,12 +33,6 @@ export const studentSidebarData = [
         route: all_routes.studentReviews
     },
     {
-        title:'My Quiz Attempts',
-        icon:'isax isax-award5',
-        route: all_routes.studentQuiz,
-        subRoute: all_routes.studentQuizQuestion
-    },
-    {
         title:'Assignments',
         icon:'isax isax-document-text5',
         route: all_routes.studentAssignments
@@ -47,11 +41,6 @@ export const studentSidebarData = [
         title:'Order History',
         icon:'isax isax-shopping-cart5',
         route: all_routes.studentOrderHistory
-    },
-    {
-        title:'Referrals',
-        icon:'isax isax-tag-user5',
-        route: all_routes.studentReferral
     },
     {
         title:'Messages',

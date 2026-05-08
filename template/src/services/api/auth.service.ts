@@ -58,9 +58,9 @@ class AuthService {
     await api.post('/auth/verify-email', { token });
   }
 
-  // Resend verification email
+  // Resend verification email — backend uses @RequestParam so email goes as query param
   async resendVerificationEmail(email: string): Promise<void> {
-    await api.post('/auth/resend-verification', { email });
+    await api.post(`/auth/resend-verification?email=${encodeURIComponent(email)}`);
   }
 
   // Request password reset

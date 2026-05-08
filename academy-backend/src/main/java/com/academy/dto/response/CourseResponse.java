@@ -3,6 +3,7 @@ package com.academy.dto.response;
 import com.academy.entity.Course;
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseStatus;
+import com.academy.entity.enums.CourseType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class CourseResponse {
     private InstructorSummary instructor;
     private CategoryResponse category;
     private Boolean isBeginner;
+    private CourseType courseType;
     private Boolean requiresPurchase;
     private BigDecimal price;
     private BigDecimal originalPrice;
@@ -93,6 +95,7 @@ public class CourseResponse {
                 .instructor(instructor)
                 .category(category)
                 .isBeginner(course.getIsBeginner())
+                .courseType(course.getCourseType())
                 .requiresPurchase(course.getRequiresPurchase())
                 .price(course.getPrice())
                 .originalPrice(course.getOriginalPrice())

@@ -1,9 +1,11 @@
 package com.academy.controller;
 
+import com.academy.dto.request.SubscribeRequest;
 import com.academy.dto.response.*;
 import com.academy.service.SubscriptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +31,9 @@ public class SubscriptionController {
 
     @PostMapping("/subscribe")
     @Operation(summary = "Initiate subscription payment")
-    public ResponseEntity<ApiResponse<PaymentResponse>> subscribe() {
-        PaymentResponse response = subscriptionService.subscribe();
+    public ResponseEntity<ApiResponse<PaymentResponse>> subscribe(
+            @Valid @RequestBody SubscribeRequest request) {
+        PaymentResponse response = subscriptionService.subscribe(request.getPlanId(), request.getCouponCode());
         return ResponseEntity.ok(ApiResponse.success("Payment initiated", response));
     }
 

@@ -78,6 +78,8 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        // Returning false causes Spring Security to throw DisabledException during authentication,
+        // which prevents unverified accounts from obtaining tokens.
+        return Boolean.TRUE.equals(isEmailVerified);
     }
 }

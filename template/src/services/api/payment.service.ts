@@ -29,14 +29,11 @@ class PaymentService {
     return response.data;
   }
 
-  // Handle payment callback (when returning from payment gateway)
-  async handlePaymentCallback(
-    transactionId: string,
-    status: string
-  ): Promise<{ success: boolean; message: string }> {
-    const response = await api.get<{ success: boolean; message: string }>('/payments/callback', {
-      params: { transactionId, status },
-    });
+  // NOTE: The GET /callback endpoint has been removed from the backend.
+  // Payment status updates are driven exclusively by the signed POST /webhook.
+  // After a payment gateway redirect, fetch the latest transaction to check status:
+  async getTransactionStatus(transactionId: string): Promise<PaymentTransaction> {
+    const response = await api.get<PaymentTransaction>(`/payments/transaction/${transactionId}`);
     return response.data;
   }
 }

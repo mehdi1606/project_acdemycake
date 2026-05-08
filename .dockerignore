@@ -1,0 +1,5 @@
+.git/
+.claude/
+*.md
+template/node_modules/
+academy-backend/target/

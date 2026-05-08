@@ -1,0 +1,41 @@
+/* ── Course Watch – luxury full-page layout ──────────────────────────────── */
+
+/* Spin keyframe used by loading spinners across the course watch page */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Ensure the course-watch page fills the viewport with no body scroll bars */
+body:has(.course-watch-root) {
+  overflow: hidden;
+}
+
+/* Sidebar scrollbar — thin gold-tinted track */
+.course-watch-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.course-watch-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+.course-watch-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(197, 151, 62, 0.2);
+  border-radius: 2px;
+}
+.course-watch-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 151, 62, 0.4);
+}
+
+/* Main content area scrollbar — subtle */
+.course-watch-main::-webkit-scrollbar {
+  width: 5px;
+}
+.course-watch-main::-webkit-scrollbar-track {
+  background: rgba(242, 239, 232, 0.5);
+}
+.course-watch-main::-webkit-scrollbar-thumb {
+  background: rgba(101, 28, 50, 0.15);
+  border-radius: 3px;
+}
+.course-watch-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(101, 28, 50, 0.3);
+}

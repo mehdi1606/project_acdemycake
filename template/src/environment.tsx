@@ -30,5 +30,9 @@ export const DEFAULT_PAGE_SIZE = 10;
 export const getFileUrl = (path?: string | null): string | undefined => {
   if (!path) return undefined;
   if (path.startsWith('http')) return path;
-  return `${API_BASE_URL}/files/${path}`;
+  // Encode each path segment individually so spaces, parentheses and other
+  // special characters in filenames don't break the URL, while preserving
+  // the folder slashes.
+  const encoded = path.split('/').map(seg => encodeURIComponent(seg)).join('/');
+  return `${API_BASE_URL}/files/${encoded}`;
 };

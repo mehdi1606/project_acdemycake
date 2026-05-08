@@ -38,16 +38,11 @@ public class PaymentController {
         return ResponseEntity.ok("OK");
     }
 
-    @GetMapping("/callback")
-    @Operation(summary = "Handle payment callback from PayZone")
-    public ResponseEntity<ApiResponse<String>> handleCallback(
-            @RequestParam String orderId,
-            @RequestParam String status,
-            @RequestParam(required = false) String transactionId) {
-
-        paymentService.processPaymentCallback(orderId, status, transactionId);
-        return ResponseEntity.ok(ApiResponse.success("Payment processed"));
-    }
+    // NOTE: The unauthenticated GET /callback endpoint has been intentionally removed.
+    // Payment status is now determined exclusively through the signed POST /webhook,
+    // which verifies the X-PayZone-Signature header. Any redirect-based callback from
+    // the payment gateway should only be used for UX purposes (redirect the browser to
+    // the frontend success/failure page) — it must never trigger server-side processing.
 
     @GetMapping("/history")
     @Operation(summary = "Get user payment history")

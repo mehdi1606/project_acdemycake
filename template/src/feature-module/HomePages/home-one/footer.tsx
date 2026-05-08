@@ -64,7 +64,7 @@ const Footer = () => {
                                 <div className="sl-footer__heading">Learn</div>
                                 <ul className="sl-footer__links">
                                     <li><Link to={route.courseList}>All Courses</Link></li>
-                                    <li><Link to={route.courseCategory}>Categories</Link></li>
+                                    <li><Link to={route.masterclass}>Masterclasses</Link></li>
                                     <li><Link to={route.instructorList}>Instructors</Link></li>
                                     <li><Link to={route.pricingPlan}>Pricing</Link></li>
                                     <li><Link to={route.courseGrid}>Certificates</Link></li>

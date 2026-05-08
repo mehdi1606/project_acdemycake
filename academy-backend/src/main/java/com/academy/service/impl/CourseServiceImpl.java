@@ -7,6 +7,7 @@ import com.academy.entity.Course;
 import com.academy.entity.CourseCategory;
 import com.academy.entity.User;
 import com.academy.entity.enums.CourseLevel;
+import com.academy.entity.enums.CourseType;
 import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.UserRole;
 import com.academy.exception.BadRequestException;
@@ -89,12 +90,22 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public PageResponse<CourseResponse> getAllCourses(int page, int size, String search,
-                                                       UUID categoryId, CourseLevel level, String sortBy) {
+                                                       UUID categoryId, CourseLevel level, String sortBy,
+                                                       CourseType courseType) {
         Sort sort = getSort(sortBy);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
         Page<Course> courses;
 
-        if (search != null && !search.isBlank()) {
+        String courseTypeStr = courseType != null ? courseType.name() : null;
+        if (courseType != null && search != null && !search.isBlank()) {
+            // Search within a specific course type (e.g. search on Masterclass page)
+            courses = courseRepository.searchPublishedCoursesByType(search, courseType, courseTypeStr, pageRequest);
+        } else if (courseType != null && categoryId != null) {
+            CourseCategory category = categoryService.findById(categoryId);
+            courses = courseRepository.findPublishedByCourseTypeAndCategory(courseType, courseTypeStr, category, pageRequest);
+        } else if (courseType != null) {
+            courses = courseRepository.findPublishedByCourseType(courseType, courseTypeStr, pageRequest);
+        } else if (search != null && !search.isBlank()) {
             courses = courseRepository.searchPublishedCourses(search, pageRequest);
         } else if (categoryId != null) {
             CourseCategory category = categoryService.findById(categoryId);
@@ -194,7 +205,10 @@ public class CourseServiceImpl implements CourseService {
                 .shortDescription(request.getShortDescription())
                 .instructor(instructor)
                 .isBeginner(request.getIsBeginner() != null ? request.getIsBeginner() : false)
-                .requiresPurchase(request.getRequiresPurchase() != null ? request.getRequiresPurchase() : false)
+                .courseType(request.getCourseType() != null ? request.getCourseType() : com.academy.entity.enums.CourseType.PLAN)
+                // Masterclass always requires individual purchase
+                .requiresPurchase(com.academy.entity.enums.CourseType.MASTERCLASS.equals(request.getCourseType()) ? true
+                        : (request.getRequiresPurchase() != null ? request.getRequiresPurchase() : false))
                 .price(request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO)
                 .originalPrice(request.getOriginalPrice())
                 .level(request.getLevel() != null ? request.getLevel() : CourseLevel.BEGINNER)
@@ -242,6 +256,13 @@ public class CourseServiceImpl implements CourseService {
         }
         if (request.getIsBeginner() != null) {
             course.setIsBeginner(request.getIsBeginner());
+        }
+        if (request.getCourseType() != null) {
+            course.setCourseType(request.getCourseType());
+            // Masterclass always requires purchase; PLAN courses keep their existing flag unless overridden below
+            if (com.academy.entity.enums.CourseType.MASTERCLASS.equals(request.getCourseType())) {
+                course.setRequiresPurchase(true);
+            }
         }
         if (request.getRequiresPurchase() != null) {
             course.setRequiresPurchase(request.getRequiresPurchase());

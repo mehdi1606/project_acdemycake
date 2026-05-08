@@ -50,20 +50,20 @@ const InstructorDashboard = () => {
     chart:  { height: 260, type: 'bar', stacked: true, toolbar: { show: false } },
     plotOptions: { bar: { borderRadius: 6, horizontal: false } },
     series: [{ name: 'Earnings ($)', data: chartData.data }],
-    xaxis:  { categories: chartData.categories, labels: { style: { colors: '#8B6D5E', fontSize: '12px' } } },
-    yaxis:  { labels: { offsetX: -10, style: { colors: '#8B6D5E', fontSize: '12px' }, formatter: (v: number) => `$${v}` } },
-    grid:   { borderColor: '#EDE0D4', strokeDashArray: 4 },
+    xaxis:  { categories: chartData.categories, labels: { style: { colors: '#8B6D75', fontSize: '12px' } } },
+    yaxis:  { labels: { offsetX: -10, style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => `$${v}` } },
+    grid:   { borderColor: 'rgba(101,28,50,0.08)', strokeDashArray: 4 },
     legend: { show: false },
     dataLabels: { enabled: false },
     fill: {
       type: 'gradient',
       gradient: {
         shade: 'light', type: 'vertical', shadeIntensity: 0.3,
-        gradientToColors: ['#E8A0A8'], inverseColors: false,
-        opacityFrom: 1, opacityTo: 0.85, stops: [0, 100],
+        gradientToColors: ['#C5912C'], inverseColors: false,
+        opacityFrom: 0.9, opacityTo: 0.75, stops: [0, 100],
       },
     },
-    colors: ['#6B1D2A'],
+    colors: ['#651C32'],
   };
 
   const firstName = user?.fullName?.split(' ')[0] || 'Instructor';
@@ -183,14 +183,14 @@ const InstructorDashboard = () => {
                                 style={{
                                   width: 44, height: 44, borderRadius: 8,
                                   overflow: 'hidden', flexShrink: 0,
-                                  background: 'rgba(107, 29, 42, 0.06)',
+                                  background: 'rgba(101, 28, 50, 0.06)',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}
                               >
                                 {course.thumbnailUrl ? (
                                   <img src={course.thumbnailUrl} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                  <i className="isax isax-book" style={{ color: '#6B1D2A', fontSize: 18 }} />
+                                  <i className="isax isax-book" style={{ color: '#651C32', fontSize: 18 }} />
                                 )}
                               </div>
                               <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--lx-brown)' }}>

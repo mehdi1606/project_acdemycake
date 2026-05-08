@@ -155,13 +155,13 @@ public class GlobalExceptionHandler {
                 request);
     }
 
-    /** Account set to disabled (e.g. soft-deleted). */
+    /** Email not yet verified — Spring Security sets isEnabled()=false until verification. */
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<ApiResponse<Void>> handleDisabled(
             DisabledException ex, HttpServletRequest request) {
-        log.warn("Disabled account [{}]", request.getRequestURI());
+        log.warn("Login attempt with unverified account [{}]", request.getRequestURI());
         return build(HttpStatus.UNAUTHORIZED,
-                "Your account has been disabled. Please contact support.",
+                "Please verify your email address before logging in. Check your inbox for the verification link.",
                 ErrorCode.ACCOUNT_DISABLED,
                 request);
     }

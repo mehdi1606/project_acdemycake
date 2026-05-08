@@ -26,7 +26,6 @@ const studentNav: SidebarGroup[] = [
       { title: 'My Courses',     icon: 'isax isax-book',             route: all_routes.studentCourses },
       { title: 'My Profile',     icon: 'isax isax-user',             route: all_routes.studentProfile },
       { title: 'Certificates',   icon: 'isax isax-medal',            route: all_routes.studentCertificates },
-      { title: 'Quiz Attempts',  icon: 'isax isax-award',            route: all_routes.studentQuiz, subRoute: all_routes.studentQuizQuestion },
       { title: 'Wishlist',       icon: 'isax isax-heart',            route: all_routes.studentWishlist },
       { title: 'Reviews',        icon: 'isax isax-star',             route: all_routes.studentReviews },
     ],
@@ -36,7 +35,6 @@ const studentNav: SidebarGroup[] = [
     items: [
       { title: 'Messages',       icon: 'isax isax-messages-3',       route: all_routes.studentMessage },
       { title: 'Order History',  icon: 'isax isax-shopping-cart',    route: all_routes.studentOrderHistory },
-      { title: 'Referrals',      icon: 'isax isax-tag-user',         route: all_routes.studentReferral },
       { title: 'Support',        icon: 'isax isax-ticket',           route: all_routes.studentTickets },
       { title: 'Settings',       icon: 'isax isax-setting-2',        route: all_routes.studentSettings },
     ],
@@ -109,6 +107,7 @@ const adminNav: SidebarGroup[] = [
     label: 'Account',
     items: [
       { title: 'Support Tickets',   icon: 'isax isax-ticket',             route: all_routes.adminTickets },
+      { title: 'Coupons',           icon: 'isax isax-discount-shape',     route: all_routes.adminCoupons },
       { title: 'Site Settings',     icon: 'isax isax-setting-2',          route: all_routes.adminSettings },
     ],
   },

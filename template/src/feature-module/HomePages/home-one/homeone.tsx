@@ -30,7 +30,6 @@ import Featureinstructor from './section/feature-instructor'
 import Testimonials from './section/testimonials'
 import CinematicCTA from './section/cinematic-cta'
 import Faq from './section/faq'
-import Footer from './footer'
 
 // ── Gold marquee strip ────────────────────────────────────────────────────────
 const SlMarquee: React.FC = () => {
@@ -108,9 +107,6 @@ const HomeOne: React.FC = () => {
 
             {/* 11 — FAQ */}
             <Faq />
-
-            {/* 12 — Footer */}
-            <Footer />
         </div>
     )
 }

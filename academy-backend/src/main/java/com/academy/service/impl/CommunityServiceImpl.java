@@ -48,7 +48,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     public PageResponse<PostResponse> getPosts(int page, int size, PostType postType, String search) {
         User currentUser = getCurrentUser();
-        verifySubscriptionAccess(currentUser);
+        // Reading posts is open to all authenticated users — no subscription gate
 
         Pageable pageable = PageRequest.of(page, size);
         Page<CommunityPost> postsPage;
@@ -71,7 +71,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional
     public PostResponse getPostById(UUID id) {
         User currentUser = getCurrentUser();
-        verifySubscriptionAccess(currentUser);
+        // Reading a single post is open to all authenticated users
 
         CommunityPost post = findPostById(id);
         post.incrementViewsCount();
@@ -229,7 +229,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional
     public void reportPost(UUID postId, String reason) {
         User currentUser = getCurrentUser();
-        verifySubscriptionAccess(currentUser);
+        // Any authenticated user can report a post
 
         CommunityPost post = findPostById(postId);
         post.setIsFlagged(true);
@@ -241,7 +241,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     public PageResponse<CommentResponse> getPostComments(UUID postId, int page, int size) {
         User currentUser = getCurrentUser();
-        verifySubscriptionAccess(currentUser);
+        // Reading comments is open to all authenticated users
 
         CommunityPost post = findPostById(postId);
         Pageable pageable = PageRequest.of(page, size);
@@ -422,11 +422,13 @@ public class CommunityServiceImpl implements CommunityService {
         if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR) {
             return;
         }
-        boolean hasActiveSubscription = subscriptionRepository
-                .findByUserAndStatus(user, SubscriptionStatus.ACTIVE)
-                .isPresent();
+        // Check both the Subscription entity AND the denormalised status field on User
+        // (the latter handles dev/test cases where the User field is set directly)
+        boolean hasActiveSubscription =
+                user.getSubscriptionStatus() == SubscriptionStatus.ACTIVE ||
+                subscriptionRepository.findByUserAndStatus(user, SubscriptionStatus.ACTIVE).isPresent();
         if (!hasActiveSubscription) {
-            throw new ForbiddenException("Active subscription required to access community features");
+            throw new ForbiddenException("Active subscription required to post in the community");
         }
     }
 

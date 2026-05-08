@@ -2,6 +2,7 @@ package com.academy.service;
 
 import com.academy.dto.request.CreateLessonRequest;
 import com.academy.dto.request.UpdateLessonProgressRequest;
+import com.academy.dto.response.LessonResourceResponse;
 import com.academy.dto.response.LessonResponse;
 import com.academy.dto.response.VideoUrlResponse;
 import com.academy.entity.CourseLesson;
@@ -39,4 +40,8 @@ public interface LessonService {
     void markComplete(UUID lessonId);
 
     String getResourcesJson(UUID lessonId);
+
+    LessonResourceResponse uploadLessonResource(UUID lessonId, MultipartFile file, String name);
+
+    void deleteLessonResource(UUID lessonId, Long resourceId);
 }

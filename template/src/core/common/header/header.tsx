@@ -9,7 +9,8 @@ import { getFileUrl } from "../../../environment";
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [academyMenuOpen, setAcademyMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
@@ -47,17 +48,20 @@ const Header = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
+        setProfileDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => { setDropdownOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setAcademyMenuOpen(false);
+    setProfileDropdownOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
-    setDropdownOpen(false);
+    setProfileDropdownOpen(false);
     await dispatch(logout());
     navigate(all_routes.homeone);
   };
@@ -83,11 +87,11 @@ const Header = () => {
   const toggleDropdown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setDropdownOpen(!dropdownOpen);
+    setProfileDropdownOpen(!profileDropdownOpen);
   };
 
   const handleMenuItemClick = (route: string) => {
-    setDropdownOpen(false);
+    setProfileDropdownOpen(false);
     navigate(route);
   };
 
@@ -205,32 +209,105 @@ const Header = () => {
 
             {/* ── Center: Nav Links (Desktop) ── */}
             <div className="d-none d-lg-flex" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {[
-                { label: 'Home', to: all_routes.homeone, active: isActive('/', true) },
-                { label: 'Courses', to: all_routes.courseList, active: isActive('/course') && !isActive('/course-category') },
-                { label: 'Masterclasses', to: all_routes.courseCategory, active: isActive('/course-category') },
-                { label: 'Community', to: all_routes.blogGrid, active: isActive('/blog') },
-              ].map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
+
+              {/* Home */}
+              <Link
+                to={all_routes.homeone}
+                style={{
+                  padding: '8px 16px', borderRadius: 8,
+                  fontSize: 15, fontWeight: isActive('/', true) ? 600 : 500,
+                  color: isActive('/', true) ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                  textDecoration: 'none', transition: 'all 0.2s ease',
+                  background: isActive('/', true) ? 'rgba(197,151,62,0.08)' : 'transparent',
+                }}
+                onMouseEnter={e => { if (!isActive('/', true)) e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { if (!isActive('/', true)) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+              >
+                Home
+              </Link>
+
+              {/* Masterclasses */}
+              <Link
+                to={all_routes.masterclass}
+                style={{
+                  padding: '8px 16px', borderRadius: 8,
+                  fontSize: 15, fontWeight: isActive('/masterclass') ? 600 : 500,
+                  color: isActive('/masterclass') ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                  textDecoration: 'none', transition: 'all 0.2s ease',
+                  background: isActive('/masterclass') ? 'rgba(197,151,62,0.08)' : 'transparent',
+                }}
+                onMouseEnter={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+              >
+                Masterclasses
+              </Link>
+
+              {/* Academy dropdown */}
+              <div
+                style={{ position: 'relative' }}
+                onMouseEnter={() => setAcademyMenuOpen(true)}
+                onMouseLeave={() => setAcademyMenuOpen(false)}
+              >
+                <button
                   style={{
-                    padding: '8px 16px', borderRadius: 8,
-                    fontSize: 15, fontWeight: link.active ? 600 : 500,
-                    color: link.active ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                    padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                    fontSize: 15, fontWeight: (isActive('/course') || isActive('/blog')) ? 600 : 500,
+                    color: (isActive('/course') || isActive('/blog')) ? '#C5973E' : 'rgba(255,255,255,0.85)',
                     textDecoration: 'none', transition: 'all 0.2s ease',
-                    background: link.active ? 'rgba(197, 151, 62, 0.08)' : 'transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!link.active) e.currentTarget.style.color = '#fff';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!link.active) e.currentTarget.style.color = 'rgba(255,255,255,0.85)';
+                    background: (isActive('/course') || isActive('/blog')) ? 'rgba(197,151,62,0.08)' : 'transparent',
+                    display: 'flex', alignItems: 'center', gap: 5,
                   }}
                 >
-                  {link.label}
-                </Link>
-              ))}
+                  Academy
+                  <i className="isax isax-arrow-down5" style={{ fontSize: '0.7rem', marginTop: 1 }} />
+                </button>
+
+                {/* Dropdown panel */}
+                {academyMenuOpen && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0,
+                    background: 'rgba(40, 8, 18, 0.97)',
+                    border: '1px solid rgba(197,145,44,0.18)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    borderRadius: 10,
+                    minWidth: 180,
+                    padding: '8px 0',
+                    boxShadow: '0 16px 48px rgba(0,0,0,0.45)',
+                    zIndex: 999,
+                  }}>
+                    {[
+                      { label: 'Courses', to: all_routes.courseList, icon: 'isax-book-1' },
+                      { label: 'Community', to: all_routes.blogGrid, icon: 'isax-people' },
+                    ].map(item => (
+                      <Link
+                        key={item.label}
+                        to={item.to}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '10px 18px',
+                          color: 'rgba(255,255,255,0.82)',
+                          textDecoration: 'none',
+                          fontSize: 14, fontWeight: 500,
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.color = '#C5973E';
+                          e.currentTarget.style.background = 'rgba(197,145,44,0.07)';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.color = 'rgba(255,255,255,0.82)';
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        <i className={`isax ${item.icon}`} style={{ fontSize: 16, color: 'rgba(197,145,44,0.7)' }} />
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
 
             {/* ── Right: Actions ── */}
@@ -283,7 +360,7 @@ const Header = () => {
               {isAuthenticated && user ? (
                 <>
                   {/* Premium Badge / Get Premium CTA */}
-                  {user.role !== 'ADMIN' && (
+                  {user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR' && (
                     user.subscriptionStatus === 'ACTIVE' ? (
                       <span
                         className="d-none d-md-inline-flex"
@@ -325,8 +402,8 @@ const Header = () => {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 10,
                         padding: '5px 10px 5px 5px', borderRadius: 28,
-                        border: `1.5px solid ${dropdownOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'}`,
-                        background: dropdownOpen ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
+                        border: `1.5px solid ${profileDropdownOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'}`,
+                        background: profileDropdownOpen ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
                         cursor: 'pointer', transition: 'all 0.2s ease',
                       }}
                       onMouseEnter={(e) => {
@@ -334,7 +411,7 @@ const Header = () => {
                         e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
                       }}
                       onMouseLeave={(e) => {
-                        if (!dropdownOpen) {
+                        if (!profileDropdownOpen) {
                           e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
                           e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
                         }
@@ -368,13 +445,13 @@ const Header = () => {
 
                       {/* Arrow */}
                       <i
-                        className={`isax isax-arrow-${dropdownOpen ? 'up' : 'down'}-1`}
+                        className={`isax isax-arrow-${profileDropdownOpen ? 'up' : 'down'}-1`}
                         style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', transition: 'transform 0.2s' }}
                       />
                     </button>
 
                     {/* ── Dropdown Menu ── */}
-                    {dropdownOpen && (
+                    {profileDropdownOpen && (
                       <div style={{
                         position: 'absolute', right: 0, top: 'calc(100% + 10px)',
                         minWidth: 260, borderRadius: 14, overflow: 'hidden',
@@ -453,6 +530,24 @@ const Header = () => {
               ) : (
                 /* ── Not Authenticated ── */
                 <div className="d-none d-lg-flex" style={{ alignItems: 'center', gap: 8, marginLeft: 4 }}>
+                  {/* Get Premium — visible to guests so they discover the plans */}
+                  <Link
+                    to={all_routes.pricingPlan}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5, textDecoration: 'none',
+                      background: 'linear-gradient(135deg, #C5973E 0%, #DEBB6B 50%, #C5973E 100%)',
+                      color: '#4E1420', fontWeight: 600, fontSize: 13,
+                      padding: '7px 16px', borderRadius: 20,
+                      boxShadow: '0 2px 8px rgba(212,175,55,0.3)',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(212,175,55,0.45)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(212,175,55,0.3)'; }}
+                  >
+                    <i className="isax isax-crown-1" style={{ fontSize: 14 }} />
+                    Get Premium
+                  </Link>
+
                   <Link
                     to={all_routes.login}
                     style={{
@@ -527,10 +622,8 @@ const Header = () => {
 
             {/* Mobile Nav Links */}
             {[
-              { label: 'Home', to: all_routes.homeone, icon: 'isax-home' },
-              { label: 'Courses', to: all_routes.courseList, icon: 'isax-book' },
-              { label: 'Masterclasses', to: all_routes.courseCategory, icon: 'isax-video-play' },
-              { label: 'Community', to: all_routes.blogGrid, icon: 'isax-people' },
+              { label: 'Home',          to: all_routes.homeone,      icon: 'isax-home' },
+              { label: 'Masterclasses', to: all_routes.masterclass, icon: 'isax-video-play' },
             ].map((link) => (
               <Link
                 key={link.label}
@@ -544,6 +637,30 @@ const Header = () => {
                 }}
               >
                 <i className={`isax ${link.icon}`} style={{ fontSize: 18, width: 20, textAlign: 'center', color: 'rgba(255,255,255,0.4)' }} />
+                {link.label}
+              </Link>
+            ))}
+
+            {/* Academy section in mobile */}
+            <div style={{ padding: '10px 24px 4px', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(197,145,44,0.55)', fontWeight: 600 }}>
+              Academy
+            </div>
+            {[
+              { label: 'Courses',   to: all_routes.courseList, icon: 'isax-book' },
+              { label: 'Community', to: all_routes.blogGrid,   icon: 'isax-people' },
+            ].map((link) => (
+              <Link
+                key={link.label}
+                to={link.to}
+                onClick={onhandleCloseMenu}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 24px 12px 36px', color: 'rgba(255,255,255,0.7)',
+                  textDecoration: 'none', fontSize: 14, fontWeight: 500,
+                  transition: 'background 0.15s',
+                }}
+              >
+                <i className={`isax ${link.icon}`} style={{ fontSize: 16, width: 20, textAlign: 'center', color: 'rgba(197,145,44,0.5)' }} />
                 {link.label}
               </Link>
             ))}
@@ -587,6 +704,19 @@ const Header = () => {
               </>
             ) : (
               <>
+                {/* Get Premium — mobile guest */}
+                <Link
+                  to={all_routes.pricingPlan}
+                  onClick={onhandleCloseMenu}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '14px 24px', color: '#C5973E',
+                    textDecoration: 'none', fontSize: 15, fontWeight: 700,
+                  }}
+                >
+                  <i className="isax isax-crown-1" style={{ fontSize: 18, width: 20, textAlign: 'center' }} />
+                  Get Premium
+                </Link>
                 <Link
                   to={all_routes.login}
                   onClick={onhandleCloseMenu}

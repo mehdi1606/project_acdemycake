@@ -1,0 +1,129 @@
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║  SARALÖWE ACADEMY — Docker Compose (Production / Server)        ║
+# ║                                                                  ║
+# ║  Usage:                                                         ║
+# ║    1. Edit .env.docker — set SERVER_IP and any passwords        ║
+# ║    2. docker compose --env-file .env.docker up -d --build       ║
+# ║                                                                  ║
+# ║  Local development is UNCHANGED — use npm / Maven directly.     ║
+# ╚══════════════════════════════════════════════════════════════════╝
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: academy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - academy-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Spring Boot Backend ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./academy-backend
+      dockerfile: Dockerfile
+    container_name: academy-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Database
+      DB_HOST:         db
+      DB_PORT:         5432
+      DB_NAME:         ${DB_NAME}
+      DB_USERNAME:     ${DB_USERNAME}
+      DB_PASSWORD:     ${DB_PASSWORD}
+
+      # JWT
+      JWT_SECRET:      ${JWT_SECRET}
+
+      # CORS — frontend is served by Nginx on port 80
+      CORS_ALLOWED_ORIGINS: http://${SERVER_IP}
+
+      # Frontend & file URLs (all traffic goes through Nginx on port 80)
+      FRONTEND_URL:    http://${SERVER_IP}
+      FILE_BASE_URL:   http://${SERVER_IP}
+      FILE_UPLOAD_DIR: /app/uploads
+
+      # PayZone
+      PAYZONE_API_URL:      https://api.payzone.ma
+      PAYZONE_MERCHANT_ID:  ${PAYZONE_MERCHANT_ID}
+      PAYZONE_API_KEY:      ${PAYZONE_API_KEY}
+      PAYZONE_SECRET_KEY:   ${PAYZONE_SECRET_KEY}
+      PAYZONE_CALLBACK_URL: http://${SERVER_IP}/api/v1/payments/webhook
+      PAYZONE_RETURN_URL:   http://${SERVER_IP}/payment/callback
+
+      # Mail
+      MAIL_HOST:     ${MAIL_HOST}
+      MAIL_PORT:     ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      EMAIL_FROM:    ${EMAIL_FROM}
+
+      # Mux
+      MUX_TOKEN_ID:           ${MUX_TOKEN_ID}
+      MUX_TOKEN_SECRET:       ${MUX_TOKEN_SECRET}
+      MUX_SIGNING_KEY_ID:     ${MUX_SIGNING_KEY_ID}
+      MUX_SIGNING_PRIVATE_KEY: ${MUX_SIGNING_PRIVATE_KEY}
+      MUX_WEBHOOK_SECRET:     ${MUX_WEBHOOK_SECRET}
+
+      # Admin bootstrap
+      ADMIN_EMAIL:     ${ADMIN_EMAIL}
+      ADMIN_PASSWORD:  ${ADMIN_PASSWORD}
+      ADMIN_FULL_NAME: ${ADMIN_FULL_NAME}
+
+      # Spring profile
+      SPRING_PROFILES_ACTIVE: prod
+
+    volumes:
+      - uploads_data:/app/uploads   # Persistent file storage
+    networks:
+      - academy-net
+    # Backend is NOT exposed on host — only Nginx talks to it
+    expose:
+      - "8080"
+
+  # ── Nginx + React Frontend ──────────────────────────────────────
+  frontend:
+    build:
+      context: ./template
+      dockerfile: Dockerfile
+      args:
+        # Baked into the React JS bundle at build time
+        REACT_APP_API_URL:     http://${SERVER_IP}
+        REACT_APP_WS_URL:      ws://${SERVER_IP}/ws
+        REACT_APP_NAME:        Academy
+        REACT_APP_MUX_ENV_KEY: ${REACT_APP_MUX_ENV_KEY}
+    container_name: academy-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"    # Only this container is exposed to the internet
+    networks:
+      - academy-net
+
+# ── Named Volumes ───────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+# ── Internal Network ────────────────────────────────────────────
+networks:
+  academy-net:
+    driver: bridge

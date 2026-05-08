@@ -8,6 +8,7 @@ import RoleGuard from "../common/RoleGuard";
 const HomeOne                       = lazy(() => import("../HomePages/home-one/homeone"));
 const CourseGrid                    = lazy(() => import("../Courses/courses-grid/courseGrid"));
 const CourseList                    = lazy(() => import("../Courses/course-list/courseList"));
+const MasterclassPage               = lazy(() => import("../Courses/masterclass/masterclassPage"));
 const CourseCategory                = lazy(() => import("../Courses/course-category/courseCategory"));
 const CourseCategoryTwo             = lazy(() => import("../Courses/course-category-two/courseCategoryTwo"));
 const CourseCategoryThree           = lazy(() => import("../Courses/course-category-three/courseCategoryThree"));
@@ -81,6 +82,7 @@ const AdminSettings                 = lazy(() => import("../admin/settings/admin
 const AdminAnalytics                = lazy(() => import("../admin/analytics/adminAnalytics"));
 const AdminSubscriptions            = lazy(() => import("../admin/subscriptions/adminSubscriptions"));
 const AdminReports                  = lazy(() => import("../admin/reports/adminReports"));
+const AdminCoupons                  = lazy(() => import("../admin/coupons/adminCoupons"));
 
 const BlogGrid                      = lazy(() => import("../blog/blog-layouts/blogGrid"));
 const BlogGrid2                     = lazy(() => import("../blog/blog-layouts/blogGrid2"));
@@ -102,11 +104,13 @@ const Notification                  = lazy(() => import("../Pages/notification/n
 const BecomeInstructor              = lazy(() => import("../Pages/become-instructor/becomeInstructor"));
 const Testimonials                  = lazy(() => import("../Pages/testimonials/testimonials"));
 const PricePlanning                 = lazy(() => import("../Pages/price-planning/pricePlanning"));
+const PaymentCallback               = lazy(() => import("../Pages/payment-callback/paymentCallback"));
 const Faq                           = lazy(() => import("../Pages/faq/faq"));
 const TermsCondition                = lazy(() => import("../Pages/terms-condition/termsCondition"));
 const PrivacyPolicy                 = lazy(() => import("../Pages/privacy-policy/privacyPolicy"));
 const Login                         = lazy(() => import("../auth/login/login"));
 const Register                      = lazy(() => import("../auth/register/register"));
+const VerifyEmail                   = lazy(() => import("../auth/verify-email/verifyEmail"));
 const ForgortPassword               = lazy(() => import("../auth/forgot-password/forgortPassword"));
 const SetPassword                   = lazy(() => import("../auth/set-password/setPassword"));
 const Otp                           = lazy(() => import("../auth/otp/otp"));
@@ -132,6 +136,11 @@ export const publicRoutes = [
   {
     path: routes.courseList,
     element: <CourseList />,
+    route: Route,
+  },
+  {
+    path: routes.masterclass,
+    element: <MasterclassPage />,
     route: Route,
   },
   {
@@ -420,6 +429,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.paymentCallback,
+    element: <PaymentCallback />,
+    route: Route,
+  },
+  {
     path: routes.FAQ,
     element: <Faq />,
     route: Route,
@@ -611,6 +625,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.adminCoupons,
+    element: <RoleGuard allowedRoles={['ADMIN']}><AdminCoupons /></RoleGuard>,
+    route: Route,
+  },
+  {
     path: routes.community,
     element: <CommunityPage />,
     route: Route,
@@ -631,6 +650,11 @@ export const authRoutes = [
   {
     path: routes.register,
     element: <Register />,
+    route: Route,
+  },
+  {
+    path: routes.verifyEmail,
+    element: <VerifyEmail />,
     route: Route,
   },
   {

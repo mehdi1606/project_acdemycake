@@ -7,11 +7,19 @@
  *  • Cinematic scan-line dark background
  *  • Staggered entrance animations
  */
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
 import { useCountUp } from '../hooks/useCountUp'
 import { useInView } from '../hooks/useInView'
+import { courseService } from '../../../../services/api/course.service'
+import { PlatformStats } from '../../../../services/api/types'
+
+// Convert raw number to display value + suffix (e.g. 50000 → { value: 50, suffix: 'K+' })
+const toKFormat = (n: number): { value: number; suffix: string } => {
+    if (n >= 1000) return { value: Math.floor(n / 1000), suffix: 'K+' }
+    return { value: n, suffix: '+' }
+}
 
 // ── Individual animated stat ──────────────────────────────────────────────────
 const Stat: React.FC<{
@@ -99,6 +107,15 @@ const StoryPanel: React.FC<{
 const WhyChooseUs: React.FC = () => {
     const route = all_routes
     const { ref, inView } = useInView<HTMLDivElement>(0.2)
+    const [stats, setStats] = useState<PlatformStats | null>(null)
+
+    useEffect(() => {
+        courseService.getPlatformStats().then(setStats).catch(() => {})
+    }, [])
+
+    // Dynamic values — fall back to brand defaults while loading
+    const students = stats ? toKFormat(stats.totalStudents || stats.totalEnrollments) : { value: 50, suffix: 'K+' }
+    const courses  = stats ? { value: stats.totalCourses, suffix: '+' }                : { value: 120, suffix: '+' }
 
     return (
         <section className="sl-why sl-section" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
@@ -134,16 +151,16 @@ const WhyChooseUs: React.FC = () => {
                 {/* ── Animated stats grid ── */}
                 <div ref={ref} className="row g-0 mb-5">
                     <div className="col-md-3 col-6">
-                        <Stat end={50} suffix="K+" label="Students Worldwide" desc="Across 50+ countries who have transformed their passion into profession." inView={inView} delay={0} />
+                        <Stat end={students.value} suffix={students.suffix} label="Students Worldwide" desc="Across 50+ countries who have transformed their passion into profession." inView={inView} delay={0} />
                     </div>
                     <div className="col-md-3 col-6">
                         <Stat end={98} suffix="%" label="Satisfaction Rate" desc="Students who rate SARALÖWE 5 stars and would recommend it." inView={inView} delay={120} />
                     </div>
                     <div className="col-md-3 col-6">
-                        <Stat end={120} suffix="+" label="Expert Courses" desc="Programmes spanning every discipline of couture pastry design." inView={inView} delay={240} />
+                        <Stat end={courses.value} suffix={courses.suffix} label="Expert Courses" desc="Programmes spanning every discipline of couture pastry design." inView={inView} delay={240} />
                     </div>
                     <div className="col-md-3 col-6">
-                        <Stat end={15} suffix="+" label="Award-Winning Tutors" desc="World-class pastry artists guiding you step by step." inView={inView} delay={360} />
+                        <Stat end={2} suffix="nd" label="World Cup Podium" desc="Coupe du Monde de la Pâtisserie — our tutors have stood on the international podium." inView={inView} delay={360} />
                     </div>
                 </div>
 
@@ -188,7 +205,7 @@ const WhyChooseUs: React.FC = () => {
                             </div>
                             <div className="col-6">
                                 <StoryPanel
-                                    src="Mockups/012.jpg"
+                                    src="Mockups/012.webp"
                                     fallbackSrc="Mockups/011.jpg"
                                     label="Toile de Jouy"
                                     delay={300}

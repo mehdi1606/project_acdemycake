@@ -73,8 +73,8 @@ const RichToolbar: React.FC<RichToolbarProps> = ({ editorRef }) => {
   return (
     <div style={{
       display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2,
-      padding: '6px 10px', background: 'rgba(107,29,42,0.02)',
-      borderRadius: '8px 8px 0 0', border: '1.5px solid rgba(107,29,42,0.12)',
+      padding: '6px 10px', background: 'rgba(101,28,50,0.04)',
+      borderRadius: '8px 8px 0 0', border: '1.5px solid rgba(101,28,50,0.12)',
       borderBottom: 'none',
     }}>
       {btn('fa-bold',          'bold',          'Bold')}
@@ -263,7 +263,7 @@ const CourseManage: React.FC = () => {
   const [textLessonTitle,    setTextLessonTitle]    = useState('');
   const [textLoadingContent, setTextLoadingContent] = useState(false);
   const [savingContent,      setSavingContent]      = useState(false);
-  const [resources,          setResources]          = useState<{ id: string; name: string; url: string; type: string; size?: number }[]>([]);
+  const [resources,          setResources]          = useState<{ id: number; name: string; url: string; type: string; size?: number }[]>([]);
   const [uploadingResource,  setUploadingResource]  = useState(false);
   const editorRef   = useRef<HTMLDivElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
@@ -354,7 +354,7 @@ const CourseManage: React.FC = () => {
     }
   }, [textLesson, message]);
 
-  const handleDeleteResource = useCallback(async (resourceId: string, name: string) => {
+  const handleDeleteResource = useCallback(async (resourceId: number, name: string) => {
     if (!textLesson) return;
     try {
       await instructorService.deleteLessonResource(textLesson.id, resourceId);
@@ -711,8 +711,8 @@ const CourseManage: React.FC = () => {
               <div
                 style={{
                   padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  background: module.isExpanded ? 'rgba(107, 29, 42, 0.02)' : 'transparent',
-                  borderBottom: module.isExpanded ? '1px solid rgba(107, 29, 42, 0.06)' : 'none',
+                  background: module.isExpanded ? 'rgba(101,28,50,0.03)' : 'transparent',
+                  borderBottom: module.isExpanded ? '1px solid rgba(101,28,50,0.07)' : 'none',
                   transition: 'background 0.2s ease',
                 }}
               >
@@ -963,16 +963,16 @@ const CourseManage: React.FC = () => {
               style={{
                 border: '2px dashed rgba(107, 29, 42, 0.12)', borderRadius: 'var(--lx-radius-sm)',
                 padding: '40px 24px', textAlign: 'center', cursor: 'pointer',
-                background: 'rgba(107, 29, 42, 0.015)', transition: 'border-color 0.2s, background 0.2s',
+                background: 'rgba(101,28,50,0.015)', transition: 'border-color 0.2s, background 0.2s',
               }}
               onClick={() => fileInputRef.current?.click()}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.25)';
-                e.currentTarget.style.background = 'rgba(107, 29, 42, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(101,28,50,0.25)';
+                e.currentTarget.style.background = 'rgba(101,28,50,0.03)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)';
-                e.currentTarget.style.background = 'rgba(107, 29, 42, 0.015)';
+                e.currentTarget.style.borderColor = 'rgba(101,28,50,0.12)';
+                e.currentTarget.style.background = 'rgba(101,28,50,0.015)';
               }}
             >
               <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="video/*" style={{ display: 'none' }} />
@@ -995,7 +995,7 @@ const CourseManage: React.FC = () => {
             {selectedFile && (
               <div style={{
                 marginTop: 16, padding: 14, borderRadius: 'var(--lx-radius-sm)',
-                background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.06)',
+                background: 'rgba(101,28,50,0.02)', border: '1px solid rgba(101,28,50,0.06)',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1123,12 +1123,12 @@ const CourseManage: React.FC = () => {
                   minHeight: 260, padding: '14px 16px',
                   border: '1.5px solid rgba(107,29,42,0.12)',
                   borderRadius: '0 0 8px 8px',
-                  fontSize: 14, lineHeight: 1.75, color: '#374151',
+                  fontSize: 14, lineHeight: 1.75, color: 'var(--lx-text)',
                   background: '#fff', outline: 'none', overflowY: 'auto',
                   fontFamily: 'inherit',
                 }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107,29,42,0.3)'; }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(107,29,42,0.12)'; }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(101,28,50,0.30)'; }}
+                onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(101,28,50,0.12)'; }}
               />
               <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginTop: 4, marginBottom: 0 }}>
                 Tip: Select text and use the toolbar to format. Supports bold, headings, lists, code blocks & more.
@@ -1208,8 +1208,8 @@ const CourseManage: React.FC = () => {
                       <div key={res.id} style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '10px 14px', borderRadius: 8, background: '#fff',
-                        border: '1px solid rgba(107,29,42,0.06)',
-                        boxShadow: '0 1px 4px rgba(107,29,42,0.04)',
+                        border: '1px solid rgba(101,28,50,0.06)',
+                        boxShadow: '0 1px 4px rgba(101,28,50,0.05)',
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
                           <i className={`fa-solid ${fi.icon}`} style={{ fontSize: 22, color: fi.color, flexShrink: 0 }} />

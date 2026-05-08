@@ -2,6 +2,7 @@ package com.academy.controller;
 
 import com.academy.dto.request.*;
 import com.academy.dto.response.*;
+import com.academy.dto.response.LessonResourceResponse;
 import com.academy.entity.enums.PostType;
 import com.academy.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -176,6 +177,25 @@ public class InstructorController {
             @RequestParam("file") MultipartFile file) {
         lessonService.uploadVideo(id, file);
         return ResponseEntity.ok(ApiResponse.success("Video upload started. Processing will begin shortly."));
+    }
+
+    @PostMapping("/lessons/{id}/resources")
+    @Operation(summary = "Upload a resource file (PDF, DOC, PPT, image…) to a lesson")
+    public ResponseEntity<ApiResponse<LessonResourceResponse>> uploadLessonResource(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
+        LessonResourceResponse resource = lessonService.uploadLessonResource(id, file, name);
+        return ResponseEntity.ok(ApiResponse.success("Resource uploaded", resource));
+    }
+
+    @DeleteMapping("/lessons/{id}/resources/{resourceId}")
+    @Operation(summary = "Delete a resource from a lesson")
+    public ResponseEntity<ApiResponse<Void>> deleteLessonResource(
+            @PathVariable UUID id,
+            @PathVariable Long resourceId) {
+        lessonService.deleteLessonResource(id, resourceId);
+        return ResponseEntity.ok(ApiResponse.success("Resource deleted"));
     }
 
     // Students

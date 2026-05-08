@@ -116,6 +116,10 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException("Your account has been banned. Reason: " + user.getBanReason());
         }
 
+        if (!user.getIsEmailVerified()) {
+            throw new UnauthorizedException("Please verify your email address before logging in. Check your inbox for the verification link.");
+        }
+
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 

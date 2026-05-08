@@ -31,10 +31,10 @@ const AdminDashboard = () => {
       type: 'gradient',
       gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] },
     },
-    xaxis: { categories: dashboard?.revenueHistory?.map((r) => r.month) || [], labels: { style: { colors: '#8B6D5E', fontSize: '12px' } } },
-    yaxis: { labels: { style: { colors: '#8B6D5E', fontSize: '12px' }, formatter: (v) => `$${v.toLocaleString()}` } },
+    xaxis: { categories: dashboard?.revenueHistory?.map((r) => r.month) || [], labels: { style: { colors: '#8B6D75', fontSize: '12px' } } },
+    yaxis: { labels: { style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v) => `$${v.toLocaleString()}` } },
     tooltip: { y: { formatter: (v) => `$${v.toLocaleString()}` } },
-    grid:   { borderColor: '#EDE0D4', strokeDashArray: 4 },
+    grid:   { borderColor: 'rgba(101,28,50,0.08)', strokeDashArray: 4 },
   };
 
   const revenueSeries = [
@@ -228,7 +228,7 @@ const AdminDashboard = () => {
                             </td>
                             <td style={{ textAlign: 'center' }}>{item.enrollmentsCount}</td>
                             <td style={{ textAlign: 'right' }}>
-                              <span style={{ fontWeight: 700, color: '#2D5F3F' }}>{fmt(item.revenue)}</span>
+                              <span style={{ fontWeight: 700, color: '#2D7A4F' }}>{fmt(item.revenue)}</span>
                             </td>
                           </tr>
                         ))}
@@ -278,7 +278,7 @@ const AdminDashboard = () => {
                             </td>
                             <td style={{ textAlign: 'center' }}>{item.studentsCount}</td>
                             <td style={{ textAlign: 'right' }}>
-                              <span style={{ fontWeight: 700, color: '#2D5F3F' }}>{fmt(item.totalRevenue)}</span>
+                              <span style={{ fontWeight: 700, color: '#2D7A4F' }}>{fmt(item.totalRevenue)}</span>
                             </td>
                           </tr>
                         ))}

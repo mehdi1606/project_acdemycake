@@ -60,7 +60,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => (
             borderRadius: 'var(--lx-radius-sm) 0 0 var(--lx-radius-sm)',
             fontSize: 14,
             outline: 'none',
-            background: 'rgba(255,255,255,0.6)',
+            background: '#fff',
             color: 'var(--lx-text)',
           }}
         />
@@ -287,7 +287,7 @@ const InstructorEarning = () => {
       },
     },
     tooltip: { y: { formatter: (val) => val.toFixed(2) + ' MAD' } },
-    grid: { borderColor: 'rgba(107, 29, 42, 0.06)' },
+    grid: { borderColor: 'rgba(101,28,50,0.08)' },
   }
 
   const chartSeries = [{ name: 'Net Earnings (MAD)', data: chartValues.length ? chartValues : [] }]

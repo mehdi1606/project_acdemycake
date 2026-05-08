@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import Breadcrumb from '../../../core/common/Breadcrumb/breadcrumb';
 import { Link, useNavigate } from 'react-router-dom';
+import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import CustomSelect from '../../../core/common/commonSelect';
-import { CourseLevel, Language, PrivateCourse } from '../../../core/common/selectOption/json/selectOption';
+import { CourseLevel, Language } from '../../../core/common/selectOption/json/selectOption';
 import DefaultEditor from "react-simple-wysiwyg";
 import VideoModal from '../../HomePages/home-one/section/videoModal';
 import { all_routes } from '../../router/all_routes';
@@ -123,6 +123,18 @@ const AddNewCourse = () => {
   const validateStep1 = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    // Mark all step-1 fields as touched so errors display immediately
+    setTouched(prev => ({
+      ...prev,
+      title: true,
+      category: true,
+      level: true,
+      language: true,
+      courseType: true,
+      shortDescription: true,
+      description: true,
+    }));
+
     if (!formData.title.trim()) {
       newErrors.title = 'Course title is required';
     } else if (formData.title.trim().length < 5) {
@@ -139,6 +151,10 @@ const AddNewCourse = () => {
 
     if (!formData.language) {
       newErrors.language = 'Please select a language';
+    }
+
+    if (!formData.courseType) {
+      newErrors.courseType = 'Please select a course type';
     }
 
     if (!formData.shortDescription.trim()) {
@@ -174,7 +190,8 @@ const AddNewCourse = () => {
   const validateStep5 = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.isFree) {
+    // Only MASTERCLASS requires a price — PLAN courses are subscription-based (no individual payment)
+    if (formData.courseType === 'MASTERCLASS') {
       if (!formData.price.trim()) {
         newErrors.price = 'Please enter a course price';
       } else if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
@@ -212,11 +229,12 @@ const AddNewCourse = () => {
         const categoryValid = !!formData.category;
         const levelValid = !!formData.level;
         const languageValid = !!formData.language;
+        const courseTypeValid = !!formData.courseType;
         const shortDescValid = formData.shortDescription.trim().length >= 20;
         const descriptionText = formData.description.replace(/<[^>]*>/g, '').trim();
         const descriptionValid = descriptionText.length >= 50;
 
-        return titleValid && categoryValid && levelValid && languageValid && shortDescValid && descriptionValid;
+        return titleValid && categoryValid && levelValid && languageValid && courseTypeValid && shortDescValid && descriptionValid;
       case 2:
         return true; // Media step is optional
       case 3:
@@ -224,13 +242,18 @@ const AddNewCourse = () => {
       case 4:
         return true; // Additional info is optional
       case 5:
-        if (formData.isFree) return true;
+        // PLAN = subscription, no price required. MASTERCLASS = must set a price.
+        if (formData.courseType === 'PLAN') {
+          const expiryOk = formData.expiryType === 'lifetime' ||
+            (formData.expiryMonths && Number(formData.expiryMonths) > 0);
+          return Boolean(expiryOk);
+        }
         const priceValid = formData.price && !isNaN(Number(formData.price)) && Number(formData.price) > 0;
         const discountValid = !formData.hasDiscount ||
           (formData.discountPrice && Number(formData.discountPrice) > 0 && Number(formData.discountPrice) < Number(formData.price));
         const expiryValid = formData.expiryType === 'lifetime' ||
           (formData.expiryMonths && Number(formData.expiryMonths) > 0);
-        return priceValid && discountValid && expiryValid;
+        return Boolean(priceValid && discountValid && expiryValid);
       default:
         return false;
     }
@@ -365,6 +388,9 @@ const AddNewCourse = () => {
     if (!formData.language) {
       validationErrors.push('Please select a language');
     }
+    if (!formData.courseType) {
+      validationErrors.push('Please select a course type (Plan or Masterclass)');
+    }
     if (!formData.shortDescription.trim() || formData.shortDescription.trim().length < 20) {
       validationErrors.push('Short description is required (min 20 characters)');
     }
@@ -396,18 +422,21 @@ const AddNewCourse = () => {
     setIsSubmitting(true);
     try {
       // Prepare the course data - match backend CreateCourseRequest fields
+      const isMasterclass = formData.courseType === 'MASTERCLASS';
+      const isPlan = formData.courseType === 'PLAN';
       const courseData = {
         title: formData.title,
         shortDescription: formData.shortDescription,
         description: formData.description,
-        categoryId: formData.category, // Send as string (UUID)
+        categoryId: formData.category,
         level: formData.level as CourseLevelType,
         language: formData.language || 'fr',
-        // Pricing: if has discount, originalPrice is the full price, price is the discounted price
-        price: formData.isFree ? 0 : (formData.hasDiscount ? parseFloat(formData.discountPrice) : parseFloat(formData.price)),
-        originalPrice: formData.isFree ? undefined : (formData.hasDiscount ? parseFloat(formData.price) : undefined),
-        requiresPurchase: !formData.isFree,
-        // Convert arrays to comma-separated strings for backend
+        courseType: formData.courseType,
+        // PLAN = subscription access, price=0, no purchase required
+        // MASTERCLASS = paid individually, use entered price
+        price: isPlan ? 0 : (formData.hasDiscount ? parseFloat(formData.discountPrice) : parseFloat(formData.price || '0')),
+        originalPrice: isMasterclass && formData.hasDiscount ? parseFloat(formData.price) : undefined,
+        requiresPurchase: isMasterclass,
         requirements: formData.requirements.filter(r => r.trim() !== '').join('\n'),
         whatYouWillLearn: formData.learningObjectives.filter(o => o.trim() !== '').join('\n'),
         tags: Array.isArray(value1) ? value1.join(',') : (value1 || ''),
@@ -440,13 +469,15 @@ const AddNewCourse = () => {
   };
 
   return (
-    <>
-      <Breadcrumb title='Add New Course' />
+    <LuxuryDashboardLayout>
+      {/* Page title */}
+      <div className="lx-section-header mb-4">
+        <h5 className="section-title">Add New Course</h5>
+      </div>
 
-      <>
-        {/* Course add */}
-        <div className="content">
-          <div className="container">
+      {/* Course add */}
+      <div>
+        <div className="container-fluid px-0">
             <div className="row">
               <div className="col-lg-10 mx-auto">
                 <div className="add-course-item">
@@ -647,35 +678,109 @@ const AddNewCourse = () => {
                               )}
                             </div>
                           </div>
-                          <div className="col-md-6">
+                          <div className="col-md-12">
                             <div className="input-block">
                               <label className="form-label">
-                                Max Number of Students
+                                Course Type<span className="text-danger ms-1">*</span>
                               </label>
-                              <input
-                                type="number"
-                                className="form-control student-count"
-                                value={formData.maxStudents}
-                                onChange={(e) => handleInputChange('maxStudents', e.target.value)}
-                                placeholder="Leave empty for unlimited"
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="input-block">
-                              <label className="form-label">
-                                Public / Private Course
-                              </label>
-                              <select
-                                className="form-select"
-                                value={formData.courseType}
-                                onChange={(e) => handleInputChange('courseType', e.target.value)}
-                              >
-                                <option value="">Select</option>
-                                {PrivateCourse.map((opt) => (
-                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                              </select>
+                              <p className="text-muted small mb-3">
+                                Choose how students will access this course. This cannot be changed after publishing.
+                              </p>
+                              <div className="row g-3">
+                                {/* Plan card */}
+                                <div className="col-md-6">
+                                  <div
+                                    onClick={() => handleInputChange('courseType', 'PLAN')}
+                                    style={{
+                                      border: `2px solid ${formData.courseType === 'PLAN' ? '#651C32' : 'rgba(101,28,50,0.15)'}`,
+                                      borderRadius: 12,
+                                      padding: '20px 22px',
+                                      cursor: 'pointer',
+                                      background: formData.courseType === 'PLAN' ? 'rgba(101,28,50,0.04)' : '#fff',
+                                      transition: 'all 0.2s ease',
+                                      position: 'relative',
+                                    }}
+                                  >
+                                    {formData.courseType === 'PLAN' && (
+                                      <span style={{
+                                        position: 'absolute', top: 12, right: 14,
+                                        width: 20, height: 20, borderRadius: '50%',
+                                        background: '#651C32',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      }}>
+                                        <i className="fa-solid fa-check" style={{ fontSize: 10, color: '#fff' }} />
+                                      </span>
+                                    )}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                                      <span style={{
+                                        width: 44, height: 44, borderRadius: 10,
+                                        background: 'rgba(101,28,50,0.08)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                                      }}>
+                                        <i className="isax isax-book-1" style={{ fontSize: 22, color: '#651C32' }} />
+                                      </span>
+                                      <div>
+                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#651C32', fontSize: 15 }}>Plan Course</h6>
+                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>Included in subscription</span>
+                                      </div>
+                                    </div>
+                                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
+                                      <li>Accessible to all active subscribers</li>
+                                      <li>No additional payment required</li>
+                                      <li>Part of the SARALÖWE catalogue</li>
+                                    </ul>
+                                  </div>
+                                </div>
+                                {/* Masterclass card */}
+                                <div className="col-md-6">
+                                  <div
+                                    onClick={() => handleInputChange('courseType', 'MASTERCLASS')}
+                                    style={{
+                                      border: `2px solid ${formData.courseType === 'MASTERCLASS' ? '#C5912C' : 'rgba(197,145,44,0.2)'}`,
+                                      borderRadius: 12,
+                                      padding: '20px 22px',
+                                      cursor: 'pointer',
+                                      background: formData.courseType === 'MASTERCLASS' ? 'rgba(197,145,44,0.04)' : '#fff',
+                                      transition: 'all 0.2s ease',
+                                      position: 'relative',
+                                    }}
+                                  >
+                                    {formData.courseType === 'MASTERCLASS' && (
+                                      <span style={{
+                                        position: 'absolute', top: 12, right: 14,
+                                        width: 20, height: 20, borderRadius: '50%',
+                                        background: '#C5912C',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      }}>
+                                        <i className="fa-solid fa-check" style={{ fontSize: 10, color: '#fff' }} />
+                                      </span>
+                                    )}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                                      <span style={{
+                                        width: 44, height: 44, borderRadius: 10,
+                                        background: 'rgba(197,145,44,0.1)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                                      }}>
+                                        <i className="isax isax-crown" style={{ fontSize: 22, color: '#C5912C' }} />
+                                      </span>
+                                      <div>
+                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#9A6F1A', fontSize: 15 }}>Masterclass</h6>
+                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>One-time purchase</span>
+                                      </div>
+                                    </div>
+                                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
+                                      <li>Students pay individually per course</li>
+                                      <li>Premium exclusive content</li>
+                                      <li>Set your own price in Step 5</li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
+                              {!formData.courseType && errors.courseType && (
+                                <div className="text-danger small mt-2">
+                                  <i className="isax isax-warning-2 me-1" /> Please select a course type
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="col-md-12">
@@ -841,10 +946,9 @@ const AddNewCourse = () => {
                           <div className="btn-left">
                             <button
                               type="button"
-                              className={`btn main-btn next_btns ${!isStepValid ? 'btn-secondary opacity-50' : ''}`}
+                              className="btn main-btn next_btns"
                               onClick={handleNext}
-                              disabled={!isStepValid}
-                              style={{ cursor: isStepValid ? 'pointer' : 'not-allowed' }}
+                              style={{ cursor: 'pointer' }}
                             >
                               Next <i className="isax isax-arrow-right-3 ms-1" />
                             </button>
@@ -1304,30 +1408,32 @@ const AddNewCourse = () => {
                       <fieldset className="form-inner wizard-form-card" style={{ display: 'block' }}>
                         <div className="title mb-4">
                           <h5>Pricing Information</h5>
+                          {/* Course type context banner */}
+                          {formData.courseType === 'MASTERCLASS' ? (
+                            <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
+                              style={{ background: 'rgba(197,145,44,0.07)', border: '1px solid rgba(197,145,44,0.2)' }}>
+                              <i className="isax isax-crown" style={{ fontSize: 18, color: '#C5912C' }} />
+                              <span style={{ fontSize: 13, color: '#7A5A0A', fontWeight: 500 }}>
+                                <strong>Masterclass</strong> — Students pay individually to access this course. Set your price below.
+                              </span>
+                            </div>
+                          ) : formData.courseType === 'PLAN' ? (
+                            <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
+                              style={{ background: 'rgba(45,95,63,0.06)', border: '1px solid rgba(45,95,63,0.18)' }}>
+                              <i className="isax isax-tick-circle" style={{ fontSize: 18, color: '#2D5F3F' }} />
+                              <span style={{ fontSize: 13, color: '#2D5F3F', fontWeight: 500 }}>
+                                <strong>Plan Course</strong> — Subscribers get access automatically. No individual price required.
+                              </span>
+                            </div>
+                          ) : null}
                         </div>
                         <div>
-                          <div className="d-flex align-items-center mb-3">
-                            <div className="form-check form-check-md d-flex align-items-center">
-                              <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="flexCheckChecked1"
-                                checked={formData.isFree}
-                                onChange={(e) => handleInputChange('isFree', e.target.checked)}
-                              />
-                              <label
-                                className="form-check-label ms-2"
-                                htmlFor="flexCheckChecked1"
-                              >
-                                Check if this is a free course
-                              </label>
-                            </div>
-                          </div>
-                          {!formData.isFree && (
+                          {/* Price fields — only for MASTERCLASS (PLAN = subscription, no separate payment) */}
+                          {formData.courseType === 'MASTERCLASS' && (
                             <>
                               <div className="input-block mb-2">
                                 <label className="form-label">
-                                  Course Price ($)<span className="text-danger ms-1">*</span>
+                                  Course Price (MAD)<span className="text-danger ms-1">*</span>
                                 </label>
                                 <input
                                   type="number"
@@ -1360,9 +1466,9 @@ const AddNewCourse = () => {
                                 </div>
                               </div>
                               {formData.hasDiscount && (
-                                <div className="input-block">
+                                <div className="input-block mb-3">
                                   <label className="form-label">
-                                    Discount Price ($)<span className="text-danger ms-1">*</span>
+                                    Discount Price (MAD)<span className="text-danger ms-1">*</span>
                                   </label>
                                   <input
                                     type="number"
@@ -1493,7 +1599,6 @@ const AddNewCourse = () => {
           </div>
         </div>
         {/* /Course watch */}
-      </>
 
       {/* Add topic */}
       <div className="modal fade" id="add-topic">
@@ -1745,7 +1850,7 @@ const AddNewCourse = () => {
         </div>
       </Modal>
 
-    </>
+    </LuxuryDashboardLayout>
   )
 }
 

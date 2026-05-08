@@ -2,6 +2,7 @@ package com.academy.dto.request;
 
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseStatus;
+import com.academy.entity.enums.CourseType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,8 @@ public class UpdateCourseRequest {
     private UUID categoryId;
 
     private Boolean isBeginner;
+
+    private CourseType courseType;
 
     private Boolean requiresPurchase;
 

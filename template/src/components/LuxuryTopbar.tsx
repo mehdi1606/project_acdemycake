@@ -291,12 +291,13 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         </button>
 
         <Link to={all_routes.homeone} className="topbar-logo">
-          <ImageWithBasePath
-            src="assets/img/logo-white.png"
-            alt="Academy Logo"
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+            alt="SARALÖWE Academy"
             className="topbar-logo-img"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
-          <span className="topbar-logo-text">Academy</span>
+          <span className="topbar-logo-text">SARALÖWE</span>
         </Link>
       </div>
 

@@ -11,7 +11,7 @@ public interface SubscriptionService {
 
     List<SubscriptionPlanResponse> getSubscriptionPlans();
 
-    PaymentResponse subscribe();
+    PaymentResponse subscribe(String planId, String couponCode);
 
     SubscriptionResponse getMySubscription();
 

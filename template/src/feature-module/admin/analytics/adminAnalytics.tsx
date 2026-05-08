@@ -42,7 +42,7 @@ const AdminAnalytics: React.FC = () => {
     colors: ['#C9A227'],
     xaxis: { categories: data.revenueByDay.map((d: any) => d.date), labels: { style: { fontSize: '11px' } } },
     yaxis: { labels: { formatter: (v: number) => `${v.toFixed(0)}` } },
-    tooltip: { theme: 'light' },
+    tooltip: { theme: 'dark' },
     series: [{ name: 'Revenue', data: data.revenueByDay.map((d: any) => d.amount) }],
   } : null;
 
@@ -52,7 +52,7 @@ const AdminAnalytics: React.FC = () => {
     colors: ['#3B82F6'],
     xaxis: { categories: data.usersByDay.map((d: any) => d.date), labels: { style: { fontSize: '11px' } } },
     series: [{ name: 'New Users', data: data.usersByDay.map((d: any) => d.count) }],
-    tooltip: { theme: 'light' },
+    tooltip: { theme: 'dark' },
   } : null;
 
   return (
@@ -144,7 +144,7 @@ const AdminAnalytics: React.FC = () => {
                   <h6 className="fw-bold mb-3">Top Courses</h6>
                   <div className="table-responsive">
                     <table className="table table-hover mb-0">
-                      <thead className="table-light">
+                      <thead>
                         <tr>
                           <th>Course</th>
                           <th>Enrollments</th>

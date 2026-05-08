@@ -1,42 +1,47 @@
 import React, { useEffect } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
+/* Auth-route shell — renders the outlet directly.
+   Error / maintenance pages keep their bg treatment; all other
+   auth pages (login, register, forgot-password …) render clean
+   with no extra wrappers so the sl-auth full-screen layout works. */
 const AuthFeature = () => {
   const location = useLocation();
-  const [isError, setIsError] = React.useState(false)
+  const [isError, setIsError] = React.useState(false);
+
   useEffect(() => {
-    const layoutPages = location.pathname === "/under-maintenance" || location.pathname === "/error-404" || location.pathname === "/error-500"
-    if (layoutPages) {
-      document.body.classList.add('bg-primary-transparent')
-      setIsError(true)
+    const errorPages =
+      location.pathname === "/under-maintenance" ||
+      location.pathname === "/error-404" ||
+      location.pathname === "/error-500";
+
+    if (errorPages) {
+      document.body.classList.add("bg-primary-transparent");
+      setIsError(true);
     } else {
-      setIsError(false)
-      document.body.classList.remove('bg-primary-transparent')
+      setIsError(false);
+      document.body.classList.remove("bg-primary-transparent");
     }
 
     return () => {
-      document.body.classList.remove('bg-primary-transparent')
-    }
-  }, [location.pathname])
+      document.body.classList.remove("bg-primary-transparent");
+    };
+  }, [location.pathname]);
 
-  const comingSoon = location.pathname === "/pages/coming-soon"
+  const comingSoon = location.pathname === "/pages/coming-soon";
 
-  return (
-    <>
-      {isError ?
+  if (isError) return <Outlet />;
+
+  if (comingSoon) {
+    return (
+      <div className="coming-soon-wrapper">
         <Outlet />
-        :
-        <div className={`"main-wrapper authentication-wrapper" ${comingSoon ? 'coming-soon-wrapper' : ''}`}>
-          <div className="container-fuild">
-            <Outlet />
-          </div>
-          <div className="coprright-footer">
-            <p className="fs-14">Copyright &copy; 2025. All Rights Reserved, <Link to="#" className="text-primary fw-medium">DreamsTour</Link></p>
-          </div>
-        </div>}
+      </div>
+    );
+  }
 
-    </>
-  );
+  // Login / Register / Forgot-password — full-screen, no wrappers
+  return <Outlet />;
 };
 
 export default AuthFeature;

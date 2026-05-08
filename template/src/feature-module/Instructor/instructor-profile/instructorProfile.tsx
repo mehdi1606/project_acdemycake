@@ -123,7 +123,7 @@ const InstructorProfile = () => {
                   className={`lx-badge ${
                     user?.subscriptionStatus === 'ACTIVE' ? 'badge-success' :
                     user?.subscriptionStatus === 'EXPIRED' ? 'badge-danger' :
-                    user?.subscriptionStatus === 'PENDING' ? 'badge-warning' : 'badge-slate'
+                    user?.subscriptionStatus === 'PAST_DUE' ? 'badge-warning' : 'badge-slate'
                   }`}
                 >
                   {user?.subscriptionStatus || 'NONE'}

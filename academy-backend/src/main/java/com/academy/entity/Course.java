@@ -2,6 +2,7 @@ package com.academy.entity;
 
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseStatus;
+import com.academy.entity.enums.CourseType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -57,6 +58,16 @@ public class Course extends BaseEntity {
     @Column(name = "is_beginner", nullable = false)
     @Builder.Default
     private Boolean isBeginner = false;
+
+    /**
+     * PLAN        – included in subscription (subscribers access for free).
+     * MASTERCLASS – one-time purchase even for subscribers.
+     * Defaults to PLAN for backward compatibility.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "course_type", length = 20, columnDefinition = "varchar(20) DEFAULT 'PLAN'")
+    @Builder.Default
+    private CourseType courseType = CourseType.PLAN;
 
     @Column(name = "requires_purchase", nullable = false)
     @Builder.Default

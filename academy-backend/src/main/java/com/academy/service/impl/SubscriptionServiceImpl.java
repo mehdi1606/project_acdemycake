@@ -16,6 +16,7 @@ import com.academy.repository.PaymentTransactionRepository;
 import com.academy.repository.SubscriptionRepository;
 import com.academy.repository.UserRepository;
 import com.academy.security.UserPrincipal;
+import com.academy.service.CouponService;
 import com.academy.service.EmailService;
 import com.academy.service.EnrollmentService;
 import com.academy.service.SubscriptionService;
@@ -48,6 +49,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final EnrollmentService enrollmentService;
     private final EmailService emailService;
     private final PayZoneService payZoneService;
+    private final CouponService couponService;
+
+    @Value("${app.subscription.monthly-price}")
+    private BigDecimal monthlyPrice;
 
     @Value("${app.subscription.yearly-price}")
     private BigDecimal yearlyPrice;
@@ -57,42 +62,80 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public List<SubscriptionPlanResponse> getSubscriptionPlans() {
+        List<String> baseFeatures = Arrays.asList(
+                "Access to all courses",
+                "Student dashboard",
+                "Course completion certificates",
+                "Community forum access",
+                "Messaging with instructors",
+                "Progress tracking"
+        );
         return Arrays.asList(
                 SubscriptionPlanResponse.builder()
+                        .planId("monthly")
+                        .name("Monthly")
+                        .description("Full access billed month to month")
+                        .price(monthlyPrice)
+                        .currency(currency)
+                        .billingPeriod("monthly")
+                        .features(baseFeatures)
+                        .isPopular(false)
+                        .build(),
+                SubscriptionPlanResponse.builder()
                         .planId("yearly")
-                        .name("Yearly Subscription")
-                        .description("Full access to community and all beginner courses for one year")
+                        .name("Annual")
+                        .description("Best value — includes all Masterclasses + coupon eligible")
                         .price(yearlyPrice)
                         .currency(currency)
                         .billingPeriod("yearly")
-                        .features(Arrays.asList(
-                                "Access to all beginner courses",
-                                "Community access",
-                                "Course certificates",
-                                "Direct messaging with instructors",
-                                "Priority support"
-                        ))
+                        .features(baseFeatures)
                         .isPopular(true)
                         .build()
         );
     }
 
+    /**
+     * Resolve plan metadata from planId.
+     * The plan prefix is encoded into the orderId so that
+     * {@link #processSuccessfulPayment} can reconstruct the plan details
+     * from just the orderId, without needing an extra DB column.
+     */
+    private record PlanMeta(String prefix, BigDecimal price, String label) {}
+
+    private PlanMeta resolvePlan(String planId) {
+        return switch (planId.toLowerCase()) {
+            case "monthly" -> new PlanMeta("SUB-MON", monthlyPrice, "Monthly Subscription — SARALÖWE Academy");
+            default        -> new PlanMeta("SUB-YEA", yearlyPrice,  "Annual Subscription — SARALÖWE Academy");
+        };
+    }
+
     @Override
     @Transactional
-    public PaymentResponse subscribe() {
+    public PaymentResponse subscribe(String planId, String couponCode) {
         User user = getCurrentUser();
 
         if (user.hasActiveSubscription()) {
             throw new BadRequestException("You already have an active subscription");
         }
 
-        String orderId = "SUB-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        PlanMeta plan = resolvePlan(planId);
+
+        // Apply coupon discount (only for yearly plan)
+        BigDecimal finalPrice = plan.price();
+        if (couponCode != null && !couponCode.isBlank()) {
+            if (!"yearly".equalsIgnoreCase(planId)) {
+                throw new BadRequestException("Coupons are only valid for the Annual plan");
+            }
+            finalPrice = couponService.applyCoupon(couponCode, user, plan.price());
+        }
+
+        String orderId = plan.prefix() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         PaymentTransaction transaction = PaymentTransaction.builder()
                 .user(user)
                 .payzoneOrderId(orderId)
                 .transactionType("SUBSCRIPTION")
-                .amount(yearlyPrice)
+                .amount(finalPrice)
                 .currency(currency)
                 .status(PaymentStatus.PENDING)
                 .expiresAt(LocalDateTime.now().plusHours(1))
@@ -102,16 +145,17 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         PaymentResponse paymentResponse = payZoneService.initiatePayment(
                 orderId,
-                yearlyPrice,
+                finalPrice,
                 currency,
-                "Yearly Subscription - Cake Design Academy",
+                plan.label(),
                 user.getEmail()
         );
 
         transaction.setPaymentUrl(paymentResponse.getPaymentUrl());
         transactionRepository.save(transaction);
 
-        log.info("Subscription payment initiated for user: {} - Order: {}", user.getEmail(), orderId);
+        log.info("Subscription payment initiated for user: {} - Order: {} - Amount: {} {}",
+                user.getEmail(), orderId, finalPrice, currency);
 
         return paymentResponse;
     }
@@ -166,6 +210,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription = subscriptionRepository.save(subscription);
 
+        // Keep the User entity in sync so hasActiveSubscription() returns correctly
+        user.setSubscriptionStatus(SubscriptionStatus.ACTIVE);
+        userRepository.save(user);
+
         log.info("Subscription reactivated for user: {}", user.getEmail());
         return SubscriptionResponse.fromEntity(subscription);
     }
@@ -207,12 +255,22 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         User user = transaction.getUser();
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime periodEnd = now.plusYears(1);
+
+        // Determine plan type and period end from the orderId prefix encoded during subscribe()
+        String planType;
+        LocalDateTime periodEnd;
+        if (orderId.startsWith("SUB-MON")) {
+            planType = "MONTHLY";
+            periodEnd = now.plusMonths(1);
+        } else {
+            planType = "YEARLY";
+            periodEnd = now.plusYears(1);
+        }
 
         Subscription subscription = Subscription.builder()
                 .user(user)
                 .payzoneTransactionId(payzoneTransactionId)
-                .planType("YEARLY")
+                .planType(planType)
                 .status(SubscriptionStatus.ACTIVE)
                 .currentPeriodStart(now)
                 .currentPeriodEnd(periodEnd)

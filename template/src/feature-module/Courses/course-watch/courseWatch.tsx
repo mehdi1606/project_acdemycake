@@ -1,128 +1,145 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import Breadcrumb from '../../../core/common/Breadcrumb/breadcrumb';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import courseService from '../../../services/api/course.service';
 import quizService from '../../../services/api/quiz.service';
-import { Course, CourseLesson, CourseModule, LessonDetail, Quiz, QuizAttempt } from '../../../services/api/types';
+import {
+  Course, CourseLesson, CourseModule,
+  LessonDetail, LessonResource, Quiz, QuizAttempt,
+} from '../../../services/api/types';
 import { all_routes } from '../../router/all_routes';
+import { getFileUrl } from '../../../environment';
+import { useAppSelector } from '../../../core/redux/hooks';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const fmtDuration = (seconds?: number) => {
   if (!seconds) return '';
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
 };
-
 const flatLessons = (mods: CourseModule[]): CourseLesson[] =>
   mods.flatMap(m => m.lessons ?? []);
 
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const DARK_BG    = '#0e0508';
+const SIDEBAR_BG = 'linear-gradient(180deg,#130710 0%,#1e0c13 55%,#2b0f1a 100%)';
+const GOLD       = '#C5973E';
+const GOLD_L     = '#DEBB6B';
+const BURG       = '#651C32';
+const BURG_D     = '#8B2335';
+const IVORY      = '#F7F4EE';
+const WHITE      = '#ffffff';
+
+// ─── Panel styles (used in overview tab) ─────────────────────────────────────
+const panelStyle: React.CSSProperties = {
+  background: WHITE,
+  borderRadius: 14,
+  padding: 22,
+  boxShadow: '0 2px 20px rgba(78,20,32,0.06)',
+  border: '1px solid rgba(197,151,62,0.1)',
+};
+const panelTitle: React.CSSProperties = {
+  fontFamily: "'Playfair Display',Georgia,serif",
+  fontSize: 16,
+  fontWeight: 800,
+  color: '#2C1810',
+  marginBottom: 14,
+  paddingBottom: 10,
+  borderBottom: '2px solid rgba(197,151,62,0.12)',
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
-
-const CourseWatch = () => {
+const CourseWatch: React.FC = () => {
   const { courseSlug } = useParams<{ courseSlug: string }>();
-  const routes = all_routes;
+  const navigate       = useNavigate();
+  const routes         = all_routes;
+  const { user }       = useAppSelector(s => s.auth);
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  const [course, setCourse] = useState<Course | null>(null);
-  const [modules, setModules] = useState<CourseModule[]>([]);
-  const [selectedLesson, setSelectedLesson] = useState<CourseLesson | null>(null);
-  const [lessonDetail, setLessonDetail] = useState<LessonDetail | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [lessonLoading, setLessonLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-  const [openModuleIds, setOpenModuleIds] = useState<Set<string>>(new Set());
-  const [markingComplete, setMarkingComplete] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'resources'>('overview');
-  const [lessonQuiz, setLessonQuiz] = useState<Quiz | null>(null);
-  const [quizLoading, setQuizLoading] = useState(false);
-  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
-  const [enrollmentCompleted, setEnrollmentCompleted] = useState(false);
+  // Course state
+  const [course,          setCourse]          = useState<Course | null>(null);
+  const [modules,         setModules]         = useState<CourseModule[]>([]);
+  const [selectedLesson,  setSelectedLesson]  = useState<CourseLesson | null>(null);
+  const [lessonDetail,    setLessonDetail]    = useState<LessonDetail | null>(null);
+  const [videoUrl,        setVideoUrl]        = useState<string | null>(null);
+  const [loading,         setLoading]         = useState(true);
+  const [lessonLoading,   setLessonLoading]   = useState(false);
+  const [error,           setError]           = useState('');
+  const [completedIds,    setCompletedIds]    = useState<Set<string>>(new Set());
+  const [openModuleIds,   setOpenModuleIds]   = useState<Set<string>>(new Set());
+  const [markingDone,     setMarkingDone]     = useState(false);
+  const [activeTab,       setActiveTab]       = useState<'overview'|'resources'>('overview');
+  const [courseComplete,  setCourseComplete]  = useState(false);
 
-  // ── Inline quiz overlay state ──────────────────────────────────────────────
-  type QuizPhase = 'loading' | 'error' | 'quiz' | 'result' | 'violation';
+  // Resource viewer
+  const [activeRes,       setActiveRes]       = useState<LessonResource | null>(null);
+  const [pdfBlobUrl,      setPdfBlobUrl]      = useState<string | null>(null);
+  const [pdfBlobLoading,  setPdfBlobLoading]  = useState(false);
+  const [pdfBlobError,    setPdfBlobError]    = useState(false);
+
+  // Quiz panel state
+  const [lessonQuiz,      setLessonQuiz]      = useState<Quiz | null>(null);
+  const [quizLoading,     setQuizLoading]     = useState(false);
+  const [quizAttempts,    setQuizAttempts]    = useState<QuizAttempt[]>([]);
+
+  // Inline quiz overlay
+  type QuizPhase = 'loading'|'error'|'quiz'|'result'|'violation';
   type QuizAnswer = { questionId: string; selectedOptionIds: string[] };
-  type QuizFeedback = { correct: boolean; correctOptionIds: string[]; explanation?: string };
-  type InlineQuizResult = { score: number; totalPoints: number; percentage: number; passed: boolean; violated: boolean };
-  type InlineQuizQuestion = {
-    id: string; type: string; text: string; points: number; orderIndex: number;
-    options: { id: string; text: string; isCorrect: boolean | null; orderIndex: number }[];
-  };
-  type InlineQuizData = {
-    id: string; title: string; description: string; passingScore: number;
-    duration: number; shuffleQuestions: boolean; totalPoints: number;
-    questions: InlineQuizQuestion[];
-  };
-  const [quizOverlayOpen, setQuizOverlayOpen] = useState(false);
-  const [quizPhase, setQuizPhase] = useState<QuizPhase>('loading');
-  const [quizErrorMsg, setQuizErrorMsg] = useState('');
-  const [activeQuizData, setActiveQuizData] = useState<InlineQuizData | null>(null);
-  const [inlineAttemptId, setInlineAttemptId] = useState<string | null>(null);
-  const [inlineEndsAt, setInlineEndsAt] = useState<Date | null>(null);
-  const [inlineCurrentIdx, setInlineCurrentIdx] = useState(0);
-  const [inlineSelectedIds, setInlineSelectedIds] = useState<string[]>([]);
-  const [inlineFeedback, setInlineFeedback] = useState<QuizFeedback | null>(null);
-  const [inlineAnswers, setInlineAnswers] = useState<QuizAnswer[]>([]);
-  const [inlineResult, setInlineResult] = useState<InlineQuizResult | null>(null);
-  const [inlineTimeLeft, setInlineTimeLeft] = useState(0);
-  const [inlineIsChecking, setInlineIsChecking] = useState(false);
+  type QResult    = { score: number; totalPoints: number; percentage: number; passed: boolean; violated: boolean };
+  type QQuestion  = { id: string; type: string; text: string; points: number; orderIndex: number;
+                      options: { id: string; text: string; isCorrect: boolean|null; orderIndex: number }[] };
+  type QData      = { id: string; title: string; description: string; passingScore: number;
+                      duration: number; shuffleQuestions: boolean; totalPoints: number; questions: QQuestion[] };
 
-  // Refs so anti-cheat callbacks always see fresh values
-  const inlineAttemptIdRef = useRef<string | null>(null);
-  const inlineAnswersRef = useRef<QuizAnswer[]>([]);
-  const quizPhaseRef = useRef<QuizPhase>('loading');
+  const [quizOpen,    setQuizOpen]    = useState(false);
+  const [quizPhase,   setQuizPhase]   = useState<QuizPhase>('loading');
+  const [quizErr,     setQuizErr]     = useState('');
+  const [quizData,    setQuizData]    = useState<QData | null>(null);
+  const [attemptId,   setAttemptId]   = useState<string | null>(null);
+  const [endsAt,      setEndsAt]      = useState<Date | null>(null);
+  const [qIdx,        setQIdx]        = useState(0);
+  const [answers,     setAnswers]     = useState<QuizAnswer[]>([]);
+  const [qResult,     setQResult]     = useState<QResult | null>(null);
+  const [timeLeft,    setTimeLeft]    = useState(0);
+  const [submitting,  setSubmitting]  = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const attemptIdRef  = useRef<string | null>(null);
+  const answersRef    = useRef<QuizAnswer[]>([]);
+  const quizPhaseRef  = useRef<QuizPhase>('loading');
+  const videoRef      = useRef<HTMLVideoElement>(null);
+  const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Load course + curriculum ───────────────────────────────────────────────
+  // ── Load course ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!courseSlug) return;
-
     (async () => {
-      setLoading(true);
-      setError('');
+      setLoading(true); setError('');
       try {
-        const courseData = await courseService.getCourseBySlug(courseSlug);
-        setCourse(courseData);
-
-        const mods = await courseService.getCourseCurriculum(courseData.id);
+        const c = await courseService.getCourseBySlug(courseSlug);
+        setCourse(c);
+        const mods = await courseService.getCourseCurriculum(c.id);
         setModules(mods);
-
-        // Open all modules by default
         setOpenModuleIds(new Set(mods.map(m => m.id)));
-
-        // Build set of already-completed lesson IDs — prefer server data for accuracy
         const done = new Set<string>();
         try {
-          const serverIds = await courseService.getMyProgress(courseData.id);
-          serverIds.forEach(id => done.add(id));
+          const ids = await courseService.getMyProgress(c.id);
+          ids.forEach(id => done.add(id));
         } catch {
-          // Fallback: use per-lesson isCompleted flags from curriculum
           mods.forEach(m => (m.lessons ?? []).forEach(l => { if (l.isCompleted) done.add(l.id); }));
         }
         setCompletedIds(done);
         const total = mods.reduce((s, m) => s + (m.lessons?.length ?? 0), 0);
-        setEnrollmentCompleted(done.size > 0 && done.size === total);
-
-        // Auto-select: first incomplete lesson, or first lesson overall
-        const all = flatLessons(mods);
-        const firstIncomplete = all.find(l => !done.has(l.id));
-        const toSelect = firstIncomplete ?? all[0] ?? null;
-        if (toSelect) doSelectLesson(toSelect);
-      } catch (err: any) {
-        setError(err?.response?.data?.message ?? 'Failed to load course. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+        setCourseComplete(done.size > 0 && done.size === total);
+        const all  = flatLessons(mods);
+        const pick = all.find(l => !done.has(l.id)) ?? all[0] ?? null;
+        if (pick) doSelectLesson(pick);
+      } catch (e: any) {
+        setError(e?.response?.data?.message ?? 'Failed to load course.');
+      } finally { setLoading(false); }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseSlug]);
 
-  // ── Load lesson details when selection changes ─────────────────────────────
+  // ── Select a lesson ───────────────────────────────────────────────────────
   const doSelectLesson = useCallback(async (lesson: CourseLesson) => {
     setSelectedLesson(lesson);
     setLessonDetail(null);
@@ -131,19 +148,14 @@ const CourseWatch = () => {
     setActiveTab('overview');
     setLessonQuiz(null);
     setQuizAttempts([]);
+    setActiveRes(null);
 
-    // Fetch linked quiz + attempt history for QUIZ lessons
     if (lesson.contentType === 'QUIZ') {
       setQuizLoading(true);
       quizService.getStudentQuizByLessonId(lesson.id)
-        .then(async (q) => {
+        .then(async q => {
           setLessonQuiz(q);
-          if (q?.id) {
-            // Load attempt history in the background (non-blocking)
-            quizService.getMyQuizAttempts(q.id)
-              .then(attempts => setQuizAttempts(attempts))
-              .catch(() => setQuizAttempts([]));
-          }
+          if (q?.id) quizService.getMyQuizAttempts(q.id).then(a => setQuizAttempts(a)).catch(() => {});
         })
         .catch(() => setLessonQuiz(null))
         .finally(() => setQuizLoading(false));
@@ -152,291 +164,187 @@ const CourseWatch = () => {
     try {
       const detail = await courseService.getLessonDetail(lesson.id);
       setLessonDetail(detail);
-
       if (detail.contentType === 'VIDEO') {
-        if (detail.videoUrl) {
-          setVideoUrl(detail.videoUrl);
-        } else if (detail.muxPlaybackId) {
-          try {
-            const { videoUrl: url } = await courseService.getLessonVideoUrl(lesson.id);
-            setVideoUrl(url);
-          } catch {
-            setVideoUrl(null); // will use iframe fallback from muxPlaybackId
-          }
+        if (detail.videoUrl) setVideoUrl(detail.videoUrl);
+        else if (detail.muxPlaybackId) {
+          try { const { videoUrl: u } = await courseService.getLessonVideoUrl(lesson.id); setVideoUrl(u); }
+          catch { setVideoUrl(null); }
         }
       }
-    } catch {
-      setLessonDetail(null);
-    } finally {
-      setLessonLoading(false);
-    }
+    } catch { setLessonDetail(null); }
+    finally { setLessonLoading(false); }
   }, []);
 
-  // ── Refresh progress (called after quiz completes, or tab regains focus) ─────
+  // ── Refresh progress ──────────────────────────────────────────────────────
   const refreshProgress = useCallback(async () => {
     if (!course?.id) return;
     try {
-      const [mods, serverIds] = await Promise.all([
+      const [mods, ids] = await Promise.all([
         courseService.getCourseCurriculum(course.id),
         courseService.getMyProgress(course.id).catch(() => [] as string[]),
       ]);
       setModules(mods);
-      const done = new Set<string>(serverIds);
-      // Fallback: merge curriculum flags if server returned nothing
-      if (done.size === 0) {
-        mods.forEach(m => (m.lessons ?? []).forEach(l => { if (l.isCompleted) done.add(l.id); }));
-      }
+      const done = new Set<string>(ids);
+      if (!done.size) mods.forEach(m => (m.lessons ?? []).forEach(l => { if (l.isCompleted) done.add(l.id); }));
       setCompletedIds(done);
       const total = mods.reduce((s, m) => s + (m.lessons?.length ?? 0), 0);
-      setEnrollmentCompleted(done.size > 0 && done.size === total);
-      // If on a QUIZ lesson, refresh attempt history too
-      if (selectedLesson?.contentType === 'QUIZ' && lessonQuiz?.id) {
-        quizService.getMyQuizAttempts(lessonQuiz.id)
-          .then(attempts => setQuizAttempts(attempts))
-          .catch(() => {});
-      }
+      setCourseComplete(done.size > 0 && done.size === total);
+      if (selectedLesson?.contentType === 'QUIZ' && lessonQuiz?.id)
+        quizService.getMyQuizAttempts(lessonQuiz.id).then(a => setQuizAttempts(a)).catch(() => {});
     } catch { /* ignore */ }
   }, [course?.id, selectedLesson, lessonQuiz?.id]);
 
-  // Refresh when the browser tab comes back into focus — but NOT if the inline quiz overlay is open
-  // (the overlay has its own anti-cheat that handles visibility changes)
+  // ── PDF blob fetch (bypasses X-Frame-Options entirely) ────────────────────
   useEffect(() => {
-    const onVisible = () => {
-      if (!document.hidden && !quizOverlayOpen) refreshProgress();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [refreshProgress, quizOverlayOpen]);
+    // Revoke previous blob URL to free memory
+    if (pdfBlobUrl) { URL.revokeObjectURL(pdfBlobUrl); setPdfBlobUrl(null); }
+    setPdfBlobError(false);
 
-  // ── Sync inline quiz refs (prevent stale closure in anti-cheat) ──────────
-  useEffect(() => { inlineAttemptIdRef.current = inlineAttemptId; }, [inlineAttemptId]);
-  useEffect(() => { inlineAnswersRef.current = inlineAnswers; }, [inlineAnswers]);
-  useEffect(() => { quizPhaseRef.current = quizPhase; }, [quizPhase]);
+    if (!activeRes) return;
+    const ext = activeRes.name.split('.').pop()?.toLowerCase() ?? '';
+    if (ext !== 'pdf') return;
 
-  // ── Inline quiz timer ──────────────────────────────────────────────────────
+    const url = getFileUrl(activeRes.url) ?? activeRes.url;
+    let cancelled = false;
+    setPdfBlobLoading(true);
+
+    fetch(url)
+      .then(r => {
+        if (!r.ok) throw new Error('fetch failed');
+        return r.blob();
+      })
+      .then(blob => {
+        if (cancelled) return;
+        setPdfBlobUrl(URL.createObjectURL(blob));
+      })
+      .catch(() => { if (!cancelled) setPdfBlobError(true); })
+      .finally(() => { if (!cancelled) setPdfBlobLoading(false); });
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeRes]);
+
+  // Revoke blob URL on component unmount
+  useEffect(() => () => { if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl); }, [pdfBlobUrl]);
+
+  // ── Refs sync ─────────────────────────────────────────────────────────────
+  useEffect(() => { attemptIdRef.current  = attemptId;  }, [attemptId]);
+  useEffect(() => { answersRef.current    = answers;    }, [answers]);
+  useEffect(() => { quizPhaseRef.current  = quizPhase;  }, [quizPhase]);
+
   useEffect(() => {
-    if (!quizOverlayOpen || quizPhase !== 'quiz' || !inlineEndsAt) return;
-    const interval = setInterval(() => {
-      const remaining = Math.max(0, Math.round((inlineEndsAt.getTime() - Date.now()) / 1000));
-      setInlineTimeLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(interval);
-        // Time up → auto-submit
-        const aId = inlineAttemptIdRef.current;
-        const acc = inlineAnswersRef.current;
-        if (aId) {
-          quizService.submitAttempt(aId, acc, false)
-            .then((res: any) => { setInlineResult(res); setQuizPhase('result'); })
-            .catch(() => setQuizPhase('result'));
-        } else {
-          setQuizPhase('result');
-        }
+    const fn = () => { if (!document.hidden && !quizOpen) refreshProgress(); };
+    document.addEventListener('visibilitychange', fn);
+    return () => document.removeEventListener('visibilitychange', fn);
+  }, [refreshProgress, quizOpen]);
+
+  // ── Quiz timer ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!quizOpen || quizPhase !== 'quiz' || !endsAt) return;
+    const iv = setInterval(() => {
+      const rem = Math.max(0, Math.round((endsAt.getTime() - Date.now()) / 1000));
+      setTimeLeft(rem);
+      if (rem <= 0) {
+        clearInterval(iv);
+        const aid = attemptIdRef.current; const acc = answersRef.current;
+        if (aid) quizService.submitAttempt(aid, acc, false).then((r: any) => { setQResult(r); setQuizPhase('result'); }).catch(() => setQuizPhase('result'));
+        else setQuizPhase('result');
       }
     }, 1000);
-    return () => clearInterval(interval);
-  }, [quizOverlayOpen, quizPhase, inlineEndsAt]);
+    return () => clearInterval(iv);
+  }, [quizOpen, quizPhase, endsAt]);
 
-  // ── Inline quiz anti-cheat (tab-switch detection) ──────────────────────────
+  // ── Anti-cheat ────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!quizOverlayOpen || quizPhase !== 'quiz') return;
-    const blockEvent = (e: Event) => e.preventDefault();
-    const onVisibility = async () => {
+    if (!quizOpen || quizPhase !== 'quiz') return;
+    const block = (e: Event) => e.preventDefault();
+    const onVis = async () => {
       if (!document.hidden || quizPhaseRef.current !== 'quiz') return;
-      const aId = inlineAttemptIdRef.current;
-      const acc = inlineAnswersRef.current;
-      try {
-        if (aId) {
-          const res = await quizService.submitAttempt(aId, acc, true) as any;
-          setInlineResult(res);
-        }
-      } catch { /* ignore */ } finally {
-        setQuizPhase('violation');
-      }
+      const aid = attemptIdRef.current; const acc = answersRef.current;
+      try { if (aid) { const r = await quizService.submitAttempt(aid, acc, true) as any; setQResult(r); } }
+      catch { /* ignore */ } finally { setQuizPhase('violation'); }
     };
-    document.addEventListener('copy', blockEvent);
-    document.addEventListener('cut', blockEvent);
-    document.addEventListener('paste', blockEvent);
-    document.addEventListener('contextmenu', blockEvent);
-    document.addEventListener('selectstart', blockEvent);
-    document.addEventListener('visibilitychange', onVisibility);
+    ['copy','cut','paste','contextmenu','selectstart'].forEach(e => document.addEventListener(e, block));
+    document.addEventListener('visibilitychange', onVis);
     return () => {
-      document.removeEventListener('copy', blockEvent);
-      document.removeEventListener('cut', blockEvent);
-      document.removeEventListener('paste', blockEvent);
-      document.removeEventListener('contextmenu', blockEvent);
-      document.removeEventListener('selectstart', blockEvent);
-      document.removeEventListener('visibilitychange', onVisibility);
+      ['copy','cut','paste','contextmenu','selectstart'].forEach(e => document.removeEventListener(e, block));
+      document.removeEventListener('visibilitychange', onVis);
     };
-  }, [quizOverlayOpen, quizPhase]);
+  }, [quizOpen, quizPhase]);
 
-  // ── Open inline quiz ────────────────────────────────────────────────────────
-  const openInlineQuiz = useCallback(async (quizId: string) => {
-    setQuizOverlayOpen(true);
-    setQuizPhase('loading');
-    setQuizErrorMsg('');
-    setActiveQuizData(null);
-    setInlineAttemptId(null);
-    setInlineEndsAt(null);
-    setInlineCurrentIdx(0);
-    setInlineSelectedIds([]);
-    setInlineFeedback(null);
-    setInlineAnswers([]);
-    setInlineResult(null);
-    setInlineTimeLeft(0);
+  // ── Open quiz ─────────────────────────────────────────────────────────────
+  const openQuiz = useCallback(async (quizId: string) => {
+    setQuizOpen(true); setQuizPhase('loading'); setQuizErr('');
+    setQuizData(null); setAttemptId(null); setEndsAt(null);
+    setQIdx(0); setAnswers([]); setQResult(null); setTimeLeft(0);
     try {
-      const quizData = await quizService.getQuizForStudent(quizId) as any;
-      const questions = quizData.shuffleQuestions
-        ? [...(quizData.questions ?? [])].sort(() => Math.random() - 0.5)
-        : (quizData.questions ?? []);
-      setActiveQuizData({ ...quizData, questions });
-      const attempt = await quizService.startQuizAttempt(quizId);
-      setInlineAttemptId(attempt.attemptId);
-      const endsAtDate = new Date(attempt.endsAt);
-      setInlineEndsAt(endsAtDate);
-      setInlineTimeLeft(Math.max(0, Math.round((endsAtDate.getTime() - Date.now()) / 1000)));
+      const qd = await quizService.getQuizForStudent(quizId) as any;
+      const qs = qd.shuffleQuestions ? [...(qd.questions ?? [])].sort(() => Math.random() - 0.5) : (qd.questions ?? []);
+      setQuizData({ ...qd, questions: qs });
+      const att = await quizService.startQuizAttempt(quizId);
+      setAttemptId(att.attemptId);
+      const ea = new Date(att.endsAt);
+      setEndsAt(ea);
+      setTimeLeft(Math.max(0, Math.round((ea.getTime() - Date.now()) / 1000)));
       setQuizPhase('quiz');
-    } catch (err: any) {
-      setQuizErrorMsg(err?.response?.data?.message ?? 'Failed to load quiz. Please try again.');
-      setQuizPhase('error');
-    }
+    } catch (e: any) { setQuizErr(e?.response?.data?.message ?? 'Failed to load quiz.'); setQuizPhase('error'); }
   }, []);
 
-  // ── Show last result inline (for Review button) ─────────────────────────────
-  const openQuizReview = useCallback((lastAttempt: QuizAttempt) => {
-    setQuizOverlayOpen(true);
-    setActiveQuizData(null);
-    setInlineResult({
-      score: lastAttempt.score ?? 0,
-      totalPoints: lastAttempt.totalPoints ?? 0,
-      percentage: lastAttempt.percentage ?? 0,
-      passed: lastAttempt.passed ?? false,
-      violated: lastAttempt.violated ?? false,
-    });
+  const openReview = useCallback((a: QuizAttempt) => {
+    setQuizOpen(true); setQuizData(null);
+    setQResult({ score: a.score ?? 0, totalPoints: a.totalPoints ?? 0, percentage: a.percentage ?? 0, passed: a.passed ?? false, violated: a.violated ?? false });
     setQuizPhase('result');
   }, []);
 
-  // ── Close inline quiz overlay ───────────────────────────────────────────────
-  const closeQuizOverlay = useCallback(async () => {
-    // If quiz is still in progress, auto-submit before closing
+  const closeQuiz = useCallback(async () => {
     if (quizPhaseRef.current === 'quiz') {
-      const aId = inlineAttemptIdRef.current;
-      const acc = inlineAnswersRef.current;
-      if (aId) {
-        try { await quizService.submitAttempt(aId, acc, false); } catch { /* ignore */ }
-      }
+      const aid = attemptIdRef.current; const acc = answersRef.current;
+      if (aid) { try { await quizService.submitAttempt(aid, acc, false); } catch { /* ignore */ } }
     }
-    setQuizOverlayOpen(false);
-    setQuizPhase('loading');
-    // Refresh progress + attempt history after quiz
-    refreshProgress();
-    if (lessonQuiz?.id) {
-      quizService.getMyQuizAttempts(lessonQuiz.id)
-        .then(attempts => setQuizAttempts(attempts))
-        .catch(() => {});
-    }
+    setQuizOpen(false); setQuizPhase('loading'); refreshProgress();
+    if (lessonQuiz?.id) quizService.getMyQuizAttempts(lessonQuiz.id).then(a => setQuizAttempts(a)).catch(() => {});
   }, [refreshProgress, lessonQuiz?.id]);
 
-  // ── Inline quiz interaction ─────────────────────────────────────────────────
-  const toggleInlineOption = (optionId: string) => {
-    if (inlineFeedback) return;
-    const isMultiple = activeQuizData?.questions[inlineCurrentIdx]?.type?.includes('MULTIPLE');
-    if (isMultiple) {
-      setInlineSelectedIds(prev =>
-        prev.includes(optionId) ? prev.filter(id => id !== optionId) : [...prev, optionId]
-      );
-    } else {
-      setInlineSelectedIds([optionId]);
-    }
+  // ── Answer helpers ────────────────────────────────────────────────────────
+  const curAnswers = (): string[] => {
+    const q = quizData?.questions[qIdx]; if (!q) return [];
+    return answers.find(a => a.questionId === q.id)?.selectedOptionIds ?? [];
   };
-
-  const handleInlineCheck = async () => {
-    const aId = inlineAttemptIdRef.current;
-    const question = activeQuizData?.questions[inlineCurrentIdx];
-    if (!aId || !question || inlineSelectedIds.length === 0) return;
-    setInlineIsChecking(true);
-    try {
-      const fb = await quizService.checkAnswer(aId, question.id, inlineSelectedIds) as QuizFeedback;
-      setInlineFeedback(fb);
-    } catch { /* ignore */ } finally {
-      setInlineIsChecking(false);
-    }
+  const toggleOpt = (optId: string) => {
+    const q = quizData?.questions[qIdx]; if (!q) return;
+    const multi = q.type?.toUpperCase().includes('MULTIPLE');
+    const cur   = curAnswers();
+    const upd   = multi ? (cur.includes(optId) ? cur.filter(x => x !== optId) : [...cur, optId]) : [optId];
+    setAnswers(prev => {
+      const rest = prev.filter(a => a.questionId !== q.id);
+      return upd.length ? [...rest, { questionId: q.id, selectedOptionIds: upd }] : rest;
+    });
   };
-
-  const handleInlineRetry = () => {
-    setInlineSelectedIds([]);
-    setInlineFeedback(null);
+  const finalSubmit = async () => {
+    if (!attemptId) return;
+    setSubmitting(true);
+    try { const r = await quizService.submitAttempt(attemptId, answers, false) as any; setQResult(r); }
+    catch { /* ignore */ } finally { setSubmitting(false); setQuizPhase('result'); }
   };
+  const fmtTime = (s: number) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
 
-  const handleInlineNext = () => {
-    const question = activeQuizData?.questions[inlineCurrentIdx];
-    if (!question || !inlineFeedback?.correct) return;
-    setInlineAnswers(prev => [...prev, { questionId: question.id, selectedOptionIds: inlineSelectedIds }]);
-    setInlineSelectedIds([]);
-    setInlineFeedback(null);
-    setInlineCurrentIdx(prev => prev + 1);
-  };
-
-  const handleInlineFinalSubmit = async () => {
-    const aId = inlineAttemptIdRef.current;
-    const question = activeQuizData?.questions[inlineCurrentIdx];
-    if (!aId || !question || !inlineFeedback?.correct) return;
-    const finalAnswers = [...inlineAnswers, { questionId: question.id, selectedOptionIds: inlineSelectedIds }];
-    try {
-      const res = await quizService.submitAttempt(aId, finalAnswers, false) as any;
-      setInlineResult(res);
-    } catch { /* ignore */ } finally {
-      setQuizPhase('result');
-    }
-  };
-
-  const getInlineOptionStyle = (optionId: string): React.CSSProperties => {
-    const base: React.CSSProperties = {
-      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-      marginBottom: 10, borderRadius: 10, border: '2px solid', cursor: 'pointer',
-      transition: 'all 0.15s', userSelect: 'none',
-    };
-    if (!inlineFeedback) {
-      return inlineSelectedIds.includes(optionId)
-        ? { ...base, borderColor: 'var(--lx-primary)', background: 'rgba(107,29,42,0.07)' }
-        : { ...base, borderColor: 'rgba(0,0,0,0.08)', background: 'rgba(255,255,255,0.6)' };
-    }
-    const isSelected = inlineSelectedIds.includes(optionId);
-    const isCorrect = inlineFeedback.correctOptionIds.includes(optionId);
-    if (isCorrect) return { ...base, borderColor: '#2D5F3F', background: 'rgba(45,95,63,0.09)', cursor: 'default' };
-    if (isSelected && !isCorrect) return { ...base, borderColor: '#8B2335', background: 'rgba(139,35,53,0.07)', cursor: 'default' };
-    return { ...base, borderColor: 'rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.4)', opacity: 0.55, cursor: 'default' };
-  };
-
-  const formatQuizTime = (secs: number) => {
-    const m = Math.floor(secs / 60).toString().padStart(2, '0');
-    const s = (secs % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
-  // ── Progress tracking via video element ────────────────────────────────────
-  const stopProgressTracking = useCallback(() => {
-    if (progressTimerRef.current) {
-      clearInterval(progressTimerRef.current);
-      progressTimerRef.current = null;
-    }
+  // ── Video progress tracking ───────────────────────────────────────────────
+  const stopProgress = useCallback(() => {
+    if (progressTimer.current) { clearInterval(progressTimer.current); progressTimer.current = null; }
   }, []);
-
   useEffect(() => {
     if (!lessonDetail?.id || lessonDetail.contentType !== 'VIDEO') return;
-    const lessonId = lessonDetail.id;
-
-    stopProgressTracking();
-    progressTimerRef.current = setInterval(() => {
-      const vid = videoRef.current;
-      if (!vid || vid.paused) return;
-      courseService.updateLessonProgress(lessonId, Math.floor(vid.currentTime)).catch(() => {});
+    const lid = lessonDetail.id;
+    stopProgress();
+    progressTimer.current = setInterval(() => {
+      const v = videoRef.current;
+      if (!v || v.paused) return;
+      courseService.updateLessonProgress(lid, Math.floor(v.currentTime)).catch(() => {});
     }, 30_000);
+    return stopProgress;
+  }, [lessonDetail, stopProgress]);
 
-    return stopProgressTracking;
-  }, [lessonDetail, stopProgressTracking]);
-
-  // Auto-complete when video ends
-  const handleVideoEnded = useCallback(async () => {
+  const onVideoEnded = useCallback(async () => {
     if (!lessonDetail) return;
     try {
       await courseService.completeLessonProgress(lessonDetail.id);
@@ -444,965 +352,859 @@ const CourseWatch = () => {
     } catch { /* ignore */ }
   }, [lessonDetail]);
 
-  // ── Manual "Mark as Complete" ──────────────────────────────────────────────
-  const handleMarkComplete = async () => {
-    if (!selectedLesson || markingComplete) return;
-    setMarkingComplete(true);
+  // ── Mark complete ─────────────────────────────────────────────────────────
+  const markComplete = async () => {
+    if (!selectedLesson || markingDone) return;
+    setMarkingDone(true);
     try {
       await courseService.completeLessonProgress(selectedLesson.id);
       const newDone = new Set(Array.from(completedIds).concat(selectedLesson.id));
       setCompletedIds(newDone);
       const total = flatLessons(modules).length;
-      if (newDone.size === total) setEnrollmentCompleted(true);
-
-      // Auto-advance to next lesson
+      if (newDone.size === total) setCourseComplete(true);
       const all = flatLessons(modules);
       const idx = all.findIndex(l => l.id === selectedLesson.id);
       if (idx !== -1 && idx + 1 < all.length) doSelectLesson(all[idx + 1]);
-    } catch { /* ignore */ } finally {
-      setMarkingComplete(false);
-    }
+    } catch { /* ignore */ } finally { setMarkingDone(false); }
   };
 
-  // ── Prev / Next navigation ─────────────────────────────────────────────────
-  const goTo = (offset: 1 | -1) => {
+  // ── Navigation ────────────────────────────────────────────────────────────
+  const goTo = (dir: 1|-1) => {
     if (!selectedLesson) return;
     const all = flatLessons(modules);
     const idx = all.findIndex(l => l.id === selectedLesson.id);
-    const next = all[idx + offset];
-    if (next) doSelectLesson(next);
+    const nxt = all[idx + dir];
+    if (nxt) doSelectLesson(nxt);
+  };
+  const toggleModule = (id: string) =>
+    setOpenModuleIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  // ── Resource viewer ───────────────────────────────────────────────────────
+  const getViewer = (res: LessonResource) => {
+    const url  = getFileUrl(res.url) ?? res.url;
+    const ext  = res.name.split('.').pop()?.toLowerCase() ?? '';
+    if (['png','jpg','jpeg','gif','webp','svg'].includes(ext)) return { type: 'image',    url };
+    if (ext === 'pdf')                                          return { type: 'pdf',      url };
+    if (['mp4','webm','ogg','mov'].includes(ext))               return { type: 'video',    url };
+    // Office docs: Google Docs viewer (read-only, no download in embed mode)
+    if (['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)) return { type: 'gdocs',    url: `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true` };
+    return { type: 'none', url };
   };
 
-  // ── Toggle accordion module ────────────────────────────────────────────────
-  const toggleModule = (moduleId: string) =>
-    setOpenModuleIds(prev => {
-      const next = new Set(prev);
-      next.has(moduleId) ? next.delete(moduleId) : next.add(moduleId);
-      return next;
-    });
-
-  // ── Derived values ─────────────────────────────────────────────────────────
-  const allLessons = flatLessons(modules);
-  const totalLessons = allLessons.length;
-  const doneLessons = completedIds.size;
-  const progressPct = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0;
-  const isLessonDone = selectedLesson ? completedIds.has(selectedLesson.id) : false;
-  const lessonIdx = allLessons.findIndex(l => l.id === selectedLesson?.id);
-  const hasPrev = lessonIdx > 0;
-  const hasNext = lessonIdx !== -1 && lessonIdx + 1 < allLessons.length;
-
-  const lessonIcon = (l: CourseLesson, locked: boolean) => {
-    if (locked) return 'isax-lock text-muted';
-    if (completedIds.has(l.id)) return 'isax-tick-circle text-success';
-    if (l.contentType === 'TEXT') return 'isax-document-text text-muted';
-    if (l.contentType === 'QUIZ') return 'isax-award text-warning';
-    return l.id === selectedLesson?.id ? 'isax-play-circle text-primary' : 'isax-play-circle5 text-muted';
+  const getLessonIcon = (l: CourseLesson, locked: boolean, active: boolean, done: boolean) => {
+    if (locked)               return { icon: 'fa-lock',          color: 'rgba(255,255,255,0.2)' };
+    if (done)                 return { icon: 'fa-circle-check',  color: '#4ADE80' };
+    if (active)               return { icon: 'fa-circle-play',   color: GOLD };
+    if (l.contentType==='QUIZ') return { icon: 'fa-circle-question', color: '#F59E0B' };
+    if (l.contentType==='TEXT') return { icon: 'fa-file-lines',      color: 'rgba(255,255,255,0.4)' };
+    return { icon: 'fa-circle-play', color: 'rgba(255,255,255,0.3)' };
   };
-
-  // A lesson is locked when the previous lesson (across all modules, flattened) is not yet completed
-  const isLessonLocked = (lesson: CourseLesson): boolean => {
+  const isLocked = (lesson: CourseLesson) => {
     const all = flatLessons(modules);
     const idx = all.findIndex(l => l.id === lesson.id);
-    if (idx <= 0) return false; // first lesson always accessible
-    return !completedIds.has(all[idx - 1].id);
+    return idx > 0 && !completedIds.has(all[idx - 1].id);
   };
 
-  // Quiz-specific derived values (computed from attempt history)
-  const quizHasPassed = quizAttempts.some(a => a.passed);
-  const quizBestPct = quizHasPassed
-    ? Math.round(Math.max(...quizAttempts.filter(a => a.passed).map(a => a.percentage ?? 0)))
-    : 0;
-  const quizAttemptsLeft = lessonQuiz
-    ? (lessonQuiz.allowRetake
-        ? Math.max(0, (lessonQuiz.maxAttempts ?? 3) - quizAttempts.length)
-        : quizAttempts.length === 0 ? 1 : 0)
-    : 0;
-  const canStartQuiz = !quizHasPassed && quizAttemptsLeft > 0;
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const allLessons    = flatLessons(modules);
+  const totalLessons  = allLessons.length;
+  const doneLessons   = completedIds.size;
+  const pct           = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0;
+  const isDone        = selectedLesson ? completedIds.has(selectedLesson.id) : false;
+  const lessonIdx     = allLessons.findIndex(l => l.id === selectedLesson?.id);
+  const hasPrev       = lessonIdx > 0;
+  const hasNext       = lessonIdx !== -1 && lessonIdx + 1 < allLessons.length;
+  const quizPassed    = quizAttempts.some(a => a.passed);
+  const quizBest      = quizPassed ? Math.round(Math.max(...quizAttempts.filter(a => a.passed).map(a => a.percentage ?? 0))) : 0;
+  const attLeft       = lessonQuiz ? (lessonQuiz.allowRetake ? Math.max(0,(lessonQuiz.maxAttempts??3)-quizAttempts.length) : quizAttempts.length===0?1:0) : 0;
+  const canStart      = !quizPassed && attLeft > 0;
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Loading / Error states
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Loading screen ────────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{ display:'flex', minHeight:'100vh', background:SIDEBAR_BG, alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
+      <div style={{ width:52, height:52, borderRadius:'50%', border:`4px solid rgba(197,151,62,0.15)`, borderTopColor:GOLD, animation:'spin 0.9s linear infinite' }} />
+      <p style={{ color:'rgba(255,255,255,0.4)', fontSize:14, margin:0, fontWeight:600 }}>Loading course…</p>
+    </div>
+  );
 
-  if (loading) {
-    return (
-      <>
-        <Breadcrumb title="Course Watch" />
-        <div className="content pt-0">
-          <div
-            className="container-fluid d-flex align-items-center justify-content-center"
-            style={{ minHeight: 400 }}
-          >
-            <div className="text-center">
-              <div className="spinner-border text-primary mb-3" role="status" />
-              <p className="text-muted">Loading course…</p>
-            </div>
-          </div>
+  if (error) return (
+    <div style={{ display:'flex', minHeight:'100vh', background:IVORY, alignItems:'center', justifyContent:'center' }}>
+      <div style={{ textAlign:'center', maxWidth:400, padding:32 }}>
+        <div style={{ width:80, height:80, borderRadius:'50%', background:'rgba(139,35,53,0.08)', border:'2px solid rgba(139,35,53,0.2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
+          <i className="fa-solid fa-circle-exclamation" style={{ fontSize:36, color:BURG_D }} />
         </div>
-      </>
-    );
-  }
+        <h4 style={{ fontFamily:"'Playfair Display',serif", color:'#2C1810', marginBottom:10 }}>Unable to Load Course</h4>
+        <p style={{ color:'#9A8080', fontSize:14, marginBottom:24 }}>{error}</p>
+        <Link to={routes.studentCourses} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:10, background:`linear-gradient(135deg,${BURG},${BURG_D})`, color:WHITE, textDecoration:'none', fontWeight:700, fontSize:14 }}>
+          <i className="fa-solid fa-arrow-left" />Back to My Courses
+        </Link>
+      </div>
+    </div>
+  );
 
-  if (error) {
-    return (
-      <>
-        <Breadcrumb title="Course Watch" />
-        <div className="content pt-0">
-          <div
-            className="container-fluid d-flex align-items-center justify-content-center"
-            style={{ minHeight: 400 }}
-          >
-            <div className="text-center">
-              <i className="isax isax-close-circle fs-1 text-danger mb-3 d-block" />
-              <h5 className="text-danger mb-2">Unable to Load Course</h5>
-              <p className="text-muted mb-4">{error}</p>
-              <Link to={routes.studentCourses} className="btn btn-primary">
-                Back to My Courses
-              </Link>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Main render
-  // ─────────────────────────────────────────────────────────────────────────
-
+  // ── Main layout ───────────────────────────────────────────────────────────
   return (
-    <>
-      <Breadcrumb title={course?.title ?? 'Course Watch'} />
-      <div className="content pt-0">
-        <div className="container-fluid">
-          <div className="course-watch-section">
-            <div className="row g-0">
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:IVORY, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
 
-              {/* ── Left sidebar ─────────────────────────────────────────── */}
-              <div
-                className="col-lg-4 border-end"
-                style={{ maxHeight: '90vh', overflowY: 'auto', position: 'sticky', top: 0 }}
-              >
-                <div className="progress-overview-section p-3">
+      {/* ══════════ SIDEBAR ══════════ */}
+      <aside style={{
+        width: 360, flexShrink: 0,
+        background: SIDEBAR_BG,
+        display: 'flex', flexDirection: 'column',
+        height: '100vh', overflowY: 'auto',
+        boxShadow: '4px 0 40px rgba(0,0,0,0.35)',
+        position: 'relative', zIndex: 10,
+      }}>
+        {/* Gold accent line */}
+        <div style={{ height:3, background:`linear-gradient(90deg,${BURG},${GOLD},${BURG})`, flexShrink:0 }} />
 
-                  <div className="mb-3">
-                    <Link
-                      to={routes.studentCourses}
-                      className="back-to-course d-inline-flex align-items-center text-muted small"
-                    >
-                      <i className="isax isax-arrow-left me-1" />
-                      Back to My Courses
-                    </Link>
+        {/* ── Top area ── */}
+        <div style={{ padding:'18px 18px 0', flexShrink:0 }}>
+          {/* Brand + back */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
+            <Link to={routes.homeone} style={{ display:'flex', alignItems:'center', gap:8, textDecoration:'none' }}>
+              <div style={{ width:28, height:28, borderRadius:6, background:`linear-gradient(135deg,${BURG},${GOLD})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <i className="fa-solid fa-crown" style={{ fontSize:12, color:WHITE }} />
+              </div>
+              <span style={{ fontFamily:"'Playfair Display',serif", fontSize:14, fontWeight:800, color:WHITE, letterSpacing:'0.02em' }}>SARALÖWE</span>
+            </Link>
+            <button
+              onClick={() => navigate(-1)}
+              title="Go back"
+              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'rgba(255,255,255,0.5)', transition:'all 0.2s' }}
+            >
+              <i className="fa-solid fa-arrow-left" style={{ fontSize:12 }} />
+            </button>
+          </div>
+
+          {/* Course title */}
+          <h6 style={{
+            fontFamily:"'Playfair Display',serif", color:WHITE, fontWeight:800,
+            fontSize:14, lineHeight:1.5, marginBottom:14,
+            display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden',
+          }}>{course?.title}</h6>
+
+          {/* Progress */}
+          <div style={{ marginBottom:16 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+              <span style={{ fontSize:10, fontWeight:800, color:GOLD, textTransform:'uppercase', letterSpacing:'0.08em' }}>Your Progress</span>
+              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)' }}>{doneLessons}/{totalLessons} lessons</span>
+            </div>
+            <div style={{ height:6, borderRadius:3, background:'rgba(255,255,255,0.07)', overflow:'hidden', position:'relative' }}>
+              <div style={{
+                position:'absolute', left:0, top:0, height:'100%', borderRadius:3,
+                width:`${pct}%`, transition:'width 0.6s ease',
+                background: pct === 100
+                  ? 'linear-gradient(90deg,#22C55E,#4ADE80)'
+                  : `linear-gradient(90deg,${BURG},${GOLD})`,
+              }} />
+            </div>
+            <div style={{ display:'flex', justifyContent:'space-between', marginTop:4 }}>
+              <span style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{pct}% complete</span>
+              {pct===100 && <span style={{ fontSize:10, color:'#4ADE80', fontWeight:700 }}>🎉 Done!</span>}
+            </div>
+          </div>
+
+          {/* Course complete banner */}
+          {courseComplete && (
+            <div style={{ marginBottom:12, padding:'10px 14px', borderRadius:10, background:'rgba(74,222,128,0.07)', border:'1px solid rgba(74,222,128,0.18)', display:'flex', alignItems:'center', gap:10 }}>
+              <i className="fa-solid fa-trophy" style={{ color:GOLD, fontSize:18 }} />
+              <div>
+                <p style={{ margin:0, fontWeight:800, fontSize:12, color:'#4ADE80' }}>Course Complete!</p>
+                <p style={{ margin:0, fontSize:10, color:'rgba(74,222,128,0.65)' }}>Certificate generated</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div style={{ height:1, background:'rgba(255,255,255,0.04)', margin:'8px 18px 10px', flexShrink:0 }} />
+
+        {/* ── Module accordion ── */}
+        <div style={{ flex:1, overflowY:'auto', padding:'0 10px 24px' }}>
+          {modules.map((mod, mi) => {
+            const isOpen  = openModuleIds.has(mod.id);
+            const mDone   = (mod.lessons ?? []).filter(l => completedIds.has(l.id)).length;
+            const mTotal  = (mod.lessons ?? []).length;
+            const allDone = mDone === mTotal && mTotal > 0;
+
+            return (
+              <div key={mod.id} style={{ marginBottom:4 }}>
+                {/* Module header */}
+                <div
+                  role="button"
+                  onClick={() => toggleModule(mod.id)}
+                  style={{
+                    display:'flex', alignItems:'center', gap:10,
+                    padding:'10px 12px', borderRadius:10, cursor:'pointer',
+                    background: isOpen ? 'rgba(197,151,62,0.07)' : 'transparent',
+                    border:`1px solid ${isOpen ? 'rgba(197,151,62,0.14)' : 'transparent'}`,
+                    transition:'all 0.2s',
+                  }}
+                >
+                  <div style={{
+                    width:26, height:26, borderRadius:8, flexShrink:0,
+                    background: allDone ? 'rgba(74,222,128,0.1)' : 'rgba(197,151,62,0.1)',
+                    border:`1px solid ${allDone ? 'rgba(74,222,128,0.2)' : 'rgba(197,151,62,0.18)'}`,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontSize:10, fontWeight:800,
+                    color: allDone ? '#4ADE80' : GOLD,
+                  }}>
+                    {allDone ? <i className="fa-solid fa-check" style={{ fontSize:10 }} /> : mi+1}
                   </div>
-
-                  <h6 className="fw-semibold mb-3">{course?.title}</h6>
-
-                  {/* Progress */}
-                  <div className="mb-4">
-                    <div className="d-flex justify-content-between mb-1">
-                      <span className="small text-muted">{progressPct}% complete</span>
-                      <span className="small text-muted">{doneLessons}/{totalLessons}</span>
-                    </div>
-                    <div className="progress" style={{ height: 6 }}>
-                      <div
-                        className="progress-bar bg-success"
-                        style={{ width: `${progressPct}%`, transition: 'width 0.4s' }}
-                      />
-                    </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ margin:0, fontSize:12, fontWeight:700, color:WHITE, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{mod.title}</p>
+                    <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{mDone}/{mTotal} lessons</p>
                   </div>
+                  <i className={`fa-solid ${isOpen?'fa-chevron-up':'fa-chevron-down'}`} style={{ fontSize:9, color:'rgba(255,255,255,0.25)', flexShrink:0 }} />
+                </div>
 
-                  {/* Course Completion Banner */}
-                  {enrollmentCompleted && (
-                    <div style={{
-                      marginBottom: 16, padding: '10px 14px', borderRadius: 8,
-                      background: 'rgba(45,95,63,0.08)', border: '1px solid rgba(45,95,63,0.20)',
-                      display: 'flex', alignItems: 'center', gap: 8,
-                    }}>
-                      <i className="isax isax-medal-star" style={{ color: '#2D5F3F', fontSize: 20, flexShrink: 0 }} />
-                      <div>
-                        <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#2D5F3F' }}>Course Completed! 🎉</p>
-                        <p style={{ margin: 0, fontSize: 11, color: '#2D5F3F', opacity: 0.8 }}>Your certificate has been generated</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Module accordion */}
-                  <div className="accordions-items-seperate">
-                    {modules.map((mod, modIdx) => {
-                      const isOpen = openModuleIds.has(mod.id);
-                      const modDone = (mod.lessons ?? []).filter(l => completedIds.has(l.id)).length;
-                      const modTotal = (mod.lessons ?? []).length;
+                {/* Lessons */}
+                {isOpen && (
+                  <div style={{ paddingLeft:4, marginTop:2, display:'flex', flexDirection:'column', gap:1 }}>
+                    {(mod.lessons ?? []).map(lesson => {
+                      const isAct  = lesson.id === selectedLesson?.id;
+                      const locked = isLocked(lesson);
+                      const done   = completedIds.has(lesson.id);
+                      const { icon, color } = getLessonIcon(lesson, locked, isAct, done);
 
                       return (
-                        <div className="accordion-item mb-2" key={mod.id}>
-                          <div className="accordion-header">
-                            <div
-                              className={`accordion-button${isOpen ? '' : ' collapsed'} py-3 px-3`}
-                              role="button"
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => toggleModule(mod.id)}
-                            >
-                              <div className="flex-grow-1">
-                                <span className="d-block small text-muted mb-1">
-                                  Section {modIdx + 1} · {modDone}/{modTotal} done
-                                </span>
-                                <h6 className="mb-0 fs-14">{mod.title}</h6>
-                              </div>
-                              <i
-                                className={`isax ms-2 flex-shrink-0 ${
-                                  isOpen ? 'isax-arrow-up-2' : 'isax-arrow-down-2'
-                                }`}
-                              />
-                            </div>
-                          </div>
-
-                          {isOpen && (
-                            <div className="accordion-body px-3 pb-2 pt-0">
-                              {(mod.lessons ?? []).map(lesson => {
-                                const isActive = lesson.id === selectedLesson?.id;
-                                const locked = isLessonLocked(lesson);
-                                return (
-                                  <div
-                                    key={lesson.id}
-                                    role="button"
-                                    className={`d-flex align-items-center gap-2 py-2 px-2 mb-1 rounded-2 ${
-                                      isActive ? 'bg-primary bg-opacity-10' : ''
-                                    }`}
-                                    style={{
-                                      cursor: locked ? 'not-allowed' : 'pointer',
-                                      opacity: locked ? 0.55 : 1,
-                                    }}
-                                    title={locked ? 'Complete the previous lesson to unlock' : lesson.title}
-                                    onClick={() => { if (!locked) doSelectLesson(lesson); }}
-                                  >
-                                    <i className={`isax flex-shrink-0 fs-18 ${lessonIcon(lesson, locked)}`} />
-                                    <div className="flex-grow-1 overflow-hidden">
-                                      <p className={`mb-0 small text-truncate ${isActive ? 'fw-semibold text-primary' : locked ? 'text-muted' : ''}`}>
-                                        {lesson.title}
-                                      </p>
-                                      {locked && (
-                                        <span style={{ fontSize: 10, color: '#aaa' }}>Complete previous lesson first</span>
-                                      )}
-                                    </div>
-                                    {!locked && fmtDuration(lesson.videoDurationSeconds) && (
-                                      <span className="text-muted small flex-shrink-0">
-                                        {fmtDuration(lesson.videoDurationSeconds)}
-                                      </span>
-                                    )}
-                                    {locked && (
-                                      <i className="isax isax-lock-1 text-muted flex-shrink-0" style={{ fontSize: 12 }} />
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
+                        <div
+                          key={lesson.id}
+                          role="button"
+                          onClick={() => { if (!locked) doSelectLesson(lesson); }}
+                          title={locked ? 'Complete the previous lesson first' : lesson.title}
+                          style={{
+                            display:'flex', alignItems:'center', gap:10,
+                            padding:'8px 12px', borderRadius:8,
+                            cursor: locked ? 'not-allowed' : 'pointer',
+                            opacity: locked ? 0.4 : 1,
+                            background: isAct ? `linear-gradient(135deg,rgba(197,151,62,0.16),rgba(197,151,62,0.06))` : 'transparent',
+                            border:`1px solid ${isAct ? 'rgba(197,151,62,0.28)' : 'transparent'}`,
+                            transition:'all 0.18s',
+                          }}
+                        >
+                          <i className={`fa-solid ${icon}`} style={{ fontSize:14, color, flexShrink:0 }} />
+                          <p style={{
+                            flex:1, margin:0, fontSize:12,
+                            fontWeight: isAct ? 700 : 500,
+                            color: isAct ? GOLD_L : done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.7)',
+                            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                          }}>{lesson.title}</p>
+                          {!locked && fmtDuration(lesson.videoDurationSeconds) && (
+                            <span style={{ fontSize:9, color:'rgba(255,255,255,0.25)', flexShrink:0, fontWeight:700 }}>
+                              {fmtDuration(lesson.videoDurationSeconds)}
+                            </span>
                           )}
                         </div>
                       );
                     })}
                   </div>
-                </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* ══════════ MAIN CONTENT ══════════ */}
+      <main style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+
+        {/* ── Top bar (matches Saralöwe header style) ── */}
+        <div style={{
+          height:56, background:`linear-gradient(135deg,#130710 0%,#1e0c13 60%,#2b0f1a 100%)`,
+          borderBottom:`1px solid rgba(197,151,62,0.1)`,
+          display:'flex', alignItems:'center', padding:'0 24px',
+          gap:16, flexShrink:0, boxShadow:'0 2px 20px rgba(0,0,0,0.25)',
+        }}>
+          {/* Course breadcrumb */}
+          <div style={{ flex:1, display:'flex', alignItems:'center', gap:8 }}>
+            <Link to={routes.homeone} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:5, transition:'color 0.2s' }}>
+              <i className="fa-solid fa-house" style={{ fontSize:11 }} />
+              Home
+            </Link>
+            <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
+            <Link to={routes.studentCourses} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, transition:'color 0.2s' }}>My Courses</Link>
+            <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
+            <span style={{ color:GOLD, fontSize:12, fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:260 }}>
+              {selectedLesson?.title ?? course?.title ?? ''}
+            </span>
+          </div>
+
+          {/* User pill */}
+          {user && (
+            <div style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 12px', borderRadius:20, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ width:24, height:24, borderRadius:'50%', background:`linear-gradient(135deg,${BURG},${GOLD})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:WHITE }}>
+                {user.fullName?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <span style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.7)' }}>{user.fullName}</span>
+            </div>
+          )}
+        </div>
+
+        {/* ── Scrollable content ── */}
+        <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column' }}>
+
+          {lessonLoading ? (
+            <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:14, minHeight:300 }}>
+              <div style={{ width:44, height:44, borderRadius:'50%', border:`4px solid rgba(197,151,62,0.15)`, borderTopColor:GOLD, animation:'spin 0.9s linear infinite' }} />
+              <span style={{ color:'#9A8080', fontSize:14, fontWeight:600 }}>Loading lesson…</span>
+            </div>
+          ) : selectedLesson ? (
+            <>
+              {/* ── Media zone ── */}
+              <div style={{ background:DARK_BG, flexShrink:0 }}>
+
+                {/* VIDEO */}
+                {selectedLesson.contentType === 'VIDEO' && (
+                  <div style={{ aspectRatio:'16/9', position:'relative', background:'#000', maxHeight:'58vh' }}>
+                    {lessonDetail?.muxPlaybackId ? (
+                      <iframe
+                        title={selectedLesson.title}
+                        src={`https://player.mux.com/player.html?playback_id=${lessonDetail.muxPlaybackId}&metadata-video-title=${encodeURIComponent(selectedLesson.title)}`}
+                        style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        allowFullScreen
+                      />
+                    ) : videoUrl ? (
+                      <video ref={videoRef} src={videoUrl} controls
+                        style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain' }}
+                        onEnded={onVideoEnded}
+                      />
+                    ) : (
+                      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', color:'rgba(255,255,255,0.2)', gap:10 }}>
+                        <i className="fa-solid fa-video-slash" style={{ fontSize:48 }} />
+                        <span style={{ fontSize:13 }}>Video not available</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TEXT */}
+                {selectedLesson.contentType === 'TEXT' && (
+                  <div style={{ padding:'32px 48px', maxWidth:820 }}>
+                    {lessonDetail?.textContent ? (
+                      <div style={{ color:'rgba(255,255,255,0.82)', lineHeight:1.85, fontSize:15 }}
+                        dangerouslySetInnerHTML={{ __html: lessonDetail.textContent }}
+                      />
+                    ) : (
+                      <p style={{ color:'rgba(255,255,255,0.3)', fontSize:14 }}>No content available.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* QUIZ */}
+                {selectedLesson.contentType === 'QUIZ' && (
+                  <div style={{ padding:'44px 52px', textAlign:'center', background: quizPassed ? 'linear-gradient(135deg,rgba(45,95,63,0.12),rgba(45,95,63,0.04))' : 'linear-gradient(135deg,rgba(197,151,62,0.07),rgba(101,28,50,0.07))' }}>
+                    <div style={{ width:80, height:80, borderRadius:'50%', margin:'0 auto 18px', background: quizPassed ? 'rgba(74,222,128,0.1)' : 'rgba(197,151,62,0.1)', border:`2px solid ${quizPassed?'rgba(74,222,128,0.25)':'rgba(197,151,62,0.25)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <i className={`fa-solid ${quizPassed?'fa-trophy':'fa-circle-question'}`} style={{ fontSize:34, color:quizPassed?'#4ADE80':GOLD }} />
+                    </div>
+                    <h5 style={{ color:WHITE, fontWeight:800, fontSize:18, marginBottom:8 }}>{selectedLesson.title}</h5>
+
+                    {quizLoading ? (
+                      <div><div style={{ width:26, height:26, borderRadius:'50%', border:`3px solid rgba(197,151,62,0.25)`, borderTopColor:GOLD, animation:'spin 1s linear infinite', margin:'16px auto 10px' }} /></div>
+                    ) : lessonQuiz ? (
+                      <>
+                        <p style={{ color:'rgba(255,255,255,0.45)', fontSize:13, marginBottom:16 }}>
+                          <i className="fa-solid fa-list-check" style={{ marginRight:5, color:GOLD }} />{lessonQuiz.questionCount??0} questions
+                          <span style={{ margin:'0 8px', opacity:0.3 }}>·</span>
+                          <i className="fa-solid fa-clock" style={{ marginRight:5, color:GOLD }} />{lessonQuiz.duration??0} min
+                          <span style={{ margin:'0 8px', opacity:0.3 }}>·</span>
+                          Pass: {lessonQuiz.passingScore??70}%
+                        </p>
+
+                        {quizPassed && (
+                          <div style={{ display:'inline-block', margin:'0 auto 16px', padding:'10px 22px', borderRadius:10, background:'rgba(74,222,128,0.09)', border:'1px solid rgba(74,222,128,0.22)' }}>
+                            <p style={{ margin:0, fontWeight:800, color:'#4ADE80', fontSize:15 }}><i className="fa-solid fa-circle-check" style={{ marginRight:6 }} />Quiz Passed! 🎉</p>
+                            <p style={{ margin:'3px 0 0', fontSize:12, color:'rgba(74,222,128,0.65)' }}>Best score: {quizBest}%</p>
+                          </div>
+                        )}
+
+                        {quizAttempts.length > 0 && (
+                          <div style={{ margin:'0 auto 18px', maxWidth:300, textAlign:'left' }}>
+                            <p style={{ fontSize:10, fontWeight:800, color:'rgba(255,255,255,0.25)', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                              History ({quizAttempts.length}/{lessonQuiz.allowRetake?lessonQuiz.maxAttempts??'∞':1})
+                            </p>
+                            {quizAttempts.slice(0,4).map((a, i) => (
+                              <div key={a.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 10px', borderRadius:6, marginBottom:4, background:a.passed?'rgba(74,222,128,0.06)':'rgba(139,35,53,0.08)', border:`1px solid ${a.passed?'rgba(74,222,128,0.14)':'rgba(139,35,53,0.18)'}` }}>
+                                <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Attempt {quizAttempts.length-i}</span>
+                                <span style={{ fontSize:13, fontWeight:700, color:a.passed?'#4ADE80':'#F87171' }}>{Math.round(a.percentage??0)}% <i className={`fa-solid ${a.passed?'fa-circle-check':'fa-circle-xmark'}`} style={{ fontSize:11 }} /></span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {lessonQuiz.status === 'PUBLISHED' ? (
+                          canStart ? (
+                            <button onClick={() => openQuiz(lessonQuiz.id)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 32px', borderRadius:12, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:15, boxShadow:'0 6px 20px rgba(197,151,62,0.3)' }}>
+                              <i className="fa-solid fa-play" />{quizAttempts.length===0?'Start Quiz':'Retake Quiz'}
+                            </button>
+                          ) : quizPassed ? (
+                            <button onClick={() => quizAttempts[0] && openReview(quizAttempts[0])} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 24px', borderRadius:10, border:'1px solid rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.65)', cursor:'pointer', fontWeight:600, fontSize:14 }}>
+                              <i className="fa-solid fa-eye" />Review Results
+                            </button>
+                          ) : (
+                            <p style={{ color:'#F87171', fontSize:13, display:'flex', alignItems:'center', gap:6, justifyContent:'center' }}>
+                              <i className="fa-solid fa-ban" />No more attempts available
+                            </p>
+                          )
+                        ) : (
+                          <p style={{ color:GOLD, fontSize:13, display:'flex', alignItems:'center', gap:6, justifyContent:'center' }}>
+                            <i className="fa-solid fa-circle-info" />Quiz not yet published
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p style={{ color:'rgba(255,255,255,0.35)', fontSize:13, marginBottom:4 }}>The instructor hasn't linked a quiz to this lesson yet.</p>
+                        <p style={{ color:'rgba(255,255,255,0.2)', fontSize:12, marginBottom:20 }}>Check back soon or browse available quizzes.</p>
+                        <Link to={routes.studentQuiz} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 22px', borderRadius:10, border:`1px solid rgba(197,151,62,0.3)`, background:'rgba(197,151,62,0.07)', color:GOLD, textDecoration:'none', fontWeight:700, fontSize:14 }}>
+                          <i className="fa-solid fa-list" />Browse All Quizzes
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* ── Right content area ──────────────────────────────────── */}
-              <div className="col-lg-8">
-                <div className="course-watch-content p-3 p-lg-4">
-
-                  {lessonLoading ? (
-                    <div className="text-center py-5">
-                      <div className="spinner-border text-primary" role="status" />
-                      <p className="text-muted mt-2 small">Loading lesson…</p>
-                    </div>
-                  ) : selectedLesson ? (
-                    <>
-                      {/* ── Video / Text / Quiz ──────────────────────────── */}
-                      <div className="mb-3">
-
-                        {/* VIDEO */}
-                        {selectedLesson.contentType === 'VIDEO' && (
-                          <div
-                            className="position-relative bg-black rounded-3 overflow-hidden w-100"
-                            style={{ aspectRatio: '16/9' }}
-                          >
-                            {lessonDetail?.muxPlaybackId ? (
-                              <iframe
-                                title={selectedLesson.title}
-                                src={`https://player.mux.com/player.html?playback_id=${lessonDetail.muxPlaybackId}&metadata-video-title=${encodeURIComponent(selectedLesson.title)}`}
-                                className="w-100 h-100 border-0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                allowFullScreen
-                                style={{ position: 'absolute', inset: 0 }}
-                              />
-                            ) : videoUrl ? (
-                              <video
-                                ref={videoRef}
-                                src={videoUrl}
-                                controls
-                                className="w-100 h-100"
-                                style={{ position: 'absolute', inset: 0, objectFit: 'contain' }}
-                                onEnded={handleVideoEnded}
-                              />
-                            ) : (
-                              <div className="d-flex align-items-center justify-content-center w-100 h-100 text-white">
-                                <div className="text-center py-5">
-                                  <i className="isax isax-video-slash fs-1 opacity-40 d-block mb-2" />
-                                  <span className="opacity-50 small">Video not available</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* TEXT */}
-                        {selectedLesson.contentType === 'TEXT' && (
-                          <div className="bg-light rounded-3 p-4">
-                            {lessonDetail?.textContent ? (
-                              <div
-                                className="lesson-text-content"
-                                dangerouslySetInnerHTML={{ __html: lessonDetail.textContent }}
-                              />
-                            ) : (
-                              <p className="text-muted mb-0">No content available.</p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* QUIZ */}
-                        {selectedLesson.contentType === 'QUIZ' && (
-                          <div style={{
-                            padding: '32px 28px', textAlign: 'center',
-                            background: quizHasPassed
-                              ? 'linear-gradient(135deg, rgba(45,95,63,0.06) 0%, rgba(45,95,63,0.02) 100%)'
-                              : 'linear-gradient(135deg, rgba(197,151,62,0.05) 0%, rgba(107,29,42,0.04) 100%)',
-                            borderRadius: 'var(--lx-radius)', border: `1px solid ${quizHasPassed ? 'rgba(45,95,63,0.18)' : 'rgba(197,151,62,0.15)'}`,
-                          }}>
-                            {/* Icon */}
-                            <div style={{
-                              width: 72, height: 72, borderRadius: '50%',
-                              background: quizHasPassed ? 'rgba(45,95,63,0.12)' : 'rgba(197,151,62,0.12)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              margin: '0 auto 14px',
-                            }}>
-                              <i className={`isax ${quizHasPassed ? 'isax-medal-star' : 'isax-award'}`}
-                                style={{ fontSize: 34, color: quizHasPassed ? '#2D5F3F' : '#C5973E' }} />
-                            </div>
-
-                            <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', marginBottom: 6, fontSize: 16 }}>
-                              {selectedLesson.title}
-                            </h6>
-
-                            {quizLoading ? (
-                              <div style={{ marginTop: 16 }}>
-                                <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid #C5973E', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto 10px' }} />
-                                <p style={{ color: 'var(--lx-text-muted)', fontSize: 13, margin: 0 }}>Loading quiz...</p>
-                              </div>
-                            ) : lessonQuiz ? (
-                              <>
-                                {/* Quiz stats */}
-                                <p style={{ color: 'var(--lx-text-muted)', fontSize: 13, marginBottom: 8 }}>
-                                  <i className="isax isax-message-question" style={{ marginRight: 4, color: 'var(--lx-primary)' }} />
-                                  {lessonQuiz.questionCount ?? 0} questions
-                                  <span style={{ margin: '0 8px', opacity: 0.3 }}>|</span>
-                                  <i className="isax isax-clock" style={{ marginRight: 4, color: '#C5973E' }} />
-                                  {lessonQuiz.duration ?? 0} min
-                                  <span style={{ margin: '0 8px', opacity: 0.3 }}>|</span>
-                                  Pass at {lessonQuiz.passingScore ?? 70}%
-                                </p>
-
-                                {/* Already passed — celebration */}
-                                {quizHasPassed && (
-                                  <div style={{
-                                    margin: '12px auto 16px', padding: '12px 20px', borderRadius: 8,
-                                    background: 'rgba(45,95,63,0.10)', border: '1px solid rgba(45,95,63,0.18)',
-                                    display: 'inline-block',
-                                  }}>
-                                    <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#2D5F3F' }}>
-                                      <i className="isax isax-tick-circle" style={{ marginRight: 6 }} />
-                                      Quiz Passed! 🎉
-                                    </p>
-                                    <p style={{ margin: '3px 0 0', fontSize: 12, color: '#2D5F3F', opacity: 0.8 }}>
-                                      Best score: {quizBestPct}%
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* Attempt history */}
-                                {quizAttempts.length > 0 && (
-                                  <div style={{ margin: '0 auto 16px', maxWidth: 320, textAlign: 'left' }}>
-                                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--lx-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                      Attempt History ({quizAttempts.length} / {lessonQuiz.allowRetake ? lessonQuiz.maxAttempts ?? '∞' : 1})
-                                    </p>
-                                    {quizAttempts.slice(0, 4).map((attempt, idx) => (
-                                      <div key={attempt.id} style={{
-                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                        padding: '6px 10px', borderRadius: 6, marginBottom: 4,
-                                        background: attempt.passed ? 'rgba(45,95,63,0.07)' : 'rgba(139,35,53,0.07)',
-                                        border: `1px solid ${attempt.passed ? 'rgba(45,95,63,0.12)' : 'rgba(139,35,53,0.12)'}`,
-                                      }}>
-                                        <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>
-                                          Attempt {quizAttempts.length - idx}
-                                          {attempt.submittedAt && (
-                                            <span style={{ marginLeft: 6, opacity: 0.6 }}>
-                                              · {new Date(attempt.submittedAt).toLocaleDateString()}
-                                            </span>
-                                          )}
-                                        </span>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: attempt.passed ? '#2D5F3F' : '#8B2335' }}>
-                                          {attempt.percentage != null ? Math.round(attempt.percentage) : attempt.score ?? 0}%
-                                          <i className={`isax ms-1 ${attempt.passed ? 'isax-tick-circle' : 'isax-close-circle'}`} style={{ fontSize: 13 }} />
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-
-                                {/* Action button */}
-                                {lessonQuiz.status === 'PUBLISHED' ? (
-                                  canStartQuiz ? (
-                                    <button
-                                      type="button"
-                                      className="lx-btn lx-btn-gold"
-                                      style={{ fontSize: 14, padding: '10px 28px', gap: 8 }}
-                                      onClick={() => openInlineQuiz(lessonQuiz.id)}
-                                    >
-                                      <i className="isax isax-play-circle" style={{ fontSize: 18 }} />
-                                      {quizAttempts.length === 0 ? 'Start Quiz' : 'Retake Quiz'}
-                                    </button>
-                                  ) : quizHasPassed ? (
-                                    <button
-                                      type="button"
-                                      className="lx-btn lx-btn-outline lx-btn-sm"
-                                      onClick={() => quizAttempts[0] && openQuizReview(quizAttempts[0])}
-                                    >
-                                      <i className="isax isax-eye" />
-                                      Review Quiz
-                                    </button>
-                                  ) : (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#8B2335', fontSize: 13, justifyContent: 'center' }}>
-                                      <i className="isax isax-close-circle" />
-                                      No more attempts available
-                                    </div>
-                                  )
-                                ) : (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#C5973E', fontSize: 13, justifyContent: 'center' }}>
-                                    <i className="isax isax-info-circle" />
-                                    Quiz not yet published by instructor
-                                  </div>
-                                )}
-                              </>
-                            ) : (
-                              <>
-                                <p style={{ color: 'var(--lx-text-muted)', fontSize: 13, marginBottom: 6, marginTop: 4 }}>
-                                  The instructor hasn&apos;t linked a quiz to this lesson yet.
-                                </p>
-                                <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 20, opacity: 0.7 }}>
-                                  Check back soon or browse available quizzes below.
-                                </p>
-                                <Link to={routes.studentQuiz} className="lx-btn lx-btn-outline lx-btn-sm">
-                                  <i className="isax isax-document-text" />
-                                  Browse All Quizzes
-                                </Link>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* ── Lesson header + controls ─────────────────────── */}
-                      <div className="d-flex align-items-start justify-content-between gap-3 mb-4 flex-wrap">
-                        <div>
-                          <h5 className="mb-1">{selectedLesson.title}</h5>
-                          <span className="text-muted small">
-                            Lesson {lessonIdx + 1} of {totalLessons}
-                          </span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2 flex-wrap flex-shrink-0">
-                          <button
-                            type="button"
-                            className="btn btn-light btn-sm d-inline-flex align-items-center gap-1"
-                            onClick={() => goTo(-1)}
-                            disabled={!hasPrev}
-                          >
-                            <i className="isax isax-arrow-left-2" /> Prev
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-light btn-sm d-inline-flex align-items-center gap-1"
-                            onClick={() => goTo(1)}
-                            disabled={!hasNext}
-                          >
-                            Next <i className="isax isax-arrow-right-3" />
-                          </button>
-                          {!isLessonDone && selectedLesson.contentType !== 'QUIZ' && (
-                            <button
-                              type="button"
-                              className="btn btn-success btn-sm d-inline-flex align-items-center gap-1"
-                              onClick={handleMarkComplete}
-                              disabled={markingComplete}
-                            >
-                              {markingComplete
-                                ? <span className="spinner-border spinner-border-sm" />
-                                : <i className="isax isax-tick-circle" />}
-                              Mark Complete
-                            </button>
-                          )}
-                          {isLessonDone && (
-                            <span className="badge bg-success px-3 py-2 d-inline-flex align-items-center gap-1">
-                              <i className="isax isax-tick-circle" /> Completed
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* ── Tabs ─────────────────────────────────────────── */}
-                      <ul
-                        className="nav-tabs mb-4 nav-justified border-0 nav-style-1 d-sm-flex d-block"
-                        role="tablist"
-                      >
-                        <li className="nav-item">
-                          <button
-                            type="button"
-                            className={`btn nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('overview')}
-                          >
-                            Overview
-                          </button>
-                        </li>
-                        <li className="nav-item">
-                          <button
-                            type="button"
-                            className={`btn nav-link ${activeTab === 'resources' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('resources')}
-                          >
-                            Resources
-                            {(lessonDetail?.resources?.length ?? 0) > 0 && (
-                              <span
-                                className="badge bg-primary ms-1 rounded-pill"
-                                style={{ fontSize: 10 }}
-                              >
-                                {lessonDetail!.resources.length}
-                              </span>
-                            )}
-                          </button>
-                        </li>
-                      </ul>
-
-                      <div className="tab-content">
-
-                        {/* Overview */}
-                        {activeTab === 'overview' && (
-                          <div>
-                            {lessonDetail?.description && (
-                              <div className="mb-4">
-                                <h6 className="fs-18 fw-semibold mb-2">About this lesson</h6>
-                                <p className="text-muted">{lessonDetail.description}</p>
-                              </div>
-                            )}
-
-                            {course?.shortDescription && (
-                              <div className="mb-4">
-                                <h6 className="fs-18 fw-semibold mb-1">About this course</h6>
-                                <p className="text-muted">{course.shortDescription}</p>
-                              </div>
-                            )}
-
-                            {course?.whatYouWillLearn && (
-                              <div className="mb-4">
-                                <h6 className="fs-18 fw-semibold mb-2">What You&apos;ll Learn</h6>
-                                <ul className="list-unstyled ms-2">
-                                  {course.whatYouWillLearn
-                                    .split('\n')
-                                    .filter(Boolean)
-                                    .map((item, i) => (
-                                      <li key={i} className="mb-2 d-flex align-items-start gap-2">
-                                        <i className="isax isax-tick-circle text-success flex-shrink-0 mt-1" />
-                                        <span className="text-muted">{item.replace(/^[-•*]\s*/, '')}</span>
-                                      </li>
-                                    ))}
-                                </ul>
-                              </div>
-                            )}
-
-                            {course?.requirements && (
-                              <div className="mb-0">
-                                <h6 className="fs-18 fw-semibold mb-2">Requirements</h6>
-                                <ul className="list-unstyled ms-2">
-                                  {course.requirements
-                                    .split('\n')
-                                    .filter(Boolean)
-                                    .map((item, i) => (
-                                      <li key={i} className="mb-2 d-flex align-items-start gap-2">
-                                        <i className="isax isax-info-circle text-primary flex-shrink-0 mt-1" />
-                                        <span className="text-muted">{item.replace(/^[-•*]\s*/, '')}</span>
-                                      </li>
-                                    ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Resources */}
-                        {activeTab === 'resources' && (
-                          <div>
-                            {(lessonDetail?.resources?.length ?? 0) === 0 ? (
-                              <div className="text-center py-4 text-muted">
-                                <i className="isax isax-document fs-1 opacity-25 d-block mb-2" />
-                                <p className="small">No resources for this lesson</p>
-                              </div>
-                            ) : (
-                              <div className="list-group list-group-flush">
-                                {lessonDetail!.resources.map(res => (
-                                  <a
-                                    key={res.id}
-                                    href={res.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="list-group-item list-group-item-action d-flex align-items-center gap-3 px-0 py-3"
-                                  >
-                                    <div
-                                      className="d-flex align-items-center justify-content-center rounded-2 bg-primary bg-opacity-10 flex-shrink-0"
-                                      style={{ width: 40, height: 40 }}
-                                    >
-                                      <i className="isax isax-document-download text-primary" />
-                                    </div>
-                                    <div className="flex-grow-1">
-                                      <p className="mb-0 fw-medium small">{res.name}</p>
-                                      <span className="text-muted" style={{ fontSize: 11 }}>
-                                        {res.type.toUpperCase()}
-                                      </span>
-                                    </div>
-                                    <i className="isax isax-export-2 text-muted" />
-                                  </a>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-5 text-muted">
-                      <i className="isax isax-play-circle fs-1 opacity-25 d-block mb-2" />
-                      <p>Select a lesson from the sidebar to start learning</p>
+              {/* ── Lesson info bar ── */}
+              <div style={{
+                background:WHITE, padding:'14px 28px', flexShrink:0,
+                borderBottom:`1px solid rgba(197,151,62,0.1)`,
+                display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12,
+                boxShadow:'0 2px 12px rgba(78,20,32,0.05)',
+              }}>
+                <div style={{ minWidth:0 }}>
+                  <h5 style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:800, color:'#2C1810', margin:'0 0 3px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {selectedLesson.title}
+                  </h5>
+                  <span style={{ fontSize:12, color:'#9A8080', fontWeight:600 }}>
+                    Lesson {lessonIdx+1} of {totalLessons}
+                  </span>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                  <button onClick={() => goTo(-1)} disabled={!hasPrev} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 16px', borderRadius:8, border:`1.5px solid rgba(197,151,62,0.2)`, background:'transparent', color:hasPrev?BURG:'#c4b5b5', fontWeight:700, fontSize:13, cursor:hasPrev?'pointer':'not-allowed', transition:'all 0.2s' }}>
+                    <i className="fa-solid fa-chevron-left" style={{ fontSize:10 }} />Prev
+                  </button>
+                  <button onClick={() => goTo(1)} disabled={!hasNext} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 16px', borderRadius:8, border:`1.5px solid rgba(197,151,62,0.2)`, background:'transparent', color:hasNext?BURG:'#c4b5b5', fontWeight:700, fontSize:13, cursor:hasNext?'pointer':'not-allowed', transition:'all 0.2s' }}>
+                    Next <i className="fa-solid fa-chevron-right" style={{ fontSize:10 }} />
+                  </button>
+                  {!isDone && selectedLesson.contentType !== 'QUIZ' && (
+                    <button onClick={markComplete} disabled={markingDone} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:8, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', color:WHITE, fontWeight:700, fontSize:13, boxShadow:'0 4px 12px rgba(45,95,63,0.28)', opacity:markingDone?0.7:1, transition:'all 0.2s' }}>
+                      {markingDone ? <div style={{ width:13, height:13, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.4)', borderTopColor:WHITE, animation:'spin 0.8s linear infinite' }} /> : <i className="fa-solid fa-circle-check" />}
+                      Mark Complete
+                    </button>
+                  )}
+                  {isDone && (
+                    <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background:'rgba(74,222,128,0.09)', border:'1px solid rgba(74,222,128,0.22)', color:'#15803D', fontSize:13, fontWeight:700 }}>
+                      <i className="fa-solid fa-circle-check" />Completed
                     </div>
                   )}
-
                 </div>
               </div>
 
-            </div>
-          </div>
-        </div>
-      </div>
+              {/* ── Tabs ── */}
+              <div style={{ background:IVORY, padding:'18px 28px 0', flexShrink:0, borderBottom:`1px solid rgba(197,151,62,0.08)` }}>
+                <div style={{ display:'inline-flex', gap:3, background:WHITE, borderRadius:10, padding:4, boxShadow:'0 2px 14px rgba(78,20,32,0.06)', border:`1px solid rgba(197,151,62,0.1)` }}>
+                  {(['overview','resources'] as const).map(tab => (
+                    <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                      padding:'8px 22px', border:'none', borderRadius:7, cursor:'pointer',
+                      fontWeight:700, fontSize:13, textTransform:'capitalize',
+                      background: activeTab===tab ? `linear-gradient(135deg,${BURG},${BURG_D})` : 'transparent',
+                      color: activeTab===tab ? WHITE : '#7A6060',
+                      boxShadow: activeTab===tab ? '0 4px 14px rgba(101,28,50,0.25)' : 'none',
+                      transition:'all 0.2s', position:'relative',
+                    }}>
+                      {tab}
+                      {tab==='resources' && (lessonDetail?.resources?.length??0)>0 && (
+                        <span style={{ position:'absolute', top:-6, right:-4, background:GOLD, color:WHITE, fontSize:9, fontWeight:800, borderRadius:20, padding:'1px 5px', lineHeight:1.4 }}>
+                          {lessonDetail!.resources.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-      {/* ── Inline Quiz Overlay ────────────────────────────────────────────── */}
-      {quizOverlayOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'rgba(15,10,20,0.82)', backdropFilter: 'blur(6px)',
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-          overflowY: 'auto', padding: '24px 16px',
-        }}>
-          <div style={{
-            width: '100%', maxWidth: 720, background: 'var(--lx-card-bg, #fff)',
-            borderRadius: 'var(--lx-radius, 12px)', boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
-            border: '1px solid rgba(197,151,62,0.15)',
-            overflow: 'hidden', position: 'relative',
-          }}>
-            {/* Close button — only show when not in active quiz phase */}
+              {/* ── Tab content ── */}
+              <div style={{ flex:1, padding:'24px 28px 40px', background:IVORY }}>
+
+                {/* OVERVIEW */}
+                {activeTab === 'overview' && (
+                  <div style={{ maxWidth:780, display:'flex', flexDirection:'column', gap:18 }}>
+                    {lessonDetail?.description && (
+                      <div style={panelStyle}>
+                        <h6 style={panelTitle}>About this lesson</h6>
+                        <p style={{ color:'#4b5563', lineHeight:1.8, margin:0, fontSize:14 }}>{lessonDetail.description}</p>
+                      </div>
+                    )}
+                    {course?.shortDescription && (
+                      <div style={panelStyle}>
+                        <h6 style={panelTitle}>About this course</h6>
+                        <p style={{ color:'#4b5563', lineHeight:1.8, margin:0, fontSize:14 }}>{course.shortDescription}</p>
+                      </div>
+                    )}
+                    {course?.whatYouWillLearn && (
+                      <div style={{ ...panelStyle, background:`linear-gradient(135deg,rgba(197,151,62,0.03),${WHITE})`, border:`1px solid rgba(197,151,62,0.1)` }}>
+                        <h6 style={panelTitle}>What You'll Learn</h6>
+                        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:'8px 16px' }}>
+                          {course.whatYouWillLearn.split('\n').filter(Boolean).map((item, i) => (
+                            <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
+                              <div style={{ width:20, height:20, borderRadius:'50%', background:'rgba(16,185,129,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+                                <i className="fa-solid fa-check" style={{ color:'#10B981', fontSize:9 }} />
+                              </div>
+                              <span style={{ color:'#374151', fontSize:13, lineHeight:1.55 }}>{item.replace(/^[-•*]\s*/,'')}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {course?.requirements && (
+                      <div style={panelStyle}>
+                        <h6 style={panelTitle}>Requirements</h6>
+                        <ul style={{ listStyle:'none', padding:0, margin:0, display:'flex', flexDirection:'column', gap:8 }}>
+                          {course.requirements.split('\n').filter(Boolean).map((item, i) => (
+                            <li key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, color:'#4b5563', fontSize:13 }}>
+                              <div style={{ width:5, height:5, borderRadius:'50%', background:GOLD, flexShrink:0, marginTop:7 }} />
+                              {item.replace(/^[-•*]\s*/,'')}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {!lessonDetail?.description && !course?.shortDescription && !course?.whatYouWillLearn && !course?.requirements && (
+                      <div style={{ ...panelStyle, textAlign:'center', padding:'52px 24px', color:'#9A8080' }}>
+                        <i className="fa-regular fa-file-lines" style={{ fontSize:44, display:'block', marginBottom:12, opacity:0.25 }} />
+                        <p style={{ margin:0, fontWeight:600 }}>No overview content for this lesson.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* RESOURCES */}
+                {activeTab === 'resources' && (
+                  <div style={{ maxWidth:'100%' }}>
+                    {(lessonDetail?.resources?.length??0) === 0 ? (
+                      <div style={{ ...panelStyle, textAlign:'center', padding:'56px 24px', color:'#9A8080' }}>
+                        <i className="fa-regular fa-folder-open" style={{ fontSize:52, display:'block', marginBottom:14, opacity:0.25 }} />
+                        <p style={{ margin:0, fontWeight:700, fontSize:15 }}>No resources for this lesson</p>
+                        <p style={{ margin:'6px 0 0', fontSize:13, opacity:0.6 }}>The instructor hasn't uploaded any files yet</p>
+                      </div>
+                    ) : (
+                      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                        {lessonDetail!.resources.map((res: LessonResource) => {
+                          const ext = res.name.split('.').pop()?.toLowerCase() ?? '';
+                          const isSel = activeRes?.id === res.id;
+                          const fileMap: Record<string, { icon: string; color: string; bg: string }> = {
+                            pdf:  { icon:'fa-file-pdf',       color:'#EF4444', bg:'rgba(239,68,68,0.08)' },
+                            doc:  { icon:'fa-file-word',      color:'#2563EB', bg:'rgba(37,99,235,0.08)' },
+                            docx: { icon:'fa-file-word',      color:'#2563EB', bg:'rgba(37,99,235,0.08)' },
+                            ppt:  { icon:'fa-file-powerpoint',color:'#F97316', bg:'rgba(249,115,22,0.08)' },
+                            pptx: { icon:'fa-file-powerpoint',color:'#F97316', bg:'rgba(249,115,22,0.08)' },
+                            xls:  { icon:'fa-file-excel',     color:'#16A34A', bg:'rgba(22,163,74,0.08)' },
+                            xlsx: { icon:'fa-file-excel',     color:'#16A34A', bg:'rgba(22,163,74,0.08)' },
+                            txt:  { icon:'fa-file-lines',     color:'#6B7280', bg:'rgba(107,114,128,0.08)' },
+                            md:   { icon:'fa-file-lines',     color:'#6B7280', bg:'rgba(107,114,128,0.08)' },
+                            png:  { icon:'fa-file-image',     color:'#8B5CF6', bg:'rgba(139,92,246,0.08)' },
+                            jpg:  { icon:'fa-file-image',     color:'#8B5CF6', bg:'rgba(139,92,246,0.08)' },
+                            jpeg: { icon:'fa-file-image',     color:'#8B5CF6', bg:'rgba(139,92,246,0.08)' },
+                            gif:  { icon:'fa-file-image',     color:'#8B5CF6', bg:'rgba(139,92,246,0.08)' },
+                            mp4:  { icon:'fa-file-video',     color:'#0EA5E9', bg:'rgba(14,165,233,0.08)' },
+                          };
+                          const fc = fileMap[ext] ?? { icon:'fa-file', color:BURG, bg:'rgba(101,28,50,0.06)' };
+                          const sz = res.size ? (res.size>1024*1024?`${(res.size/1024/1024).toFixed(1)} MB`:`${Math.round(res.size/1024)} KB`) : '';
+                          const fileUrl = getFileUrl(res.url) ?? res.url;
+
+                          return (
+                            <div key={res.id}>
+                              {/* File card */}
+                              <div
+                                onClick={() => setActiveRes(isSel ? null : res)}
+                                style={{
+                                  display:'flex', alignItems:'center', gap:14, padding:'14px 18px',
+                                  borderRadius:12, cursor:'pointer',
+                                  background: isSel ? 'rgba(101,28,50,0.04)' : WHITE,
+                                  border:`1.5px solid ${isSel?'rgba(101,28,50,0.2)':'rgba(197,151,62,0.12)'}`,
+                                  boxShadow: isSel ? '0 4px 20px rgba(101,28,50,0.1)' : '0 1px 6px rgba(78,20,32,0.05)',
+                                  transition:'all 0.2s',
+                                }}
+                              >
+                                <div style={{ width:50, height:50, borderRadius:12, flexShrink:0, background:fc.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                  <i className={`fa-solid ${fc.icon}`} style={{ fontSize:22, color:fc.color }} />
+                                </div>
+                                <div style={{ flex:1, minWidth:0 }}>
+                                  <p style={{ margin:0, fontWeight:700, fontSize:14, color:'#2C1810', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{res.name}</p>
+                                  <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
+                                    <span style={{ fontSize:10, fontWeight:800, padding:'2px 8px', borderRadius:4, background:fc.bg, color:fc.color, textTransform:'uppercase', letterSpacing:'0.3px' }}>{ext||res.type}</span>
+                                    {sz && <span style={{ fontSize:11, color:'#9A8080' }}>{sz}</span>}
+                                  </div>
+                                </div>
+                                <div style={{ display:'flex', gap:8, flexShrink:0 }}>
+                                  <button onClick={e => { e.stopPropagation(); setActiveRes(isSel?null:res); }} style={{ width:36, height:36, borderRadius:8, border:`1px solid ${isSel?'rgba(101,28,50,0.2)':'rgba(197,151,62,0.2)'}`, background:isSel?'rgba(101,28,50,0.06)':'rgba(197,151,62,0.06)', color:isSel?BURG:GOLD, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:14 }} title={isSel?'Close preview':'Preview'}>
+                                    <i className={`fa-solid ${isSel?'fa-chevron-up':'fa-eye'}`} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Inline viewer */}
+                              {isSel && (() => {
+                                const v = getViewer(res);
+                                return (
+                                  <div style={{ marginTop:12, width:'80%', marginLeft:'auto', marginRight:'auto', borderRadius:12, overflow:'hidden', border:`1.5px solid rgba(101,28,50,0.15)`, boxShadow:'0 8px 30px rgba(78,20,32,0.1)', background:WHITE }}>
+                                    {/* Toolbar */}
+                                    <div style={{ padding:'10px 16px', background:'rgba(101,28,50,0.03)', borderBottom:'1px solid rgba(197,151,62,0.1)', display:'flex', alignItems:'center', gap:10 }}>
+                                      <i className={`fa-solid ${fc.icon}`} style={{ color:fc.color, fontSize:14 }} />
+                                      <span style={{ fontWeight:700, fontSize:13, color:'#2C1810' }}>{res.name}</span>
+                                      <span style={{ marginLeft:'auto', fontSize:11, color:'#9A8080', display:'flex', alignItems:'center', gap:4 }}>
+                                        <i className="fa-solid fa-lock" style={{ fontSize:10, color:GOLD }} />
+                                        Read only
+                                      </span>
+                                    </div>
+                                    {/* Content */}
+                                    {v.type==='image' && (
+                                      <div style={{ background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', minHeight:280, padding:16 }}>
+                                        <img src={v.url} alt={res.name} style={{ maxWidth:'100%', maxHeight:520, borderRadius:8, objectFit:'contain' }} />
+                                      </div>
+                                    )}
+                                    {v.type==='pdf' && (
+                                      <div style={{ width:'100%', height:780, background:'#525659', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+                                        {pdfBlobLoading && (
+                                          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
+                                            <div style={{ width:44, height:44, borderRadius:'50%', border:'4px solid rgba(197,151,62,0.2)', borderTopColor:'#C5973E', animation:'spin 0.9s linear infinite' }} />
+                                            <span style={{ color:'rgba(255,255,255,0.5)', fontSize:13, fontWeight:600 }}>Loading PDF…</span>
+                                          </div>
+                                        )}
+                                        {!pdfBlobLoading && pdfBlobError && (
+                                          <div style={{ textAlign:'center', color:'rgba(255,255,255,0.5)', padding:32 }}>
+                                            <i className="fa-solid fa-circle-exclamation" style={{ fontSize:40, display:'block', marginBottom:12, color:'#F87171' }} />
+                                            <p style={{ margin:0, fontWeight:700, fontSize:14 }}>Unable to load PDF</p>
+                                            <p style={{ margin:'6px 0 0', fontSize:12, opacity:0.6 }}>Please try again later</p>
+                                          </div>
+                                        )}
+                                        {!pdfBlobLoading && !pdfBlobError && pdfBlobUrl && (
+                                          /* Blob URL is always same-origin — X-Frame-Options never applies.
+                                             #toolbar=0&navpanes=0 hides Chrome/Firefox download+print toolbar
+                                             on blob: URLs (safe because blob: is same-origin). */
+                                          <object
+                                            data={`${pdfBlobUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                                            type="application/pdf"
+                                            width="100%"
+                                            height="100%"
+                                            style={{ display:'block', border:'none', flex:1 }}
+                                            aria-label={res.name}
+                                          >
+                                            <iframe
+                                              title={res.name}
+                                              src={`${pdfBlobUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                                              style={{ width:'100%', height:'100%', border:'none', display:'block' }}
+                                            />
+                                          </object>
+                                        )}
+                                      </div>
+                                    )}
+                                    {v.type==='gdocs' && (
+                                      <iframe src={v.url} title={res.name} style={{ width:'100%', height:560, border:'none', display:'block' }} />
+                                    )}
+                                    {v.type==='video' && (
+                                      <div style={{ background:'#000' }}>
+                                        <video src={v.url} controls style={{ width:'100%', maxHeight:420, display:'block' }} />
+                                      </div>
+                                    )}
+                                    {v.type==='none' && (
+                                      <div style={{ padding:'48px 24px', textAlign:'center', color:'#9A8080' }}>
+                                        <i className={`fa-solid ${fc.icon}`} style={{ fontSize:52, color:fc.color, display:'block', marginBottom:16, opacity:0.5 }} />
+                                        <p style={{ fontWeight:700, fontSize:15, color:'#2C1810', marginBottom:8 }}>Preview not available for this file type</p>
+                                        <p style={{ fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                                          <i className="fa-solid fa-lock" style={{ color:GOLD }} />
+                                          This resource is available for reading on the platform only
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', color:'#9A8080', gap:12, minHeight:400 }}>
+              <div style={{ width:72, height:72, borderRadius:'50%', background:'rgba(197,151,62,0.06)', border:`2px solid rgba(197,151,62,0.12)`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <i className="fa-solid fa-circle-play" style={{ fontSize:30, color:'rgba(197,151,62,0.4)' }} />
+              </div>
+              <p style={{ margin:0, fontSize:14, fontWeight:600 }}>Select a lesson to begin</p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* ══════════ QUIZ OVERLAY ══════════ */}
+      {quizOpen && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(8,3,12,0.92)', backdropFilter:'blur(10px)', display:'flex', alignItems:'flex-start', justifyContent:'center', overflowY:'auto', padding:'28px 16px' }}>
+          <div style={{ width:'100%', maxWidth:720, background:WHITE, borderRadius:20, boxShadow:'0 24px 80px rgba(0,0,0,0.5)', border:`1px solid rgba(197,151,62,0.15)`, overflow:'hidden', position:'relative' }}>
             {quizPhase !== 'quiz' && (
-              <button
-                type="button"
-                onClick={closeQuizOverlay}
-                style={{
-                  position: 'absolute', top: 14, right: 14, zIndex: 2,
-                  background: 'rgba(107,29,42,0.08)', border: '1px solid rgba(107,29,42,0.15)',
-                  borderRadius: 8, width: 34, height: 34, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lx-primary)',
-                }}
-                title="Close"
-              >
-                <i className="isax isax-close-circle" style={{ fontSize: 18 }} />
+              <button onClick={closeQuiz} style={{ position:'absolute', top:14, right:14, zIndex:2, background:'rgba(107,29,42,0.06)', border:'1px solid rgba(107,29,42,0.12)', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:BURG }}>
+                <i className="fa-solid fa-xmark" style={{ fontSize:16 }} />
               </button>
             )}
+            <div style={{ padding:'30px 34px' }}>
 
-            <div style={{ padding: '28px 32px' }}>
-
-              {/* Loading */}
               {quizPhase === 'loading' && (
-                <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                  <div style={{
-                    width: 52, height: 52, borderRadius: '50%',
-                    border: '4px solid rgba(197,151,62,0.2)', borderTopColor: '#C5973E',
-                    animation: 'spin 0.9s linear infinite', margin: '0 auto 16px',
-                  }} />
-                  <p style={{ color: 'var(--lx-text-muted)', fontSize: 15 }}>Preparing your quiz…</p>
+                <div style={{ textAlign:'center', padding:'56px 0' }}>
+                  <div style={{ width:52, height:52, borderRadius:'50%', border:`4px solid rgba(197,151,62,0.15)`, borderTopColor:GOLD, animation:'spin 0.9s linear infinite', margin:'0 auto 16px' }} />
+                  <p style={{ color:'#9A8080', fontSize:15 }}>Preparing your quiz…</p>
                 </div>
               )}
 
-              {/* Error */}
               {quizPhase === 'error' && (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <i className="isax isax-close-circle" style={{ fontSize: 52, color: '#8B2335', display: 'block', marginBottom: 16 }} />
-                  <h5 style={{ color: '#8B2335', marginBottom: 8 }}>Unable to Load Quiz</h5>
-                  <p style={{ color: 'var(--lx-text-muted)', marginBottom: 24, fontSize: 14 }}>{quizErrorMsg}</p>
-                  <button type="button" onClick={closeQuizOverlay} className="lx-btn lx-btn-outline">Close</button>
+                <div style={{ textAlign:'center', padding:'48px 0' }}>
+                  <i className="fa-solid fa-circle-xmark" style={{ fontSize:54, color:BURG_D, display:'block', marginBottom:16 }} />
+                  <h5 style={{ color:BURG_D, marginBottom:8 }}>Unable to Load Quiz</h5>
+                  <p style={{ color:'#9A8080', marginBottom:28, fontSize:14 }}>{quizErr}</p>
+                  <button onClick={closeQuiz} style={{ padding:'10px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer', fontSize:14 }}>Close</button>
                 </div>
               )}
 
-              {/* Violation */}
               {quizPhase === 'violation' && (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{
-                    width: 80, height: 80, borderRadius: '50%', margin: '0 auto 20px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(197,151,62,0.12)', border: '3px solid rgba(197,151,62,0.3)',
-                  }}>
-                    <i className="isax isax-warning-2" style={{ fontSize: 40, color: '#C5973E' }} />
+                <div style={{ textAlign:'center', padding:'48px 0' }}>
+                  <div style={{ width:84, height:84, borderRadius:'50%', margin:'0 auto 20px', display:'flex', alignItems:'center', justifyContent:'center', background:`rgba(197,151,62,0.09)`, border:`3px solid rgba(197,151,62,0.22)` }}>
+                    <i className="fa-solid fa-triangle-exclamation" style={{ fontSize:40, color:GOLD }} />
                   </div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: '#8B2335', marginBottom: 12 }}>Quiz Terminated</h3>
-                  <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 6 }}>
-                    You switched tabs during the quiz. Your attempt has been submitted with a{' '}
-                    <strong style={{ color: '#8B2335' }}>score of 0</strong>.
-                  </p>
-                  <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 28 }}>
-                    This action is logged and cannot be reversed.
-                  </p>
-                  <button type="button" onClick={closeQuizOverlay} className="lx-btn lx-btn-outline">Back to Course</button>
+                  <h3 style={{ fontSize:22, fontWeight:800, color:BURG_D, marginBottom:12 }}>Quiz Terminated</h3>
+                  <p style={{ color:'#9A8080', fontSize:14, marginBottom:6 }}>You switched tabs. Score submitted as <strong style={{ color:BURG_D }}>0</strong>.</p>
+                  <p style={{ color:'#9A8080', fontSize:12, marginBottom:28 }}>This action is logged and cannot be reversed.</p>
+                  <button onClick={closeQuiz} style={{ padding:'10px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer' }}>Back to Course</button>
                 </div>
               )}
 
-              {/* Result */}
-              {quizPhase === 'result' && inlineResult && (
-                <div style={{ maxWidth: 560, margin: '0 auto' }}>
-                  {/* Hero */}
-                  <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                    <div style={{
-                      width: 88, height: 88, borderRadius: '50%', margin: '0 auto 20px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: inlineResult.passed ? 'rgba(45,95,63,0.12)' : 'rgba(139,35,53,0.10)',
-                      border: `3px solid ${inlineResult.passed ? 'rgba(45,95,63,0.3)' : 'rgba(139,35,53,0.25)'}`,
-                    }}>
-                      <i
-                        className={`isax ${inlineResult.passed ? 'isax-tick-circle' : 'isax-close-circle'}`}
-                        style={{ fontSize: 44, color: inlineResult.passed ? '#2D5F3F' : '#8B2335' }}
-                      />
+              {quizPhase === 'result' && qResult && (
+                <div style={{ maxWidth:540, margin:'0 auto' }}>
+                  <div style={{ textAlign:'center', marginBottom:26 }}>
+                    <div style={{ width:90, height:90, borderRadius:'50%', margin:'0 auto 18px', display:'flex', alignItems:'center', justifyContent:'center', background:qResult.passed?'rgba(45,95,63,0.09)':'rgba(139,35,53,0.07)', border:`3px solid ${qResult.passed?'rgba(45,95,63,0.22)':'rgba(139,35,53,0.18)'}` }}>
+                      <i className={`fa-solid ${qResult.passed?'fa-circle-check':'fa-circle-xmark'}`} style={{ fontSize:46, color:qResult.passed?'#2D5F3F':BURG_D }} />
                     </div>
-                    <h3 style={{ fontSize: 26, fontWeight: 800, margin: '0 0 8px', color: inlineResult.passed ? '#2D5F3F' : '#8B2335' }}>
-                      {inlineResult.passed ? '🎉 You Passed!' : 'Not Passed'}
+                    <h3 style={{ fontSize:26, fontWeight:800, margin:'0 0 8px', color:qResult.passed?'#2D5F3F':BURG_D }}>
+                      {qResult.passed?'🎉 You Passed!':'Not Passed'}
                     </h3>
-                    <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, margin: 0 }}>
-                      {inlineResult.passed
-                        ? "Congratulations! You've successfully completed this quiz."
-                        : `You need ${activeQuizData?.passingScore ?? 70}% to pass. Keep practicing!`}
+                    <p style={{ color:'#9A8080', fontSize:14, margin:0 }}>
+                      {qResult.passed?"Congratulations! You've completed this quiz.":`You need ${quizData?.passingScore??70}% to pass.`}
                     </p>
                   </div>
-                  {/* Stat cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:22 }}>
                     {[
-                      { label: 'Points Earned', value: inlineResult.score, icon: 'isax-star', color: inlineResult.passed ? '#2D5F3F' : '#8B2335' },
-                      { label: 'Total Points', value: inlineResult.totalPoints, icon: 'isax-chart', color: '#C5973E' },
-                      { label: 'Your Score', value: `${typeof inlineResult.percentage === 'number' ? Math.round(inlineResult.percentage * 10) / 10 : 0}%`, icon: 'isax-percentage-square', color: inlineResult.passed ? '#2D5F3F' : '#8B2335' },
-                    ].map(card => (
-                      <div key={card.label} style={{
-                        padding: '16px 12px', borderRadius: 10, textAlign: 'center',
-                        background: `${card.color}12`, border: `1px solid ${card.color}22`,
-                      }}>
-                        <i className={`isax ${card.icon}`} style={{ fontSize: 22, color: card.color, display: 'block', marginBottom: 8 }} />
-                        <div style={{ fontSize: 26, fontWeight: 800, color: card.color, lineHeight: 1.1, marginBottom: 4 }}>{card.value}</div>
-                        <div style={{ fontSize: 11, color: 'var(--lx-text-muted)', fontWeight: 500 }}>{card.label}</div>
+                      { label:'Points Earned', value:qResult.score,                                         color:qResult.passed?'#2D5F3F':BURG_D },
+                      { label:'Total Points',  value:qResult.totalPoints,                                   color:GOLD },
+                      { label:'Your Score',    value:`${Math.round((qResult.percentage??0)*10)/10}%`,       color:qResult.passed?'#2D5F3F':BURG_D },
+                    ].map(c => (
+                      <div key={c.label} style={{ padding:'16px 10px', borderRadius:12, textAlign:'center', background:`${c.color}10`, border:`1px solid ${c.color}22` }}>
+                        <div style={{ fontSize:28, fontWeight:800, color:c.color, lineHeight:1.1, marginBottom:4 }}>{c.value}</div>
+                        <div style={{ fontSize:11, color:'#9A8080', fontWeight:600 }}>{c.label}</div>
                       </div>
                     ))}
                   </div>
-                  {/* Progress bar */}
-                  <div style={{ padding: '16px 20px', borderRadius: 10, background: 'rgba(107,29,42,0.04)', border: '1px solid rgba(107,29,42,0.07)', marginBottom: 24 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>Score</span>
-                      <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
-                        Passing: <strong style={{ color: inlineResult.passed ? '#2D5F3F' : '#8B2335' }}>{activeQuizData?.passingScore ?? 70}%</strong>
-                      </span>
-                    </div>
-                    <div style={{ height: 12, borderRadius: 6, background: 'rgba(107,29,42,0.06)', position: 'relative', overflow: 'visible' }}>
-                      <div style={{ position: 'absolute', left: `${activeQuizData?.passingScore ?? 70}%`, top: -4, bottom: -4, width: 2, background: 'rgba(107,29,42,0.3)', borderRadius: 2, zIndex: 2 }} />
-                      <div style={{
-                        height: '100%', borderRadius: 6, position: 'relative', zIndex: 1,
-                        width: `${Math.min(typeof inlineResult.percentage === 'number' ? Math.round(inlineResult.percentage * 10) / 10 : 0, 100)}%`,
-                        background: inlineResult.passed ? 'linear-gradient(90deg,#2D5F3F,#4CAF50)' : 'linear-gradient(90deg,#8B2335,#C5973E)',
-                        transition: 'width 0.6s ease',
-                      }} />
-                    </div>
+                  <div style={{ height:10, borderRadius:5, background:'rgba(107,29,42,0.06)', overflow:'hidden', marginBottom:22, position:'relative' }}>
+                    <div style={{ position:'absolute', left:`${quizData?.passingScore??70}%`, top:0, bottom:0, width:2, background:'rgba(107,29,42,0.22)', zIndex:2 }} />
+                    <div style={{ height:'100%', borderRadius:5, width:`${Math.min(Math.round((qResult.percentage??0)*10)/10,100)}%`, background:qResult.passed?'linear-gradient(90deg,#2D5F3F,#4ADE80)':`linear-gradient(90deg,${BURG_D},${GOLD})`, transition:'width 0.6s' }} />
                   </div>
-                  {/* Actions */}
-                  <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-                    <button type="button" onClick={closeQuizOverlay} className="lx-btn lx-btn-outline">
-                      <i className="isax isax-arrow-left" /> Back to Course
+                  <div style={{ display:'flex', justifyContent:'center' }}>
+                    <button onClick={closeQuiz} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'11px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer', fontSize:14 }}>
+                      <i className="fa-solid fa-arrow-left" />Back to Course
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Active Quiz */}
-              {quizPhase === 'quiz' && activeQuizData && (() => {
-                const currentQuestion = activeQuizData.questions[inlineCurrentIdx];
-                if (!currentQuestion) return null;
-                const totalQ = activeQuizData.questions.length;
-                const progressPct2 = Math.round((inlineCurrentIdx / totalQ) * 100);
-                const timeWarning = inlineTimeLeft < 60 && inlineTimeLeft > 0;
-                const isMultiple = currentQuestion.type?.toUpperCase().includes('MULTIPLE');
-                const isLast = inlineCurrentIdx === totalQ - 1;
+              {quizPhase === 'quiz' && quizData && (() => {
+                const Q         = quizData.questions[qIdx];
+                if (!Q) return null;
+                const totalQ    = quizData.questions.length;
+                const answered  = answers.length;
+                const warn      = timeLeft < 60 && timeLeft > 0;
+                const isMulti   = Q.type?.toUpperCase().includes('MULTIPLE');
+                const isFirst   = qIdx === 0;
+                const isLast    = qIdx === totalQ - 1;
+                const curAns    = curAnswers();
+                const allAns    = answered === totalQ;
+
                 return (
                   <>
                     {/* Header */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, flexWrap:'wrap', gap:8 }}>
                       <div>
-                        <h5 style={{ margin: 0, fontWeight: 700, fontSize: 17 }}>{activeQuizData.title}</h5>
-                        <span style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>Question {inlineCurrentIdx + 1} of {totalQ}</span>
+                        <h5 style={{ margin:0, fontWeight:800, fontSize:17, fontFamily:"'Playfair Display',serif", color:'#2C1810' }}>{quizData.title}</h5>
+                        <span style={{ color:'#9A8080', fontSize:12 }}>Q {qIdx+1}/{totalQ} · <span style={{ color:answered===totalQ?'#2D5F3F':'#9A8080' }}>{answered}/{totalQ} answered</span></span>
                       </div>
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px',
-                        borderRadius: 8, border: `1px solid ${timeWarning ? '#8B2335' : 'rgba(0,0,0,0.1)'}`,
-                        background: timeWarning ? 'rgba(139,35,53,0.07)' : 'rgba(0,0,0,0.03)',
-                        fontWeight: 700, fontSize: 15, color: timeWarning ? '#8B2335' : 'var(--lx-text)',
-                      }}>
-                        <i className={`isax isax-timer${timeWarning ? ' text-danger' : ''}`} />
-                        {formatQuizTime(inlineTimeLeft)}
+                      <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 14px', borderRadius:10, border:`1.5px solid ${warn?BURG_D:'rgba(197,151,62,0.2)'}`, background:warn?'rgba(139,35,53,0.05)':'rgba(197,151,62,0.04)', fontWeight:800, fontSize:16, color:warn?BURG_D:'#2C1810' }}>
+                        <i className="fa-solid fa-stopwatch" style={{ fontSize:14, color:warn?BURG_D:GOLD }} />
+                        {fmtTime(timeLeft)}
                       </div>
                     </div>
-                    {/* Progress bar */}
-                    <div style={{ height: 5, borderRadius: 3, background: 'rgba(0,0,0,0.07)', marginBottom: 20 }}>
-                      <div style={{ height: '100%', borderRadius: 3, width: `${progressPct2}%`, background: 'var(--lx-primary)', transition: 'width 0.3s' }} />
+
+                    {/* Question dots */}
+                    <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:16 }}>
+                      {quizData.questions.map((_: any, i: number) => {
+                        const isAns = answers.some(a => a.questionId === quizData.questions[i].id);
+                        const isCur = i === qIdx;
+                        return (
+                          <button key={i} onClick={() => setQIdx(i)} style={{ width:32, height:32, borderRadius:7, border:'none', cursor:'pointer', fontSize:11, fontWeight:800, background:isCur?BURG:isAns?'rgba(45,95,63,0.1)':'rgba(0,0,0,0.05)', color:isCur?WHITE:isAns?'#2D5F3F':'#9A8080', outline:isCur?`2px solid ${BURG}`:'none', outlineOffset:2, transition:'all 0.15s' }}>{i+1}</button>
+                        );
+                      })}
                     </div>
-                    {/* Question card */}
-                    <div style={{ background: 'rgba(107,29,42,0.03)', borderRadius: 10, padding: '20px 22px', border: '1px solid rgba(107,29,42,0.07)', marginBottom: 18 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
-                        <h6 style={{ margin: 0, lineHeight: 1.5, fontWeight: 600, fontSize: 15 }}>{currentQuestion.text}</h6>
-                        <span style={{
-                          flexShrink: 0, padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700,
-                          background: 'rgba(107,29,42,0.08)', color: 'var(--lx-primary)',
-                        }}>
-                          {currentQuestion.points} {currentQuestion.points === 1 ? 'pt' : 'pts'}
-                        </span>
+
+                    {/* Question */}
+                    <div style={{ background:'rgba(101,28,50,0.02)', borderRadius:12, padding:'18px 22px', border:'1px solid rgba(197,151,62,0.1)', marginBottom:18 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', gap:12, marginBottom:14 }}>
+                        <h6 style={{ margin:0, lineHeight:1.55, fontWeight:700, fontSize:15, color:'#2C1810' }}>{Q.text}</h6>
+                        <span style={{ flexShrink:0, padding:'3px 10px', borderRadius:6, fontSize:11, fontWeight:800, background:`rgba(197,151,62,0.1)`, color:GOLD }}>{Q.points} pt{Q.points!==1?'s':''}</span>
                       </div>
-                      {isMultiple && (
-                        <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <i className="isax isax-info-circle" /> Select all that apply
-                        </p>
-                      )}
-                      {/* Options */}
-                      {currentQuestion.options
-                        .slice()
-                        .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
-                        .map((option: any) => (
-                          <div
-                            key={option.id}
-                            style={getInlineOptionStyle(option.id)}
-                            onClick={() => toggleInlineOption(option.id)}
-                          >
-                            {/* Radio/Checkbox indicator */}
-                            <div style={{
-                              width: 20, height: 20, borderRadius: isMultiple ? 5 : '50%',
-                              border: `2px solid ${
-                                inlineFeedback
-                                  ? inlineFeedback.correctOptionIds.includes(option.id) ? '#2D5F3F'
-                                    : inlineSelectedIds.includes(option.id) ? '#8B2335' : 'rgba(0,0,0,0.2)'
-                                  : inlineSelectedIds.includes(option.id) ? 'var(--lx-primary)' : 'rgba(0,0,0,0.2)'
-                              }`,
-                              background: inlineSelectedIds.includes(option.id)
-                                ? (inlineFeedback
-                                  ? (inlineFeedback.correctOptionIds.includes(option.id) ? '#2D5F3F' : '#8B2335')
-                                  : 'var(--lx-primary)')
-                                : 'transparent',
-                              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}>
-                              {inlineSelectedIds.includes(option.id) && (
-                                <i className="isax isax-tick" style={{ fontSize: 11, color: '#fff' }} />
-                              )}
+                      {isMulti && <p style={{ color:'#9A8080', fontSize:12, margin:'0 0 12px', display:'flex', alignItems:'center', gap:5 }}><i className="fa-solid fa-circle-info" /> Select all that apply</p>}
+                      {Q.options.slice().sort((a:any,b:any)=>a.orderIndex-b.orderIndex).map((opt:any) => {
+                        const isSel = curAns.includes(opt.id);
+                        return (
+                          <div key={opt.id} onClick={() => toggleOpt(opt.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 16px', marginBottom:7, borderRadius:10, border:`2px solid ${isSel?BURG:'rgba(0,0,0,0.08)'}`, background:isSel?'rgba(101,28,50,0.04)':'rgba(255,255,255,0.7)', cursor:'pointer', transition:'all 0.15s', userSelect:'none' }}>
+                            <div style={{ width:20, height:20, borderRadius:isMulti?5:'50%', border:`2px solid ${isSel?BURG:'rgba(0,0,0,0.2)'}`, background:isSel?BURG:'transparent', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                              {isSel && <i className="fa-solid fa-check" style={{ fontSize:10, color:WHITE }} />}
                             </div>
-                            <span style={{ fontSize: 14 }}>{option.text}</span>
-                            {inlineFeedback && inlineFeedback.correctOptionIds.includes(option.id) && (
-                              <i className="isax isax-tick-circle ms-auto" style={{ fontSize: 16, color: '#2D5F3F', flexShrink: 0 }} />
-                            )}
-                            {inlineFeedback && inlineSelectedIds.includes(option.id) && !inlineFeedback.correctOptionIds.includes(option.id) && (
-                              <i className="isax isax-close-circle ms-auto" style={{ fontSize: 16, color: '#8B2335', flexShrink: 0 }} />
-                            )}
+                            <span style={{ fontSize:14, color:'#374151' }}>{opt.text}</span>
                           </div>
-                        ))}
+                        );
+                      })}
                     </div>
 
-                    {/* Feedback */}
-                    {inlineFeedback && (
-                      <div style={{
-                        padding: '12px 16px', borderRadius: 8, marginBottom: 16,
-                        background: inlineFeedback.correct ? 'rgba(45,95,63,0.08)' : 'rgba(139,35,53,0.07)',
-                        border: `1px solid ${inlineFeedback.correct ? 'rgba(45,95,63,0.2)' : 'rgba(139,35,53,0.2)'}`,
-                      }}>
-                        <p style={{ margin: 0, fontWeight: 700, color: inlineFeedback.correct ? '#2D5F3F' : '#8B2335', fontSize: 14 }}>
-                          <i className={`isax ${inlineFeedback.correct ? 'isax-tick-circle' : 'isax-close-circle'} me-2`} />
-                          {inlineFeedback.correct ? 'Correct!' : 'Incorrect — try again'}
-                        </p>
-                        {inlineFeedback.explanation && (
-                          <p style={{ margin: '6px 0 0', color: 'var(--lx-text-muted)', fontSize: 13 }}>{inlineFeedback.explanation}</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Action buttons */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                      {!inlineFeedback ? (
-                        <button
-                          type="button"
-                          className="lx-btn lx-btn-gold"
-                          disabled={inlineSelectedIds.length === 0 || inlineIsChecking}
-                          onClick={handleInlineCheck}
-                          style={{ fontSize: 14, padding: '10px 24px', gap: 8 }}
-                        >
-                          {inlineIsChecking
-                            ? <span className="spinner-border spinner-border-sm" />
-                            : <i className="isax isax-tick-circle" />}
-                          Check Answer
+                    {/* Nav */}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <button onClick={() => setQIdx(p => Math.max(0,p-1))} disabled={isFirst} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 20px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.18)`, background:'transparent', color:isFirst?'#c4b5b5':BURG, fontWeight:700, cursor:isFirst?'not-allowed':'pointer', fontSize:14 }}>
+                        <i className="fa-solid fa-arrow-left" />Prev
+                      </button>
+                      {!isLast ? (
+                        <button onClick={() => setQIdx(p=>p+1)} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 24px', borderRadius:10, border:'none', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, cursor:'pointer', fontSize:14, boxShadow:`0 4px 14px rgba(197,151,62,0.28)` }}>
+                          Next <i className="fa-solid fa-arrow-right" />
                         </button>
-                      ) : inlineFeedback.correct ? (
-                        isLast ? (
-                          <button
-                            type="button"
-                            className="lx-btn lx-btn-gold"
-                            onClick={handleInlineFinalSubmit}
-                            style={{ fontSize: 14, padding: '10px 24px', gap: 8 }}
-                          >
-                            <i className="isax isax-send-2" /> Submit Quiz
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="lx-btn lx-btn-gold"
-                            onClick={handleInlineNext}
-                            style={{ fontSize: 14, padding: '10px 24px', gap: 8 }}
-                          >
-                            Next <i className="isax isax-arrow-right-3" />
-                          </button>
-                        )
                       ) : (
-                        <button
-                          type="button"
-                          className="lx-btn lx-btn-outline"
-                          onClick={handleInlineRetry}
-                          style={{ fontSize: 14, padding: '10px 24px', gap: 8 }}
-                        >
-                          <i className="isax isax-refresh" /> Try Again
+                        <button onClick={finalSubmit} disabled={!allAns||submitting} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 28px', borderRadius:10, border:'none', background:!allAns?'rgba(0,0,0,0.08)':`linear-gradient(135deg,${GOLD},#A67825)`, color:!allAns?'#9A8080':WHITE, fontWeight:800, cursor:!allAns?'not-allowed':'pointer', fontSize:14, boxShadow:allAns?`0 4px 14px rgba(197,151,62,0.28)`:'none', opacity:submitting?0.7:1 }} title={!allAns?`Answer all (${answered}/${totalQ})`:'Submit quiz'}>
+                          {submitting?<div style={{ width:13,height:13,borderRadius:'50%',border:'2px solid rgba(255,255,255,0.4)',borderTopColor:WHITE,animation:'spin 0.8s linear infinite' }} />:<i className="fa-solid fa-paper-plane" />}
+                          Submit Quiz
                         </button>
                       )}
                     </div>
+                    {isLast && !allAns && (
+                      <p style={{ textAlign:'right', fontSize:12, color:GOLD, marginTop:7, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:5 }}>
+                        <i className="fa-solid fa-circle-info" />{totalQ-answered} question{totalQ-answered!==1?'s':''} unanswered
+                      </p>
+                    )}
                   </>
                 );
               })()}
-
-            </div>{/* /padding */}
-          </div>{/* /card */}
+            </div>
+          </div>
         </div>
-      )}{/* /overlay */}
-
-    </>
+      )}
+    </div>
   );
 };
 

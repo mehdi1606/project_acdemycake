@@ -131,6 +131,9 @@ public class SecurityConfig {
                         // All other requests need authentication
                         .anyRequest().authenticated()
                 )
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.disable())
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

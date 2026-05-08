@@ -4,6 +4,7 @@ import com.academy.dto.response.PageResponse;
 import com.academy.dto.response.PaymentResponse;
 import com.academy.dto.response.PaymentTransactionResponse;
 import com.academy.entity.Course;
+import com.academy.entity.CoursePurchase;
 import com.academy.entity.PaymentTransaction;
 import com.academy.entity.User;
 import com.academy.entity.enums.EarningSourceType;
@@ -13,6 +14,7 @@ import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.integration.payzone.PayZoneService;
+import com.academy.repository.CoursePurchaseRepository;
 import com.academy.repository.CourseRepository;
 import com.academy.repository.PaymentTransactionRepository;
 import com.academy.security.UserPrincipal;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentTransactionRepository transactionRepository;
+    private final CoursePurchaseRepository coursePurchaseRepository;
     private final CourseService courseService;
     private final CourseRepository courseRepository;
     private final EnrollmentService enrollmentService;
@@ -109,7 +112,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse initiateSubscriptionPayment() {
-        return subscriptionService.subscribe();
+        // Subscriptions must go through POST /subscriptions/subscribe with an explicit planId.
+        // This legacy method is kept only to satisfy the PaymentService interface; it falls back
+        // to the yearly plan so that any internal caller still gets a valid response.
+        return subscriptionService.subscribe("yearly", null);
     }
 
     @Override
@@ -281,6 +287,26 @@ public class PaymentServiceImpl implements PaymentService {
     private void processCoursePaymentSuccess(PaymentTransaction transaction) {
         User user = transaction.getUser();
         Course course = courseService.findById(transaction.getReferenceId());
+
+        // Idempotency guard — skip if already recorded (e.g., duplicate webhook)
+        if (coursePurchaseRepository.existsByUserAndCourseAndStatus(
+                user, course, com.academy.entity.enums.PaymentStatus.COMPLETED)) {
+            log.warn("CoursePurchase already recorded for user={} course={} — skipping duplicate",
+                    user.getEmail(), course.getTitle());
+            return;
+        }
+
+        // Persist purchase record so purchase history and revenue queries work correctly
+        CoursePurchase purchase = CoursePurchase.builder()
+                .user(user)
+                .course(course)
+                .payzonePaymentIntentId(transaction.getPayzoneTransactionId())
+                .amount(transaction.getAmount())
+                .currency(transaction.getCurrency())
+                .status(com.academy.entity.enums.PaymentStatus.COMPLETED)
+                .purchasedAt(LocalDateTime.now())
+                .build();
+        coursePurchaseRepository.save(purchase);
 
         // Enroll user in course
         enrollmentService.enrollUserInCourse(user, course, true);

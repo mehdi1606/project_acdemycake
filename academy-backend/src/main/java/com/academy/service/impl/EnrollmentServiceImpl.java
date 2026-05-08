@@ -9,6 +9,7 @@ import com.academy.entity.CourseEnrollment;
 import com.academy.entity.User;
 import com.academy.entity.enums.EnrollmentType;
 import com.academy.entity.enums.SubscriptionStatus;
+import com.academy.entity.enums.UserRole;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
@@ -65,10 +66,18 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public boolean hasAccess(User user, Course course) {
-        if (course.getIsBeginner() && user.hasActiveSubscription()) {
+        // Admin and instructors always have full access — no subscription or purchase needed
+        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR) {
             return true;
         }
 
+        // PLAN course: an active subscription is enough (even without an explicit enrollment record)
+        if (com.academy.entity.enums.CourseType.PLAN.equals(course.getCourseType())
+                && user.hasActiveSubscription()) {
+            return true;
+        }
+
+        // MASTERCLASS / purchased courses: access through enrollment record only
         return enrollmentRepository.findByUserAndCourse(user, course)
                 .map(CourseEnrollment::isAccessible)
                 .orElse(false);
@@ -86,23 +95,44 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         User user = getCurrentUser();
         Course course = courseService.findById(courseId);
 
+        // ── Admin / Instructor: instant free access, no checks ──────────────
+        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR) {
+            if (isEnrolled(user, course)) {
+                return EnrollmentResponse.fromEntity(getEnrollment(user, course));
+            }
+            return EnrollmentResponse.fromEntity(
+                    createEnrollment(user, course, EnrollmentType.FREE, null)
+            );
+        }
+
+        // ── Student duplicate-enroll guard ───────────────────────────────────
         if (isEnrolled(user, course)) {
             throw new BadRequestException("You are already enrolled in this course");
         }
 
-        if (course.getIsBeginner()) {
+        // ── PLAN course: subscription required ───────────────────────────────
+        if (com.academy.entity.enums.CourseType.PLAN.equals(course.getCourseType())
+                || course.getCourseType() == null) {           // treat NULL as PLAN (legacy)
             if (!user.hasActiveSubscription()) {
-                throw new ForbiddenException("Active subscription required for beginner courses");
+                throw new ForbiddenException("An active subscription is required to access plan courses. Please subscribe first.");
             }
             return EnrollmentResponse.fromEntity(
                     createEnrollment(user, course, EnrollmentType.SUBSCRIPTION, user.getSubscriptionEndDate())
             );
         }
 
-        if (course.getRequiresPurchase()) {
-            throw new ForbiddenException("This course requires purchase. Please buy it first.");
+        // ── MASTERCLASS course: purchase required ────────────────────────────
+        if (com.academy.entity.enums.CourseType.MASTERCLASS.equals(course.getCourseType())) {
+            if (course.getRequiresPurchase()) {
+                throw new ForbiddenException("This masterclass requires individual purchase. Please buy it first.");
+            }
+            // Free masterclass (price = 0)
+            return EnrollmentResponse.fromEntity(
+                    createEnrollment(user, course, EnrollmentType.FREE, null)
+            );
         }
 
+        // ── Fallback: free enroll ─────────────────────────────────────────────
         return EnrollmentResponse.fromEntity(
                 createEnrollment(user, course, EnrollmentType.FREE, null)
         );
@@ -273,18 +303,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         enrollment.setProgressPercentage(progress);
 
-        // Sync completedLessonsJson so EnrollmentResponse.fromEntity() reports the correct count
-        if (completedLessons == 0) {
-            enrollment.setCompletedLessonsJson(null);
-        } else {
-            StringBuilder sb = new StringBuilder("[");
-            for (long i = 0; i < completedLessons; i++) {
-                if (i > 0) sb.append(",");
-                sb.append("\"").append(i).append("\"");
-            }
-            sb.append("]");
-            enrollment.setCompletedLessonsJson(sb.toString());
-        }
+        // completedLessonsJson is intentionally left alone here.
+        // Lesson completion is tracked in the lesson_progress table via LessonProgress entities.
+        // Writing synthetic numeric indices (0, 1, 2…) caused the stored JSON to contain ordinal
+        // positions instead of real lesson UUIDs, corrupting any future UUID-based lookups.
+        // The progress percentage above is already derived from the authoritative lesson_progress
+        // count, so this field is redundant and safe to leave as-is / null.
 
         if (completedLessons == totalLessons && !enrollment.getIsCompleted()) {
             enrollment.setIsCompleted(true);
@@ -321,8 +345,16 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     @Override
     @Transactional
     public void markCourseComplete(UUID enrollmentId) {
+        User currentUser = getCurrentUser();
         CourseEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found"));
+
+        // Ownership check — only the enrolled student or an admin may mark their own course complete
+        boolean isOwner = enrollment.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin  = currentUser.getRole() == UserRole.ADMIN;
+        if (!isOwner && !isAdmin) {
+            throw new ForbiddenException("You do not have permission to mark this enrollment as complete.");
+        }
 
         enrollment.setIsCompleted(true);
         enrollment.setCompletedAt(LocalDateTime.now());

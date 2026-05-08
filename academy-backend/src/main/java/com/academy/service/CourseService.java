@@ -5,6 +5,7 @@ import com.academy.dto.request.UpdateCourseRequest;
 import com.academy.dto.response.*;
 import com.academy.entity.Course;
 import com.academy.entity.enums.CourseLevel;
+import com.academy.entity.enums.CourseType;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public interface CourseService {
     CourseResponse getCourseBySlug(String slug);
 
     PageResponse<CourseResponse> getAllCourses(int page, int size, String search, UUID categoryId,
-                                                CourseLevel level, String sortBy);
+                                                CourseLevel level, String sortBy, CourseType courseType);
 
     PageResponse<CourseResponse> getBeginnerCourses(int page, int size);
 

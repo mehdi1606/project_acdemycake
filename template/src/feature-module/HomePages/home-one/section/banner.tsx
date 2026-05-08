@@ -92,7 +92,10 @@ const BannerSection: React.FC = () => {
     return (
         <section
             className="sl-banner"
-            style={{ cursor: 'default' }}
+            style={{
+                cursor: 'default',
+                backgroundImage: `url(${process.env.PUBLIC_URL}/assets/img/Landscape.jpeg)`,
+            }}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
@@ -104,7 +107,7 @@ const BannerSection: React.FC = () => {
                 style={{
                     position: 'absolute', top: '-80px', right: '-100px',
                     width: '560px', opacity: 0.07, pointerEvents: 'none',
-                    zIndex: 1,
+                    zIndex: 3,
                     transform: `translateY(${graphicParallax * 0.5}px) rotate(${graphicParallax * 0.01}deg)`,
                     transition: 'transform 0.1s linear',
                 }}
@@ -116,14 +119,14 @@ const BannerSection: React.FC = () => {
                 style={{
                     position: 'absolute', bottom: '-40px', left: '-60px',
                     width: '380px', opacity: 0.05, pointerEvents: 'none',
-                    zIndex: 1,
+                    zIndex: 3,
                     transform: `translateY(${-graphicParallax * 0.3}px)`,
                     transition: 'transform 0.1s linear',
                 }}
             />
 
             {/* ── Particle floaters ── */}
-            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', overflow: 'hidden' }}>
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', overflow: 'hidden' }}>
                 {[...Array(6)].map((_, i) => (
                     <div
                         key={i}
@@ -140,7 +143,7 @@ const BannerSection: React.FC = () => {
             <div
                 className="container"
                 style={{
-                    position: 'relative', zIndex: 2,
+                    position: 'relative', zIndex: 3,
                     transform: `translateY(${contentParallax}px)`,
                     transition: 'transform 0.1s linear',
                 }}
@@ -318,46 +321,20 @@ const BannerSection: React.FC = () => {
                                 }} />
                             ))}
 
-                            {/* Hero mockup image */}
+                            {/* Hero mockup image — big couture cake */}
                             <img
-                                src={`${process.env.PUBLIC_URL}/assets/img/Mockups/011.jpg`}
+                                src={`/assets/img/Mockups/006.jpg`}
                                 alt="SARALÖWE — Couture Cake Design"
                                 style={{
                                     width: '100%', display: 'block',
                                     position: 'relative', zIndex: 1,
                                     opacity: imgLoaded ? 1 : 0,
                                     transition: 'opacity 0.8s ease, filter 0.5s ease',
-                                    filter: 'brightness(0.96) contrast(1.04) saturate(1.05)',
+                                    filter: 'brightness(1.0) contrast(1.05) saturate(1.08)',
                                 }}
                                 onLoad={() => setImgLoaded(true)}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                             />
-
-                            {/* Parallax depth layer — floats slightly */}
-                            <div
-                                className="sl-float"
-                                style={{
-                                    position: 'absolute', top: -32, right: -32,
-                                    width: 108, height: 108,
-                                    borderRadius: '50%',
-                                    overflow: 'hidden',
-                                    border: '3px solid rgba(197,145,44,0.45)',
-                                    boxShadow: '0 12px 40px rgba(74,20,37,0.5)',
-                                    zIndex: 4,
-                                    transformStyle: 'preserve-3d',
-                                    transform: 'translateZ(30px)',
-                                }}
-                                data-aos="zoom-in"
-                                data-aos-delay="700"
-                                data-aos-duration="600"
-                            >
-                                <img
-                                    src={`${process.env.PUBLIC_URL}/assets/img/cover/A5 cover.jpg`}
-                                    alt=""
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none' }}
-                                />
-                            </div>
 
                             {/* Floating accreditation card */}
                             <div

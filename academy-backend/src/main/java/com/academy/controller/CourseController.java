@@ -4,6 +4,7 @@ import com.academy.dto.request.CreateReviewRequest;
 import com.academy.dto.response.*;
 import com.academy.entity.Course;
 import com.academy.entity.enums.CourseLevel;
+import com.academy.entity.enums.CourseType;
 import com.academy.repository.LessonProgressRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.*;
@@ -75,9 +76,10 @@ public class CourseController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) CourseLevel level,
-            @RequestParam(required = false) String sortBy) {
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) CourseType courseType) {
 
-        PageResponse<CourseResponse> response = courseService.getAllCourses(page, size, search, categoryId, level, sortBy);
+        PageResponse<CourseResponse> response = courseService.getAllCourses(page, size, search, categoryId, level, sortBy, courseType);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -164,8 +166,23 @@ public class CourseController {
         }
     }
 
+    @GetMapping("/{id}/access")
+    @Operation(summary = "Check whether the authenticated user has access to a course")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> checkCourseAccess(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        var user = userService.findById(principal.getId());
+        var course = courseService.findById(id);
+        boolean hasAccess = enrollmentService.hasAccess(user, course);
+        String reason = hasAccess ? "enrolled" : "not_enrolled";
+        return ResponseEntity.ok(ApiResponse.success(
+                Map.of("hasAccess", hasAccess, "reason", reason)));
+    }
+
     @PostMapping("/{id}/enroll")
     @Operation(summary = "Enroll in a course")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollInCourse(@PathVariable UUID id) {
         EnrollmentResponse response = enrollmentService.enrollUser(id);
         return ResponseEntity.ok(ApiResponse.success("Enrolled successfully", response));

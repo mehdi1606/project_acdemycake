@@ -2,13 +2,13 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
-import { Slider, App } from 'antd';
-import type { SliderSingleProps } from 'antd';
+import { App } from 'antd';
 import { all_routes } from '../../router/all_routes';
 import { courseService } from '../../../services/api/course.service';
 import { Course, CourseCategory, CourseLevel } from '../../../services/api/types';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
+import SubscriptionGate from '../../common/SubscriptionGate';
 
 const SORT_OPTIONS = [
   { label: 'Newly Published',   value: 'newest' },
@@ -224,23 +224,19 @@ interface SidebarFilterProps {
   categories: CourseCategory[];
   selectedCategory: string | null;
   selectedLevel: CourseLevel | null;
-  priceRange: [number, number];
   onCategoryChange: (id: string) => void;
   onLevelChange: (l: CourseLevel) => void;
-  onPriceChange: (v: [number, number]) => void;
   onClear: () => void;
   hasActiveFilters: boolean;
 }
 
 const SidebarFilter: React.FC<SidebarFilterProps> = ({
-  categories, selectedCategory, selectedLevel, priceRange,
-  onCategoryChange, onLevelChange, onPriceChange, onClear, hasActiveFilters,
+  categories, selectedCategory, selectedLevel,
+  onCategoryChange, onLevelChange, onClear, hasActiveFilters,
 }) => {
-  const [open, setOpen] = useState<Set<string>>(new Set(['categories', 'price', 'level']));
+  const [open, setOpen] = useState<Set<string>>(new Set(['categories', 'level']));
   const toggle = (s: string) =>
     setOpen(p => { const n = new Set(p); if (n.has(s)) n.delete(s); else n.add(s); return n; });
-
-  const priceFormatter: NonNullable<SliderSingleProps['tooltip']>['formatter'] = v => `$${v}`;
 
   return (
     <aside className="sl-cl-sidebar" data-aos="fade-right" data-aos-duration="700">
@@ -283,30 +279,6 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
             )) : (
               <p className="sl-cl-filter-empty">No categories available</p>
             )}
-          </div>
-        )}
-      </div>
-
-      {/* Price */}
-      <div className={`sl-cl-filter-group${open.has('price') ? ' is-open' : ''}`}>
-        <button className="sl-cl-filter-group__head" onClick={() => toggle('price')}>
-          <span>Price Range</span>
-          <i className={`fa-solid fa-chevron-${open.has('price') ? 'up' : 'down'}`} />
-        </button>
-        {open.has('price') && (
-          <div className="sl-cl-filter-group__body">
-            <Slider
-              range
-              tooltip={{ formatter: priceFormatter }}
-              min={0} max={500}
-              value={priceRange}
-              onChange={v => onPriceChange(v as [number, number])}
-              className="sl-cl-price-slider"
-            />
-            <div className="sl-cl-price-labels">
-              <span>{priceRange[0] === 0 ? 'Free' : `$${priceRange[0]}`}</span>
-              <span>{priceRange[1] >= 500 ? '$500+' : `$${priceRange[1]}`}</span>
-            </div>
           </div>
         )}
       </div>
@@ -361,10 +333,9 @@ const CourseList: React.FC = () => {
   const [selectedLevel,    setSelectedLevel]     = useState<CourseLevel | null>(
     (searchParams.get('level') as CourseLevel) || null
   );
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
-  const [sortBy,     setSortBy]     = useState(searchParams.get('sort') || 'newest');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
 
-  const { isAuthenticated } = useAppSelector(s => s.auth);
+  const { isAuthenticated, user } = useAppSelector(s => s.auth);
 
   useEffect(() => {
     AOS.init({ once: true, easing: 'ease-out-cubic', duration: 800, offset: 40 });
@@ -387,11 +358,7 @@ const CourseList: React.FC = () => {
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  const displayedCourses = useMemo(() => {
-    const [min, max] = priceRange;
-    if (min === 0 && max === 500) return courses;
-    return courses.filter(c => { const p = c.price ?? 0; return p >= min && p <= max; });
-  }, [courses, priceRange]);
+  const displayedCourses = useMemo(() => courses, [courses]);
 
   const fetchCategories = async () => {
     try {
@@ -403,7 +370,7 @@ const CourseList: React.FC = () => {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const params: any = { page: currentPage - 1, size: 9, sortBy };
+      const params: any = { page: currentPage - 1, size: 9, sortBy, courseType: 'PLAN' };
       if (searchQuery)      params.search     = searchQuery;
       if (selectedCategory) params.categoryId = selectedCategory;
       if (selectedLevel)    params.level      = selectedLevel;
@@ -451,7 +418,6 @@ const CourseList: React.FC = () => {
     setSearchQuery('');
     setSelectedCategory(null);
     setSelectedLevel(null);
-    setPriceRange([0, 500]);
     setSortBy('newest');
     setCurrentPage(1);
   };
@@ -460,8 +426,7 @@ const CourseList: React.FC = () => {
     ({ BEGINNER: 'Beginner', INTERMEDIATE: 'Intermediate', ADVANCED: 'Advanced', ALL_LEVELS: 'All Levels' }[level] ?? level);
 
   const hasActiveFilters = Boolean(
-    searchQuery || selectedCategory || selectedLevel ||
-    priceRange[0] > 0 || priceRange[1] < 500 || sortBy !== 'newest'
+    searchQuery || selectedCategory || selectedLevel || sortBy !== 'newest'
   );
 
   const start = displayedCourses.length > 0 ? (currentPage - 1) * 9 + 1 : 0;
@@ -551,6 +516,12 @@ const CourseList: React.FC = () => {
       {/* ── Main content ── */}
       <section className="sl-cl-page">
         <div className="container">
+
+          {/* Gate for guests or students without an active subscription.
+              Admin and Instructor always bypass — they can see all courses. */}
+          {(!isAuthenticated || (user?.role === 'STUDENT' && user?.subscriptionStatus !== 'ACTIVE')) ? (
+            <SubscriptionGate type="course" ghostCount={6} isAuthenticated={isAuthenticated} />
+          ) : (
           <div className="row g-4 g-lg-5 align-items-start">
 
             {/* Sidebar */}
@@ -559,10 +530,8 @@ const CourseList: React.FC = () => {
                 categories={categories}
                 selectedCategory={selectedCategory}
                 selectedLevel={selectedLevel}
-                priceRange={priceRange}
                 onCategoryChange={handleCategoryChange}
                 onLevelChange={handleLevelChange}
-                onPriceChange={setPriceRange}
                 onClear={clearFilters}
                 hasActiveFilters={hasActiveFilters}
               />
@@ -617,12 +586,6 @@ const CourseList: React.FC = () => {
                     <span className="sl-cl-chip">
                       {getLevelDisplay(selectedLevel)}
                       <button onClick={() => { setSelectedLevel(null); setCurrentPage(1); }}>×</button>
-                    </span>
-                  )}
-                  {(priceRange[0] > 0 || priceRange[1] < 500) && (
-                    <span className="sl-cl-chip">
-                      ${priceRange[0]}–{priceRange[1] >= 500 ? '500+' : `$${priceRange[1]}`}
-                      <button onClick={() => setPriceRange([0, 500])}>×</button>
                     </span>
                   )}
                   {sortBy !== 'newest' && (
@@ -711,6 +674,7 @@ const CourseList: React.FC = () => {
 
             </div>
           </div>
+          )} {/* end isAuthenticated gate */}
         </div>
       </section>
     </>

@@ -41,6 +41,11 @@ const adminSidebarData = [
     icon: 'isax isax-ticket',
     route: all_routes.adminTickets,
   },
+  {
+    title: 'Coupons',
+    icon: 'isax isax-discount-shape',
+    route: all_routes.adminCoupons,
+  },
 ];
 
 const AdminSidebar = () => {

@@ -25,10 +25,25 @@ class SubscriptionService {
   }
 
   // Initiate subscription payment
-  async subscribe(planId: string): Promise<InitiatePaymentResponse> {
+  async subscribe(planId: string, couponCode?: string): Promise<InitiatePaymentResponse> {
     const response = await api.post<InitiatePaymentResponse>('/subscriptions/subscribe', {
       planId,
+      ...(couponCode ? { couponCode } : {}),
     });
+    return response.data;
+  }
+
+  // Validate a coupon code for the Annual plan
+  async validateCoupon(code: string): Promise<{
+    valid: boolean;
+    code?: string;
+    discountPercent?: number;
+    originalPrice?: number;
+    discountAmount?: number;
+    finalPrice?: number;
+    message?: string;
+  }> {
+    const response = await api.get('/coupons/validate', { params: { code } });
     return response.data;
   }
 
@@ -74,11 +89,9 @@ class SubscriptionService {
     return subscription?.status === 'ACTIVE';
   }
 
-  // Purchase individual course
-  async purchaseCourse(courseId: number): Promise<InitiatePaymentResponse> {
-    const response = await api.post<InitiatePaymentResponse>('/payments/course', {
-      courseId,
-    });
+  // Purchase individual course — backend expects courseId as a path variable
+  async purchaseCourse(courseId: string): Promise<InitiatePaymentResponse> {
+    const response = await api.post<InitiatePaymentResponse>(`/payments/course/${courseId}`);
     return response.data;
   }
 

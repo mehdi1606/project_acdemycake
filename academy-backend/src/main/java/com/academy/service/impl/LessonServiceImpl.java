@@ -2,6 +2,7 @@ package com.academy.service.impl;
 
 import com.academy.dto.request.CreateLessonRequest;
 import com.academy.dto.request.UpdateLessonProgressRequest;
+import com.academy.dto.response.LessonResourceResponse;
 import com.academy.dto.response.LessonResponse;
 import com.academy.dto.response.VideoUrlResponse;
 import com.academy.entity.*;
@@ -17,16 +18,24 @@ import com.academy.service.EnrollmentService;
 import com.academy.service.LessonService;
 import com.academy.service.ModuleService;
 import com.academy.service.UserService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,12 +44,21 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class LessonServiceImpl implements LessonService {
 
+    private static final long MAX_RESOURCE_SIZE = 50L * 1024 * 1024; // 50 MB
+    private static final List<String> ALLOWED_RESOURCE_EXTENSIONS = Arrays.asList(
+            "pdf", "doc", "docx", "ppt", "pptx", "txt", "jpg", "jpeg", "png", "gif"
+    );
+
     private final CourseLessonRepository lessonRepository;
     private final LessonProgressRepository progressRepository;
     private final ModuleService moduleService;
     private final UserService userService;
     private final EnrollmentService enrollmentService;
     private final MuxService muxService;
+    private final ObjectMapper objectMapper;
+
+    @Value("${app.file.upload-dir}")
+    private String uploadDir;
 
     @Override
     public CourseLesson findById(UUID id) {
@@ -51,6 +69,19 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public LessonResponse getLessonById(UUID id) {
         CourseLesson lesson = findById(id);
+        Course course = lesson.getModule().getCourse();
+
+        // Preview lessons are public; everything else requires enrolment or staff access
+        if (!lesson.getIsPreview()) {
+            User currentUser = getCurrentUser();
+            // Admin and ALL instructors (not just course owner) bypass access checks
+            boolean isStaff = currentUser.getRole() == UserRole.ADMIN
+                    || currentUser.getRole() == UserRole.INSTRUCTOR;
+            if (!isStaff && !enrollmentService.hasAccess(currentUser, course)) {
+                throw new ForbiddenException("You must be enrolled in this course to view its lessons.");
+            }
+        }
+
         return LessonResponse.fromEntity(lesson);
     }
 
@@ -202,7 +233,9 @@ public class LessonServiceImpl implements LessonService {
             return muxService.getSignedPlaybackUrl(lesson);
         }
 
-        if (!enrollmentService.hasAccess(user, course)) {
+        // Admin and instructors always get the video
+        boolean isStaff = user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR;
+        if (!isStaff && !enrollmentService.hasAccess(user, course)) {
             throw new ForbiddenException("You don't have access to this lesson");
         }
 
@@ -275,6 +308,115 @@ public class LessonServiceImpl implements LessonService {
     public String getResourcesJson(UUID lessonId) {
         CourseLesson lesson = findById(lessonId);
         return lesson.getResourcesJson();
+    }
+
+    @Override
+    @Transactional
+    public LessonResourceResponse uploadLessonResource(UUID lessonId, MultipartFile file, String name) {
+        CourseLesson lesson = findById(lessonId);
+        verifyInstructorAccess(lesson.getModule().getCourse());
+
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("File is required");
+        }
+        if (file.getSize() > MAX_RESOURCE_SIZE) {
+            throw new BadRequestException("File too large. Maximum size is 50 MB.");
+        }
+
+        String ext = FilenameUtils.getExtension(
+                file.getOriginalFilename() != null ? file.getOriginalFilename() : "").toLowerCase();
+        if (!ALLOWED_RESOURCE_EXTENSIONS.contains(ext)) {
+            throw new BadRequestException("File type not allowed. Allowed: PDF, DOC, DOCX, PPT, PPTX, TXT, Images.");
+        }
+
+        // Store file on disk
+        String storedFilename = UUID.randomUUID() + "." + ext;
+        Path dir = Paths.get(uploadDir, "lesson-resources");
+        try {
+            Files.createDirectories(dir);
+            Files.copy(file.getInputStream(), dir.resolve(storedFilename), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new BadRequestException("Failed to store resource file: " + e.getMessage());
+        }
+
+        String relativePath = "lesson-resources/" + storedFilename;
+        String displayName = (name != null && !name.isBlank()) ? name : file.getOriginalFilename();
+
+        // Parse existing resources JSON (or start fresh)
+        List<Map<String, Object>> resources = parseResourcesJson(lesson.getResourcesJson());
+
+        // Generate a new numeric ID
+        long newId = resources.stream()
+                .mapToLong(r -> toLong(r.get("id")))
+                .max().orElse(0L) + 1;
+
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("id",   newId);
+        entry.put("name", displayName);
+        entry.put("url",  relativePath);
+        entry.put("type", ext);
+        entry.put("size", file.getSize());
+        resources.add(entry);
+
+        saveResourcesJson(lesson, resources);
+        log.info("Resource '{}' uploaded for lesson '{}'", displayName, lesson.getTitle());
+
+        return LessonResourceResponse.builder()
+                .id(newId)
+                .name(displayName)
+                .url(relativePath)
+                .type(ext)
+                .size(file.getSize())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteLessonResource(UUID lessonId, Long resourceId) {
+        CourseLesson lesson = findById(lessonId);
+        verifyInstructorAccess(lesson.getModule().getCourse());
+
+        List<Map<String, Object>> resources = parseResourcesJson(lesson.getResourcesJson());
+
+        Map<String, Object> target = resources.stream()
+                .filter(r -> toLong(r.get("id")) == resourceId)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Resource", "id", resourceId));
+
+        String url = (String) target.get("url");
+        if (url != null) {
+            try { Files.deleteIfExists(Paths.get(uploadDir, url)); } catch (IOException ignored) {}
+        }
+
+        resources.remove(target);
+        saveResourcesJson(lesson, resources);
+        log.info("Resource {} removed from lesson '{}'", resourceId, lesson.getTitle());
+    }
+
+    // ── helpers ────────────────────────────────────────────────────────────────
+
+    private List<Map<String, Object>> parseResourcesJson(String json) {
+        if (json == null || json.isBlank()) return new ArrayList<>();
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
+        } catch (IOException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private void saveResourcesJson(CourseLesson lesson, List<Map<String, Object>> resources) {
+        try {
+            lesson.setResourcesJson(objectMapper.writeValueAsString(resources));
+            lessonRepository.save(lesson);
+        } catch (IOException e) {
+            throw new BadRequestException("Failed to serialize resources JSON");
+        }
+    }
+
+    private long toLong(Object val) {
+        if (val == null) return 0L;
+        if (val instanceof Number) return ((Number) val).longValue();
+        try { return Long.parseLong(val.toString()); } catch (Exception e) { return 0L; }
     }
 
     private void verifyInstructorAccess(Course course) {

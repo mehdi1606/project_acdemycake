@@ -30,7 +30,7 @@ export interface ApiError {
 // ============================================
 
 export type UserRole = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
-export type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PENDING' | 'NONE';
+export type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE' | 'NONE';
 
 export interface User {
   id: string;
@@ -112,7 +112,7 @@ export interface FeaturedInstructor {
 
 export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'ALL_LEVELS';
 export type CourseStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'REJECTED' | 'ARCHIVED';
-export type EnrollmentType = 'FREE' | 'PREMIUM' | 'PURCHASED';
+export type EnrollmentType = 'FREE' | 'SUBSCRIPTION' | 'PURCHASE' | 'GIFT';
 
 export interface CourseCategory {
   id: string;
@@ -147,6 +147,7 @@ export interface Course {
   originalPrice?: number;
   currency?: string;
   requiresPurchase: boolean;
+  courseType?: 'PLAN' | 'MASTERCLASS';
   isBeginner: boolean;
   durationMinutes: number;
   lessonsCount: number;
@@ -229,7 +230,7 @@ export interface CourseReview {
 
 export interface CreateReviewRequest {
   rating: number;
-  comment: string;
+  reviewText: string;
 }
 
 // ============================================
@@ -708,6 +709,7 @@ export interface CourseQueryParams extends PaginationParams {
   minRating?: number;
   instructorId?: string;
   sortBy?: string;   // backend-expected sort keyword: newest | popular | rating | price_asc | price_desc
+  courseType?: 'PLAN' | 'MASTERCLASS';
 }
 
 // ============================================

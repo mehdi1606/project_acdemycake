@@ -167,7 +167,7 @@ const Featuredcourse: React.FC = () => {
                     <div className="sl-slider-wrap">
                         <Slider {...sliderSettings}>
                             {courses.map(course => (
-                                <div key={course.id} className="px-2">
+                                <div key={course.id} style={{ padding: '0 8px', height: '100%', display: 'flex', flexDirection: 'column' }}>
                                     <CourseCard course={course} />
                                 </div>
                             ))}

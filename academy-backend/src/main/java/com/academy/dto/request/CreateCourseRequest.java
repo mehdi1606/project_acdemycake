@@ -1,6 +1,7 @@
 package com.academy.dto.request;
 
 import com.academy.entity.enums.CourseLevel;
+import com.academy.entity.enums.CourseType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -31,6 +32,9 @@ public class CreateCourseRequest {
     private UUID categoryId;
 
     private Boolean isBeginner = false;
+
+    /** PLAN = subscription-included, MASTERCLASS = one-time purchase */
+    private CourseType courseType = CourseType.PLAN;
 
     private Boolean requiresPurchase = false;
 

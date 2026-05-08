@@ -5,6 +5,7 @@ import com.academy.entity.CourseCategory;
 import com.academy.entity.User;
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseStatus;
+import com.academy.entity.enums.CourseType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,8 +54,24 @@ public interface CourseRepository extends JpaRepository<Course, UUID>, JpaSpecif
             "LOWER(c.tags) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Course> searchPublishedCourses(@Param("search") String search, Pageable pageable);
 
+    @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED' AND " +
+            "(c.courseType = :courseType OR (c.courseType IS NULL AND :courseTypeStr = 'PLAN')) AND " +
+            "(LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.description) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.tags) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Course> searchPublishedCoursesByType(@Param("search") String search,
+                                               @Param("courseType") CourseType courseType,
+                                               @Param("courseTypeStr") String courseTypeStr,
+                                               Pageable pageable);
+
     @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED' AND c.category = :category")
     Page<Course> findPublishedByCategory(@Param("category") CourseCategory category, Pageable pageable);
+
+    @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED' AND (c.courseType = :courseType OR (c.courseType IS NULL AND :courseTypeStr = 'PLAN'))")
+    Page<Course> findPublishedByCourseType(@Param("courseType") CourseType courseType, @Param("courseTypeStr") String courseTypeStr, Pageable pageable);
+
+    @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED' AND (c.courseType = :courseType OR (c.courseType IS NULL AND :courseTypeStr = 'PLAN')) AND c.category = :category")
+    Page<Course> findPublishedByCourseTypeAndCategory(@Param("courseType") CourseType courseType, @Param("courseTypeStr") String courseTypeStr, @Param("category") CourseCategory category, Pageable pageable);
 
     @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED' AND c.level = :level")
     Page<Course> findPublishedByLevel(@Param("level") CourseLevel level, Pageable pageable);

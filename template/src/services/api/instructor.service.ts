@@ -258,9 +258,8 @@ class InstructorService {
   async getLessonDetail(lessonId: string): Promise<{
     id: string; title: string; contentType: string;
     textContent?: string;
-    resources?: { id: string; name: string; url: string; type: string; size?: number }[];
+    resources?: { id: number; name: string; url: string; type: string; size?: number }[];
   }> {
-    // /lessons/{id} is the student-facing endpoint that returns full lesson detail
     const response = await api.get(`/lessons/${lessonId}`);
     return response.data;
   }
@@ -268,7 +267,7 @@ class InstructorService {
   // Upload a resource file (PDF, doc, etc.) to a lesson
   async uploadLessonResource(
     lessonId: string, file: File, name: string
-  ): Promise<{ id: string; name: string; url: string; type: string; size?: number }> {
+  ): Promise<{ id: number; name: string; url: string; type: string; size?: number }> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('name', name);
@@ -279,7 +278,7 @@ class InstructorService {
   }
 
   // Delete a resource from a lesson
-  async deleteLessonResource(lessonId: string, resourceId: string): Promise<void> {
+  async deleteLessonResource(lessonId: string, resourceId: number): Promise<void> {
     await api.delete(`/instructor/lessons/${lessonId}/resources/${resourceId}`);
   }
 

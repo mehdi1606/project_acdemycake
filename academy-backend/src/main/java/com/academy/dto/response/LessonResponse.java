@@ -2,11 +2,15 @@ package com.academy.dto.response;
 
 import com.academy.entity.CourseLesson;
 import com.academy.entity.enums.ContentType;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -14,6 +18,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LessonResponse {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private UUID id;
     private UUID moduleId;
     private String title;
@@ -26,9 +33,21 @@ public class LessonResponse {
     private Boolean isPublished;
     private Integer orderIndex;
     private String textContent;
-    private String resourcesJson;
+    private List<LessonResourceResponse> resources;
 
     public static LessonResponse fromEntity(CourseLesson lesson) {
+        List<LessonResourceResponse> resources = new ArrayList<>();
+        if (lesson.getResourcesJson() != null && !lesson.getResourcesJson().isBlank()) {
+            try {
+                resources = MAPPER.readValue(
+                        lesson.getResourcesJson(),
+                        new TypeReference<List<LessonResourceResponse>>() {}
+                );
+            } catch (Exception ignored) {
+                // Return empty list if JSON is malformed
+            }
+        }
+
         return LessonResponse.builder()
                 .id(lesson.getId())
                 .moduleId(lesson.getModule().getId())
@@ -42,7 +61,7 @@ public class LessonResponse {
                 .isPublished(lesson.getIsPublished())
                 .orderIndex(lesson.getOrderIndex())
                 .textContent(lesson.getTextContent())
-                .resourcesJson(lesson.getResourcesJson())
+                .resources(resources)
                 .build();
     }
 }

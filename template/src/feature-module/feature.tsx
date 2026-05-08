@@ -2,15 +2,18 @@ import { Outlet, useLocation } from "react-router";
 import { useEffect } from "react";
 import Header from "../core/common/header/header";
 import BackToTop from "../core/common/backtotop/backToTop";
-import Footer from "../core/common/footer/footer";
+import Footer from "./HomePages/home-one/footer";
 
 /* Prefixes for dashboard/instructor/admin pages — they provide their
-   own luxury layout (topbar + sidebar) via LuxuryDashboardLayout.     */
+   own luxury layout (topbar + sidebar) via LuxuryDashboardLayout.
+   Also includes full-screen pages like course-watch that own their
+   entire viewport (no public header/footer).                          */
 const DASHBOARD_PREFIXES = [
   '/student/',
   '/instructor/',
   '/admin/',
   '/course/add-course',
+  '/course/course-watch',
 ];
 
 const Feature = () => {
@@ -40,17 +43,13 @@ const Feature = () => {
     location.pathname === '/index-4' ? 'home-4' :
     location.pathname === '/index-6' ? 'home-six' : '';
 
-  const hideFooter = ['/index', '/index-3', '/index-4', '/index-5', '/index-6'].includes(
-    location.pathname
-  );
-
   return (
     <>
       <div className="main-wrapper">
         <div className={homeVariant}>
           <Header />
           <Outlet />
-          {!hideFooter && <Footer />}
+          <Footer />
           <BackToTop />
         </div>
         <div className="sidebar-overlay" />

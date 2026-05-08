@@ -152,7 +152,7 @@ const Topcourses = () => {
                     style={{ width: '60px', height: '60px' }}
                   />
                   <h6 className="title">
-                    <Link to={`${route.courseCategory}/${category.slug}`}>{category.name}</Link>
+                    <Link to={route.masterclass}>{category.name}</Link>
                   </h6>
                   {category.coursesCount > 0 && (
                     <span className="badge badge-soft-primary mt-2">{category.coursesCount} courses</span>
@@ -161,8 +161,8 @@ const Topcourses = () => {
               </div>
             ))}
           </Slider>
-          <Link to={route.courseCategory} className="btn btn-primary btn-md">
-            View All Categories
+          <Link to={route.masterclass} className="btn btn-primary btn-md">
+            View All Masterclasses
           </Link>
         </div>
       </section>
