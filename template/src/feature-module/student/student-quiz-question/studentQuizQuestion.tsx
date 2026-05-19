@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -60,6 +61,7 @@ type Phase = "loading" | "error" | "quiz" | "result" | "violation";
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const StudentQuizQuestion = () => {
+  const { t } = useTranslation()
   const route = all_routes;
   const [searchParams] = useSearchParams();
   const quizId = searchParams.get("quizId") ?? "";
@@ -251,7 +253,7 @@ const StudentQuizQuestion = () => {
   };
 
   // ── Submit quiz ───────────────────────────────────────────────────────────
-  const handleSubmit = useCallback(async (isLast: boolean, autoSubmit = false) => {
+  const handleSubmit = useCallback(async (isLast: boolean, _autoSubmit = false) => {
     const aId = attemptIdRef.current;
     if (!aId) return;
 

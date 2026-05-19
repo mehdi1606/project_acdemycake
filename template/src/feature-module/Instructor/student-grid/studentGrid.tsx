@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { instructorService, InstructorStudentInfo } from '../../../services/api/instructor.service';
 import { getFileUrl } from '../../../environment';
+import { useTranslation } from 'react-i18next';
 
 const StudentGrid: React.FC = () => {
+  const { t } = useTranslation();
   const [students, setStudents] = useState<InstructorStudentInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

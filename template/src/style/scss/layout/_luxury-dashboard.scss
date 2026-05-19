@@ -692,12 +692,12 @@
     h4 {
       font-family: 'Playfair Display', serif;
       font-size: 24px; font-weight: 700;
-      color: rgba(255,245,238,0.95); margin: 0 0 8px;
+      color: #c5912c; margin: 0 0 8px;
     }
 
     p {
       font-size: 13.5px;
-      color: rgba(255,245,238,0.65); margin: 0;
+      color: rgba(197,145,44,0.75); margin: 0;
     }
   }
 
@@ -827,9 +827,9 @@
   }
 
   &.lx-btn-outline {
-    background: rgba(255,255,255,0.70);
-    border: 1.5px solid rgba(255,255,255,0.50);
-    color: rgba(255,245,238,0.85);
+    background: rgba(255,255,255,0.10);
+    border: 1.5px solid rgba(197,145,44,0.60);
+    color: #c5912c;
     &:hover {
       border-color: var(--lx-gold);
       color: var(--lx-gold);
@@ -1124,6 +1124,125 @@
   .header-one, footer { display: none !important; }
   .main-wrapper { padding-top: 0 !important; background: var(--lx-bg); }
   .content { padding-top: 0 !important; }
+}
+
+/* ============================================================
+   RTL LAYOUT OVERRIDES
+   Applied when <html dir="rtl"> (Arabic mode)
+   ============================================================ */
+[dir="rtl"] {
+
+  /* ── Sidebar: move to right side ── */
+  .luxury-sidebar {
+    left: auto;
+    right: 0;
+    border-right: none;
+    border-left: 1px solid rgba(197, 145, 44, 0.14);
+    box-shadow: -2px 0 24px rgba(101, 28, 50, 0.07);
+
+    &::before {
+      background: linear-gradient(270deg, var(--lx-gold) 0%, rgba(197, 145, 44, 0.20) 100%);
+    }
+
+    /* Collapse toggle button: flip to left edge */
+    .sidebar-toggle-btn {
+      right: auto;
+      left: -13px;
+    }
+
+    /* Active link: border on right side */
+    .sidebar-link {
+      &.active {
+        border-left: none;
+        border-right: 2px solid var(--lx-gold);
+        padding-right: 10px;
+        padding-left: 12px;
+      }
+
+      &:hover {
+        padding-left: inherit;
+      }
+    }
+
+    /* Footer logout text alignment */
+    .sidebar-footer .logout-link { text-align: right; }
+  }
+
+  /* ── Main content: margin on right instead of left ── */
+  .luxury-main {
+    margin-left: 0;
+    margin-right: var(--lx-sidebar-w);
+    transition: margin-right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    .sidebar-collapsed & {
+      margin-right: var(--lx-sidebar-w-sm);
+      margin-left: 0;
+    }
+  }
+
+  /* ── Topbar: flip search icon and padding ── */
+  .luxury-topbar {
+    .topbar-search {
+      > i {
+        left: auto;
+        right: 15px;
+      }
+
+      input {
+        padding: 0 42px 0 16px;
+      }
+    }
+
+    /* Profile dropdown: open to the left in RTL */
+    .profile-dropdown {
+      right: auto;
+      left: 0;
+    }
+
+    /* Dropdown item hover: indent from right */
+    .dropdown-item {
+      text-align: right;
+
+      &:hover {
+        padding-left: 18px;
+        padding-right: 22px;
+      }
+
+      &.logout-item:hover {
+        padding-left: 18px;
+        padding-right: 22px;
+      }
+    }
+  }
+
+  /* Sidebar section title gold bar: right side */
+  .lx-section-header .section-title {
+    padding-left: 0;
+    padding-right: 14px;
+
+    &::before {
+      left: auto;
+      right: 0;
+    }
+  }
+
+  /* ── Mobile: slide in from right ── */
+  @media (max-width: 991px) {
+    .luxury-sidebar {
+      transform: translateX(100%);
+      right: 0;
+      left: auto;
+    }
+
+    .mobile-sidebar-open .luxury-sidebar {
+      transform: translateX(0);
+    }
+
+    .luxury-main {
+      margin-right: 0 !important;
+      margin-left: 0 !important;
+    }
+  }
 }
 
 /* ============================================================

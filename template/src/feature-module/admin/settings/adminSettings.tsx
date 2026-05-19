@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
@@ -26,6 +27,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const AdminSettings = () => {
+  const { t } = useTranslation();
   const { user } = useAppSelector((state) => state.auth);
 
   return (
@@ -33,7 +35,7 @@ const AdminSettings = () => {
       {/* Account Settings Card */}
       <div className="lx-card" style={{ marginBottom: 24 }}>
         <div className="lx-card-header">
-          <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>Account Settings</h5>
+          <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('admin.settings.title', 'Account Settings')}</h5>
         </div>
         <div className="lx-card-body">
           {/* Profile Header */}
@@ -59,7 +61,7 @@ const AdminSettings = () => {
               <p style={{ margin: '0 0 6px', color: 'var(--lx-text-muted)', fontSize: 14 }}>{user?.email}</p>
               <span className="lx-badge badge-warning">
                 <i className="isax isax-shield-tick" style={{ marginRight: 4 }} />
-                Administrator
+                {t('admin.settings.administrator', 'Administrator')}
               </span>
             </div>
           </div>
@@ -72,26 +74,26 @@ const AdminSettings = () => {
           }}>
             <i className="isax isax-info-circle" style={{ color: '#C5973E', flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
-              Admin account settings are managed through the database for security reasons.
+              {t('admin.settings.securityNotice', 'Admin account settings are managed through the database for security reasons.')}
             </span>
           </div>
 
           {/* Fields */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div>
-              <label style={labelStyle}>Full Name</label>
+              <label style={labelStyle}>{t('admin.users.name', 'Full Name')}</label>
               <input type="text" style={inputStyle} value={user?.fullName || ''} disabled />
             </div>
             <div>
-              <label style={labelStyle}>Email</label>
+              <label style={labelStyle}>{t('admin.users.email', 'Email')}</label>
               <input type="email" style={inputStyle} value={user?.email || ''} disabled />
             </div>
             <div>
-              <label style={labelStyle}>Role</label>
-              <input type="text" style={inputStyle} value="Administrator" disabled />
+              <label style={labelStyle}>{t('admin.users.role', 'Role')}</label>
+              <input type="text" style={inputStyle} value={t('admin.settings.administrator', 'Administrator')} disabled />
             </div>
             <div>
-              <label style={labelStyle}>Account Created</label>
+              <label style={labelStyle}>{t('admin.settings.accountCreated', 'Account Created')}</label>
               <input type="text" style={inputStyle} value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : ''} disabled />
             </div>
           </div>
@@ -101,15 +103,15 @@ const AdminSettings = () => {
       {/* Quick Links */}
       <div className="lx-card">
         <div className="lx-card-header">
-          <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>Quick Links</h5>
+          <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('admin.settings.quickLinks', 'Quick Links')}</h5>
         </div>
         <div className="lx-card-body">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {[
-              { to: all_routes.adminDashboard, icon: 'isax-category', color: '#6B1D2A', label: 'Dashboard', desc: 'View platform overview' },
-              { to: all_routes.adminUsers, icon: 'isax-people', color: '#2D5F3F', label: 'User Management', desc: 'Manage platform users' },
-              { to: all_routes.adminCourses, icon: 'isax-book', color: '#C5973E', label: 'Course Management', desc: 'Manage all courses' },
-              { to: all_routes.adminTransactions, icon: 'isax-card', color: '#8B6D5E', label: 'Transactions', desc: 'View payment history' },
+              { to: all_routes.adminDashboard, icon: 'isax-category', color: '#6B1D2A', label: t('admin.sidebar.dashboard', 'Dashboard'), desc: t('admin.settings.viewPlatformOverview', 'View platform overview') },
+              { to: all_routes.adminUsers, icon: 'isax-people', color: '#2D5F3F', label: t('admin.sidebar.userManagement', 'User Management'), desc: t('admin.settings.managePlatformUsers', 'Manage platform users') },
+              { to: all_routes.adminCourses, icon: 'isax-book', color: '#C5973E', label: t('admin.sidebar.courseManagement', 'Course Management'), desc: t('admin.settings.manageAllCourses', 'Manage all courses') },
+              { to: all_routes.adminTransactions, icon: 'isax-card', color: '#8B6D5E', label: t('admin.transactions.title', 'Transactions'), desc: t('admin.settings.viewPaymentHistory', 'View payment history') },
             ].map((item) => (
               <Link
                 key={item.to}

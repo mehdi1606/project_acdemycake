@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
@@ -10,6 +11,7 @@ import { fetchAdminDashboard } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { dashboard, isLoading, error } = useAppSelector((s) => s.admin);
   const { user } = useAppSelector((s) => s.auth);
@@ -32,8 +34,8 @@ const AdminDashboard = () => {
       gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] },
     },
     xaxis: { categories: dashboard?.revenueHistory?.map((r) => r.month) || [], labels: { style: { colors: '#8B6D75', fontSize: '12px' } } },
-    yaxis: { labels: { style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v) => `$${v.toLocaleString()}` } },
-    tooltip: { y: { formatter: (v) => `$${v.toLocaleString()}` } },
+    yaxis: { labels: { style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => `$${v.toLocaleString()}` } },
+    tooltip: { y: { formatter: (v: number) => `$${v.toLocaleString()}` } },
     grid:   { borderColor: 'rgba(101,28,50,0.08)', strokeDashArray: 4 },
   };
 
@@ -45,10 +47,10 @@ const AdminDashboard = () => {
   const firstName = user?.fullName?.split(' ')[0] || 'Admin';
 
   const statsRow1 = [
-    { label: 'Total Users',    value: dashboard?.totalUsers,           icon: 'isax isax-people',    color: 'gold'  },
-    { label: 'Total Courses',  value: dashboard?.totalCourses,         icon: 'isax isax-book',      color: 'rose'  },
-    { label: 'Active Subs',    value: dashboard?.activeSubscriptions,  icon: 'isax isax-crown',     color: 'sage'  },
-    { label: 'Enrollments',    value: dashboard?.totalEnrollments,     icon: 'isax isax-teacher',   color: 'slate' },
+    { label: t('admin.dashboard.totalUsers', 'Total Users'),             value: dashboard?.totalUsers,           icon: 'isax isax-people',    color: 'gold'  },
+    { label: t('admin.dashboard.totalCourses', 'Total Courses'),         value: dashboard?.totalCourses,         icon: 'isax isax-book',      color: 'rose'  },
+    { label: t('admin.dashboard.activeSubscriptions', 'Active Subs'),    value: dashboard?.activeSubscriptions,  icon: 'isax isax-crown',     color: 'sage'  },
+    { label: t('admin.dashboard.newEnrollments', 'Enrollments'),         value: dashboard?.totalEnrollments,     icon: 'isax isax-teacher',   color: 'slate' },
   ];
 
   return (
@@ -56,18 +58,18 @@ const AdminDashboard = () => {
       {/* ── Welcome Banner ── */}
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">
-          <p className="welcome-greeting">Admin Panel</p>
-          <h4>Welcome, {firstName}! 🛡️</h4>
-          <p>Here's an overview of your academy's performance today.</p>
+          <p className="welcome-greeting">{t('admin.sidebar.panel', 'Admin Panel')}</p>
+          <h4>{t('admin.dashboard.title', 'Admin Dashboard')}, {firstName}! 🛡️</h4>
+          <p>{t('admin.dashboard.platformStats', "Here's an overview of your academy's performance today.")}</p>
         </div>
         <div className="welcome-actions">
           <Link to={all_routes.adminUsers} className="lx-btn lx-btn-gold">
             <i className="isax isax-people" />
-            Manage Users
+            {t('admin.users.title', 'Manage Users')}
           </Link>
           <Link to={all_routes.adminCourses} className="lx-btn lx-btn-outline">
             <i className="isax isax-book" />
-            Manage Courses
+            {t('admin.courses.title', 'Manage Courses')}
           </Link>
         </div>
       </div>
@@ -103,7 +105,7 @@ const AdminDashboard = () => {
                   <i className="isax isax-dollar-circle" />
                 </div>
                 <div className="stat-info">
-                  <p className="stat-label" style={{ color: 'rgba(255,255,255,0.75)' }}>Total Revenue</p>
+                  <p className="stat-label" style={{ color: 'rgba(255,255,255,0.75)' }}>{t('admin.dashboard.totalRevenue', 'Total Revenue')}</p>
                   <h3 className="stat-value" style={{ color: '#fff' }}>{fmt(dashboard?.totalRevenue)}</h3>
                 </div>
               </div>
@@ -114,7 +116,7 @@ const AdminDashboard = () => {
                   <i className="isax isax-chart-2" />
                 </div>
                 <div className="stat-info">
-                  <p className="stat-label" style={{ color: 'rgba(255,255,255,0.75)' }}>This Month</p>
+                  <p className="stat-label" style={{ color: 'rgba(255,255,255,0.75)' }}>{t('admin.reports.thisMonth', 'This Month')}</p>
                   <h3 className="stat-value" style={{ color: '#fff' }}>
                     {fmt(dashboard?.monthlyRevenue || dashboard?.revenueThisMonth)}
                   </h3>
@@ -126,9 +128,9 @@ const AdminDashboard = () => {
           {/* ── Revenue Chart ── */}
           <div className="lx-card mb-4">
             <div className="lx-card-header">
-              <h6>Revenue Overview</h6>
+              <h6>{t('admin.reports.revenue', 'Revenue Overview')}</h6>
               <Link to={all_routes.adminAnalytics} className="lx-view-all">
-                View Analytics
+                {t('admin.reports.generate', 'View Analytics')}
               </Link>
             </div>
             <div className="lx-card-body" style={{ paddingTop: 8 }}>
@@ -142,7 +144,7 @@ const AdminDashboard = () => {
               ) : (
                 <div className="lx-empty-state">
                   <div className="empty-icon"><i className="isax isax-chart" /></div>
-                  <p>No revenue data available yet.</p>
+                  <p>{t('admin.dashboard.revenueEmpty', 'No revenue data available yet.')}</p>
                 </div>
               )}
             </div>
@@ -151,15 +153,15 @@ const AdminDashboard = () => {
           {/* ── Quick Actions ── */}
           <div className="lx-card mb-4">
             <div className="lx-card-header">
-              <h6>Quick Actions</h6>
+              <h6>{t('admin.dashboard.quickActions', 'Quick Actions')}</h6>
             </div>
             <div className="lx-card-body">
               <div className="row g-3">
                 {[
-                  { label: 'Pending Approvals', icon: 'isax isax-clock',         route: all_routes.adminPendingCourses, color: 'amber' },
-                  { label: 'Manage Users',       icon: 'isax isax-user-add',      route: all_routes.adminUsers,          color: 'gold'  },
-                  { label: 'Transactions',       icon: 'isax isax-card',          route: all_routes.adminTransactions,   color: 'sage'  },
-                  { label: 'View Reports',       icon: 'isax isax-document-text', route: all_routes.adminReports,        color: 'slate' },
+                  { label: t('admin.sidebar.pendingApprovals', 'Pending Approvals'), icon: 'isax isax-clock',         route: all_routes.adminPendingCourses, color: 'amber' },
+                  { label: t('admin.users.title', 'Manage Users'),                 icon: 'isax isax-user-add',      route: all_routes.adminUsers,          color: 'gold'  },
+                  { label: t('admin.transactions.title', 'Transactions'),           icon: 'isax isax-card',          route: all_routes.adminTransactions,   color: 'sage'  },
+                  { label: t('admin.reports.title', 'View Reports'),               icon: 'isax isax-document-text', route: all_routes.adminReports,        color: 'slate' },
                 ].map((a, i) => (
                   <div key={i} className="col-md-3 col-6">
                     <Link
@@ -198,17 +200,17 @@ const AdminDashboard = () => {
             <div className="col-lg-6">
               <div className="lx-card">
                 <div className="lx-card-header">
-                  <h6>Top Courses</h6>
-                  <Link to={all_routes.adminCourses} className="lx-view-all">View All</Link>
+                  <h6>{t('admin.dashboard.topCourses', 'Top Courses')}</h6>
+                  <Link to={all_routes.adminCourses} className="lx-view-all">{t('common.viewAll', 'View All')}</Link>
                 </div>
                 <div className="lx-card-body" style={{ padding: 0 }}>
                   {dashboard?.topCourses?.length ? (
                     <table className="lx-table">
                       <thead>
                         <tr>
-                          <th>Course</th>
-                          <th style={{ textAlign: 'center' }}>Enrollments</th>
-                          <th style={{ textAlign: 'right' }}>Revenue</th>
+                          <th>{t('admin.courses.courseTitle', 'Course')}</th>
+                          <th style={{ textAlign: 'center' }}>{t('admin.dashboard.newEnrollments', 'Enrollments')}</th>
+                          <th style={{ textAlign: 'right' }}>{t('admin.dashboard.totalRevenue', 'Revenue')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -237,7 +239,7 @@ const AdminDashboard = () => {
                   ) : (
                     <div className="lx-empty-state" style={{ padding: '32px 0' }}>
                       <div className="empty-icon"><i className="isax isax-book" /></div>
-                      <p>No courses yet.</p>
+                      <p>{t('admin.courses.noCourses', 'No courses yet.')}</p>
                     </div>
                   )}
                 </div>
@@ -248,17 +250,17 @@ const AdminDashboard = () => {
             <div className="col-lg-6">
               <div className="lx-card">
                 <div className="lx-card-header">
-                  <h6>Top Instructors</h6>
-                  <Link to={all_routes.adminUsers} className="lx-view-all">View All</Link>
+                  <h6>{t('admin.dashboard.topInstructors', 'Top Instructors')}</h6>
+                  <Link to={all_routes.adminUsers} className="lx-view-all">{t('common.viewAll', 'View All')}</Link>
                 </div>
                 <div className="lx-card-body" style={{ padding: 0 }}>
                   {dashboard?.topInstructors?.length ? (
                     <table className="lx-table">
                       <thead>
                         <tr>
-                          <th>Instructor</th>
-                          <th style={{ textAlign: 'center' }}>Students</th>
-                          <th style={{ textAlign: 'right' }}>Revenue</th>
+                          <th>{t('admin.courses.instructor', 'Instructor')}</th>
+                          <th style={{ textAlign: 'center' }}>{t('admin.courses.students', 'Students')}</th>
+                          <th style={{ textAlign: 'right' }}>{t('admin.dashboard.totalRevenue', 'Revenue')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -287,7 +289,7 @@ const AdminDashboard = () => {
                   ) : (
                     <div className="lx-empty-state" style={{ padding: '32px 0' }}>
                       <div className="empty-icon"><i className="isax isax-teacher" /></div>
-                      <p>No instructors yet.</p>
+                      <p>{t('admin.dashboard.noInstructors', 'No instructors yet.')}</p>
                     </div>
                   )}
                 </div>

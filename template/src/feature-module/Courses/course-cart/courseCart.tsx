@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector, useAppDispatch } from '../../../core/redux/hooks';
 import { removeFromCart, clearCart } from '../../../core/redux/cartSlice';
@@ -15,6 +16,7 @@ const IVORY  = '#F7F4EE';
 const DARK   = '#1A1614';
 
 const CourseCart = () => {
+  const { t } = useTranslation();
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -27,17 +29,17 @@ const CourseCart = () => {
 
   const handleRemove = (id: string, title: string) => {
     dispatch(removeFromCart(id));
-    message.success(`"${title}" removed from cart`);
+    message.success(t('courseCart.removedFromCart', '"{{title}}" removed from cart', { title }));
   };
 
   const handleClear = () => {
     dispatch(clearCart());
-    message.info('Cart cleared');
+    message.info(t('courseCart.cartCleared', 'Cart cleared'));
   };
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      message.warning('Please login to proceed to checkout');
+      message.warning(t('courseCart.loginToCheckout', 'Please login to proceed to checkout'));
       return;
     }
     navigate(route.courseCheckout);
@@ -45,10 +47,10 @@ const CourseCart = () => {
 
   const getLevelDisplay = (level?: string) => {
     switch (level) {
-      case 'BEGINNER':     return 'Beginner';
-      case 'INTERMEDIATE': return 'Intermediate';
-      case 'ADVANCED':     return 'Advanced';
-      case 'ALL_LEVELS':   return 'All Levels';
+      case 'BEGINNER':     return t('courseList.beginner', 'Beginner');
+      case 'INTERMEDIATE': return t('courseList.intermediate', 'Intermediate');
+      case 'ADVANCED':     return t('courseList.advanced', 'Advanced');
+      case 'ALL_LEVELS':   return t('courseList.allLevels', 'All Levels');
       default:             return level || '';
     }
   };
@@ -79,11 +81,11 @@ const CourseCart = () => {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 48px' }}>
           {/* Breadcrumb */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <Link to="/" style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>Home</Link>
+            <Link to="/" style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
             <span style={{ color: `${GOLD_L}55`, fontSize: 13 }}>/</span>
-            <Link to={route.courseGrid} style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>Courses</Link>
+            <Link to={route.courseGrid} style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>{t('nav.courses', 'Courses')}</Link>
             <span style={{ color: `${GOLD_L}55`, fontSize: 13 }}>/</span>
-            <span style={{ color: GOLD_L, fontSize: 13, fontWeight: 600 }}>Cart</span>
+            <span style={{ color: GOLD_L, fontSize: 13, fontWeight: 600 }}>{t('courseCart.cart', 'Cart')}</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
@@ -104,12 +106,12 @@ const CourseCart = () => {
                 margin: 0,
                 letterSpacing: '-0.5px',
               }}>
-                Your Cart
+                {t('courseCart.yourCart', 'Your Cart')}
               </h1>
               <p style={{ color: `${GOLD_L}cc`, margin: 0, fontSize: 14 }}>
                 {items.length === 0
-                  ? 'No courses selected yet'
-                  : `${items.length} course${items.length !== 1 ? 's' : ''} ready for checkout`}
+                  ? t('courseCart.noCoursesSelected', 'No courses selected yet')
+                  : t('courseCart.coursesReadyForCheckout', '{{count}} course(s) ready for checkout', { count: items.length })}
               </p>
             </div>
           </div>
@@ -147,10 +149,10 @@ const CourseCart = () => {
               fontFamily: "'Playfair Display', Georgia, serif",
               color: DARK, marginBottom: 12, fontSize: 26,
             }}>
-              Your cart is empty
+              {t('courseCart.empty', 'Your cart is empty')}
             </h3>
             <p style={{ color: '#888', marginBottom: 32, maxWidth: 380, margin: '0 auto 32px', lineHeight: 1.6 }}>
-              Discover our premium courses and invest in your future. Add courses to your cart to get started.
+              {t('courseCart.emptyDesc', 'Discover our premium courses and invest in your future. Add courses to your cart to get started.')}
             </p>
             <Link
               to={route.courseGrid}
@@ -164,7 +166,7 @@ const CourseCart = () => {
               }}
             >
               <i className="isax isax-book-1" />
-              Browse Courses
+              {t('courseCart.browseCourses', 'Browse Courses')}
             </Link>
           </div>
         ) : (
@@ -181,7 +183,7 @@ const CourseCart = () => {
                   fontFamily: "'Playfair Display', Georgia, serif",
                   color: DARK, fontSize: 22, margin: 0, fontWeight: 700,
                 }}>
-                  {items.length} Course{items.length !== 1 ? 's' : ''} in Cart
+                  {items.length} {items.length !== 1 ? t('courseCart.coursesInCartPlural', 'Courses') : t('courseCart.courseInCart', 'Course')} {t('courseCart.inCart', 'in Cart')}
                 </h2>
                 <button
                   onClick={handleClear}
@@ -197,7 +199,7 @@ const CourseCart = () => {
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
                 >
                   <i className="isax isax-close-circle" />
-                  Clear All
+                  {t('courseList.clearAll', 'Clear All')}
                 </button>
               </div>
 
@@ -324,7 +326,7 @@ const CourseCart = () => {
                         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12, flexShrink: 0 }}>
                           <div>
                             <div style={{ fontSize: 20, fontWeight: 800, color: GOLD, fontFamily: "'Playfair Display', Georgia, serif" }}>
-                              {item.price === 0 ? 'Free' : `${item.price.toFixed(2)} MAD`}
+                              {item.price === 0 ? t('courseList.free', 'Free') : `${item.price.toFixed(2)} MAD`}
                             </div>
                             {item.originalPrice && item.originalPrice > item.price && (
                               <del style={{ fontSize: 13, color: '#aaa' }}>{item.originalPrice.toFixed(2)} MAD</del>
@@ -332,7 +334,7 @@ const CourseCart = () => {
                           </div>
                           <button
                             onClick={() => handleRemove(item.id, item.title)}
-                            title="Remove"
+                            title={t('courseCart.remove', 'Remove')}
                             style={{
                               width: 36, height: 36, borderRadius: '50%',
                               background: `${BURG}10`, border: `1px solid ${BURG}25`,
@@ -370,7 +372,7 @@ const CourseCart = () => {
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#fff'; }}
                 >
                   <i className="isax isax-arrow-left-2" />
-                  Continue Shopping
+                  {t('courseCart.continueShopping', 'Continue Shopping')}
                 </Link>
               </div>
             </div>
@@ -392,7 +394,7 @@ const CourseCart = () => {
                   <h3 style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
                     color: '#fff', margin: 0, fontSize: 20, fontWeight: 700,
-                  }}>Order Summary</h3>
+                  }}>{t('courseCart.orderSummary', 'Order Summary')}</h3>
                 </div>
 
                 <div style={{ padding: '24px 28px' }}>
@@ -415,7 +417,7 @@ const CourseCart = () => {
                           {item.title.length > 40 ? item.title.slice(0, 40) + '…' : item.title}
                         </span>
                         <span style={{ color: DARK, fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>
-                          {item.price === 0 ? 'Free' : `${item.price.toFixed(2)} MAD`}
+                          {item.price === 0 ? t('courseList.free', 'Free') : `${item.price.toFixed(2)} MAD`}
                         </span>
                       </div>
                     ))}
@@ -426,9 +428,9 @@ const CourseCart = () => {
                     display: 'flex', justifyContent: 'space-between',
                     alignItems: 'center', marginBottom: 10,
                   }}>
-                    <span style={{ color: '#666', fontSize: 14 }}>Subtotal</span>
+                    <span style={{ color: '#666', fontSize: 14 }}>{t('courseCart.subtotal', 'Subtotal')}</span>
                     <span style={{ color: DARK, fontWeight: 700, fontSize: 14 }}>
-                      {subtotal === 0 ? 'Free' : `${subtotal.toFixed(2)} MAD`}
+                      {subtotal === 0 ? t('courseList.free', 'Free') : `${subtotal.toFixed(2)} MAD`}
                     </span>
                   </div>
 
@@ -437,7 +439,7 @@ const CourseCart = () => {
                       display: 'flex', justifyContent: 'space-between',
                       alignItems: 'center', marginBottom: 10,
                     }}>
-                      <span style={{ color: '#4caf50', fontSize: 13 }}>You save</span>
+                      <span style={{ color: '#4caf50', fontSize: 13 }}>{t('courseCart.youSave', 'You save')}</span>
                       <span style={{ color: '#4caf50', fontWeight: 700, fontSize: 13 }}>
                         -{savedTotal.toFixed(2)} MAD
                       </span>
@@ -449,12 +451,12 @@ const CourseCart = () => {
 
                   {/* Total */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                    <span style={{ fontWeight: 700, color: DARK, fontSize: 16 }}>Total</span>
+                    <span style={{ fontWeight: 700, color: DARK, fontSize: 16 }}>{t('courseCart.total', 'Total')}</span>
                     <span style={{
                       fontFamily: "'Playfair Display', Georgia, serif",
                       fontWeight: 800, color: GOLD, fontSize: 22,
                     }}>
-                      {subtotal === 0 ? 'Free' : `${subtotal.toFixed(2)} MAD`}
+                      {subtotal === 0 ? t('courseList.free', 'Free') : `${subtotal.toFixed(2)} MAD`}
                     </span>
                   </div>
 
@@ -467,8 +469,8 @@ const CourseCart = () => {
                   }}>
                     <i className="isax isax-shield-tick" style={{ color: GOLD, fontSize: 20, flexShrink: 0 }} />
                     <p style={{ margin: 0, fontSize: 12, color: '#666', lineHeight: 1.5 }}>
-                      <strong style={{ color: DARK }}>30-day money-back guarantee.</strong>{' '}
-                      Learn with complete confidence.
+                      <strong style={{ color: DARK }}>{t('courseCart.moneyBackGuarantee', '30-day money-back guarantee.')}</strong>{' '}
+                      {t('courseCart.learnWithConfidence', 'Learn with complete confidence.')}
                     </p>
                   </div>
 
@@ -490,7 +492,7 @@ const CourseCart = () => {
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'none'; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 6px 20px ${GOLD}55`; }}
                   >
                     <i className="isax isax-lock" />
-                    Proceed to Checkout
+                    {t('courseCart.proceedToCheckout', 'Proceed to Checkout')}
                   </button>
                 </div>
               </div>

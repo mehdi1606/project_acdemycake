@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Select } from 'antd';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { quizService } from '../../../services/api/quiz.service';
 import { Quiz, QuizAttempt } from '../../../services/api/types';
 
 const InstructorQuizResult: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlQuizId = searchParams.get('quizId');
 
@@ -65,35 +67,35 @@ const InstructorQuizResult: React.FC = () => {
   const passRate = attempts.length > 0 ? Math.round((passCount / attempts.length) * 100) : 0;
 
   const statCards = [
-    { label: 'Total Attempts', value: totalAttempts, icon: 'isax-people', color: 'var(--lx-primary)', bg: 'rgba(107, 29, 42, 0.06)' },
-    { label: 'Average Score', value: `${avgScore}%`, icon: 'isax-chart', color: '#C5973E', bg: 'rgba(197, 151, 62, 0.08)' },
-    { label: 'Pass Rate', value: `${passRate}%`, icon: 'isax-tick-circle', color: '#2D5F3F', bg: 'rgba(45, 95, 63, 0.08)' },
+    { label: t('instructor.quiz.totalAttempts', 'Total Attempts'), value: totalAttempts, icon: 'isax-people', color: 'var(--lx-primary)', bg: 'rgba(107, 29, 42, 0.06)' },
+    { label: t('instructor.quiz.averageScore', 'Average Score'), value: `${avgScore}%`, icon: 'isax-chart', color: '#C5973E', bg: 'rgba(197, 151, 62, 0.08)' },
+    { label: t('instructor.quiz.passRate', 'Pass Rate'), value: `${passRate}%`, icon: 'isax-tick-circle', color: '#2D5F3F', bg: 'rgba(45, 95, 63, 0.08)' },
   ];
 
   return (
     <LuxuryDashboardLayout>
       {/* Header */}
       <div className="lx-section-header" style={{ marginBottom: 24 }}>
-        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Quiz Results</h5>
+        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.quiz.quizResults', 'Quiz Results')}</h5>
       </div>
 
       {/* Quiz Selector */}
       <div className="lx-card" style={{ marginBottom: 20 }}>
         <div className="lx-card-body">
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 8 }}>
-            Select Quiz <span style={{ color: '#8B2335' }}>*</span>
+            {t('instructor.quiz.selectQuiz', 'Select Quiz')} <span style={{ color: '#8B2335' }}>*</span>
           </label>
           {loadingQuizzes ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--lx-text-muted)', fontSize: 14 }}>
               <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-              Loading quizzes...
+              {t('instructor.quiz.loadingQuizzes', 'Loading quizzes...')}
             </div>
           ) : (
             <Select
               showSearch
               allowClear
               style={{ width: '100%' }}
-              placeholder="Search and select a quiz to view results..."
+              placeholder={t('instructor.quiz.searchSelectQuiz', 'Search and select a quiz to view results...')}
               value={selectedQuizId ?? undefined}
               onChange={(value) => {
                 setSelectedQuizId(value ?? null);
@@ -104,12 +106,12 @@ const InstructorQuizResult: React.FC = () => {
               }
               options={quizzes.map((q) => ({ label: q.title, value: q.id }))}
               optionFilterProp="label"
-              notFoundContent="No quizzes found"
+              notFoundContent={t('instructor.quiz.noQuizzesFound', 'No quizzes found')}
             />
           )}
           {quizzes.length === 0 && !loadingQuizzes && (
             <p style={{ margin: '8px 0 0', fontSize: 13, color: '#C5973E', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <i className="isax isax-info-circle" /> You have no quizzes yet. Create a quiz first.
+              <i className="isax isax-info-circle" /> {t('instructor.quiz.noQuizzesYetCreate', 'You have no quizzes yet. Create a quiz first.')}
             </p>
           )}
         </div>
@@ -143,16 +145,16 @@ const InstructorQuizResult: React.FC = () => {
                 )}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <i className="isax isax-message-question" style={{ color: 'var(--lx-primary)' }} /> {selectedQuiz.questionCount} Questions
+                    <i className="isax isax-message-question" style={{ color: 'var(--lx-primary)' }} /> {selectedQuiz.questionCount} {t('instructor.quiz.questions', 'Questions')}
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <i className="isax isax-clock" style={{ color: '#C5973E' }} /> {selectedQuiz.duration} Minutes
+                    <i className="isax isax-clock" style={{ color: '#C5973E' }} /> {selectedQuiz.duration} {t('instructor.quiz.minutes', 'Minutes')}
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <i className="isax isax-star" style={{ color: '#C5973E' }} /> {selectedQuiz.totalPoints} Points
+                    <i className="isax isax-star" style={{ color: '#C5973E' }} /> {selectedQuiz.totalPoints} {t('instructor.quiz.pts', 'Points')}
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <i className="isax isax-chart" style={{ color: '#2D5F3F' }} /> Pass: {selectedQuiz.passingScore}%
+                    <i className="isax isax-chart" style={{ color: '#2D5F3F' }} /> {t('instructor.quiz.pass', 'Pass')}: {selectedQuiz.passingScore}%
                   </span>
                 </div>
               </div>
@@ -184,35 +186,35 @@ const InstructorQuizResult: React.FC = () => {
           {/* Attempts Table */}
           <div className="lx-card">
             <div className="lx-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h6 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>Student Attempts</h6>
+              <h6 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>{t('instructor.quiz.studentAttempts', 'Student Attempts')}</h6>
               {!loadingAttempts && (
-                <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{attempts.length} records</span>
+                <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{attempts.length} {t('instructor.quiz.records', 'records')}</span>
               )}
             </div>
             <div className="lx-card-body" style={{ padding: 0 }}>
               {loadingAttempts ? (
                 <div style={{ textAlign: 'center', padding: '48px 0' }}>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
-                  <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>Loading results...</p>
+                  <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>{t('instructor.quiz.loadingResults', 'Loading results...')}</p>
                 </div>
               ) : attempts.length === 0 ? (
                 <div className="lx-empty-state">
                   <span className="empty-icon" style={{ background: 'rgba(107, 29, 42, 0.06)' }}>
                     <i className="isax isax-message-question" style={{ fontSize: 28, color: 'var(--lx-primary)' }} />
                   </span>
-                  <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>No attempts yet</h6>
-                  <p>No students have attempted this quiz yet.</p>
+                  <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('instructor.quiz.noAttempts', 'No attempts yet')}</h6>
+                  <p>{t('instructor.quiz.noAttemptsSubtitle', 'No students have attempted this quiz yet.')}</p>
                 </div>
               ) : (
                 <table className="lx-table">
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>Student</th>
-                      <th>Score</th>
-                      <th>Percentage</th>
-                      <th>Result</th>
-                      <th>Submitted At</th>
+                      <th>{t('instructor.students.student', 'Student')}</th>
+                      <th>{t('instructor.quiz.score', 'Score')}</th>
+                      <th>{t('instructor.quiz.percentage', 'Percentage')}</th>
+                      <th>{t('common.result', 'Result')}</th>
+                      <th>{t('instructor.quiz.submittedAt', 'Submitted At')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -253,10 +255,10 @@ const InstructorQuizResult: React.FC = () => {
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             <span className={`lx-badge ${attempt.passed ? 'badge-success' : 'badge-danger'}`}>
-                              {attempt.passed ? 'Passed' : 'Failed'}
+                              {attempt.passed ? t('instructor.quiz.passed', 'Passed') : t('instructor.quiz.failed', 'Failed')}
                             </span>
                             {attempt.violated && (
-                              <span className="lx-badge badge-warning" style={{ fontSize: 10 }}>Violated</span>
+                              <span className="lx-badge badge-warning" style={{ fontSize: 10 }}>{t('instructor.quiz.violated', 'Violated')}</span>
                             )}
                           </div>
                         </td>
@@ -282,8 +284,8 @@ const InstructorQuizResult: React.FC = () => {
             <span className="empty-icon" style={{ background: 'rgba(107, 29, 42, 0.06)' }}>
               <i className="isax isax-message-question" style={{ fontSize: 28, color: 'var(--lx-primary)' }} />
             </span>
-            <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>Select a quiz above to view its results</h6>
-            <p>Choose from your {quizzes.length} available quiz{quizzes.length !== 1 ? 'zes' : ''}</p>
+            <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('instructor.quiz.selectQuizToView', 'Select a quiz above to view its results')}</h6>
+            <p>{t('instructor.quiz.chooseFromQuizzes', 'Choose from your {{count}} available quiz(zes)', { count: quizzes.length })}</p>
           </div>
         </div>
       )}

@@ -1,12 +1,11 @@
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
-
-
-
 import InstructorSettingsLink from "../settings-link/instructorSettingsLink";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 const InstructorLinkedAccounts = () => {
+  const { t } = useTranslation();
   return (
     <LuxuryDashboardLayout>
       <div className="mb-3">

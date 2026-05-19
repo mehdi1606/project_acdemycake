@@ -2,9 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
+import { useTranslation } from "react-i18next";
 
 const Error404 = () => {
-
+    const { t } = useTranslation();
     const route = all_routes;
 
   return (
@@ -61,14 +62,13 @@ const Error404 = () => {
             </div>
             <h3 className="h2 mb-3">
               {" "}
-              Oh No! Error <span className="text-secondary ms-1">404</span>
+              {t('auth.error404.heading', 'Oh No! Error')} <span className="text-secondary ms-1">404</span>
             </h3>
             <p className="h4 font-weight-normal">
-              This page you requested counld not found. May the force be with
-              you!
+              {t('auth.error404.desc', 'This page you requested could not be found. May the force be with you!')}
             </p>
             <Link to={route.homeone} className="btn back-to-home-btn">
-              <i className="isax isax-arrow-left-2 me-1" /> Back to Home
+              <i className="isax isax-arrow-left-2 me-1" /> {t('common.backToHome', 'Back to Home')}
             </Link>
           </div>
         </div>

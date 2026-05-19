@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../../feature-module/router/all_routes';
 import { Link } from 'react-router-dom';
 
@@ -7,6 +8,7 @@ interface BreadcrumbProps {
 }
 
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ title }) => {
+  const { t } = useTranslation()
   return (
     <div
       className="breadcrumb-bar text-center"

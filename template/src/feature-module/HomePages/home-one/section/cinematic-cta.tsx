@@ -8,14 +8,16 @@
  *  • Two CTAs: enrol + browse courses
  *  • Signature script line for emotional resonance
  */
-import React, { useRef, useEffect } from 'react'
+import React, { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
 import { useScrollParallax } from '../hooks/useScrollParallax'
+import { useTranslation } from 'react-i18next'
 
 const CinematicCTA: React.FC = () => {
+    const { t } = useTranslation();
     const route = all_routes
-    const scrollY = useScrollParallax()
+    const _scrollY = useScrollParallax()
     const sectionRef = useRef<HTMLElement>(null)
 
     // Compute bg parallax relative to section top
@@ -62,7 +64,7 @@ const CinematicCTA: React.FC = () => {
                             data-aos="fade-down"
                             data-aos-duration="700"
                         >
-                            Begin Your Journey
+                            {t('home.cta.eyebrow', 'Begin Your Journey')}
                         </div>
 
                         {/* Script accent */}
@@ -88,8 +90,8 @@ const CinematicCTA: React.FC = () => {
                             data-aos-duration="1000"
                         >
                             <h2 className="sl-cinematic-cta__title">
-                                Elevate Your Art.<br />
-                                <span className="sl-shimmer-text">Create the Extraordinary.</span>
+                                {t('home.cta.titleLine1', 'Elevate Your Art.')}<br />
+                                <span className="sl-shimmer-text">{t('home.cta.titleLine2', 'Create the Extraordinary.')}</span>
                             </h2>
                         </div>
 
@@ -100,8 +102,7 @@ const CinematicCTA: React.FC = () => {
                             data-aos-delay="240"
                             data-aos-duration="800"
                         >
-                            Join thousands of pastry artists who chose SARALÖWE Academy to master
-                            couture cake design — and transformed their passion into a career.
+                            {t('home.cta.subtitle', 'Join thousands of pastry artists who chose SARALÖWE Academy to master couture cake design — and transformed their passion into a career.')}
                         </p>
 
                         {/* Actions */}
@@ -113,10 +114,10 @@ const CinematicCTA: React.FC = () => {
                         >
                             <Link to={route.register} className="sl-btn-gold sl-btn-magnetic">
                                 <i className="isax isax-user-add" />
-                                Enrol Free Today
+                                {t('home.cta.enrolFree', 'Enrol Free Today')}
                             </Link>
                             <Link to={route.courseList} className="sl-btn-outline">
-                                Browse Courses
+                                {t('home.cta.browseCourses', 'Browse Courses')}
                                 <i className="isax isax-arrow-right-1" />
                             </Link>
                         </div>
@@ -136,9 +137,9 @@ const CinematicCTA: React.FC = () => {
                             data-aos-duration="600"
                         >
                             {[
-                                { icon: 'isax isax-shield-tick', text: 'Industry-Recognised Certificates' },
-                                { icon: 'isax isax-unlimited', text: 'Lifetime Course Access' },
-                                { icon: 'isax isax-medal-star', text: 'Award-Winning Tutors' },
+                                { icon: 'isax isax-shield-tick', text: t('home.cta.trust1', 'Industry-Recognised Certificates') },
+                                { icon: 'isax isax-unlimited', text: t('home.cta.trust2', 'Lifetime Course Access') },
+                                { icon: 'isax isax-medal-star', text: t('home.cta.trust3', 'Award-Winning Tutors') },
                             ].map((item, i) => (
                                 <div
                                     key={i}

@@ -1,7 +1,9 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 const DeleteModal = () => {
+    const { t } = useTranslation()
     return (
         <>
             {/* Delete Modal */}

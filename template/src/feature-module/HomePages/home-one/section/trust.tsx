@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import ImageWithBasePath from '../../../../core/common/imageWithBasePath'
 import { Link } from 'react-router-dom'
 import VideoModal from './videoModal';
@@ -15,7 +16,7 @@ const formatCount = (count: number): string => {
 };
 
 const Trust = () => {
-
+    const { t } = useTranslation()
     const [showModal, setShowModal] = useState(false);
     const [stats, setStats] = useState<PlatformStats | null>(null);
       const videoUrl = 'https://youtu.be/NSAOrGb9orM';
@@ -64,14 +65,14 @@ const Trust = () => {
           <div className="row justify-content-between">
             <div className="col-md-4">
               <h4>
-                Trusted by {stats ? `${formatCount(stats.totalStudents)}+` : '...'} happy students and online users
+                {t('trust.trustedBy', 'Trusted by')} {stats ? `${formatCount(stats.totalStudents)}+` : '...'} {t('trust.happyStudents', 'happy students and online users')}
               </h4>
               <div className="d-flex align-items-center flex-wrap mt-5 gap-2">
                 <Link to={route.login} className="btn btn-secondary">
-                  Enroll as Student
+                  {t('trust.enrollAsStudent', 'Enroll as Student')}
                 </Link>
                 <Link to={route.becomeAnInstructor} className="btn btn-dark">
-                  Apply as Tutor
+                  {t('trust.applyAsTutor', 'Apply as Tutor')}
                 </Link>
               </div>
             </div>
@@ -79,18 +80,18 @@ const Trust = () => {
               <div className="row">
                 <div className="col-md-6">
                   <h4 className="text-white mb-2">{stats ? formatCount(stats.totalCourses) : '...'}</h4>
-                  <h5 className="text-white mb-2">Published Courses</h5>
+                  <h5 className="text-white mb-2">{t('trust.publishedCourses', 'Published Courses')}</h5>
                   <p className="text-white mb-5">
-                    Explore our growing catalog of high-quality courses.
+                    {t('trust.publishedCoursesDesc', 'Explore our growing catalog of high-quality courses.')}
                   </p>
                 </div>
                 <div className="col-md-6">
                   <h4 className="text-white mb-2">{stats ? formatCount(stats.totalEnrollments) : '...'}</h4>
                   <h5 className="text-white mb-2">
-                    Total Enrollments
+                    {t('trust.totalEnrollments', 'Total Enrollments')}
                   </h5>
                   <p className="text-white mb-5">
-                    Students worldwide are building new skills with our platform.
+                    {t('trust.totalEnrollmentsDesc', 'Students worldwide are building new skills with our platform.')}
                   </p>
                 </div>
               </div>
@@ -103,7 +104,7 @@ const Trust = () => {
                   />
                 </div>
                 <p className="text-gray-9 mb-0">
-                  "All courses are incredibly help people to achieve their goals"
+                  "{t('trust.quote', 'All courses are incredibly help people to achieve their goals')}"
                 </p>
               </div>
             </div>

@@ -3,6 +3,7 @@ import Slider from "react-slick";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
+import { useTranslation } from "react-i18next";
 
 const hasNumber = (value: string): boolean => {
   return /[0-9]/.test(value);
@@ -21,17 +22,17 @@ const strengthColor = (count: number): string => {
   if (count < 2) return "weak";
   if (count < 3) return "strong";
   if (count < 4) return "heavy";
-  return "poor"; // Default return to ensure it's always a string
+  return "poor";
 };
 
 const SetPassword = () => {
+  const { t } = useTranslation();
   const loginSLider = {
     dots: true,
     infinite: true,
     slidesToShow: 1,
     slidesToScroll: 1,
     adaptiveHeight: true,
-    // autoplay: true, // Uncomment if needed
   };
 
   const route = all_routes;
@@ -42,11 +43,13 @@ const SetPassword = () => {
   const [strength, setStrength] = useState<string>("");
   const [eyeConfirmPassword, setEyeConfirmPassword] = useState<boolean>(true);
   const navigate = useNavigate();
+
   const handleSubmit = (event: React.FormEvent) => {
-      event.preventDefault(); 
-      const Path = route.instructorDashboard; 
-      navigate(Path);
-    };
+    event.preventDefault();
+    const Path = route.instructorDashboard;
+    navigate(Path);
+  };
+
   const onEyeClick = () => {
     setEye((prev) => !prev);
   };
@@ -71,47 +74,34 @@ const SetPassword = () => {
     }
   };
 
-
   const messages = () => {
     switch (validationError) {
       case 2:
         return (
-          <span
-            id="poor"
-            className="active mt-2"
-            style={{ fontSize: 14, color: "#8B2335",marginTop:'8px' }}
-          >
-            <ImageWithBasePath src="assets/img/icon/angry.svg" className="me-2" alt="" /> Weak. Must contain at least 8 characters
+          <span id="poor" className="active mt-2" style={{ fontSize: 14, color: "#8B2335", marginTop: '8px' }}>
+            <ImageWithBasePath src="assets/img/icon/angry.svg" className="me-2" alt="" />
+            {t('auth.register.pwHintWeak', 'Weak — at least 8 characters')}
           </span>
         );
       case 3:
         return (
-          <span
-            id="weak"
-            className="active  mt-2"
-            style={{ fontSize: 14, color: "#C5973E",marginTop:'8px' }}
-          >
-            <ImageWithBasePath src="assets/img/icon/anguish.svg" className="me-2" alt="" /> Average. Must contain at least 1 letter or number
+          <span id="weak" className="active mt-2" style={{ fontSize: 14, color: "#C5973E", marginTop: '8px' }}>
+            <ImageWithBasePath src="assets/img/icon/anguish.svg" className="me-2" alt="" />
+            {t('auth.register.pwHintAverage', 'Average — add a number')}
           </span>
         );
       case 4:
         return (
-          <span
-            id="strong"
-            className="active  mt-2"
-            style={{ fontSize: 14, color: "#4A7DAA",marginTop:'8px' }}
-          >
-            <ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" /> Almost. Must contain special symbol
+          <span id="strong" className="active mt-2" style={{ fontSize: 14, color: "#4A7DAA", marginTop: '8px' }}>
+            <ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />
+            {t('auth.register.pwHintGood', 'Almost — add a special character')}
           </span>
         );
       case 5:
         return (
-          <span
-            id="heavy"
-            className="active  mt-2"
-            style={{ fontSize: 14, color: "#2D5F3F",marginTop:'8px' }}
-          >
-            <ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" /> Awesome! You have a secure password.
+          <span id="heavy" className="active mt-2" style={{ fontSize: 14, color: "#2D5F3F", marginTop: '8px' }}>
+            <ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />
+            {t('auth.register.pwHintSecure', 'Secure password ✓')}
           </span>
         );
       default:
@@ -123,28 +113,20 @@ const SetPassword = () => {
     let strengths = 0;
     if (value.length >= 8) strengths = 1;
     if (hasNumber(value) && value.length >= 8) strengths = 2;
-    if (hasSpecial(value) && value.length >= 8 && hasNumber(value))
-      strengths = 3;
-    if (
-      hasMixed(value) &&
-      hasSpecial(value) &&
-      value.length >= 8 &&
-      hasNumber(value)
-    )
-      strengths = 3;
+    if (hasSpecial(value) && value.length >= 8 && hasNumber(value)) strengths = 3;
+    if (hasMixed(value) && hasSpecial(value) && value.length >= 8 && hasNumber(value)) strengths = 3;
     return strengths;
   };
 
   useEffect(() => {
     if (password) {
-      let strengthValue = strengthIndicator(password);
-      let color = strengthColor(strengthValue);
+      const strengthValue = strengthIndicator(password);
+      const color = strengthColor(strengthValue);
       setStrength(color);
     } else {
       setStrength("");
     }
-  }, [password]);
-
+  }, [password]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -155,75 +137,23 @@ const SetPassword = () => {
             {/* Login Banner */}
             <div className="col-md-6 login-bg d-none d-lg-flex">
               <Slider {...loginSLider} className="login-carousel">
-                <div>
-                  <div className="login-carousel-section mb-3">
-                    <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
-                    </div>
-                    <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Welcome to <br />
-                        Dreams<span className="text-secondary">LMS</span>{" "}
-                        Courses.
-                      </h3>
-                      <p>
-                        Platform designed to help organizations, educators, and
-                        learners manage, deliver, and track learning and
-                        training activities.
-                      </p>
+                {[1, 2, 3].map((i) => (
+                  <div key={i}>
+                    <div className="login-carousel-section mb-3">
+                      <div className="login-banner">
+                        <ImageWithBasePath src="assets/img/auth/auth-1.svg" className="img-fluid" alt="Logo" />
+                      </div>
+                      <div className="mentor-course text-center">
+                        <h3 className="mb-2">
+                          {t('auth.setPassword.sliderTitle', 'Welcome to')} <br />
+                          SARA<span className="text-secondary">LÖWE</span>{" "}
+                          {t('auth.otp.sliderAcademy', 'Academy')}
+                        </h3>
+                        <p>{t('auth.setPassword.sliderDesc', 'Master the art of luxury cake design with world-class instructors.')}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div>
-                  <div className="login-carousel-section mb-3">
-                    <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
-                    </div>
-                    <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Welcome to <br />
-                        Dreams<span className="text-secondary">LMS</span>{" "}
-                        Courses.
-                      </h3>
-                      <p>
-                        Platform designed to help organizations, educators, and
-                        learners manage, deliver, and track learning and
-                        training activities.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="login-carousel-section mb-3">
-                    <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
-                    </div>
-                    <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Welcome to <br />
-                        Dreams<span className="text-secondary">LMS</span>{" "}
-                        Courses.
-                      </h3>
-                      <p>
-                        Platform designed to help organizations, educators, and
-                        learners manage, deliver, and track learning and
-                        training activities.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </Slider>
             </div>
             {/* /Login Banner */}
@@ -233,29 +163,21 @@ const SetPassword = () => {
                 <div className="loginbox">
                   <div className="w-100">
                     <div className="d-flex align-items-center justify-content-between login-header">
-                      <ImageWithBasePath
-                        src="assets/img/logo.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
+                      <ImageWithBasePath src="assets/img/logo.svg" className="img-fluid" alt="Logo" />
                       <Link to={route.homeone} className="link-1">
-                        Back to Home
+                        {t('common.backToHome', 'Back to Home')}
                       </Link>
                     </div>
                     <div className="topic">
-                      <h1 className="fs-32 fw-bold ">Set Password</h1>
+                      <h1 className="fs-32 fw-bold">{t('auth.setPassword.title', 'Set Password')}</h1>
                       <p className="fw-normal fs-14 mb-0">
-                        Your new password must be different from previous
-                        password
+                        {t('auth.setPassword.subtitle', 'Your new password must be different from previous password')}
                       </p>
                     </div>
-                    <form
-                    onSubmit={handleSubmit}
-                      className="mb-3 pb-3"
-                    >
+                    <form onSubmit={handleSubmit} className="mb-3 pb-3">
                       <div className="mb-3 position-relative">
                         <label className="form-label">
-                          New Password <span className="text-danger"> *</span>
+                          {t('auth.setPassword.newPassword', 'New Password')} <span className="text-danger"> *</span>
                         </label>
                         <div className="position-relative" id="passwordInput">
                           <input
@@ -265,24 +187,17 @@ const SetPassword = () => {
                           />
                           <span
                             onClick={onEyeClick}
-                            className={`toggle-passwords text-gray-7 fs-14 isax isax-eye-slash" ${
-                              eye ? "isax-eye-slash" : "isax-eye"
-                            }`}
+                            className={`toggle-passwords text-gray-7 fs-14 isax ${eye ? "isax-eye-slash" : "isax-eye"}`}
                           />
                         </div>
                         <div
                           id="passwordStrength"
                           style={{ display: "flex" }}
                           className={`password-strength ${
-                            strength === "poor"
-                              ? "poor-active"
-                              : strength === "weak"
-                              ? "avg-active"
-                              : strength === "strong"
-                              ? "strong-active"
-                              : strength === "heavy"
-                              ? "heavy-active"
-                              : ""
+                            strength === "poor" ? "poor-active" :
+                            strength === "weak" ? "avg-active" :
+                            strength === "strong" ? "strong-active" :
+                            strength === "heavy" ? "heavy-active" : ""
                           }`}
                         >
                           <span id="poor" className="active"></span>
@@ -294,7 +209,7 @@ const SetPassword = () => {
                       </div>
                       <div className="mb-3 position-relative">
                         <label className="form-label">
-                          Confirm Password{" "}
+                          {t('auth.setPassword.confirmPassword', 'Confirm Password')}{" "}
                           <span className="text-danger"> *</span>
                         </label>
                         <div className="position-relative">
@@ -305,12 +220,8 @@ const SetPassword = () => {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                           />
                           <span
-                            className={`isax toggle-passworda ${
-                              eyeConfirmPassword ? "isax-eye-slash" : "isax-eye"
-                            } text-gray-7 fs-14`}
-                            onClick={() =>
-                              setEyeConfirmPassword((prev) => !prev)
-                            }
+                            className={`isax toggle-passworda ${eyeConfirmPassword ? "isax-eye-slash" : "isax-eye"} text-gray-7 fs-14`}
+                            onClick={() => setEyeConfirmPassword((prev) => !prev)}
                             style={{
                               cursor: "pointer",
                               position: "absolute",
@@ -322,11 +233,8 @@ const SetPassword = () => {
                         </div>
                       </div>
                       <div className="d-grid">
-                        <button
-                          className="btn btn-secondary btn-lg"
-                          type="submit"
-                        >
-                          Reset Password{" "}
+                        <button className="btn btn-secondary btn-lg" type="submit">
+                          {t('auth.setPassword.resetButton', 'Reset Password')}{" "}
                           <i className="isax isax-arrow-right-3 ms-1" />
                         </button>
                       </div>

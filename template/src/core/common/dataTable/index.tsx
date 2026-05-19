@@ -2,9 +2,11 @@
 import React, { useEffect, useState } from "react";
 import { Table } from "antd";
 import { DatatableProps } from "../../common/data/interface/index"; // Ensure correct path
+import { useTranslation } from "react-i18next";
 
 
 const Datatable: React.FC<DatatableProps> = ({ columns, dataSource , Search }) => {
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState<string>("");
   const [showSearch, setShowSearch] = useState<any>(true);
   const [filteredDataSource, setFilteredDataSource] = useState(dataSource);
@@ -41,7 +43,7 @@ const Datatable: React.FC<DatatableProps> = ({ columns, dataSource , Search }) =
         locale: { items_per_page: "" },
         nextIcon: <span><i className="fas fa-angle-right" /></span>,
         prevIcon: <span><i className="fas fa-angle-left" /></span>,
-        showTotal: (total, range) => `Page ${range[0]} of ${total}`,
+        showTotal: (total: number, range: [number, number]) => `${t('datatable.page', 'Page')} ${range[0]} ${t('common.of', 'of')} ${total}`,
       }}
     /> : 
     <>
@@ -50,7 +52,7 @@ const Datatable: React.FC<DatatableProps> = ({ columns, dataSource , Search }) =
     <span className="input-icon-addon">
       <i className="isax isax-search-normal-14" />
     </span>
-    <input type="search" className="form-control form-control-md mb-3 w-auto float-end" value={searchText} placeholder="Search" onChange={(e) => handleSearch(e.target.value)} aria-controls="DataTables_Table_0"></input>
+    <input type="search" className="form-control form-control-md mb-3 w-auto float-end" value={searchText} placeholder={t('common.search', 'Search')} onChange={(e) => handleSearch(e.target.value)} aria-controls="DataTables_Table_0"></input>
   </div>
   </div>
   <Table
@@ -62,7 +64,7 @@ const Datatable: React.FC<DatatableProps> = ({ columns, dataSource , Search }) =
           locale: { items_per_page: "" },
           nextIcon: <span><i className="fas fa-angle-right" /></span>,
           prevIcon: <span><i className="fas fa-angle-left" /></span>,
-          showTotal: (total, range) => `Page ${range[0]} of ${total}`,
+          showTotal: (total: number, range: [number, number]) => `${t('datatable.page', 'Page')} ${range[0]} ${t('common.of', 'of')} ${total}`,
         }}
       />
     </>

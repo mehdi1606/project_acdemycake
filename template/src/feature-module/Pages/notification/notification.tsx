@@ -1,10 +1,12 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import Breadcrumb from "../../../core/common/Breadcrumb/breadcrumb";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 
 const Notification = () => {
+  const { t } = useTranslation()
 
     const route = all_routes;
 

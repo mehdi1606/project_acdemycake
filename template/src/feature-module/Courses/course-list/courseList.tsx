@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { App } from 'antd';
@@ -10,19 +11,19 @@ import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
 
-const SORT_OPTIONS = [
-  { label: 'Newly Published',   value: 'newest' },
-  { label: 'Most Popular',      value: 'popular' },
-  { label: 'Top Rated',         value: 'rating' },
-  { label: 'Price: Low → High', value: 'price_asc' },
-  { label: 'Price: High → Low', value: 'price_desc' },
+const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
+  { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
+  { label: t('courseList.mostPopular', 'Most Popular'),          value: 'popular' },
+  { label: t('courseList.topRated', 'Top Rated'),               value: 'rating' },
+  { label: t('courseList.priceLowHigh2', 'Price: Low → High'),  value: 'price_asc' },
+  { label: t('courseList.priceHighLow2', 'Price: High → Low'),  value: 'price_desc' },
 ];
 
-const LEVELS: { value: CourseLevel; label: string }[] = [
-  { value: 'BEGINNER',     label: 'Beginner' },
-  { value: 'INTERMEDIATE', label: 'Intermediate' },
-  { value: 'ADVANCED',     label: 'Advanced' },
-  { value: 'ALL_LEVELS',   label: 'All Levels' },
+const LEVELS_DATA: { value: CourseLevel; labelKey: string; labelFallback: string }[] = [
+  { value: 'BEGINNER',     labelKey: 'courseList.beginner',     labelFallback: 'Beginner' },
+  { value: 'INTERMEDIATE', labelKey: 'courseList.intermediate', labelFallback: 'Intermediate' },
+  { value: 'ADVANCED',     labelKey: 'courseList.advanced',     labelFallback: 'Advanced' },
+  { value: 'ALL_LEVELS',   labelKey: 'courseList.allLevels',    labelFallback: 'All Levels' },
 ];
 
 // ── Stars renderer ────────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ interface CourseListCardProps {
 const CourseListCard: React.FC<CourseListCardProps> = ({
   course, inWishlist, isLoadingWishlist, onWishlist, getLevelDisplay, index,
 }) => {
+  const { t } = useTranslation();
   const route   = all_routes;
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -106,19 +108,19 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
           className={`sl-cl-card__wishlist${inWishlist ? ' active' : ''}`}
           onClick={e => { e.preventDefault(); e.stopPropagation(); onWishlist(course.id); }}
           disabled={isLoadingWishlist}
-          aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-label={inWishlist ? t('courseList.removeFromWishlist', 'Remove from wishlist') : t('courseList.addToWishlist', 'Add to wishlist')}
         >
           <i className={inWishlist ? 'fa-solid fa-heart' : 'fa-regular fa-heart'} />
         </button>
 
         {course.requiresPurchase && (
           <span className="sl-cl-card__label sl-cl-card__label--premium">
-            <i className="isax isax-crown" /> Premium
+            <i className="isax isax-crown" /> {t('courseList.premium', 'Premium')}
           </span>
         )}
         {course.isEnrolled && (
           <span className="sl-cl-card__label sl-cl-card__label--enrolled">
-            <i className="fa-solid fa-check" /> Enrolled
+            <i className="fa-solid fa-check" /> {t('courseList.enrolled', 'Enrolled')}
           </span>
         )}
       </Link>
@@ -164,7 +166,7 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
           <span className="sl-cl-card__sep">✦</span>
           <span className="sl-cl-card__lessons">
             <i className="isax isax-video-play" />
-            {course.lessonsCount ?? 0} lessons
+            {course.lessonsCount ?? 0} {t('common.lessons', 'lessons')}
           </span>
         </div>
 
@@ -173,10 +175,10 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
           <div className="sl-cl-card__price-wrap">
             {course.isEnrolled ? (
               <span className="sl-cl-card__price sl-cl-card__price--owned">
-                <i className="fa-solid fa-check-circle" /> Owned
+                <i className="fa-solid fa-check-circle" /> {t('courseList.owned', 'Owned')}
               </span>
             ) : !course.requiresPurchase ? (
-              <span className="sl-cl-card__price sl-cl-card__price--free">Free</span>
+              <span className="sl-cl-card__price sl-cl-card__price--free">{t('courseList.free', 'Free')}</span>
             ) : (
               <>
                 <span className="sl-cl-card__price sl-cl-card__price--current">${course.price ?? 0}</span>
@@ -189,11 +191,11 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
 
           {course.isEnrolled ? (
             <Link to={`${route.courseWatch}/${course.slug}`} className="sl-btn-gold sl-btn-magnetic sl-cl-card__cta">
-              Continue <i className="isax isax-arrow-right-1" />
+              {t('courseList.continue', 'Continue')} <i className="isax isax-arrow-right-1" />
             </Link>
           ) : (
             <Link to={`${route.courseDetails}/${course.slug}`} className="sl-btn-dark sl-btn-magnetic sl-cl-card__cta">
-              View Course <i className="isax isax-arrow-right-1" />
+              {t('courseList.viewCourse', 'View Course')} <i className="isax isax-arrow-right-1" />
             </Link>
           )}
         </div>
@@ -234,6 +236,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
   categories, selectedCategory, selectedLevel,
   onCategoryChange, onLevelChange, onClear, hasActiveFilters,
 }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState<Set<string>>(new Set(['categories', 'level']));
   const toggle = (s: string) =>
     setOpen(p => { const n = new Set(p); if (n.has(s)) n.delete(s); else n.add(s); return n; });
@@ -243,14 +246,14 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
       {/* Sidebar header */}
       <div className="sl-cl-sidebar__header">
         <div className="sl-ornament sl-ornament--left" style={{ marginBottom: '0.5rem' }}>
-          <span className="sl-script" style={{ fontSize: '1.3rem' }}>Refine</span>
+          <span className="sl-script" style={{ fontSize: '1.3rem' }}>{t('courseList.refine', 'Refine')}</span>
         </div>
         <div className="sl-cl-sidebar__header-row">
           <h5 className="sl-cl-sidebar__title">
-            <i className="isax isax-filter" /> Filters
+            <i className="isax isax-filter" /> {t('courseList.filters', 'Filters')}
           </h5>
           {hasActiveFilters && (
-            <button className="sl-cl-sidebar__clear" onClick={onClear}>Clear All</button>
+            <button className="sl-cl-sidebar__clear" onClick={onClear}>{t('courseList.clearAll', 'Clear All')}</button>
           )}
         </div>
       </div>
@@ -258,7 +261,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
       {/* Categories */}
       <div className={`sl-cl-filter-group${open.has('categories') ? ' is-open' : ''}`}>
         <button className="sl-cl-filter-group__head" onClick={() => toggle('categories')}>
-          <span>Categories</span>
+          <span>{t('courseList.categories', 'Categories')}</span>
           <i className={`fa-solid fa-chevron-${open.has('categories') ? 'up' : 'down'}`} />
         </button>
         {open.has('categories') && (
@@ -277,7 +280,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
                 )}
               </label>
             )) : (
-              <p className="sl-cl-filter-empty">No categories available</p>
+              <p className="sl-cl-filter-empty">{t('courseList.noCategoriesAvailable', 'No categories available')}</p>
             )}
           </div>
         )}
@@ -286,12 +289,12 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
       {/* Level */}
       <div className={`sl-cl-filter-group${open.has('level') ? ' is-open' : ''}`}>
         <button className="sl-cl-filter-group__head" onClick={() => toggle('level')}>
-          <span>Skill Level</span>
+          <span>{t('courseList.skillLevel', 'Skill Level')}</span>
           <i className={`fa-solid fa-chevron-${open.has('level') ? 'up' : 'down'}`} />
         </button>
         {open.has('level') && (
           <div className="sl-cl-filter-group__body">
-            {LEVELS.map(({ value, label }) => (
+            {LEVELS_DATA.map(({ value, labelKey, labelFallback }) => (
               <label key={value} className="sl-cl-check">
                 <input
                   type="checkbox"
@@ -299,7 +302,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
                   onChange={() => onLevelChange(value)}
                 />
                 <span className="sl-cl-check__box" />
-                <span className="sl-cl-check__label">{label}</span>
+                <span className="sl-cl-check__label">{t(labelKey, labelFallback)}</span>
               </label>
             ))}
           </div>
@@ -311,6 +314,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 const CourseList: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const route = all_routes;
   const { message } = App.useApp();
@@ -348,9 +352,12 @@ const CourseList: React.FC = () => {
       .catch(() => {});
   }, [isAuthenticated]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchCategories(); }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchCourses(); }, [currentPage, selectedCategory, selectedLevel, sortBy]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const t = setTimeout(() => {
       if (currentPage === 1) fetchCourses(); else setCurrentPage(1);
@@ -385,20 +392,20 @@ const CourseList: React.FC = () => {
   };
 
   const handleWishlist = async (courseId: string) => {
-    if (!isAuthenticated) { message.warning('Please login to save courses'); return; }
+    if (!isAuthenticated) { message.warning(t('courseList.loginToSave', 'Please login to save courses')); return; }
     if (wishlistLoading.has(courseId)) return;
     setWishlistLoading(p => new Set(p).add(courseId));
     try {
       if (wishlist.has(courseId)) {
         await courseService.removeFromWishlist(courseId);
         setWishlist(p => { const n = new Set(p); n.delete(courseId); return n; });
-        message.success('Removed from wishlist');
+        message.success(t('courseList.removedFromWishlist', 'Removed from wishlist'));
       } else {
         await courseService.addToWishlist(courseId);
         setWishlist(p => new Set(p).add(courseId));
-        message.success('Saved to wishlist');
+        message.success(t('courseList.savedToWishlist', 'Saved to wishlist'));
       }
-    } catch { message.error('Failed to update wishlist'); }
+    } catch { message.error(t('courseList.wishlistError', 'Failed to update wishlist')); }
     finally { setWishlistLoading(p => { const n = new Set(p); n.delete(courseId); return n; }); }
   };
 
@@ -422,8 +429,10 @@ const CourseList: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const getLevelDisplay = (level: CourseLevel): string =>
-    ({ BEGINNER: 'Beginner', INTERMEDIATE: 'Intermediate', ADVANCED: 'Advanced', ALL_LEVELS: 'All Levels' }[level] ?? level);
+  const getLevelDisplay = (level: CourseLevel): string => {
+    const found = LEVELS_DATA.find(l => l.value === level);
+    return found ? t(found.labelKey, found.labelFallback) : level;
+  };
 
   const hasActiveFilters = Boolean(
     searchQuery || selectedCategory || selectedLevel || sortBy !== 'newest'
@@ -455,7 +464,7 @@ const CourseList: React.FC = () => {
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div className="sl-cl-hero__inner">
             <div className="sl-ornament justify-content-center" data-aos="fade-up" data-aos-duration="600">
-              <span className="sl-script" style={{ fontSize: '1.7rem' }}>Catalogue</span>
+              <span className="sl-script" style={{ fontSize: '1.7rem' }}>{t('courseList.catalogue', 'Catalogue')}</span>
             </div>
 
             <h1
@@ -464,7 +473,7 @@ const CourseList: React.FC = () => {
               data-aos-delay="80"
               data-aos-duration="700"
             >
-              All Programmes
+              {t('courseList.allProgrammes', 'All Programmes')}
             </h1>
 
             <p
@@ -473,7 +482,7 @@ const CourseList: React.FC = () => {
               data-aos-delay="160"
               data-aos-duration="700"
             >
-              Curated by master pastry artists — discover your perfect atelier experience
+              {t('courseList.heroSubtitle', 'Curated by master pastry artists — discover your perfect atelier experience')}
             </p>
 
             {/* Search */}
@@ -487,12 +496,12 @@ const CourseList: React.FC = () => {
               <i className="isax isax-search-normal-1" />
               <input
                 type="text"
-                placeholder="Search programmes, techniques, instructors…"
+                placeholder={t('courseList.searchPlaceholder2', 'Search programmes, techniques, instructors…')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
               <button type="submit" className="sl-cl-hero__search-btn">
-                Search
+                {t('common.search', 'Search')}
               </button>
             </form>
 
@@ -503,9 +512,9 @@ const CourseList: React.FC = () => {
               data-aos-delay="300"
               data-aos-duration="700"
             >
-              <Link to={route.homeone}>Home</Link>
+              <Link to={route.homeone}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
               <span>✦</span>
-              <span>All Programmes</span>
+              <span>{t('courseList.allProgrammes', 'All Programmes')}</span>
             </nav>
           </div>
         </div>
@@ -543,16 +552,16 @@ const CourseList: React.FC = () => {
               {/* Toolbar */}
               <div className="sl-cl-toolbar" data-aos="fade-down" data-aos-duration="600">
                 <p className="sl-cl-toolbar__results">
-                  {loading ? 'Loading programmes…' : (
-                    <>Showing <strong>{start}–{end}</strong> of <strong>{totalElements}</strong> programmes</>
+                  {loading ? t('courseList.loadingProgrammes', 'Loading programmes…') : (
+                    <>{t('courseList.showing', 'Showing')} <strong>{start}–{end}</strong> {t('courseList.of', 'of')} <strong>{totalElements}</strong> {t('courseList.programmes', 'programmes')}</>
                   )}
                 </p>
                 <div className="sl-cl-toolbar__controls">
                   <div className="sl-cl-view-toggle">
-                    <Link to={route.courseGrid} className="sl-cl-view-toggle__btn" title="Grid view">
+                    <Link to={route.courseGrid} className="sl-cl-view-toggle__btn" title={t('courseList.gridView', 'Grid view')}>
                       <i className="feather-grid" />
                     </Link>
-                    <button className="sl-cl-view-toggle__btn is-active" title="List view">
+                    <button className="sl-cl-view-toggle__btn is-active" title={t('courseList.listView', 'List view')}>
                       <i className="isax isax-task" />
                     </button>
                   </div>
@@ -562,7 +571,7 @@ const CourseList: React.FC = () => {
                       value={sortBy}
                       onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}
                     >
-                      {SORT_OPTIONS.map(o => (
+                      {SORT_OPTIONS(t).map(o => (
                         <option key={o.value} value={o.value}>{o.label}</option>
                       ))}
                     </select>
@@ -590,12 +599,12 @@ const CourseList: React.FC = () => {
                   )}
                   {sortBy !== 'newest' && (
                     <span className="sl-cl-chip">
-                      {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+                      {SORT_OPTIONS(t).find(o => o.value === sortBy)?.label}
                       <button onClick={() => { setSortBy('newest'); setCurrentPage(1); }}>×</button>
                     </span>
                   )}
                   <button className="sl-cl-chip sl-cl-chip--clear" onClick={clearFilters}>
-                    Clear All
+                    {t('courseList.clearAll', 'Clear All')}
                   </button>
                 </div>
               )}
@@ -608,15 +617,15 @@ const CourseList: React.FC = () => {
               ) : displayedCourses.length === 0 ? (
                 <div className="sl-cl-empty" data-aos="fade-up">
                   <div className="sl-ornament">
-                    <span className="sl-script" style={{ fontSize: '2rem' }}>Oops</span>
+                    <span className="sl-script" style={{ fontSize: '2rem' }}>{t('courseList.oops', 'Oops')}</span>
                   </div>
                   <i className="isax isax-search-status sl-cl-empty__icon" />
-                  <h4 className="sl-cl-empty__title">No programmes found</h4>
+                  <h4 className="sl-cl-empty__title">{t('courseList.noProgrammesFound', 'No programmes found')}</h4>
                   <p className="sl-cl-empty__text">
-                    Adjust your filters or search terms to discover our full catalogue.
+                    {t('courseList.adjustFilters', 'Adjust your filters or search terms to discover our full catalogue.')}
                   </p>
                   <button className="sl-btn-gold sl-btn-magnetic" onClick={clearFilters}>
-                    Browse All Programmes <i className="isax isax-arrow-right-1" />
+                    {t('courseList.browseAllProgrammes', 'Browse All Programmes')} <i className="isax isax-arrow-right-1" />
                   </button>
                 </div>
               ) : (
@@ -642,7 +651,7 @@ const CourseList: React.FC = () => {
                     className="sl-cl-pagination__arrow"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    aria-label="Previous"
+                    aria-label={t('common.previous', 'Previous')}
                   >
                     <i className="fa-solid fa-chevron-left" />
                   </button>
@@ -665,7 +674,7 @@ const CourseList: React.FC = () => {
                     className="sl-cl-pagination__arrow"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    aria-label="Next"
+                    aria-label={t('common.next', 'Next')}
                   >
                     <i className="fa-solid fa-chevron-right" />
                   </button>

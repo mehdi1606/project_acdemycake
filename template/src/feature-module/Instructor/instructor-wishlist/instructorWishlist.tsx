@@ -1,13 +1,17 @@
 import React from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import { useTranslation } from 'react-i18next';
 
-const InstructorWishlist = () => (
-  <LuxuryDashboardLayout>
-    <div style={{ padding: 32 }}>
-      <h2>Wishlist</h2>
-      <p>This feature is coming soon.</p>
-    </div>
-  </LuxuryDashboardLayout>
-);
+const InstructorWishlist = () => {
+  const { t } = useTranslation();
+  return (
+    <LuxuryDashboardLayout>
+      <div style={{ padding: 32 }}>
+        <h2>{t('nav.wishlist', 'Wishlist')}</h2>
+        <p>{t('common.comingSoon', 'This feature is coming soon.')}</p>
+      </div>
+    </LuxuryDashboardLayout>
+  );
+};
 
 export default InstructorWishlist;

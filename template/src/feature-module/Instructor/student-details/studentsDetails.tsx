@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams, Link } from 'react-router-dom'
 import { all_routes } from '../../router/all_routes'
 import {
@@ -10,6 +11,7 @@ import {
 import { getFileUrl } from '../../../environment'
 
 const StudentsDetails = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams()
   const studentId = searchParams.get('studentId')
 

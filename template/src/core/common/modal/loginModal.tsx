@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import ImageWithBasePath from '../imageWithBasePath';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
@@ -6,6 +7,7 @@ import { login, clearError } from '../../redux/authSlice';
 import { message } from 'antd';
 
 const LoginModal = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useAppSelector((state) => state.auth);

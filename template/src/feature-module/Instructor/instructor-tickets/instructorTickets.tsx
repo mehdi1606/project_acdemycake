@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import { useTranslation } from 'react-i18next';
 import {
   CATEGORY_LABELS,
   PRIORITY_LABELS,
@@ -58,6 +59,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const InstructorTickets = () => {
+  const { t } = useTranslation();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -271,20 +273,20 @@ const InstructorTickets = () => {
                 </tr>
               </thead>
               <tbody>
-                {tickets.map((t) => (
-                  <tr key={t.id}>
-                    <td><span style={{ color: 'var(--lx-primary)', fontWeight: 600 }}>{t.ticketNumber}</span></td>
+                {tickets.map((ticket) => (
+                  <tr key={ticket.id}>
+                    <td><span style={{ color: 'var(--lx-primary)', fontWeight: 600 }}>{ticket.ticketNumber}</span></td>
                     <td style={{ maxWidth: 220 }}>
-                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={t.subject}>
-                        {t.subject}
+                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={ticket.subject}>
+                        {ticket.subject}
                       </span>
                     </td>
-                    <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[t.category]}</span></td>
-                    <td><PriorityBadge priority={t.priority} /></td>
-                    <td><StatusBadge status={t.status} /></td>
-                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(t.createdAt)}</td>
+                    <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[ticket.category]}</span></td>
+                    <td><PriorityBadge priority={ticket.priority} /></td>
+                    <td><StatusBadge status={ticket.status} /></td>
+                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(ticket.createdAt)}</td>
                     <td>
-                      <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(t)}>
+                      <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(ticket)}>
                         <i className="isax isax-eye" style={{ marginRight: 4 }} /> View
                       </button>
                     </td>

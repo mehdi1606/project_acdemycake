@@ -1,6 +1,40 @@
 @import "./style/css/meanmenu.css";
 @import "./style/scss/main.scss";
 
+/* ── RTL (Arabic) global overrides ───────────────────────── */
+[dir="rtl"] {
+  text-align: right;
+
+  /* Flip margins/paddings that use start/end */
+  .ms-auto { margin-left: unset !important; margin-right: auto !important; }
+  .me-auto { margin-right: unset !important; margin-left: auto !important; }
+  .ms-1, .ms-2, .ms-3 { margin-left: unset !important; }
+  .me-1, .me-2, .me-3 { margin-right: unset !important; }
+  .ps-3, .ps-4 { padding-left: unset !important; }
+  .pe-3, .pe-4 { padding-right: unset !important; }
+
+  /* Flip icon directions */
+  .fa-arrow-right, .fa-chevron-right { transform: scaleX(-1); }
+  .fa-arrow-left,  .fa-chevron-left  { transform: scaleX(-1); }
+
+  /* Sidebar: move to right side */
+  aside { right: 0; left: unset; }
+
+  /* Dropdown: open to the left */
+  .dropdown-menu { right: 0; left: auto; }
+
+  /* Input text direction */
+  input, textarea, select { direction: rtl; }
+
+  /* Table */
+  th, td { text-align: right; }
+
+  /* Font for Arabic */
+  body, button, input, select, textarea {
+    font-family: 'Cairo', 'Inter', sans-serif;
+  }
+}
+
 .video-modal {
   .modal-content {
     border: 0;

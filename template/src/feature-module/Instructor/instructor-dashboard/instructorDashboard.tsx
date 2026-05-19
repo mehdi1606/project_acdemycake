@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
+import { useTranslation } from 'react-i18next';
 import ReactApexChart from 'react-apexcharts';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import PredefinedDateRanges from '../../../core/common/range-picker/datePicker';
@@ -10,6 +11,7 @@ import { instructorService } from '../../../services/api/instructor.service';
 import { InstructorDashboard as InstructorDashboardType, Course } from '../../../services/api/types';
 
 const InstructorDashboard = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<InstructorDashboardType | null>(null);
   const [recentCourses, setRecentCourses] = useState<Course[]>([]);
@@ -69,12 +71,12 @@ const InstructorDashboard = () => {
   const firstName = user?.fullName?.split(' ')[0] || 'Instructor';
 
   const stats = [
-    { label: 'Total Students',     value: dashboardData?.totalStudents,        icon: 'isax isax-people',     color: 'gold'  },
-    { label: 'Total Courses',      value: dashboardData?.totalCourses,         icon: 'isax isax-book',       color: 'rose'  },
-    { label: 'Total Earnings',     value: `$${dashboardData?.totalEarnings?.toFixed(2) ?? '0.00'}`, icon: 'isax isax-wallet', color: 'sage'  },
-    { label: 'Pending Payout',     value: `$${dashboardData?.pendingPayout?.toFixed(2) ?? '0.00'}`, icon: 'isax isax-wallet-money', color: 'amber' },
-    { label: 'Average Rating',     value: dashboardData?.averageRating?.toFixed(1) ?? '0.0',        icon: 'isax isax-star',   color: 'gold'  },
-    { label: 'Recent Enrollments', value: dashboardData?.recentEnrollments?.length ?? 0,            icon: 'isax isax-user-add', color: 'slate' },
+    { label: t('instructor.dashboard.totalStudents', 'Total Students'),     value: dashboardData?.totalStudents,        icon: 'isax isax-people',     color: 'gold'  },
+    { label: t('instructor.dashboard.totalCourses', 'Total Courses'),      value: dashboardData?.totalCourses,         icon: 'isax isax-book',       color: 'rose'  },
+    { label: t('instructor.dashboard.totalEarnings', 'Total Earnings'),     value: `$${dashboardData?.totalEarnings?.toFixed(2) ?? '0.00'}`, icon: 'isax isax-wallet', color: 'sage'  },
+    { label: t('instructor.earnings.pendingPayout', 'Pending Payout'),     value: `$${dashboardData?.pendingPayout?.toFixed(2) ?? '0.00'}`, icon: 'isax isax-wallet-money', color: 'amber' },
+    { label: t('common.rating', 'Average Rating'),     value: dashboardData?.averageRating?.toFixed(1) ?? '0.0',        icon: 'isax isax-star',   color: 'gold'  },
+    { label: t('instructor.dashboard.recentEnrollments', 'Recent Enrollments'), value: dashboardData?.recentEnrollments?.length ?? 0,            icon: 'isax isax-user-add', color: 'slate' },
   ];
 
   return (
@@ -82,18 +84,18 @@ const InstructorDashboard = () => {
       {/* ── Welcome Banner ── */}
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">
-          <p className="welcome-greeting">Instructor Panel</p>
-          <h4>Welcome back, {firstName}! 🎓</h4>
-          <p>Manage your courses, track student progress, and grow your impact.</p>
+          <p className="welcome-greeting">{t('common.instructor', 'Instructor')} {t('nav.dashboard', 'Panel')}</p>
+          <h4>{t('instructor.dashboard.welcome', 'Welcome back')}, {firstName}! 🎓</h4>
+          <p>{t('instructor.dashboard.welcomeSubtitle', 'Manage your courses, track student progress, and grow your impact.')}</p>
         </div>
         <div className="welcome-actions">
           <Link to={all_routes.addNewCourse} className="lx-btn lx-btn-gold">
             <i className="isax isax-add-circle" />
-            Create Course
+            {t('instructor.courses.addNew', 'Add New Course')}
           </Link>
           <Link to={all_routes.instructorCourse} className="lx-btn lx-btn-outline">
             <i className="isax isax-book" />
-            My Courses
+            {t('instructor.courses.title', 'My Courses')}
           </Link>
         </div>
       </div>
@@ -124,7 +126,7 @@ const InstructorDashboard = () => {
           {/* ── Earnings Chart ── */}
           <div className="lx-card mb-4">
             <div className="lx-card-header">
-              <h6>Earnings Overview</h6>
+              <h6>{t('instructor.dashboard.monthlyRevenue', 'Earnings Overview')}</h6>
               <div className="input-icon position-relative input-range-picker">
                 <span className="input-icon-addon">
                   <i className="isax isax-calendar" />
@@ -145,9 +147,9 @@ const InstructorDashboard = () => {
           {/* ── Recent Courses Table ── */}
           <div className="lx-card">
             <div className="lx-card-header">
-              <h6>Recently Created Courses</h6>
+              <h6>{t('instructor.dashboard.coursePerformance', 'Recently Created Courses')}</h6>
               <Link to={all_routes.instructorCourse} className="lx-view-all">
-                View All
+                {t('common.viewAll', 'View All')}
               </Link>
             </div>
             <div className="lx-card-body" style={{ padding: 0 }}>
@@ -155,10 +157,10 @@ const InstructorDashboard = () => {
                 <table className="lx-table">
                   <thead>
                     <tr>
-                      <th>Course</th>
-                      <th>Enrolled</th>
-                      <th>Status</th>
-                      <th>Action</th>
+                      <th>{t('instructor.courses.courseTitle', 'Course')}</th>
+                      <th>{t('common.enrolled', 'Enrolled')}</th>
+                      <th>{t('common.status', 'Status')}</th>
+                      <th>{t('common.actions', 'Action')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -167,9 +169,9 @@ const InstructorDashboard = () => {
                         <td colSpan={4}>
                           <div className="lx-empty-state">
                             <div className="empty-icon"><i className="isax isax-book" /></div>
-                            <h6>No courses yet</h6>
+                            <h6>{t('instructor.courses.noCourses', 'No courses yet')}</h6>
                             <Link to={all_routes.addNewCourse} className="lx-btn lx-btn-gold lx-btn-sm">
-                              Create Your First Course
+                              {t('instructor.courses.createFirst', 'Create your first course')}
                             </Link>
                           </div>
                         </td>
@@ -214,7 +216,7 @@ const InstructorDashboard = () => {
                               to={`${all_routes.instructorCourseManage}/${course.id}`}
                               className="lx-btn lx-btn-outline lx-btn-sm"
                             >
-                              Manage
+                              {t('instructor.courses.manage', 'Manage')}
                             </Link>
                           </td>
                         </tr>

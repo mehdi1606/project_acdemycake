@@ -6,6 +6,7 @@ import com.academy.dto.request.UpdateProfileRequest;
 import com.academy.dto.response.PageResponse;
 import com.academy.dto.response.UserResponse;
 import com.academy.entity.User;
+import com.academy.entity.enums.UserRole;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.repository.UserRepository;
@@ -174,6 +175,20 @@ public class UserServiceImpl implements UserService {
             users = userRepository.searchUsers(search, pageRequest);
         } else {
             users = userRepository.findAll(pageRequest);
+        }
+
+        return PageResponse.from(users, UserResponse::fromEntity);
+    }
+
+    @Override
+    public PageResponse<UserResponse> getInstructors(int page, int size, String search) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<User> users;
+
+        if (search != null && !search.isBlank()) {
+            users = userRepository.searchUsersByRole(UserRole.INSTRUCTOR, search, pageRequest);
+        } else {
+            users = userRepository.findByRole(UserRole.INSTRUCTOR, pageRequest);
         }
 
         return PageResponse.from(users, UserResponse::fromEntity);

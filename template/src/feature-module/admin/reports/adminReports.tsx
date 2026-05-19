@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { adminService } from '../../../services/api/admin.service';
 import { extractApiError } from '../../../services/api/error.utils';
@@ -19,6 +20,7 @@ const TARGET_BADGE: Record<string, string> = {
 };
 
 const AdminReports: React.FC = () => {
+  const { t } = useTranslation()
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,11 +29,11 @@ const AdminReports: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  const load = useCallback(async (p: number, t: ReportType) => {
+  const load = useCallback(async (p: number, rtype: ReportType) => {
     setLoading(true);
     setError('');
     try {
-      const res = await adminService.getReports(t, p, 20);
+      const res = await adminService.getReports(rtype, p, 20);
       setRows((res as any).content ?? []);
       setTotalPages((res as any).totalPages ?? 0);
       setTotalElements((res as any).totalElements ?? 0);
@@ -46,8 +48,8 @@ const AdminReports: React.FC = () => {
     load(page, type);
   }, [page, type, load]);
 
-  const handleType = (t: ReportType) => {
-    setType(t);
+  const handleType = (rtype: ReportType) => {
+    setType(rtype);
     setPage(0);
   };
 
@@ -68,13 +70,13 @@ const AdminReports: React.FC = () => {
 
         {/* Tabs */}
         <div className="d-flex gap-2 mb-3 flex-wrap">
-          {(['revenue', 'enrollment', 'users'] as ReportType[]).map((t) => (
+          {(['revenue', 'enrollment', 'users'] as ReportType[]).map((rtype) => (
             <button
-              key={t}
-              className={`btn btn-sm ${type === t ? 'btn-dark' : 'btn-outline-secondary'}`}
-              onClick={() => handleType(t)}
+              key={rtype}
+              className={`btn btn-sm ${type === rtype ? 'btn-dark' : 'btn-outline-secondary'}`}
+              onClick={() => handleType(rtype)}
             >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+              {rtype.charAt(0).toUpperCase() + rtype.slice(1)}
             </button>
           ))}
         </div>

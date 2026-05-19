@@ -2,8 +2,10 @@ import React from 'react'
 import Breadcrumb from '../../../core/common/Breadcrumb/breadcrumb'
 import { Link } from 'react-router-dom'
 import ImageWithBasePath from '../../../core/common/imageWithBasePath'
+import { useTranslation } from 'react-i18next'
 
 const CourseResume = () => {
+  const { t } = useTranslation();
   return (
     <>
       <Breadcrumb title='Course Resume' />

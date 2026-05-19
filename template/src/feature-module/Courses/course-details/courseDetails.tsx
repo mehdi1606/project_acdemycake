@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { courseService } from '../../../services/api/course.service';
 import {
@@ -53,6 +54,7 @@ const StarBar = ({ pct }: { pct: number }) => (
 
 /* ================================================ */
 const CourseDetails = () => {
+  const { t } = useTranslation();
   const { slug }   = useParams<{ slug: string }>();
   const navigate   = useNavigate();
   const dispatch   = useAppDispatch();
@@ -191,7 +193,7 @@ const CourseDetails = () => {
       <div style={{ background: 'linear-gradient(135deg,#1a0a0f 0%,#2d1018 60%,#3a1420 100%)', height: 320 }} />
       <div style={{ textAlign: 'center', paddingTop: 120 }}>
         <Spin size="large" />
-        <p style={{ marginTop: 16, color: '#9A8080', fontSize: 14 }}>Loading course...</p>
+        <p style={{ marginTop: 16, color: '#9A8080', fontSize: 14 }}>{t('courses.watch.loadingCourse', 'Loading course…')}</p>
       </div>
     </div>
   );
@@ -200,12 +202,12 @@ const CourseDetails = () => {
     <div style={{ background: '#F2EFE8', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <i className="isax isax-book" style={{ fontSize: 72, color: 'rgba(107,29,42,0.15)', display: 'block', marginBottom: 20 }} />
-        <h3 style={{ fontFamily: "'Playfair Display',serif", color: '#2C1810', marginBottom: 8 }}>Course Not Found</h3>
-        <p style={{ color: '#9A8080', marginBottom: 24 }}>This course does not exist or has been removed.</p>
+        <h3 style={{ fontFamily: "'Playfair Display',serif", color: '#2C1810', marginBottom: 8 }}>{t('courses.list.noCoursesFound', 'No courses found')}</h3>
+        <p style={{ color: '#9A8080', marginBottom: 24 }}>{t('courseDetails.courseNotFound', 'This course does not exist or has been removed.')}</p>
         <Link to={route.courseGrid} style={{
           display: 'inline-block', padding: '12px 28px', borderRadius: 10, fontWeight: 700,
           background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#fff', textDecoration: 'none',
-        }}>Browse Courses</Link>
+        }}>{t('student.dashboard.browseCourses', 'Browse Courses')}</Link>
       </div>
     </div>
   );
@@ -217,7 +219,7 @@ const CourseDetails = () => {
   const discountPct = hasDiscount ? Math.round(((c.originalPrice! - c.price!) / c.originalPrice!) * 100) : 0;
   const isAdmin       = isAuthenticated && user?.role === 'ADMIN';
   const isInstructor  = isAuthenticated && user?.role === 'INSTRUCTOR';
-  const isStaff       = isAdmin || isInstructor;
+  const _isStaff      = isAdmin || isInstructor;
   const hasActiveSub  = isAuthenticated && user?.subscriptionStatus === 'ACTIVE'
     && !!user?.subscriptionEndDate && new Date(user.subscriptionEndDate) > new Date();
   const isPlan        = c.courseType === 'PLAN' || !c.courseType;
@@ -254,9 +256,9 @@ const CourseDetails = () => {
         {/* Breadcrumb */}
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px 0' }}>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 28 }}>
-            <Link to={route.homeone} style={{ color: 'rgba(197,145,62,0.7)', textDecoration: 'none', fontWeight: 500 }}>Home</Link>
+            <Link to={route.homeone} style={{ color: 'rgba(197,145,62,0.7)', textDecoration: 'none', fontWeight: 500 }}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
             <i className="fa-solid fa-chevron-right" style={{ fontSize: 9 }} />
-            <Link to={route.courseGrid} style={{ color: 'rgba(197,145,62,0.7)', textDecoration: 'none', fontWeight: 500 }}>Courses</Link>
+            <Link to={route.courseGrid} style={{ color: 'rgba(197,145,62,0.7)', textDecoration: 'none', fontWeight: 500 }}>{t('nav.courses', 'Courses')}</Link>
             <i className="fa-solid fa-chevron-right" style={{ fontSize: 9 }} />
             <span style={{ color: 'rgba(255,255,255,0.55)' }}>{c.title}</span>
           </nav>
@@ -310,9 +312,9 @@ const CourseDetails = () => {
 
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 18 }}>
               {[
-                { icon: 'fa-book-open', val: `${totalLessons} Lessons` },
+                { icon: 'fa-book-open', val: `${totalLessons} ${t('common.lessons', 'lessons')}` },
                 { icon: 'fa-clock', val: fmtDuration(c.durationMinutes) },
-                { icon: 'fa-users', val: `${c.enrolledCount?.toLocaleString()} enrolled` },
+                { icon: 'fa-users', val: `${c.enrolledCount?.toLocaleString()} ${t('common.enrolled', 'Enrolled')}` },
                 ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', val: `${quizLessons} Quiz${quizLessons > 1 ? 'zes' : ''}` }] : []),
               ].map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
@@ -444,14 +446,14 @@ const CourseDetails = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
                 <div style={cardStyle}>
-                  <SectionTitle>Course Overview</SectionTitle>
+                  <SectionTitle>{t('courses.details.overview', 'Overview')}</SectionTitle>
                   <div style={{ color: '#4b5563', lineHeight: 1.8, fontSize: 15, wordBreak: 'break-word', overflowWrap: 'break-word', overflow: 'hidden' }}
                     dangerouslySetInnerHTML={{ __html: c.description || c.shortDescription || '' }} />
                 </div>
 
                 {c.whatYouWillLearn?.trim() && (
                   <div style={{ ...cardStyle, background: 'linear-gradient(135deg,rgba(197,145,62,0.04) 0%,#fff 60%)', border: '1px solid rgba(197,145,62,0.15)' }}>
-                    <SectionTitle accent>What you will learn</SectionTitle>
+                    <SectionTitle accent>{t('courses.details.whatYouLearn', "What You'll Learn")}</SectionTitle>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: '8px 16px' }}>
                       {c.whatYouWillLearn!.split('\n').filter((o) => o.trim()).map((obj, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
@@ -470,7 +472,7 @@ const CourseDetails = () => {
 
                 {c.requirements?.trim() && (
                   <div style={cardStyle}>
-                    <SectionTitle>Requirements</SectionTitle>
+                    <SectionTitle>{t('courses.details.requirements', 'Requirements')}</SectionTitle>
                     <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
                       {c.requirements!.split('\n').filter((r) => r.trim()).map((req, i) => (
                         <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10, color: '#4b5563', fontSize: 14 }}>
@@ -484,12 +486,12 @@ const CourseDetails = () => {
 
                 {c.targetAudience?.trim() && (
                   <div style={cardStyle}>
-                    <SectionTitle>Who this course is for</SectionTitle>
+                    <SectionTitle>{t('courseDetails.whoFor', 'Who this course is for')}</SectionTitle>
                     <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
-                      {c.targetAudience!.split('\n').filter((t) => t.trim()).map((t, i) => (
+                      {c.targetAudience!.split('\n').filter((line) => line.trim()).map((line, i) => (
                         <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10, color: '#4b5563', fontSize: 14 }}>
                           <i className="fa-solid fa-user-check" style={{ color: '#651C32', fontSize: 13, marginTop: 2, flexShrink: 0 }} />
-                          {t.trim()}
+                          {line.trim()}
                         </li>
                       ))}
                     </ul>
@@ -503,7 +505,7 @@ const CourseDetails = () => {
               <div>
                 <div style={{ ...cardStyle, marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                    <SectionTitle noMargin>Course Curriculum</SectionTitle>
+                    <SectionTitle noMargin>{t('courses.details.curriculum', 'Curriculum')}</SectionTitle>
                     <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#9A8080' }}>
                       <span><i className="fa-solid fa-layer-group" style={{ color: '#C5973E', marginRight: 4 }} />{curriculum.length} modules</span>
                       <span><i className="fa-solid fa-book-open" style={{ color: '#651C32', marginRight: 4 }} />{totalLessons} lessons</span>
@@ -515,7 +517,7 @@ const CourseDetails = () => {
                 {curriculum.length === 0 ? (
                   <div style={{ ...cardStyle, textAlign: 'center', padding: '48px 24px', color: '#9ca3af' }}>
                     <i className="isax isax-book" style={{ fontSize: 52, display: 'block', marginBottom: 12, opacity: 0.3 }} />
-                    <p style={{ margin: 0 }}>Curriculum will be available soon.</p>
+                    <p style={{ margin: 0 }}>{t('courseDetails.curriculumSoon', 'Curriculum will be available soon.')}</p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -547,7 +549,7 @@ const CourseDetails = () => {
                             }
                           >
                             {(mod.lessons ?? []).length === 0 ? (
-                              <p style={{ padding: '8px 16px 16px', color: '#9ca3af', fontSize: 13, margin: 0 }}>No lessons yet</p>
+                              <p style={{ padding: '8px 16px 16px', color: '#9ca3af', fontSize: 13, margin: 0 }}>{t('courseDetails.noLessonsYet', 'No lessons yet')}</p>
                             ) : (mod.lessons ?? []).map((lesson, li) => {
                               const isQuiz  = lesson.contentType === 'QUIZ';
                               const isVideo = lesson.contentType === 'VIDEO';
@@ -634,10 +636,10 @@ const CourseDetails = () => {
                       )}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginBottom: 16 }}>
                         {[
-                          { icon: 'fa-star',    color: '#F59E0B', val: (instructor?.averageRating ?? 0).toFixed(1), label: 'Rating' },
-                          { icon: 'fa-users',   color: '#3B82F6', val: (instructor?.totalStudents ?? 0).toLocaleString(), label: 'Students' },
-                          { icon: 'fa-book',    color: '#10B981', val: instructor?.totalCourses ?? 0, label: 'Courses' },
-                          { icon: 'fa-comment', color: '#8B5CF6', val: instructor?.totalReviews ?? 0, label: 'Reviews' },
+                          { icon: 'fa-star',    color: '#F59E0B', val: (instructor?.averageRating ?? 0).toFixed(1), label: t('common.rating', 'Rating') },
+                          { icon: 'fa-users',   color: '#3B82F6', val: (instructor?.totalStudents ?? 0).toLocaleString(), label: t('common.students', 'students') },
+                          { icon: 'fa-book',    color: '#10B981', val: instructor?.totalCourses ?? 0, label: t('nav.courses', 'Courses') },
+                          { icon: 'fa-comment', color: '#8B5CF6', val: instructor?.totalReviews ?? 0, label: t('common.reviews', 'reviews') },
                         ].map((s) => (
                           <div key={s.label} style={{ textAlign: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'center' }}>
@@ -694,7 +696,7 @@ const CourseDetails = () => {
                           {c.ratingAverage.toFixed(1)}
                         </div>
                         <Rate disabled value={c.ratingAverage} allowHalf style={{ fontSize: 15, color: '#C5973E' }} />
-                        <div style={{ fontSize: 12, color: '#9A8080', marginTop: 6 }}>Course Rating</div>
+                        <div style={{ fontSize: 12, color: '#9A8080', marginTop: 6 }}>{t('courses.details.rating', 'Rating')}</div>
                       </div>
                       <div style={{ flex: 1, minWidth: 200 }}>
                         {ratingDist.map((d) => (
@@ -712,14 +714,14 @@ const CourseDetails = () => {
 
                 {c.isEnrolled && (
                   <div style={cardStyle}>
-                    <SectionTitle>{userReview ? 'Update Your Review' : 'Write a Review'}</SectionTitle>
+                    <SectionTitle>{userReview ? t('courseDetails.updateReview', 'Update Your Review') : t('courseDetails.writeReview', 'Write a Review')}</SectionTitle>
                     <div style={{ marginBottom: 14 }}>
                       <Rate value={reviewRating} onChange={setReviewRating} style={{ fontSize: 26, color: '#C5973E' }} />
                     </div>
                     <textarea
                       rows={4} value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}
-                      placeholder="Share your experience with this course..."
+                      placeholder={t('courseDetails.reviewPlaceholder', 'Share your experience with this course...')}
                       style={{
                         width: '100%', padding: '12px 16px', borderRadius: 10, fontSize: 14,
                         border: '1.5px solid rgba(197,145,44,0.18)', outline: 'none',
@@ -735,7 +737,7 @@ const CourseDetails = () => {
                         fontWeight: 700, fontSize: 14, cursor: reviewRating === 0 ? 'not-allowed' : 'pointer',
                         boxShadow: reviewRating > 0 ? '0 4px 14px rgba(101,28,50,0.25)' : 'none',
                       }}>
-                      {submittingRev ? <Spin size="small" /> : userReview ? 'Update Review' : 'Submit Review'}
+                      {submittingRev ? <Spin size="small" /> : userReview ? t('courseDetails.updateReview', 'Update Review') : t('student.reviews.submitReview', 'Submit Review')}
                     </button>
                   </div>
                 )}
@@ -743,7 +745,7 @@ const CourseDetails = () => {
                 {reviews.length === 0 ? (
                   <div style={{ ...cardStyle, textAlign: 'center', padding: '48px 24px', color: '#9ca3af' }}>
                     <i className="fa-regular fa-star" style={{ fontSize: 44, display: 'block', marginBottom: 14, opacity: 0.4 }} />
-                    <p style={{ margin: 0 }}>No reviews yet. {c.isEnrolled ? 'Be the first to review!' : 'Enroll to write a review.'}</p>
+                    <p style={{ margin: 0 }}>{t('courseDetails.noReviews', 'No reviews yet.')} {c.isEnrolled ? t('courseDetails.beFirstReview', 'Be the first to review!') : t('courseDetails.enrollToReview', 'Enroll to write a review.')}</p>
                   </div>
                 ) : (
                   <div style={cardStyle}>
@@ -814,8 +816,8 @@ const CourseDetails = () => {
                           <i className="fa-solid fa-graduation-cap" style={{ color: '#fff', fontSize: 18 }} />
                         </div>
                         <div>
-                          <div style={{ fontWeight: 800, color: '#fff', fontSize: 15, lineHeight: 1.2 }}>You are Enrolled</div>
-                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Access to all course content</div>
+                          <div style={{ fontWeight: 800, color: '#fff', fontSize: 15, lineHeight: 1.2 }}>{t('courses.details.enrolled', 'You are Enrolled')}</div>
+                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>{t('courseDetails.accessAllContent', 'Access to all course content')}</div>
                         </div>
                       </div>
 
@@ -823,7 +825,7 @@ const CourseDetails = () => {
                       {typeof c.enrollmentProgress === 'number' && (
                         <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: '10px 12px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Your progress</span>
+                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{t('courses.details.progress', 'Progress')}</span>
                             <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>{c.enrollmentProgress}%</span>
                           </div>
                           <div style={{ height: 7, borderRadius: 6, background: 'rgba(255,255,255,0.18)', overflow: 'hidden' }}>
@@ -839,7 +841,7 @@ const CourseDetails = () => {
                           {c.enrollmentProgress >= 100 && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
                               <i className="fa-solid fa-check-circle" style={{ color: '#34D399', fontSize: 11 }} />
-                              <span style={{ fontSize: 11, color: '#34D399', fontWeight: 700 }}>Course completed!</span>
+                              <span style={{ fontSize: 11, color: '#34D399', fontWeight: 700 }}>{t('courses.details.courseCompleted', 'Course Completed!')}</span>
                             </div>
                           )}
                         </div>
@@ -919,7 +921,7 @@ const CourseDetails = () => {
                       boxSizing: 'border-box',
                     }}>
                       <i className="fa-solid fa-play" style={{ fontSize: 13 }} />
-                      <span>Continue Learning</span>
+                      <span>{t('courses.details.continueLearning', 'Continue Learning')}</span>
                     </Link>
                   ) : isInstructor ? (
                     /* Instructors: preview only — no enrollment */
@@ -1000,7 +1002,7 @@ const CourseDetails = () => {
                           opacity: enrolling ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         }}>
                           {enrolling ? <Spin size="small" /> : <i className="fa-solid fa-graduation-cap" />}
-                          {enrolling ? 'Enrolling...' : !c.requiresPurchase ? 'Enroll Free' : 'Enroll Now'}
+                          {enrolling ? t('common.loading', 'Loading...') : !c.requiresPurchase ? t('home.featured.enrolFree', 'Enrol Free') : t('courses.details.enroll', 'Enroll Now')}
                         </button>
                       )}
                       {c.requiresPurchase && isAuthenticated && (
@@ -1013,8 +1015,8 @@ const CourseDetails = () => {
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         }}>
                           {inCart
-                            ? <React.Fragment><i className="fa-solid fa-check" />In Cart</React.Fragment>
-                            : <React.Fragment><i className="isax isax-shopping-cart" />Add to Cart</React.Fragment>}
+                            ? <React.Fragment><i className="fa-solid fa-check" />{t('courseDetails.inCart', 'In Cart')}</React.Fragment>
+                            : <React.Fragment><i className="isax isax-shopping-cart" />{t('courses.details.addToCart', 'Add to Cart')}</React.Fragment>}
                         </button>
                       )}
                     </React.Fragment>
@@ -1032,7 +1034,7 @@ const CourseDetails = () => {
                       boxSizing: 'border-box',
                     }}>
                       <i className={`fa-${c.isWishlisted ? 'solid' : 'regular'} fa-heart`} />
-                      <span>{c.isWishlisted ? 'Wishlisted' : 'Add to Wishlist'}</span>
+                      <span>{c.isWishlisted ? t('courses.details.removeFromWishlist', 'Remove from Wishlist') : t('courses.details.addToWishlist', 'Add to Wishlist')}</span>
                     </button>
                   )}
                 </div>
@@ -1041,7 +1043,7 @@ const CourseDetails = () => {
                 <div style={{ padding: '0 18px 20px' }}>
                   <div style={{ height: 1, background: 'rgba(197,145,44,0.08)', marginBottom: 20 }} />
                   <h6 style={{ fontWeight: 800, color: '#2C1810', marginBottom: 14, fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    This course includes
+                    {t('courses.details.courseIncludes', 'This course includes')}
                   </h6>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {[
@@ -1050,9 +1052,9 @@ const CourseDetails = () => {
                       ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', color: '#F59E0B', text: `${quizLessons} quiz${quizLessons > 1 ? 'zes' : ''}` }] : []),
                       { icon: 'fa-signal',         color: '#8B5CF6', text: levelLabel(c.level) },
                       { icon: 'fa-globe',          color: '#10B981', text: c.language ?? 'English' },
-                      { icon: 'fa-infinity',       color: '#C5973E', text: 'Full lifetime access' },
-                      { icon: 'fa-mobile-screen',  color: '#651C32', text: 'Mobile & desktop' },
-                      { icon: 'fa-certificate',    color: '#C5973E', text: 'Certificate of completion' },
+                      { icon: 'fa-infinity',       color: '#C5973E', text: t('courses.details.fullLifetimeAccess', 'Full lifetime access') },
+                      { icon: 'fa-mobile-screen',  color: '#651C32', text: t('courses.details.accessOnMobile', 'Access on mobile and desktop') },
+                      { icon: 'fa-certificate',    color: '#C5973E', text: t('courses.details.certificate', 'Certificate of completion') },
                     ].map((item) => (
                       <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#4b5563' }}>
                         <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1065,9 +1067,9 @@ const CourseDetails = () => {
 
                   {c.tags?.trim() && (
                     <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(197,145,44,0.08)' }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: '#9A8080', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Tags</div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#9A8080', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t('courseDetails.tags', 'Tags')}</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {c.tags!.split(',').filter((t) => t.trim()).map((tag, i) => (
+                        {c.tags!.split(',').filter((tag) => tag.trim()).map((tag, i) => (
                           <span key={i} style={{
                             background: 'rgba(101,28,50,0.05)', color: '#651C32',
                             fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
@@ -1081,7 +1083,7 @@ const CourseDetails = () => {
                   )}
 
                   <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(197,145,44,0.08)', textAlign: 'center' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9A8080', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Share</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9A8080', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{t('common.share', 'Share')}</div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
                       {[
                         { icon: 'fa-facebook', color: '#1877F2', href: `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}` },

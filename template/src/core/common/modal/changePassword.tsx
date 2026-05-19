@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 type PasswordField = "password" | "confirmPassword";
 
 const ChangePasswordModal = () => {
+  const { t } = useTranslation()
       const [passwordVisibility, setPasswordVisibility] = useState({
         password: false,
         confirmPassword: false,

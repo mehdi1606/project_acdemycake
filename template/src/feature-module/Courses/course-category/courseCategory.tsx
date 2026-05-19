@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import AOS from 'aos';
@@ -30,6 +31,7 @@ const CourseCard: React.FC<{
   onCart: (c: Course) => void;
   index: number;
 }> = ({ course, inCart, onCart, index }) => {
+  const { t } = useTranslation();
   const route  = all_routes;
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +76,7 @@ const CourseCard: React.FC<{
             fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
             textTransform: 'uppercase', padding: '0.3rem 0.6rem', zIndex: 2,
           }}>
-            <i className="fa-solid fa-check me-1" />Enrolled
+            <i className="fa-solid fa-check me-1" />{t('courseList.enrolled', 'Enrolled')}
           </span>
         )}
       </div>
@@ -97,20 +99,20 @@ const CourseCard: React.FC<{
         <div className="sl-course-card__rating">
           <span className="stars"><Stars rating={course.ratingAverage ?? 0} /></span>
           <span>{(course.ratingAverage ?? 0).toFixed(1)}</span>
-          <span style={{ opacity: 0.5 }}>· {course.enrolledCount ?? 0} students</span>
+          <span style={{ opacity: 0.5 }}>· {course.enrolledCount ?? 0} {t('common.students', 'students')}</span>
         </div>
 
         <div className="sl-course-card__footer">
           <span className="sl-course-card__price">
             {course.isEnrolled ? (
               <span style={{ color: 'var(--sl-sage)', fontWeight: 700 }}>
-                <i className="fa-solid fa-check-circle me-1" />Owned
+                <i className="fa-solid fa-check-circle me-1" />{t('courseList.owned', 'Owned')}
               </span>
-            ) : !course.requiresPurchase ? 'Free' : `$${course.price ?? 0}`}
+            ) : !course.requiresPurchase ? t('courseList.free', 'Free') : `$${course.price ?? 0}`}
           </span>
           {course.isEnrolled ? (
             <Link to={`${route.courseWatch}/${course.slug}`} className="sl-course-card__cta sl-btn-magnetic">
-              Continue <i className="isax isax-arrow-right-1" />
+              {t('courseList.continue', 'Continue')} <i className="isax isax-arrow-right-1" />
             </Link>
           ) : course.requiresPurchase ? (
             <button
@@ -121,11 +123,11 @@ const CourseCard: React.FC<{
                 color: 'var(--sl-blush)', border: 'none', cursor: 'pointer',
               }}
             >
-              {inCart ? <><i className="fa-solid fa-check me-1" />In Cart</> : 'Add to Cart'}
+              {inCart ? <><i className="fa-solid fa-check me-1" />{t('courseDetails.inCart', 'In Cart')}</> : t('courseDetails.addToCart', 'Add to Cart')}
             </button>
           ) : (
             <Link to={`${route.courseDetails}/${course.slug}`} className="sl-course-card__cta sl-btn-magnetic">
-              Enrol Free <i className="isax isax-arrow-right-1" />
+              {t('courseDetails.enrollFree', 'Enrol Free')} <i className="isax isax-arrow-right-1" />
             </Link>
           )}
         </div>
@@ -152,6 +154,7 @@ const SkeletonCard: React.FC = () => (
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 const CourseCategory = () => {
+  const { t } = useTranslation()
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
@@ -192,10 +195,11 @@ const CourseCategory = () => {
   }, []);
 
   useEffect(() => { if (activeTab) { setCurrentPage(0); fetchCourses(activeTab, 0); } }, [activeTab, fetchCourses]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (activeTab) fetchCourses(activeTab, currentPage); }, [currentPage]);
 
   const handleCart = (course: Course) => {
-    if (cartItems.some(i => i.id === course.id)) { message.info('Already in cart'); return; }
+    if (cartItems.some(i => i.id === course.id)) { message.info(t('courseCategory.alreadyInCart', 'Already in cart')); return; }
     dispatch(addToCart({
       id: course.id, slug: course.slug, title: course.title,
       thumbnailUrl: course.thumbnailUrl, price: course.price ?? 0,
@@ -205,7 +209,7 @@ const CourseCategory = () => {
       instructorAvatar: course.instructor?.avatarUrl,
       rating: course.ratingAverage, ratingCount: course.ratingCount, level: course.level,
     }));
-    message.success(`"${course.title}" added to cart`);
+    message.success(t('courseCategory.addedToCart', '"{{title}}" added to cart', { title: course.title }));
   };
 
   const activeCategory = categories.find(c => c.id === activeTab);
@@ -231,18 +235,18 @@ const CourseCategory = () => {
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div className="sl-cl-hero__inner">
             <div className="sl-ornament justify-content-center" data-aos="fade-up" data-aos-duration="600">
-              <span className="sl-script" style={{ fontSize: '1.7rem' }}>By Discipline</span>
+              <span className="sl-script" style={{ fontSize: '1.7rem' }}>{t('courseCategory.byDiscipline', 'By Discipline')}</span>
             </div>
             <h1 className="sl-cl-hero__title" data-aos="fade-up" data-aos-delay="80" data-aos-duration="700">
-              Masterclasses
+              {t('nav.masterclasses', 'Masterclasses')}
             </h1>
             <p className="sl-cl-hero__sub" data-aos="fade-up" data-aos-delay="160" data-aos-duration="700">
-              Explore our programmes by discipline — from sugar flowers to architectural cake design
+              {t('courseCategory.heroSubtitle', 'Explore our programmes by discipline — from sugar flowers to architectural cake design')}
             </p>
             <nav className="sl-cl-hero__breadcrumb" data-aos="fade-up" data-aos-delay="240" data-aos-duration="700">
-              <Link to={route.homeone}>Home</Link>
+              <Link to={route.homeone}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
               <span>✦</span>
-              <span>Masterclasses</span>
+              <span>{t('nav.masterclasses', 'Masterclasses')}</span>
             </nav>
           </div>
         </div>
@@ -310,7 +314,7 @@ const CourseCategory = () => {
           {!courseLoading && courses.length > 0 && (
             <div className="sl-cl-toolbar" style={{ marginBottom: '1.5rem' }}>
               <p className="sl-cl-toolbar__results">
-                <strong>{totalElements}</strong> masterclass{totalElements !== 1 ? 'es' : ''} in{' '}
+                <strong>{totalElements}</strong> {totalElements !== 1 ? t('courseCategory.masterclasses', 'masterclasses') : t('courseCategory.masterclass', 'masterclass')} {t('courseCategory.inCategory', 'in')}{' '}
                 <strong>{activeCategory?.name}</strong>
               </p>
               <Link
@@ -318,7 +322,7 @@ const CourseCategory = () => {
                 className="sl-btn-dark sl-btn-magnetic"
                 style={{ fontSize: '0.65rem', padding: '8px 18px' }}
               >
-                View All <i className="isax isax-arrow-right-1" />
+                {t('courseCategory.viewAll', 'View All')} <i className="isax isax-arrow-right-1" />
               </Link>
             </div>
           )}
@@ -335,15 +339,15 @@ const CourseCategory = () => {
           ) : courses.length === 0 ? (
             <div className="sl-cl-empty" data-aos="fade-up">
               <div className="sl-ornament">
-                <span className="sl-script" style={{ fontSize: '2rem' }}>Coming Soon</span>
+                <span className="sl-script" style={{ fontSize: '2rem' }}>{t('courseCategory.comingSoon', 'Coming Soon')}</span>
               </div>
               <i className="isax isax-book sl-cl-empty__icon" />
-              <h4 className="sl-cl-empty__title">No masterclasses in this category yet</h4>
+              <h4 className="sl-cl-empty__title">{t('courseCategory.noMasterclassesYet', 'No masterclasses in this category yet')}</h4>
               <p className="sl-cl-empty__text">
-                Our master instructors are crafting exclusive masterclasses for this discipline. Check back soon.
+                {t('courseCategory.crafting', 'Our master instructors are crafting exclusive masterclasses for this discipline. Check back soon.')}
               </p>
               <Link to={route.courseList} className="sl-btn-gold sl-btn-magnetic">
-                Browse All Programmes <i className="isax isax-arrow-right-1" />
+                {t('courseList.browseAllProgrammes', 'Browse All Programmes')} <i className="isax isax-arrow-right-1" />
               </Link>
             </div>
           ) : (

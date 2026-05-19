@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector, useAppDispatch } from '../../../core/redux/hooks';
 import { clearCart } from '../../../core/redux/cartSlice';
@@ -17,6 +18,7 @@ const DARK   = '#1A1614';
 type PaymentTab = 'card' | 'paypal' | 'bank';
 
 const CourseCheckout = () => {
+  const { t } = useTranslation();
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -67,11 +69,11 @@ const CourseCheckout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      message.warning('Please login to complete your purchase');
+      message.warning(t('courseCheckout.loginToPurchase', 'Please login to complete your purchase'));
       return;
     }
     if (items.length === 0) {
-      message.error('Your cart is empty');
+      message.error(t('courseCart.empty', 'Your cart is empty'));
       return;
     }
     setProcessing(true);
@@ -79,7 +81,7 @@ const CourseCheckout = () => {
     await new Promise(r => setTimeout(r, 2200));
     setProcessing(false);
     dispatch(clearCart());
-    message.success('Payment successful! You are now enrolled in your courses.');
+    message.success(t('courseCheckout.paymentSuccess', 'Payment successful! You are now enrolled in your courses.'));
     navigate(route.studentDashboard || '/');
   };
 
@@ -141,11 +143,11 @@ const CourseCheckout = () => {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 48px' }}>
           {/* Breadcrumb */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <Link to="/" style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>Home</Link>
+            <Link to="/" style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
             <span style={{ color: `${GOLD_L}55`, fontSize: 13 }}>/</span>
-            <Link to={route.courseCart} style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>Cart</Link>
+            <Link to={route.courseCart} style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>{t('courseCart.cart', 'Cart')}</Link>
             <span style={{ color: `${GOLD_L}55`, fontSize: 13 }}>/</span>
-            <span style={{ color: GOLD_L, fontSize: 13, fontWeight: 600 }}>Checkout</span>
+            <span style={{ color: GOLD_L, fontSize: 13, fontWeight: 600 }}>{t('courseCheckout.checkout', 'Checkout')}</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
@@ -163,11 +165,11 @@ const CourseCheckout = () => {
                 color: '#fff', fontSize: 32, fontWeight: 700,
                 margin: 0, letterSpacing: '-0.5px',
               }}>
-                Secure Checkout
+                {t('courseCheckout.secureCheckout', 'Secure Checkout')}
               </h1>
               <p style={{ color: `${GOLD_L}cc`, margin: 0, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <i className="isax isax-shield-tick" style={{ fontSize: 14 }} />
-                SSL Encrypted — Your payment is 100% secure
+                {t('courseCheckout.sslEncrypted', 'SSL Encrypted — Your payment is 100% secure')}
               </p>
             </div>
           </div>
@@ -196,9 +198,9 @@ const CourseCheckout = () => {
               <i className="isax isax-shopping-cart" style={{ fontSize: 36, color: `${GOLD}88` }} />
             </div>
             <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", color: DARK, marginBottom: 12 }}>
-              Nothing to checkout
+              {t('courseCheckout.nothingToCheckout', 'Nothing to checkout')}
             </h3>
-            <p style={{ color: '#888', marginBottom: 28 }}>Your cart is empty. Add some courses first.</p>
+            <p style={{ color: '#888', marginBottom: 28 }}>{t('courseCheckout.cartEmptyAdd', 'Your cart is empty. Add some courses first.')}</p>
             <Link
               to={route.courseGrid}
               style={{
@@ -209,7 +211,7 @@ const CourseCheckout = () => {
                 fontWeight: 700, fontSize: 15,
               }}
             >
-              Browse Courses
+              {t('courseCart.browseCourses', 'Browse Courses')}
             </Link>
           </div>
         ) : (
@@ -239,16 +241,16 @@ const CourseCheckout = () => {
                     }}>1</div>
                     <div>
                       <h4 style={{ margin: 0, fontFamily: "'Playfair Display', Georgia, serif", color: DARK, fontSize: 18 }}>
-                        Billing Information
+                        {t('courseCheckout.billingInfo', 'Billing Information')}
                       </h4>
-                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>Your personal and billing details</p>
+                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>{t('courseCheckout.billingDetails', 'Your personal and billing details')}</p>
                     </div>
                   </div>
 
                   <div style={{ padding: '24px 28px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                       <div style={fieldStyle}>
-                        <label style={labelStyle}>First Name <span style={{ color: BURG }}>*</span></label>
+                        <label style={labelStyle}>{t('courseCheckout.firstName', 'First Name')} <span style={{ color: BURG }}>*</span></label>
                         <input
                           required
                           type="text"
@@ -261,7 +263,7 @@ const CourseCheckout = () => {
                         />
                       </div>
                       <div style={fieldStyle}>
-                        <label style={labelStyle}>Last Name <span style={{ color: BURG }}>*</span></label>
+                        <label style={labelStyle}>{t('courseCheckout.lastName', 'Last Name')} <span style={{ color: BURG }}>*</span></label>
                         <input
                           required
                           type="text"
@@ -276,7 +278,7 @@ const CourseCheckout = () => {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                       <div style={fieldStyle}>
-                        <label style={labelStyle}>Email Address <span style={{ color: BURG }}>*</span></label>
+                        <label style={labelStyle}>{t('courseCheckout.emailAddress', 'Email Address')} <span style={{ color: BURG }}>*</span></label>
                         <input
                           required
                           type="email"
@@ -289,7 +291,7 @@ const CourseCheckout = () => {
                         />
                       </div>
                       <div style={fieldStyle}>
-                        <label style={labelStyle}>Phone (Optional)</label>
+                        <label style={labelStyle}>{t('courseCheckout.phoneOptional', 'Phone (Optional)')}</label>
                         <input
                           type="tel"
                           value={form.phone}
@@ -302,7 +304,7 @@ const CourseCheckout = () => {
                       </div>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>Address Line 1 <span style={{ color: BURG }}>*</span></label>
+                      <label style={labelStyle}>{t('courseCheckout.address1', 'Address Line 1')} <span style={{ color: BURG }}>*</span></label>
                       <input
                         required
                         type="text"
@@ -315,7 +317,7 @@ const CourseCheckout = () => {
                       />
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>Address Line 2 (Optional)</label>
+                      <label style={labelStyle}>{t('courseCheckout.address2Optional', 'Address Line 2 (Optional)')}</label>
                       <input
                         type="text"
                         value={form.address2}
@@ -328,7 +330,7 @@ const CourseCheckout = () => {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                       <div style={fieldStyle}>
-                        <label style={labelStyle}>City <span style={{ color: BURG }}>*</span></label>
+                        <label style={labelStyle}>{t('courseCheckout.city', 'City')} <span style={{ color: BURG }}>*</span></label>
                         <input
                           required
                           type="text"
@@ -341,7 +343,7 @@ const CourseCheckout = () => {
                         />
                       </div>
                       <div style={fieldStyle}>
-                        <label style={labelStyle}>Country <span style={{ color: BURG }}>*</span></label>
+                        <label style={labelStyle}>{t('courseCheckout.country', 'Country')} <span style={{ color: BURG }}>*</span></label>
                         <select
                           required
                           value={form.country}
@@ -366,7 +368,7 @@ const CourseCheckout = () => {
                         onChange={set('saveInfo')}
                         style={{ width: 16, height: 16, accentColor: GOLD }}
                       />
-                      <span style={{ fontSize: 13, color: '#666' }}>Save this information for next time</span>
+                      <span style={{ fontSize: 13, color: '#666' }}>{t('courseCheckout.saveInfo', 'Save this information for next time')}</span>
                     </label>
                   </div>
                 </div>
@@ -389,30 +391,30 @@ const CourseCheckout = () => {
                     }}>2</div>
                     <div>
                       <h4 style={{ margin: 0, fontFamily: "'Playfair Display', Georgia, serif", color: DARK, fontSize: 18 }}>
-                        Payment Method
+                        {t('courseCheckout.paymentMethod', 'Payment Method')}
                       </h4>
-                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>Choose your preferred payment</p>
+                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>{t('courseCheckout.choosePayment', 'Choose your preferred payment')}</p>
                     </div>
                     {/* Security badges */}
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                       <i className="isax isax-shield-tick" style={{ color: '#4caf50', fontSize: 18 }} />
-                      <span style={{ fontSize: 11, color: '#4caf50', fontWeight: 600 }}>Secured</span>
+                      <span style={{ fontSize: 11, color: '#4caf50', fontWeight: 600 }}>{t('courseCheckout.secured', 'Secured')}</span>
                     </div>
                   </div>
 
                   <div style={{ padding: '24px 28px' }}>
                     {/* Tab selector */}
                     <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-                      {tabBtn('card', 'Credit Card', 'isax-card')}
-                      {tabBtn('paypal', 'PayPal', 'isax-wallet-3')}
-                      {tabBtn('bank', 'Bank Transfer', 'isax-bank')}
+                                      {tabBtn('card', t('courseCheckout.creditCard', 'Credit Card'), 'isax-card')}
+                      {tabBtn('paypal', t('courseCheckout.paypal', 'PayPal'), 'isax-wallet-3')}
+                      {tabBtn('bank', t('courseCheckout.bankTransfer', 'Bank Transfer'), 'isax-bank')}
                     </div>
 
                     {/* Card form */}
                     {payTab === 'card' && (
                       <div>
                         <div style={fieldStyle}>
-                          <label style={labelStyle}>Card Number <span style={{ color: BURG }}>*</span></label>
+                          <label style={labelStyle}>{t('courseCheckout.cardNumber', 'Card Number')} <span style={{ color: BURG }}>*</span></label>
                           <div style={{ position: 'relative' }}>
                             <input
                               required
@@ -432,7 +434,7 @@ const CourseCheckout = () => {
                           </div>
                         </div>
                         <div style={fieldStyle}>
-                          <label style={labelStyle}>Name on Card <span style={{ color: BURG }}>*</span></label>
+                          <label style={labelStyle}>{t('courseCheckout.nameOnCard', 'Name on Card')} <span style={{ color: BURG }}>*</span></label>
                           <input
                             required
                             type="text"
@@ -446,7 +448,7 @@ const CourseCheckout = () => {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                           <div style={fieldStyle}>
-                            <label style={labelStyle}>Expiry Date <span style={{ color: BURG }}>*</span></label>
+                            <label style={labelStyle}>{t('courseCheckout.expiryDate', 'Expiry Date')} <span style={{ color: BURG }}>*</span></label>
                             <input
                               required
                               type="text"
@@ -460,7 +462,7 @@ const CourseCheckout = () => {
                             />
                           </div>
                           <div style={fieldStyle}>
-                            <label style={labelStyle}>CVV <span style={{ color: BURG }}>*</span></label>
+                            <label style={labelStyle}>{t('courseCheckout.cvv', 'CVV')} <span style={{ color: BURG }}>*</span></label>
                             <div style={{ position: 'relative' }}>
                               <input
                                 required
@@ -476,13 +478,13 @@ const CourseCheckout = () => {
                               <i className="isax isax-info-circle" style={{
                                 position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
                                 fontSize: 16, color: '#ccc', cursor: 'pointer',
-                              }} title="3 or 4 digit security code on the back of your card" />
+                              }} title={t('courseCheckout.cvvHint', '3 or 4 digit security code on the back of your card')} />
                             </div>
                           </div>
                         </div>
                         {/* Accepted cards */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                          <span style={{ fontSize: 12, color: '#999' }}>We accept:</span>
+                          <span style={{ fontSize: 12, color: '#999' }}>{t('courseCheckout.weAccept', 'We accept:')}</span>
                           {['isax-visa', 'isax-mastercardcard', 'isax-card'].map((ic, idx) => (
                             <div key={idx} style={{
                               width: 40, height: 26, borderRadius: 6,
@@ -506,11 +508,11 @@ const CourseCheckout = () => {
                         }}>
                           <div style={{ fontSize: 36, color: '#003087', marginBottom: 8 }}>PayPal</div>
                           <p style={{ margin: 0, color: '#555', fontSize: 13 }}>
-                            You will be redirected to PayPal to complete your payment securely.
+                            {t('courseCheckout.paypalRedirect', 'You will be redirected to PayPal to complete your payment securely.')}
                           </p>
                         </div>
                         <div style={fieldStyle}>
-                          <label style={labelStyle}>PayPal Email <span style={{ color: BURG }}>*</span></label>
+                          <label style={labelStyle}>{t('courseCheckout.paypalEmail', 'PayPal Email')} <span style={{ color: BURG }}>*</span></label>
                           <input
                             required
                             type="email"
@@ -534,11 +536,10 @@ const CourseCheckout = () => {
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                             <i className="isax isax-info-circle" style={{ color: GOLD, fontSize: 20 }} />
-                            <strong style={{ color: DARK, fontSize: 14 }}>Bank Transfer Instructions</strong>
+                            <strong style={{ color: DARK, fontSize: 14 }}>{t('courseCheckout.bankTransferInstructions', 'Bank Transfer Instructions')}</strong>
                           </div>
                           <p style={{ margin: 0, fontSize: 13, color: '#666', lineHeight: 1.7 }}>
-                            Please transfer the total amount to the following account and include your order
-                            number as the reference. Your enrollment will be activated within 24 hours.
+                            {t('courseCheckout.bankTransferDesc', 'Please transfer the total amount to the following account and include your order number as the reference. Your enrollment will be activated within 24 hours.')}
                           </p>
                           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {[
@@ -555,7 +556,7 @@ const CourseCheckout = () => {
                           </div>
                         </div>
                         <div style={fieldStyle}>
-                          <label style={labelStyle}>Your Bank Name (Optional)</label>
+                          <label style={labelStyle}>{t('courseCheckout.yourBankName', 'Your Bank Name (Optional)')}</label>
                           <input
                             type="text"
                             value={form.bankName}
@@ -588,9 +589,9 @@ const CourseCheckout = () => {
                     <h3 style={{
                       fontFamily: "'Playfair Display', Georgia, serif",
                       color: '#fff', margin: 0, fontSize: 20, fontWeight: 700,
-                    }}>Order Summary</h3>
+                    }}>{t('courseCart.orderSummary', 'Order Summary')}</h3>
                     <p style={{ color: `${GOLD_L}99`, margin: '4px 0 0', fontSize: 12 }}>
-                      {items.length} course{items.length !== 1 ? 's' : ''}
+                      {items.length} {items.length !== 1 ? t('courseCart.coursesInCartPlural', 'Courses') : t('courseCart.courseInCart', 'Course')}
                     </p>
                   </div>
 
@@ -624,7 +625,7 @@ const CourseCheckout = () => {
                               )}
                             </div>
                             <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                              {item.price === 0 ? 'Free' : `${item.price.toFixed(2)}`}
+                              {item.price === 0 ? t('courseList.free', 'Free') : `${item.price.toFixed(2)}`}
                             </span>
                           </div>
                         );
@@ -634,17 +635,17 @@ const CourseCheckout = () => {
                     {/* Price breakdown */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#666', fontSize: 13 }}>Subtotal</span>
+                        <span style={{ color: '#666', fontSize: 13 }}>{t('courseCart.subtotal', 'Subtotal')}</span>
                         <span style={{ color: DARK, fontWeight: 600, fontSize: 13 }}>{subtotal.toFixed(2)} MAD</span>
                       </div>
                       {savedTotal > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: '#4caf50', fontSize: 13 }}>Discount</span>
+                          <span style={{ color: '#4caf50', fontSize: 13 }}>{t('courseCart.discount', 'Discount')}</span>
                           <span style={{ color: '#4caf50', fontWeight: 600, fontSize: 13 }}>-{savedTotal.toFixed(2)} MAD</span>
                         </div>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#666', fontSize: 13 }}>TVA (20%)</span>
+                        <span style={{ color: '#666', fontSize: 13 }}>{t('courseCheckout.tva', 'TVA (20%)')}</span>
                         <span style={{ color: DARK, fontWeight: 600, fontSize: 13 }}>{tax.toFixed(2)} MAD</span>
                       </div>
                     </div>
@@ -657,7 +658,7 @@ const CourseCheckout = () => {
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       marginBottom: 20,
                     }}>
-                      <span style={{ fontWeight: 700, color: DARK, fontSize: 16 }}>Total</span>
+                      <span style={{ fontWeight: 700, color: DARK, fontSize: 16 }}>{t('courseCart.total', 'Total')}</span>
                       <span style={{
                         fontFamily: "'Playfair Display', Georgia, serif",
                         fontWeight: 800, color: GOLD, fontSize: 22,
@@ -675,8 +676,8 @@ const CourseCheckout = () => {
                     }}>
                       <i className="isax isax-shield-tick" style={{ color: GOLD, fontSize: 20, flexShrink: 0, marginTop: 1 }} />
                       <p style={{ margin: 0, fontSize: 12, color: '#666', lineHeight: 1.5 }}>
-                        <strong style={{ color: DARK }}>30-day money-back guarantee.</strong>{' '}
-                        If you are not satisfied, get a full refund within 30 days.
+                        <strong style={{ color: DARK }}>{t('courseCart.moneyBackGuarantee', '30-day money-back guarantee.')}</strong>{' '}
+                        {t('courseCheckout.fullRefund', 'If you are not satisfied, get a full refund within 30 days.')}
                       </p>
                     </div>
 
@@ -704,22 +705,22 @@ const CourseCheckout = () => {
                             <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
                             <path d="M12 2a10 10 0 0 1 10 10" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
                           </svg>
-                          Processing Payment...
+                          {t('courseCheckout.processing', 'Processing Payment...')}
                         </>
                       ) : (
                         <>
                           <i className="isax isax-lock" />
-                          Complete Purchase — {total.toFixed(2)} MAD
+                          {t('courseCheckout.completePurchase', 'Complete Purchase')} — {total.toFixed(2)} MAD
                         </>
                       )}
                     </button>
 
                     {/* Terms note */}
                     <p style={{ margin: '14px 0 0', fontSize: 11, color: '#aaa', textAlign: 'center', lineHeight: 1.5 }}>
-                      By completing your purchase, you agree to our{' '}
-                      <Link to="/terms" style={{ color: GOLD }}>Terms of Service</Link>{' '}
-                      and{' '}
-                      <Link to="/privacy" style={{ color: GOLD }}>Privacy Policy</Link>.
+                      {t('courseCheckout.byCompleting', 'By completing your purchase, you agree to our')}{' '}
+                      <Link to="/terms" style={{ color: GOLD }}>{t('courseCheckout.termsOfService', 'Terms of Service')}</Link>{' '}
+                      {t('courseCheckout.and', 'and')}{' '}
+                      <Link to="/privacy" style={{ color: GOLD }}>{t('courseCheckout.privacyPolicy', 'Privacy Policy')}</Link>.
                     </p>
                   </div>
                 </div>
@@ -734,7 +735,7 @@ const CourseCheckout = () => {
                     }}
                   >
                     <i className="isax isax-arrow-left-2" />
-                    Back to Cart
+                    {t('courseCheckout.backToCart', 'Back to Cart')}
                   </Link>
                 </div>
               </div>

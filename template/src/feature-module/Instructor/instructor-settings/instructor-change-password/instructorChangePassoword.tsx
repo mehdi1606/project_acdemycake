@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
+import { useTranslation } from 'react-i18next';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
 import { Link } from 'react-router-dom';
 
@@ -35,6 +36,7 @@ const strengthMeta: Record<string, { color: string; label: string; width: string
 };
 
 const InstructorChangePassoword = () => {
+  const { t } = useTranslation();
   const [currentPwVisible, setCurrentPwVisible] = useState(false);
   const [newPwVisible, setNewPwVisible] = useState(false);
   const [confirmPwVisible, setConfirmPwVisible] = useState(false);

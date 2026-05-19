@@ -1,6 +1,8 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 const EditFaq = () => {
+  const { t } = useTranslation()
   return (
     <>
       {/* Faq Modal */}

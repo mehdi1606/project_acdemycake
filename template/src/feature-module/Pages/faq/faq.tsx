@@ -2,9 +2,10 @@ import React from "react";
 import Breadcrumb from "../../../core/common/Breadcrumb/breadcrumb";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
+import { useTranslation } from "react-i18next";
 
 const Faq = () => {
-
+  const { t } = useTranslation();
   const route = all_routes
 
   return (

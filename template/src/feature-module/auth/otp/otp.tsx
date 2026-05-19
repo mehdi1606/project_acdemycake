@@ -5,16 +5,16 @@ import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import authService from "../../../services/api/auth.service";
-// type OTPProps = GetProps<typeof Input.OTP>;
+import { useTranslation } from "react-i18next";
 
 const Otp = () => {
+  const { t } = useTranslation();
   const loginSLider = {
     dots: true,
     infinite: true,
     slidesToShow: 1,
     slidesToScroll: 1,
     adaptiveHeight: true,
-    // autoplay: true, // Uncomment if needed
   };
 
   const route = all_routes;
@@ -30,15 +30,15 @@ const Otp = () => {
 
   const handleResend = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const email = location.state?.email || window.prompt("Please enter your email to resend verification:");
+    const email = location.state?.email || window.prompt(t('auth.otp.enterEmailPrompt', 'Please enter your email to resend verification:'));
     if (!email) return;
 
     try {
       setIsResending(true);
       await authService.resendVerificationEmail(email);
-      alert("Verification email sent!");
-    } catch (error) {
-      alert("Failed to resend email.");
+      alert(t('auth.otp.verificationSent', 'Verification email sent!'));
+    } catch (_error) {
+      alert(t('auth.otp.verificationFailed', 'Failed to resend email.'));
     } finally {
       setIsResending(false);
     }
@@ -56,7 +56,6 @@ const Otp = () => {
   }, [seconds]);
 
   const formatTime = (time: number) => {
-    // Add leading zero for single-digit numbers
     return time < 10 ? `0${time}` : time;
   };
 
@@ -69,75 +68,29 @@ const Otp = () => {
             {/* Login Banner */}
             <div className="col-md-6 login-bg d-none d-lg-flex">
               <Slider {...loginSLider} className="login-carousel">
-                <div>
-                  <div className="login-carousel-section mb-3">
-                    <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
-                    </div>
-                    <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Welcome to <br />
-                        Dreams<span className="text-secondary">LMS</span>{" "}
-                        Courses.
-                      </h3>
-                      <p>
-                        Platform designed to help organizations, educators, and
-                        learners manage, deliver, and track learning and
-                        training activities.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="login-carousel-section mb-3">
-                    <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
-                    </div>
-                    <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Welcome to <br />
-                        Dreams<span className="text-secondary">LMS</span>{" "}
-                        Courses.
-                      </h3>
-                      <p>
-                        Platform designed to help organizations, educators, and
-                        learners manage, deliver, and track learning and
-                        training activities.
-                      </p>
+                {[1, 2, 3].map((i) => (
+                  <div key={i}>
+                    <div className="login-carousel-section mb-3">
+                      <div className="login-banner">
+                        <ImageWithBasePath
+                          src="assets/img/auth/auth-1.svg"
+                          className="img-fluid"
+                          alt="Logo"
+                        />
+                      </div>
+                      <div className="mentor-course text-center">
+                        <h3 className="mb-2">
+                          {t('auth.otp.sliderTitle', 'Welcome to')} <br />
+                          SARA<span className="text-secondary">LÖWE</span>{" "}
+                          {t('auth.otp.sliderAcademy', 'Academy')}
+                        </h3>
+                        <p>
+                          {t('auth.otp.sliderDesc', 'Master the art of luxury cake design with world-class instructors.')}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div>
-                  <div className="login-carousel-section mb-3">
-                    <div className="login-banner">
-                      <ImageWithBasePath
-                        src="assets/img/auth/auth-1.svg"
-                        className="img-fluid"
-                        alt="Logo"
-                      />
-                    </div>
-                    <div className="mentor-course text-center">
-                      <h3 className="mb-2">
-                        Welcome to <br />
-                        Dreams<span className="text-secondary">LMS</span>{" "}
-                        Courses.
-                      </h3>
-                      <p>
-                        Platform designed to help organizations, educators, and
-                        learners manage, deliver, and track learning and
-                        training activities.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </Slider>
             </div>
             {/* /Login Banner */}
@@ -153,38 +106,17 @@ const Otp = () => {
                         alt="Logo"
                       />
                       <Link to={route.homeone} className="link-1">
-                        Back to Home
+                        {t('common.backToHome', 'Back to Home')}
                       </Link>
                     </div>
                     <div className="topic">
-                      <h1 className="fs-32 fw-bold mb-3">Email OTP</h1>
+                      <h1 className="fs-32 fw-bold mb-3">{t('auth.otp.title', 'Email OTP')}</h1>
                       <p className="fs-14 fw-normal mb-0">
-                        OTP sent to your Email Address
-                        ending&nbsp;******doe@example.com
+                        {t('auth.otp.subtitle', 'OTP sent to your Email Address ending')} ******doe@example.com
                       </p>
                     </div>
                     <form onSubmit={handleSubmit} className="mb-3 pb-3">
                       <div className="d-flex align-items-center mb-3">
-                        {/* <input
-                          type="text"
-                          className="form-control otp"
-                          maxLength={1}
-                        />
-                        <input
-                          type="text"
-                          className="form-control otp"
-                          maxLength={1}
-                        />
-                        <input
-                          type="text"
-                          className="form-control otp"
-                          maxLength={1}
-                        />
-                        <input
-                          type="text"
-                          className="form-control otp"
-                          maxLength={1}
-                        /> */}
                         <Input.OTP
                           length={4}
                           formatter={(str) => str.toUpperCase()}
@@ -202,16 +134,16 @@ const Otp = () => {
                           className="btn btn-secondary btn-lg"
                           type="submit"
                         >
-                          Verify &amp; Proceed
+                          {t('auth.otp.verify', 'Verify & Proceed')}
                           <i className="isax isax-arrow-right-3 ms-1" />
                         </button>
                       </div>
                     </form>
                     <div className="fs-14 fw-normal d-flex align-items-center justify-content-center">
-                      Didn’t get the OTP?
+                      {t('auth.otp.didntGet', "Didn't get the OTP?")}
                       <Link to="#" className="link-2 ms-1" onClick={handleResend}>
                         {" "}
-                        {isResending ? "Resending..." : "Resend OTP"}
+                        {isResending ? t('auth.otp.resending', 'Resending...') : t('auth.otp.resend', 'Resend OTP')}
                       </Link>
                     </div>
                     {/* /Login */}

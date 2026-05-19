@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import certificateService from '../../../services/api/certificate.service';
 import { Certificate } from '../../../services/api/types';
@@ -299,6 +300,7 @@ const CertificatePreview = ({ cert, formatDate }: { cert: Certificate; formatDat
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 const StudentCertificates = () => {
+  const { t } = useTranslation();
   const [certificates, setCertificates]   = useState<Certificate[]>([]);
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState<string | null>(null);

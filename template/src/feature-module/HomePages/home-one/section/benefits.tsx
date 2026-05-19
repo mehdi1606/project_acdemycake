@@ -1,36 +1,38 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
-
-const benefits = [
-    {
-        icon: 'isax isax-book-1',
-        accent: 'burgundy',
-        title: 'Learn at Your Pace',
-        text: 'Access every lesson on-demand, revisit techniques as often as you need, and progress through modules whenever your schedule allows — no deadlines, no pressure.',
-        link: 'Explore programmes',
-        delay: 0,
-    },
-    {
-        icon: 'isax isax-medal-star',
-        accent: 'gold',
-        title: 'Accredited Certificates',
-        text: 'Earn certificates recognised by luxury hospitality brands and patisseries worldwide. Showcase your credentials with a digital badge you can share anywhere.',
-        link: 'See certificates',
-        delay: 150,
-    },
-    {
-        icon: 'isax isax-profile-2user',
-        accent: 'forest',
-        title: 'Expert-Led Mentorship',
-        text: 'Our instructors are award-winning pastry artists with decades of couture experience. Receive personalised feedback on every project submission.',
-        link: 'Meet instructors',
-        delay: 300,
-    },
-]
+import { useTranslation } from 'react-i18next'
 
 const Benefits = () => {
+    const { t } = useTranslation()
     const route = all_routes
+
+    const benefits = [
+        {
+            icon: 'isax isax-book-1',
+            accent: 'burgundy',
+            title: t('home.benefits.pace.title', 'Learn at Your Pace'),
+            text: t('home.benefits.pace.text', 'Access every lesson on-demand, revisit techniques as often as you need, and progress through modules whenever your schedule allows — no deadlines, no pressure.'),
+            link: t('home.benefits.pace.link', 'Explore programmes'),
+            delay: 0,
+        },
+        {
+            icon: 'isax isax-medal-star',
+            accent: 'gold',
+            title: t('home.benefits.certificates.title', 'Accredited Certificates'),
+            text: t('home.benefits.certificates.text', 'Earn certificates recognised by luxury hospitality brands and patisseries worldwide. Showcase your credentials with a digital badge you can share anywhere.'),
+            link: t('home.benefits.certificates.link', 'See certificates'),
+            delay: 150,
+        },
+        {
+            icon: 'isax isax-profile-2user',
+            accent: 'forest',
+            title: t('home.benefits.mentorship.title', 'Expert-Led Mentorship'),
+            text: t('home.benefits.mentorship.text', 'Our instructors are award-winning pastry artists with decades of couture experience. Receive personalised feedback on every project submission.'),
+            link: t('home.benefits.mentorship.link', 'Meet instructors'),
+            delay: 300,
+        },
+    ]
     return (
         <section className="sl-section sl-section--ivory">
             <div className="container">
@@ -40,15 +42,14 @@ const Benefits = () => {
                     <div className="col-lg-6" data-aos="fade-right" data-aos-duration="900">
                         <div className="sl-section__header">
                             <div className="sl-ornament sl-ornament--left">
-                                <span className="sl-script" style={{ fontSize: '1.8rem' }}>Why us</span>
+                                <span className="sl-script" style={{ fontSize: '1.8rem' }}>{t('home.benefits.ornament', 'Why us')}</span>
                             </div>
-                            <h2 style={{ marginTop: '0.5rem' }}>Crafted for Aspiring Pastry Artists</h2>
+                            <h2 style={{ marginTop: '0.5rem' }}>{t('home.whyUs.title', 'Crafted for Aspiring Pastry Artists')}</h2>
                             <p>
-                                Everything you need to go from curious beginner to confident cake
-                                couturier — all in one beautifully designed academy.
+                                {t('home.whyUs.subtitle', 'Everything you need to go from curious beginner to confident cake couturier — all in one beautifully designed academy.')}
                             </p>
                             <Link to={route.courseList} className="sl-btn-dark" style={{ marginTop: '1.5rem', display: 'inline-flex' }}>
-                                Start Learning <i className="isax isax-arrow-right-1" />
+                                {t('courses.details.startLearning', 'Start Learning')} <i className="isax isax-arrow-right-1" />
                             </Link>
                         </div>
                     </div>
@@ -70,7 +71,7 @@ const Benefits = () => {
 
                             <img
                                 src={`${process.env.PUBLIC_URL}/assets/img/Mockups/002.jpg`}
-                                alt="SARALÖWE Academy Certificate"
+                                alt={t('home.benefits.certificateAlt', 'SARALÖWE Academy Certificate')}
                                 style={{
                                     width: '100%',
                                     display: 'block',
@@ -93,7 +94,7 @@ const Benefits = () => {
                                 zIndex: 2,
                                 boxShadow: '0 8px 24px rgba(101,28,50,0.3)',
                             }}>
-                                Industry Recognised ✦
+                                {t('home.benefits.industryRecognised', 'Industry Recognised')} ✦
                             </div>
                         </div>
                     </div>

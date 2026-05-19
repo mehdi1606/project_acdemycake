@@ -1,5 +1,5 @@
 import api, { apiMultipart } from './axios.config';
-import { User, UpdateProfileRequest, ChangePasswordRequest, NotificationPreferences } from './types';
+import { User, UpdateProfileRequest, ChangePasswordRequest } from './types';
 
 class ProfileService {
   private basePath = '/profile';

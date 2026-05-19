@@ -1,8 +1,10 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Slider } from 'antd'
 import type { SliderSingleProps } from 'antd';
 import { Link } from 'react-router-dom';
 const CarFilterModal = () => {
+    const { t } = useTranslation()
     const formatter: NonNullable<SliderSingleProps['tooltip']>['formatter'] = (value) => `$${value}`;
   return (
     <>

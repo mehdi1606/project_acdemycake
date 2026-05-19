@@ -2,9 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
+import { useTranslation } from "react-i18next";
 
 const Error500 = () => {
-
+    const { t } = useTranslation();
     const route = all_routes
 
   return (
@@ -60,18 +61,17 @@ const Error500 = () => {
               />
             </div>
             <h3 className="h2 mb-3">
-              Oops! 500 Internal
-              <span className="text-secondary ms-1"> Server Error</span>
+              {t('auth.error500.heading', 'Oops! 500 Internal')}
+              <span className="text-secondary ms-1"> {t('auth.error500.serverError', 'Server Error')}</span>
             </h3>
             <p className="h4 font-weight-normal">
-              We apologise and are fixing the problem. Please try again at a
-              later stage
+              {t('auth.error500.desc', 'We apologise and are fixing the problem. Please try again at a later stage')}
             </p>
             <Link
               to={route.homeone}
               className="btn back-to-home-btn d-inline-flex align-items-center"
             >
-              <i className="isax isax-arrow-left-2 me-1" /> Back to Home
+              <i className="isax isax-arrow-left-2 me-1" /> {t('common.backToHome', 'Back to Home')}
             </Link>
           </div>
         </div>

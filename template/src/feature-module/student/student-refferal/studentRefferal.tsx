@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { useAppSelector } from '../../../core/redux/hooks';
 
 const StudentRefferal: React.FC = () => {
-  const { user } = useAppSelector((s) => s.auth);
+  const { t } = useTranslation();
+  const { user: _user } = useAppSelector((s) => s.auth);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const statCards = [

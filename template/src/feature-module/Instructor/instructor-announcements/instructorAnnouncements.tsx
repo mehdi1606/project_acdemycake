@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { instructorService, Announcement } from '../../../services/api/instructor.service';
+import { useTranslation } from 'react-i18next';
 
 type ModalState = 'none' | 'add' | 'view' | 'edit' | 'delete';
 
@@ -24,6 +25,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const InstructorAnnouncements = () => {
+  const { t } = useTranslation();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -185,13 +187,13 @@ const InstructorAnnouncements = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>
-          Announcements
+          {t('instructor.announcements.title', 'Announcements')}
           {!loading && (
             <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--lx-text-muted)', marginLeft: 8 }}>({totalElements})</span>
           )}
         </h5>
         <button className="lx-btn lx-btn-gold" onClick={openAdd}>
-          <i className="isax isax-add-circle" style={{ marginRight: 6 }} /> Add Announcement
+          <i className="isax isax-add-circle" style={{ marginRight: 6 }} /> {t('instructor.announcements.create', 'Add Announcement')}
         </button>
       </div>
 
@@ -208,12 +210,12 @@ const InstructorAnnouncements = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '48px 0' }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
-          <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading announcements...</p>
+          <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('common.loading', 'Loading...')}</p>
         </div>
       ) : announcements.length === 0 ? (
         <div className="lx-empty-state">
           <span className="empty-icon"><i className="isax isax-notification" style={{ fontSize: 28 }} /></span>
-          <p>No announcements yet. Create your first one!</p>
+          <p>{t('instructor.announcements.noAnnouncements', 'No announcements yet. Create your first one!')}</p>
         </div>
       ) : (
         <>
@@ -222,10 +224,10 @@ const InstructorAnnouncements = () => {
               <table className="lx-table">
                 <thead>
                   <tr>
-                    <th style={{ width: 110 }}>Date</th>
-                    <th>Announcement</th>
-                    <th style={{ width: 110 }}>Status</th>
-                    <th style={{ width: 120 }}>Action</th>
+                    <th style={{ width: 110 }}>{t('common.date', 'Date')}</th>
+                    <th>{t('instructor.announcements.title', 'Announcement')}</th>
+                    <th style={{ width: 110 }}>{t('common.status', 'Status')}</th>
+                    <th style={{ width: 120 }}>{t('common.actions', 'Action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -246,7 +248,7 @@ const InstructorAnnouncements = () => {
                           {ann.content}
                         </p>
                       </td>
-                      <td><span className="lx-badge badge-success">Published</span></td>
+                      <td><span className="lx-badge badge-success">{t('common.published', 'Published')}</span></td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title="View" onClick={() => openView(ann)}>
@@ -279,24 +281,24 @@ const InstructorAnnouncements = () => {
       {/* ─── Add Modal ─── */}
       {modal === 'add' && (
         <GlassModal>
-          <ModalHeader title="Add New Announcement" />
+          <ModalHeader title={t('instructor.announcements.create', 'Add New Announcement')} />
           <form onSubmit={handleAdd}>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={labelStyle}>Title <span style={{ color: '#8B2335' }}>*</span></label>
-                <input type="text" style={inputStyle} placeholder="Announcement title" value={addTitle} onChange={(e) => setAddTitle(e.target.value)} required />
+                <label style={labelStyle}>{t('instructor.announcements.subject', 'Title')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <input type="text" style={inputStyle} placeholder={t('instructor.announcements.subject', 'Announcement title')} value={addTitle} onChange={(e) => setAddTitle(e.target.value)} required />
               </div>
               <div>
-                <label style={labelStyle}>Content <span style={{ color: '#8B2335' }}>*</span></label>
-                <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={5} placeholder="Write your announcement here..." value={addContent} onChange={(e) => setAddContent(e.target.value)} required />
+                <label style={labelStyle}>{t('instructor.announcements.message', 'Content')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={5} placeholder={t('instructor.announcements.message', 'Write your announcement here...')} value={addContent} onChange={(e) => setAddContent(e.target.value)} required />
               </div>
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
               <button type="submit" className="lx-btn lx-btn-gold" disabled={addSubmitting || !addTitle.trim() || !addContent.trim()}>
                 {addSubmitting ? (
                   <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} />
-                ) : 'Publish'}
+                ) : t('instructor.announcements.published', 'Publish')}
               </button>
             </div>
           </form>
@@ -306,25 +308,25 @@ const InstructorAnnouncements = () => {
       {/* ─── View Modal ─── */}
       {modal === 'view' && selected && (
         <GlassModal>
-          <ModalHeader title="Announcement Details" />
+          <ModalHeader title={t('instructor.announcements.title', 'Announcement Details')} />
           <div style={{ padding: 24 }}>
             <div style={{ marginBottom: 20, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
-              <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>Title</p>
+              <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('instructor.announcements.subject', 'Title')}</p>
               <p style={{ margin: 0, fontWeight: 500, color: 'var(--lx-text)', fontSize: 15 }}>{selected.title || '(No title)'}</p>
             </div>
             <div style={{ marginBottom: 20, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
-              <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>Content</p>
+              <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('instructor.announcements.message', 'Content')}</p>
               <p style={{ margin: 0, color: 'var(--lx-text)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{selected.content}</p>
             </div>
             <div style={{ padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
-              <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>Published on</p>
+              <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('instructor.announcements.published', 'Published on')}</p>
               <p style={{ margin: 0, color: 'var(--lx-text)', fontSize: 14 }}>{formatDate(selected.createdAt)}</p>
             </div>
           </div>
           <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Close</button>
+            <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.close', 'Close')}</button>
             <button type="button" className="lx-btn lx-btn-gold" onClick={() => openEdit(selected)}>
-              <i className="isax isax-edit-2" style={{ marginRight: 4 }} /> Edit
+              <i className="isax isax-edit-2" style={{ marginRight: 4 }} /> {t('common.edit', 'Edit')}
             </button>
           </div>
         </GlassModal>
@@ -333,24 +335,24 @@ const InstructorAnnouncements = () => {
       {/* ─── Edit Modal ─── */}
       {modal === 'edit' && selected && (
         <GlassModal>
-          <ModalHeader title="Edit Announcement" />
+          <ModalHeader title={t('instructor.announcements.editAnnouncement', 'Edit Announcement')} />
           <form onSubmit={handleEdit}>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={labelStyle}>Title <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.announcements.subject', 'Title')} <span style={{ color: '#8B2335' }}>*</span></label>
                 <input type="text" style={inputStyle} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required />
               </div>
               <div>
-                <label style={labelStyle}>Content <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.announcements.message', 'Content')} <span style={{ color: '#8B2335' }}>*</span></label>
                 <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={5} value={editContent} onChange={(e) => setEditContent(e.target.value)} required />
               </div>
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
               <button type="submit" className="lx-btn lx-btn-gold" disabled={editSubmitting || !editTitle.trim() || !editContent.trim()}>
                 {editSubmitting ? (
                   <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} />
-                ) : 'Save Changes'}
+                ) : t('instructor.announcements.save', 'Save Changes')}
               </button>
             </div>
           </form>
@@ -367,13 +369,13 @@ const InstructorAnnouncements = () => {
             }}>
               <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
             </div>
-            <h4 style={{ fontSize: 18, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 8 }}>Delete Announcement</h4>
+            <h4 style={{ fontSize: 18, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 8 }}>{t('instructor.announcements.delete', 'Delete Announcement')}</h4>
             <p style={{ fontWeight: 500, color: 'var(--lx-text)', marginBottom: 4 }}>"{selected.title || '(No title)'}"</p>
             <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 24 }}>
-              Are you sure you want to delete this announcement? This cannot be undone.
+              {t('instructor.announcements.deleteConfirm', 'Are you sure you want to delete this announcement? This cannot be undone.')}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal} disabled={deleteSubmitting}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal} disabled={deleteSubmitting}>{t('common.cancel', 'Cancel')}</button>
               <button
                 type="button"
                 className="lx-btn"

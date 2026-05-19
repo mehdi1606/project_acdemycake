@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
+import { useTranslation } from 'react-i18next';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
@@ -33,6 +34,7 @@ const methods: { key: WithdrawMethod; label: string; icon: string }[] = [
 ];
 
 const InstructorWithdraw = () => {
+  const { t } = useTranslation();
   const [activeMethod, setActiveMethod] = useState<WithdrawMethod>('bank');
 
   return (

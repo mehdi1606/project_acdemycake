@@ -5,8 +5,11 @@ import { setDataTheme } from "../../redux/themeSettingSlice";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { logout } from "../../redux/authSlice";
 import { getFileUrl } from "../../../environment";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../../../i18n/LanguageSwitcher";
 
 const Header = () => {
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [academyMenuOpen, setAcademyMenuOpen] = useState(false);
@@ -105,9 +108,9 @@ const Header = () => {
 
   const getRoleLabel = () => {
     switch (user?.role) {
-      case 'ADMIN': return 'Admin';
-      case 'INSTRUCTOR': return 'Instructor';
-      default: return 'Student';
+      case 'ADMIN': return t('common.admin');
+      case 'INSTRUCTOR': return t('common.instructor');
+      default: return t('common.student');
     }
   };
 
@@ -223,7 +226,7 @@ const Header = () => {
                 onMouseEnter={e => { if (!isActive('/', true)) e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={e => { if (!isActive('/', true)) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
               >
-                Home
+                {t('nav.home')}
               </Link>
 
               {/* Masterclasses */}
@@ -239,7 +242,7 @@ const Header = () => {
                 onMouseEnter={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
               >
-                Masterclasses
+                {t('nav.masterclasses')}
               </Link>
 
               {/* Academy dropdown */}
@@ -258,7 +261,7 @@ const Header = () => {
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}
                 >
-                  Academy
+                  {t('nav.academy')}
                   <i className="isax isax-arrow-down5" style={{ fontSize: '0.7rem', marginTop: 1 }} />
                 </button>
 
@@ -277,8 +280,8 @@ const Header = () => {
                     zIndex: 999,
                   }}>
                     {[
-                      { label: 'Courses', to: all_routes.courseList, icon: 'isax-book-1' },
-                      { label: 'Community', to: all_routes.blogGrid, icon: 'isax-people' },
+                      { label: t('nav.courses'), to: all_routes.courseList, icon: 'isax-book-1' },
+                      { label: t('nav.community'), to: all_routes.blogGrid, icon: 'isax-people' },
                     ].map(item => (
                       <Link
                         key={item.label}
@@ -312,6 +315,8 @@ const Header = () => {
 
             {/* ── Right: Actions ── */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {/* Language Switcher */}
+              <LanguageSwitcher variant="dark" />
               {/* Theme Toggle */}
               <button
                 type="button"
@@ -373,7 +378,7 @@ const Header = () => {
                         }}
                       >
                         <i className="isax isax-crown-1" style={{ fontSize: 14 }} />
-                        Premium
+                        {t('nav.premium')}
                       </span>
                     ) : (
                       <Link
@@ -389,7 +394,7 @@ const Header = () => {
                         }}
                       >
                         <i className="isax isax-crown-1" style={{ fontSize: 14 }} />
-                        Get Premium
+                        {t('nav.getPremium')}
                       </Link>
                     )
                   )}
@@ -498,21 +503,21 @@ const Header = () => {
 
                         {/* Menu Items */}
                         <div style={{ padding: '6px 0' }}>
-                          <MenuItem icon="isax-category" label="Dashboard" onClick={() => handleMenuItemClick(getDashboardRoute())} />
-                          <MenuItem icon="isax-user" label={user?.role === 'ADMIN' ? 'Admin Settings' : 'My Profile'} onClick={() => handleMenuItemClick(getProfileRoute())} />
+                          <MenuItem icon="isax-category" label={t('nav.dashboard')} onClick={() => handleMenuItemClick(getDashboardRoute())} />
+                          <MenuItem icon="isax-user" label={user?.role === 'ADMIN' ? t('admin.settings.title') : t('nav.myProfile')} onClick={() => handleMenuItemClick(getProfileRoute())} />
 
                           {user?.role === 'ADMIN' && (
                             <>
-                              <MenuItem icon="isax-people" label="Manage Users" onClick={() => handleMenuItemClick(all_routes.adminUsers)} />
-                              <MenuItem icon="isax-book" label="Manage Courses" onClick={() => handleMenuItemClick(all_routes.adminCourses)} />
-                              <MenuItem icon="isax-folder-2" label="Categories" onClick={() => handleMenuItemClick(all_routes.adminCategories)} />
+                              <MenuItem icon="isax-people" label={t('nav.manageUsers')} onClick={() => handleMenuItemClick(all_routes.adminUsers)} />
+                              <MenuItem icon="isax-book" label={t('nav.manageCourses')} onClick={() => handleMenuItemClick(all_routes.adminCourses)} />
+                              <MenuItem icon="isax-folder-2" label={t('nav.categories')} onClick={() => handleMenuItemClick(all_routes.adminCategories)} />
                             </>
                           )}
 
                           {user?.role !== 'ADMIN' && (
                             <>
-                              <MenuItem icon="isax-book" label="My Courses" onClick={() => handleMenuItemClick(all_routes.studentCourses)} />
-                              <MenuItem icon="isax-heart" label="Wishlist" onClick={() => handleMenuItemClick(all_routes.studentWishlist)} />
+                              <MenuItem icon="isax-book" label={t('nav.myCourses')} onClick={() => handleMenuItemClick(all_routes.studentCourses)} />
+                              <MenuItem icon="isax-heart" label={t('nav.wishlist')} onClick={() => handleMenuItemClick(all_routes.studentWishlist)} />
                             </>
                           )}
                         </div>
@@ -520,8 +525,8 @@ const Header = () => {
                         <div style={{ height: 1, background: 'rgba(107, 29, 42, 0.06)' }} />
 
                         <div style={{ padding: '6px 0' }}>
-                          <MenuItem icon="isax-setting-2" label="Settings" onClick={() => handleMenuItemClick(getSettingsRoute())} />
-                          <MenuItem icon="isax-logout" label="Logout" onClick={handleLogout} danger />
+                          <MenuItem icon="isax-setting-2" label={t('nav.settings')} onClick={() => handleMenuItemClick(getSettingsRoute())} />
+                          <MenuItem icon="isax-logout" label={t('nav.logout')} onClick={handleLogout} danger />
                         </div>
                       </div>
                     )}
@@ -545,7 +550,7 @@ const Header = () => {
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(212,175,55,0.3)'; }}
                   >
                     <i className="isax isax-crown-1" style={{ fontSize: 14 }} />
-                    Get Premium
+                    {t('nav.getPremium')}
                   </Link>
 
                   <Link
@@ -559,7 +564,7 @@ const Header = () => {
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = 'transparent'; }}
                   >
-                    Sign In
+                    {t('nav.signIn')}
                   </Link>
                   <Link
                     to={all_routes.register}
@@ -572,7 +577,7 @@ const Header = () => {
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    Sign Up
+                    {t('nav.signUp')}
                   </Link>
                 </div>
               )}
@@ -622,8 +627,8 @@ const Header = () => {
 
             {/* Mobile Nav Links */}
             {[
-              { label: 'Home',          to: all_routes.homeone,      icon: 'isax-home' },
-              { label: 'Masterclasses', to: all_routes.masterclass, icon: 'isax-video-play' },
+              { label: t('nav.home'),          to: all_routes.homeone,      icon: 'isax-home' },
+              { label: t('nav.masterclasses'), to: all_routes.masterclass, icon: 'isax-video-play' },
             ].map((link) => (
               <Link
                 key={link.label}
@@ -643,11 +648,11 @@ const Header = () => {
 
             {/* Academy section in mobile */}
             <div style={{ padding: '10px 24px 4px', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(197,145,44,0.55)', fontWeight: 600 }}>
-              Academy
+              {t('nav.academy')}
             </div>
             {[
-              { label: 'Courses',   to: all_routes.courseList, icon: 'isax-book' },
-              { label: 'Community', to: all_routes.blogGrid,   icon: 'isax-people' },
+              { label: t('nav.courses'),   to: all_routes.courseList, icon: 'isax-book' },
+              { label: t('nav.community'), to: all_routes.blogGrid,   icon: 'isax-people' },
             ].map((link) => (
               <Link
                 key={link.label}
@@ -671,9 +676,9 @@ const Header = () => {
             {isAuthenticated && user ? (
               <>
                 {[
-                  { label: 'Dashboard', to: getDashboardRoute(), icon: 'isax-category' },
-                  { label: 'My Profile', to: getProfileRoute(), icon: 'isax-user' },
-                  { label: 'Settings', to: getSettingsRoute(), icon: 'isax-setting-2' },
+                  { label: t('nav.dashboard'), to: getDashboardRoute(), icon: 'isax-category' },
+                  { label: t('nav.myProfile'), to: getProfileRoute(), icon: 'isax-user' },
+                  { label: t('nav.settings'),  to: getSettingsRoute(), icon: 'isax-setting-2' },
                 ].map((link) => (
                   <Link
                     key={link.label}
@@ -699,7 +704,7 @@ const Header = () => {
                   }}
                 >
                   <i className="isax isax-logout" style={{ fontSize: 18, width: 20, textAlign: 'center' }} />
-                  Logout
+                  {t('nav.logout')}
                 </a>
               </>
             ) : (
@@ -715,7 +720,7 @@ const Header = () => {
                   }}
                 >
                   <i className="isax isax-crown-1" style={{ fontSize: 18, width: 20, textAlign: 'center' }} />
-                  Get Premium
+                  {t('nav.getPremium')}
                 </Link>
                 <Link
                   to={all_routes.login}
@@ -727,7 +732,7 @@ const Header = () => {
                   }}
                 >
                   <i className="isax isax-login" style={{ fontSize: 18, width: 20, textAlign: 'center', color: 'rgba(255,255,255,0.4)' }} />
-                  Sign In
+                  {t('nav.signIn')}
                 </Link>
                 <Link
                   to={all_routes.register}
@@ -739,7 +744,7 @@ const Header = () => {
                   }}
                 >
                   <i className="isax isax-user-add" style={{ fontSize: 18, width: 20, textAlign: 'center' }} />
-                  Sign Up
+                  {t('nav.signUp')}
                 </Link>
               </>
             )}

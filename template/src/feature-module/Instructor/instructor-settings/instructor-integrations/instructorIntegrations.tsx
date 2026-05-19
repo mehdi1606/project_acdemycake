@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
+import { useTranslation } from 'react-i18next';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
@@ -75,6 +76,7 @@ const integrations: Integration[] = [
 ];
 
 const InstructorIntegrations = () => {
+  const { t } = useTranslation();
   const [enabled, setEnabled] = useState<Record<string, boolean>>({
     zoom: true,
     google: true,

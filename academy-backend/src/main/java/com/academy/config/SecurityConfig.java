@@ -102,6 +102,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/me").authenticated()
                         // register-admin: ADMIN only
                         .requestMatchers("/api/v1/auth/register-admin").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/public/**").permitAll()
                         .requestMatchers("/api/v1/payments/webhook").permitAll()
                         .requestMatchers("/api/v1/subscriptions/webhook").permitAll()
                         .requestMatchers("/api/v1/mux/webhook").permitAll()

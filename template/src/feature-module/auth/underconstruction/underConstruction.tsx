@@ -1,9 +1,11 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 
 const UnderConstruction = () => {
+  const { t } = useTranslation()
   const route = all_routes;
   return (
     <>
@@ -58,17 +60,17 @@ const UnderConstruction = () => {
               />
             </div>
             <h3 className="h2 mb-3">
-              The Website is Under
-              <span className="text-secondary ms-1"> Construction</span>
+              {t('auth.underConstruction.heading', 'The Website is Under')}
+              <span className="text-secondary ms-1"> {t('auth.underConstruction.construction', 'Construction')}</span>
             </h3>
             <p className="h4 font-weight-normal">
-              We are working on fixing the problem. We back soon
+              {t('auth.underConstruction.desc', 'We are working on fixing the problem. We back soon')}
             </p>
             <Link
               to={route.homeone}
               className="btn back-to-home-btn  d-inline-flex align-items-center"
             >
-              <i className="isax isax-arrow-left-2 me-1" /> Back to Home
+              <i className="isax isax-arrow-left-2 me-1" /> {t('common.backToHome', 'Back to Home')}
             </Link>
           </div>
         </div>

@@ -114,6 +114,18 @@ class AdminService {
     await api.delete(`/admin/users/${userId}`);
   }
 
+  // Get all instructors (admin only)
+  async getInstructors(
+    page = 0,
+    size = 12,
+    search?: string
+  ): Promise<PaginatedResponse<AdminUser>> {
+    const response = await api.get<PaginatedResponse<AdminUser>>('/admin/instructors', {
+      params: { page, size, search },
+    });
+    return response.data;
+  }
+
   // ============================================
   // Course Management
   // ============================================

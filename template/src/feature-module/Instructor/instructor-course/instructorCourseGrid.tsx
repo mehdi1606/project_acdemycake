@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { all_routes } from '../../router/all_routes';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { instructorService } from '../../../services/api/instructor.service';
 import { Course } from '../../../services/api/types';
 import { getFileUrl } from '../../../environment';
@@ -17,24 +18,25 @@ interface CourseStats {
 }
 
 const statDefs: {
-  label: string; key: keyof CourseStats; icon: string; color: string; bg: string; borderColor: string;
+  labelKey: string; labelFallback: string; key: keyof CourseStats; icon: string; color: string; bg: string; borderColor: string;
 }[] = [
-  { label: 'Active',  key: 'active',  icon: 'isax-play-circle',   color: '#2D5F3F', bg: 'rgba(45, 95, 63, 0.06)',   borderColor: 'rgba(45, 95, 63, 0.12)' },
-  { label: 'Pending', key: 'pending', icon: 'isax-clock',         color: '#C5973E', bg: 'rgba(197, 151, 62, 0.06)', borderColor: 'rgba(197, 151, 62, 0.12)' },
-  { label: 'Draft',   key: 'draft',   icon: 'isax-document-text', color: '#5C3D2E', bg: 'rgba(92, 61, 46, 0.06)',   borderColor: 'rgba(92, 61, 46, 0.10)' },
-  { label: 'Free',    key: 'free',    icon: 'isax-gift',          color: '#2D8CFF', bg: 'rgba(45, 140, 255, 0.05)', borderColor: 'rgba(45, 140, 255, 0.10)' },
-  { label: 'Paid',    key: 'paid',    icon: 'isax-wallet-money',  color: '#6B1D2A', bg: 'rgba(107, 29, 42, 0.05)',  borderColor: 'rgba(107, 29, 42, 0.10)' },
+  { labelKey: 'common.active',   labelFallback: 'Active',  key: 'active',  icon: 'isax-play-circle',   color: '#2D5F3F', bg: 'rgba(45, 95, 63, 0.06)',   borderColor: 'rgba(45, 95, 63, 0.12)' },
+  { labelKey: 'common.pending',  labelFallback: 'Pending', key: 'pending', icon: 'isax-clock',         color: '#C5973E', bg: 'rgba(197, 151, 62, 0.06)', borderColor: 'rgba(197, 151, 62, 0.12)' },
+  { labelKey: 'common.draft',    labelFallback: 'Draft',   key: 'draft',   icon: 'isax-document-text', color: '#5C3D2E', bg: 'rgba(92, 61, 46, 0.06)',   borderColor: 'rgba(92, 61, 46, 0.10)' },
+  { labelKey: 'common.free',     labelFallback: 'Free',    key: 'free',    icon: 'isax-gift',          color: '#2D8CFF', bg: 'rgba(45, 140, 255, 0.05)', borderColor: 'rgba(45, 140, 255, 0.10)' },
+  { labelKey: 'common.paid',     labelFallback: 'Paid',    key: 'paid',    icon: 'isax-wallet-money',  color: '#6B1D2A', bg: 'rgba(107, 29, 42, 0.05)',  borderColor: 'rgba(107, 29, 42, 0.10)' },
 ];
 
 const tabs = [
-  { key: 'all',       label: 'All' },
-  { key: 'published', label: 'Published' },
-  { key: 'pending',   label: 'Pending' },
-  { key: 'draft',     label: 'Draft' },
+  { key: 'all',       labelKey: 'common.all',       labelFallback: 'All' },
+  { key: 'published', labelKey: 'common.published',  labelFallback: 'Published' },
+  { key: 'pending',   labelKey: 'common.pending',    labelFallback: 'Pending' },
+  { key: 'draft',     labelKey: 'common.draft',      labelFallback: 'Draft' },
 ];
 
 /* ── Component ─────────────────────────────────────────── */
 const InstructorCourseGrid = () => {
+  const { t } = useTranslation();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<CourseStats>({ active: 0, pending: 0, draft: 0, free: 0, paid: 0 });
@@ -128,10 +130,10 @@ const InstructorCourseGrid = () => {
         }}>
           <div>
             <h4 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: 'var(--lx-text)', letterSpacing: -0.3 }}>
-              My Courses
+              {t('instructor.courses.title', 'My Courses')}
             </h4>
             <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>
-              Manage and track all your courses in one place
+              {t('instructor.courses.manageSubtitle', 'Manage and track all your courses in one place')}
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -144,7 +146,7 @@ const InstructorCourseGrid = () => {
               }}
             >
               <i className="isax isax-add" style={{ fontSize: 17 }} />
-              New Course
+              {t('instructor.courses.addNew', 'Add New Course')}
             </Link>
             {/* View Toggle */}
             <div style={{
@@ -217,7 +219,7 @@ const InstructorCourseGrid = () => {
                   {stats[sc.key]}
                 </span>
                 <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--lx-text-muted)', marginTop: 2, display: 'block' }}>
-                  {sc.label}
+                  {t(sc.labelKey, sc.labelFallback)}
                 </span>
               </div>
             </div>
@@ -255,7 +257,7 @@ const InstructorCourseGrid = () => {
                   display: 'inline-flex', alignItems: 'center', gap: 7,
                 }}
               >
-                {tab.label}
+                {t(tab.labelKey, tab.labelFallback)}
                 <span style={{
                   fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
                   background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(107, 29, 42, 0.05)',
@@ -270,7 +272,7 @@ const InstructorCourseGrid = () => {
         </div>
 
         <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', fontWeight: 500 }}>
-          Showing <strong style={{ color: 'var(--lx-text)', fontWeight: 700 }}>{filteredCourses.length}</strong> course{filteredCourses.length !== 1 ? 's' : ''}
+          {t('instructor.courses.showing', 'Showing')} <strong style={{ color: 'var(--lx-text)', fontWeight: 700 }}>{filteredCourses.length}</strong> {filteredCourses.length !== 1 ? t('instructor.courses.coursesPlural', 'courses') : t('instructor.courses.courseSingular', 'course')}
         </span>
       </div>
 
@@ -287,7 +289,7 @@ const InstructorCourseGrid = () => {
             animation: 'spin 0.8s linear infinite', margin: '0 auto 18px',
           }} />
           <p style={{ margin: 0, fontSize: 15, color: 'var(--lx-text-muted)', fontWeight: 500 }}>
-            Loading your courses...
+            {t('common.loading', 'Loading...')}
           </p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
@@ -305,17 +307,17 @@ const InstructorCourseGrid = () => {
             <i className="isax isax-book-1" style={{ fontSize: 32, color: 'var(--lx-text-soft)' }} />
           </div>
           <h5 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-            {activeTab === 'all' ? 'No courses yet' : `No ${activeTab} courses`}
+            {activeTab === 'all' ? t('instructor.courses.noCourses', 'No courses yet') : t('instructor.courses.noFilteredCourses', 'No {{tab}} courses', { tab: activeTab })}
           </h5>
           <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-muted)', maxWidth: 320, marginLeft: 'auto', marginRight: 'auto' }}>
             {activeTab === 'all'
-              ? 'Create your first course and start sharing your knowledge with students.'
-              : `You don't have any ${activeTab} courses at the moment.`}
+              ? t('instructor.courses.noCoursesSubtitle', 'Create your first course and start sharing your knowledge with students.')
+              : t('instructor.courses.noFilteredCoursesSubtitle', "You don't have any {{tab}} courses at the moment.", { tab: activeTab })}
           </p>
           {activeTab === 'all' && (
             <Link to={all_routes.addNewCourse} className="lx-btn lx-btn-gold"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 24px' }}>
-              <i className="isax isax-add" style={{ fontSize: 17 }} /> Create First Course
+              <i className="isax isax-add" style={{ fontSize: 17 }} /> {t('instructor.courses.createFirst', 'Create your first course')}
             </Link>
           )}
         </div>
@@ -517,7 +519,7 @@ const InstructorCourseGrid = () => {
                       }}
                     >
                       <i className="isax isax-setting-2" style={{ fontSize: 14 }} />
-                      Manage
+                      {t('instructor.courses.manage', 'Manage')}
                     </Link>
 
                     {/* Right: Icon Actions */}
@@ -602,10 +604,10 @@ const InstructorCourseGrid = () => {
               <i className="isax isax-trash" style={{ fontSize: 26, color: '#8B2335' }} />
             </div>
             <h5 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-              Delete this course?
+              {t('instructor.courses.deleteCourse', 'Delete this course?')}
             </h5>
             <p style={{ margin: '0 0 26px', fontSize: 14, color: 'var(--lx-text-mid)', lineHeight: 1.5 }}>
-              This will permanently remove the course and all its content. This action cannot be undone.
+              {t('instructor.courses.deleteConfirm', 'This will permanently remove the course and all its content. This action cannot be undone.')}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
               <button
@@ -613,7 +615,7 @@ const InstructorCourseGrid = () => {
                 style={{ padding: '9px 22px' }}
                 onClick={() => setDeleteModal(false)}
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="button" className="lx-btn"
@@ -627,7 +629,7 @@ const InstructorCourseGrid = () => {
                 onClick={handleDeleteConfirm}
                 disabled={deleting}
               >
-                {deleting ? 'Deleting...' : 'Yes, Delete'}
+                {deleting ? t('common.deleting', 'Deleting...') : t('common.yesDelete', 'Yes, Delete')}
               </button>
             </div>
           </div>

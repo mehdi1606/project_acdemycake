@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { paymentService } from '../../../services/api/payment.service';
 import { PaymentTransaction, PaymentStatus } from '../../../services/api/types';
 import { Spin } from 'antd';
-import ImageWithBasePath from '../../../core/common/imageWithBasePath';
+
 
 const PAGE_SIZE = 10;
 
@@ -39,6 +40,7 @@ const formatAmount = (amount: number, currency: string) =>
   `${currency ?? ''} ${Number(amount ?? 0).toFixed(2)}`;
 
 const StudentOrder: React.FC = () => {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -69,13 +71,13 @@ const StudentOrder: React.FC = () => {
 
   const displayed = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return (transactions || []).filter((t: PaymentTransaction) => {
-      const matchStatus = statusFilter === 'ALL' || t.status === statusFilter;
+    return (transactions || []).filter((tx: PaymentTransaction) => {
+      const matchStatus = statusFilter === 'ALL' || tx.status === statusFilter;
       const matchSearch =
         !q ||
-        (t.payzoneOrderId?.toLowerCase().includes(q) ?? false) ||
-        (t.courseName?.toLowerCase().includes(q) ?? false) ||
-        (t.transactionType?.toLowerCase().includes(q) ?? false);
+        (tx.payzoneOrderId?.toLowerCase().includes(q) ?? false) ||
+        (tx.courseName?.toLowerCase().includes(q) ?? false) ||
+        (tx.transactionType?.toLowerCase().includes(q) ?? false);
       return matchStatus && matchSearch;
     });
   }, [transactions, statusFilter, search]);

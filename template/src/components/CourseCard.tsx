@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Course } from '../services/api/types';
 import { all_routes } from '../feature-module/router/all_routes';
@@ -13,6 +14,7 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, layout = 'grid' }) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 

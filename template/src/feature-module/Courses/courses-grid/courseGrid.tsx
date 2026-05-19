@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { Slider, App } from 'antd';
@@ -11,19 +12,19 @@ import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
 
-const SORT_OPTIONS = [
-  { label: 'Newly Published',   value: 'newest' },
-  { label: 'Most Popular',      value: 'popular' },
-  { label: 'Top Rated',         value: 'rating' },
-  { label: 'Price: Low → High', value: 'price_asc' },
-  { label: 'Price: High → Low', value: 'price_desc' },
+const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
+  { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
+  { label: t('courseList.mostPopular', 'Most Popular'),          value: 'popular' },
+  { label: t('courseList.topRated', 'Top Rated'),               value: 'rating' },
+  { label: t('courseList.priceLowHigh2', 'Price: Low → High'),  value: 'price_asc' },
+  { label: t('courseList.priceHighLow2', 'Price: High → Low'),  value: 'price_desc' },
 ];
 
-const LEVELS: { value: CourseLevel; label: string }[] = [
-  { value: 'BEGINNER',     label: 'Beginner' },
-  { value: 'INTERMEDIATE', label: 'Intermediate' },
-  { value: 'ADVANCED',     label: 'Advanced' },
-  { value: 'ALL_LEVELS',   label: 'All Levels' },
+const LEVELS_DATA: { value: CourseLevel; labelKey: string; labelFallback: string }[] = [
+  { value: 'BEGINNER',     labelKey: 'courseList.beginner',     labelFallback: 'Beginner' },
+  { value: 'INTERMEDIATE', labelKey: 'courseList.intermediate', labelFallback: 'Intermediate' },
+  { value: 'ADVANCED',     labelKey: 'courseList.advanced',     labelFallback: 'Advanced' },
+  { value: 'ALL_LEVELS',   labelKey: 'courseList.allLevels',    labelFallback: 'All Levels' },
 ];
 
 // ── Stars ─────────────────────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ interface CourseGridCardProps {
 const CourseGridCard: React.FC<CourseGridCardProps> = ({
   course, inWishlist, isLoadingWishlist, onWishlist, getLevelDisplay, index,
 }) => {
+  const { t } = useTranslation();
   const route  = all_routes;
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -149,7 +151,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
             boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
             transition: 'all 0.2s ease',
           }}
-          aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-label={inWishlist ? t('courseList.removeFromWishlist', 'Remove from wishlist') : t('courseList.addToWishlist', 'Add to wishlist')}
         >
           <i
             className={inWishlist ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}
@@ -166,7 +168,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
             padding: '3px 10px', borderRadius: 20,
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
-            <i className="isax isax-crown" style={{ fontSize: 10 }} /> Premium
+            <i className="isax isax-crown" style={{ fontSize: 10 }} /> {t('courseList.premium', 'Premium')}
           </span>
         )}
         {course.isEnrolled && (
@@ -177,7 +179,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
             padding: '3px 10px', borderRadius: 20,
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
-            <i className="fa-solid fa-check" style={{ fontSize: 9 }} /> Enrolled
+            <i className="fa-solid fa-check" style={{ fontSize: 9 }} /> {t('courseList.enrolled', 'Enrolled')}
           </span>
         )}
       </Link>
@@ -244,7 +246,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
           <span style={{ color: 'rgba(197,145,44,0.4)', fontSize: '0.55rem' }}>✦</span>
           <span style={{ fontSize: '0.68rem', color: 'rgba(58,30,32,0.5)', display: 'flex', alignItems: 'center', gap: 4 }}>
             <i className="isax isax-video-play" style={{ fontSize: 12 }} />
-            {course.lessonsCount ?? 0} lessons
+            {course.lessonsCount ?? 0} {t('common.lessons', 'lessons')}
           </span>
         </div>
 
@@ -253,10 +255,10 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
           <div>
             {course.isEnrolled ? (
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1A7F4B', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <i className="fa-solid fa-check-circle" /> Owned
+                <i className="fa-solid fa-check-circle" /> {t('courseList.owned', 'Owned')}
               </span>
             ) : !course.requiresPurchase ? (
-              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1A7F4B' }}>Free</span>
+              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1A7F4B' }}>{t('courseList.free', 'Free')}</span>
             ) : (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
                 <span style={{ fontFamily: '"Playfair Display", serif', fontSize: '1.1rem', fontWeight: 800, color: '#4E1420' }}>
@@ -280,7 +282,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
                 display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
-              Continue <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
+              {t('courseList.continue', 'Continue')} <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
             </Link>
           ) : (
             <Link
@@ -293,7 +295,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
                 display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
-              View <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
+              {t('courseGrid.view', 'View')} <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
             </Link>
           )}
         </div>
@@ -338,6 +340,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
   categories, selectedCategory, selectedLevel, priceRange,
   onCategoryChange, onLevelChange, onPriceChange, onClear, hasActiveFilters,
 }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState<Set<string>>(new Set(['categories', 'price', 'level']));
   const toggle = (s: string) =>
     setOpen(p => { const n = new Set(p); if (n.has(s)) n.delete(s); else n.add(s); return n; });
@@ -348,14 +351,14 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
     <aside className="sl-cl-sidebar" data-aos="fade-right" data-aos-duration="700">
       <div className="sl-cl-sidebar__header">
         <div className="sl-ornament sl-ornament--left" style={{ marginBottom: '0.5rem' }}>
-          <span className="sl-script" style={{ fontSize: '1.3rem' }}>Refine</span>
+          <span className="sl-script" style={{ fontSize: '1.3rem' }}>{t('courseList.refine', 'Refine')}</span>
         </div>
         <div className="sl-cl-sidebar__header-row">
           <h5 className="sl-cl-sidebar__title">
-            <i className="isax isax-filter" /> Filters
+            <i className="isax isax-filter" /> {t('courseList.filters', 'Filters')}
           </h5>
           {hasActiveFilters && (
-            <button className="sl-cl-sidebar__clear" onClick={onClear}>Clear All</button>
+            <button className="sl-cl-sidebar__clear" onClick={onClear}>{t('courseList.clearAll', 'Clear All')}</button>
           )}
         </div>
       </div>
@@ -363,7 +366,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
       {/* Categories */}
       <div className={`sl-cl-filter-group${open.has('categories') ? ' is-open' : ''}`}>
         <button className="sl-cl-filter-group__head" onClick={() => toggle('categories')}>
-          <span>Categories</span>
+          <span>{t('courseList.categories', 'Categories')}</span>
           <i className={`fa-solid fa-chevron-${open.has('categories') ? 'up' : 'down'}`} />
         </button>
         {open.has('categories') && (
@@ -382,7 +385,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
                 )}
               </label>
             )) : (
-              <p className="sl-cl-filter-empty">No categories available</p>
+              <p className="sl-cl-filter-empty">{t('courseList.noCategoriesAvailable', 'No categories available')}</p>
             )}
           </div>
         )}
@@ -391,7 +394,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
       {/* Price */}
       <div className={`sl-cl-filter-group${open.has('price') ? ' is-open' : ''}`}>
         <button className="sl-cl-filter-group__head" onClick={() => toggle('price')}>
-          <span>Price Range</span>
+          <span>{t('courseGrid.priceRange', 'Price Range')}</span>
           <i className={`fa-solid fa-chevron-${open.has('price') ? 'up' : 'down'}`} />
         </button>
         {open.has('price') && (
@@ -405,7 +408,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
               className="sl-cl-price-slider"
             />
             <div className="sl-cl-price-labels">
-              <span>{priceRange[0] === 0 ? 'Free' : `$${priceRange[0]}`}</span>
+              <span>{priceRange[0] === 0 ? t('courseList.free', 'Free') : `$${priceRange[0]}`}</span>
               <span>{priceRange[1] >= 500 ? '$500+' : `$${priceRange[1]}`}</span>
             </div>
           </div>
@@ -415,12 +418,12 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
       {/* Level */}
       <div className={`sl-cl-filter-group${open.has('level') ? ' is-open' : ''}`}>
         <button className="sl-cl-filter-group__head" onClick={() => toggle('level')}>
-          <span>Skill Level</span>
+          <span>{t('courseList.skillLevel', 'Skill Level')}</span>
           <i className={`fa-solid fa-chevron-${open.has('level') ? 'up' : 'down'}`} />
         </button>
         {open.has('level') && (
           <div className="sl-cl-filter-group__body">
-            {LEVELS.map(({ value, label }) => (
+            {LEVELS_DATA.map(({ value, labelKey, labelFallback }) => (
               <label key={value} className="sl-cl-check">
                 <input
                   type="checkbox"
@@ -428,7 +431,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
                   onChange={() => onLevelChange(value)}
                 />
                 <span className="sl-cl-check__box" />
-                <span className="sl-cl-check__label">{label}</span>
+                <span className="sl-cl-check__label">{t(labelKey, labelFallback)}</span>
               </label>
             ))}
           </div>
@@ -440,6 +443,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const CourseGrid: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const route = all_routes;
   const { message } = App.useApp();
@@ -475,9 +479,12 @@ const CourseGrid: React.FC = () => {
       .catch(() => {});
   }, [isAuthenticated]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchCategories(); }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchCourses(); }, [currentPage, selectedCategory, selectedLevel, sortBy]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const t = setTimeout(() => {
       if (currentPage === 1) fetchCourses(); else setCurrentPage(1);
@@ -516,20 +523,20 @@ const CourseGrid: React.FC = () => {
   };
 
   const handleWishlist = async (courseId: string) => {
-    if (!isAuthenticated) { message.warning('Please login to save courses'); return; }
+    if (!isAuthenticated) { message.warning(t('courseList.loginToSave', 'Please login to save courses')); return; }
     if (wishlistLoading.has(courseId)) return;
     setWishlistLoading(p => new Set(p).add(courseId));
     try {
       if (wishlist.has(courseId)) {
         await courseService.removeFromWishlist(courseId);
         setWishlist(p => { const n = new Set(p); n.delete(courseId); return n; });
-        message.success('Removed from wishlist');
+        message.success(t('courseList.removedFromWishlist', 'Removed from wishlist'));
       } else {
         await courseService.addToWishlist(courseId);
         setWishlist(p => new Set(p).add(courseId));
-        message.success('Saved to wishlist');
+        message.success(t('courseList.savedToWishlist', 'Saved to wishlist'));
       }
-    } catch { message.error('Failed to update wishlist'); }
+    } catch { message.error(t('courseList.wishlistError', 'Failed to update wishlist')); }
     finally { setWishlistLoading(p => { const n = new Set(p); n.delete(courseId); return n; }); }
   };
 
@@ -554,8 +561,10 @@ const CourseGrid: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const getLevelDisplay = (level: CourseLevel): string =>
-    ({ BEGINNER: 'Beginner', INTERMEDIATE: 'Intermediate', ADVANCED: 'Advanced', ALL_LEVELS: 'All Levels' }[level] ?? level);
+  const getLevelDisplay = (level: CourseLevel): string => {
+    const found = LEVELS_DATA.find(l => l.value === level);
+    return found ? t(found.labelKey, found.labelFallback) : level;
+  };
 
   const hasActiveFilters = Boolean(
     searchQuery || selectedCategory || selectedLevel ||
@@ -587,13 +596,13 @@ const CourseGrid: React.FC = () => {
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div className="sl-cl-hero__inner">
             <div className="sl-ornament justify-content-center" data-aos="fade-up" data-aos-duration="600">
-              <span className="sl-script" style={{ fontSize: '1.7rem' }}>Catalogue</span>
+              <span className="sl-script" style={{ fontSize: '1.7rem' }}>{t('courseList.catalogue', 'Catalogue')}</span>
             </div>
             <h1 className="sl-cl-hero__title" data-aos="fade-up" data-aos-delay="80" data-aos-duration="700">
-              All Programmes
+              {t('courseList.allProgrammes', 'All Programmes')}
             </h1>
             <p className="sl-cl-hero__sub" data-aos="fade-up" data-aos-delay="160" data-aos-duration="700">
-              Curated by master pastry artists — discover your perfect atelier experience
+              {t('courseList.heroSubtitle', 'Curated by master pastry artists — discover your perfect atelier experience')}
             </p>
 
             {/* Search */}
@@ -605,18 +614,18 @@ const CourseGrid: React.FC = () => {
               <i className="isax isax-search-normal-1" />
               <input
                 type="text"
-                placeholder="Search programmes, techniques, instructors…"
+                placeholder={t('courseList.searchPlaceholder2', 'Search programmes, techniques, instructors…')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
-              <button type="submit" className="sl-cl-hero__search-btn">Search</button>
+              <button type="submit" className="sl-cl-hero__search-btn">{t('common.search', 'Search')}</button>
             </form>
 
             {/* Breadcrumb */}
             <nav className="sl-cl-hero__breadcrumb" data-aos="fade-up" data-aos-delay="300" data-aos-duration="700">
-              <Link to={route.homeone}>Home</Link>
+              <Link to={route.homeone}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
               <span>✦</span>
-              <span>All Programmes</span>
+              <span>{t('courseList.allProgrammes', 'All Programmes')}</span>
             </nav>
           </div>
         </div>
@@ -655,17 +664,17 @@ const CourseGrid: React.FC = () => {
                 {/* Toolbar */}
                 <div className="sl-cl-toolbar" data-aos="fade-down" data-aos-duration="600">
                   <p className="sl-cl-toolbar__results">
-                    {loading ? 'Loading programmes…' : (
-                      <>Showing <strong>{start}–{end}</strong> of <strong>{totalElements}</strong> programmes</>
+                    {loading ? t('courseList.loadingProgrammes', 'Loading programmes…') : (
+                      <>{t('courseList.showing', 'Showing')} <strong>{start}–{end}</strong> {t('courseList.of', 'of')} <strong>{totalElements}</strong> {t('courseList.programmes', 'programmes')}</>
                     )}
                   </p>
                   <div className="sl-cl-toolbar__controls">
                     {/* View toggle */}
                     <div className="sl-cl-view-toggle">
-                      <button className="sl-cl-view-toggle__btn is-active" title="Grid view">
+                      <button className="sl-cl-view-toggle__btn is-active" title={t('courseList.gridView', 'Grid view')}>
                         <i className="feather-grid" />
                       </button>
-                      <Link to={route.courseList} className="sl-cl-view-toggle__btn" title="List view">
+                      <Link to={route.courseList} className="sl-cl-view-toggle__btn" title={t('courseList.listView', 'List view')}>
                         <i className="isax isax-task" />
                       </Link>
                     </div>
@@ -676,7 +685,7 @@ const CourseGrid: React.FC = () => {
                         value={sortBy}
                         onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}
                       >
-                        {SORT_OPTIONS.map(o => (
+                        {SORT_OPTIONS(t).map(o => (
                           <option key={o.value} value={o.value}>{o.label}</option>
                         ))}
                       </select>
@@ -710,12 +719,12 @@ const CourseGrid: React.FC = () => {
                     )}
                     {sortBy !== 'newest' && (
                       <span className="sl-cl-chip">
-                        {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+                        {SORT_OPTIONS(t).find(o => o.value === sortBy)?.label}
                         <button onClick={() => { setSortBy('newest'); setCurrentPage(1); }}>×</button>
                       </span>
                     )}
                     <button className="sl-cl-chip sl-cl-chip--clear" onClick={clearFilters}>
-                      Clear All
+                      {t('courseList.clearAll', 'Clear All')}
                     </button>
                   </div>
                 )}
@@ -732,15 +741,15 @@ const CourseGrid: React.FC = () => {
                 ) : displayedCourses.length === 0 ? (
                   <div className="sl-cl-empty" data-aos="fade-up">
                     <div className="sl-ornament">
-                      <span className="sl-script" style={{ fontSize: '2rem' }}>Oops</span>
+                      <span className="sl-script" style={{ fontSize: '2rem' }}>{t('courseList.oops', 'Oops')}</span>
                     </div>
                     <i className="isax isax-search-status sl-cl-empty__icon" />
-                    <h4 className="sl-cl-empty__title">No programmes found</h4>
+                    <h4 className="sl-cl-empty__title">{t('courseList.noProgrammesFound', 'No programmes found')}</h4>
                     <p className="sl-cl-empty__text">
-                      Adjust your filters or search terms to discover our full catalogue.
+                      {t('courseList.adjustFilters', 'Adjust your filters or search terms to discover our full catalogue.')}
                     </p>
                     <button className="sl-btn-gold sl-btn-magnetic" onClick={clearFilters}>
-                      Browse All Programmes <i className="isax isax-arrow-right-1" />
+                      {t('courseList.browseAllProgrammes', 'Browse All Programmes')} <i className="isax isax-arrow-right-1" />
                     </button>
                   </div>
                 ) : (
@@ -767,7 +776,7 @@ const CourseGrid: React.FC = () => {
                       className="sl-cl-pagination__arrow"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      aria-label="Previous"
+                      aria-label={t('common.previous', 'Previous')}
                     >
                       <i className="fa-solid fa-chevron-left" />
                     </button>
@@ -790,7 +799,7 @@ const CourseGrid: React.FC = () => {
                       className="sl-cl-pagination__arrow"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      aria-label="Next"
+                      aria-label={t('common.next', 'Next')}
                     >
                       <i className="fa-solid fa-chevron-right" />
                     </button>

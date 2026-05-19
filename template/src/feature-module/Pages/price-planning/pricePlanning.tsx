@@ -6,12 +6,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
+import { useTranslation } from "react-i18next";
 import { subscriptionService } from "../../../services/api/subscription.service";
 import { Subscription } from "../../../services/api/types";
 import { useAppSelector } from "../../../core/redux/hooks";
 import { Spin, Modal } from "antd";
 
-// ── Plan definitions ──────────────────────────────────────────────────────────
+// ── Plan shape ────────────────────────────────────────────────────────────────
 interface Plan {
   id: string;
   period: string;
@@ -25,97 +26,9 @@ interface Plan {
   couponEligible: boolean;
 }
 
-const PLANS: Plan[] = [
-  {
-    id: "monthly",
-    period: "monthly",
-    periodLabel: "/ month",
-    price: 390,
-    savings: null,
-    badge: null,
-    recommended: false,
-    couponEligible: false,
-    features: [
-      "Access to all courses",
-      "Student dashboard",
-      "Course completion certificates",
-      "Community forum access",
-      "Messaging with instructors",
-      "Progress tracking",
-    ],
-    premiumExtras: [
-      "Individual masterclass purchase",
-      "Standard support",
-    ],
-  },
-  {
-    id: "yearly",
-    period: "yearly",
-    periodLabel: "/ year",
-    price: 3900,
-    savings: "Save 780 MAD",
-    badge: "Best Value",
-    recommended: true,
-    couponEligible: true,
-    features: [
-      "Access to all courses",
-      "Student dashboard",
-      "Course completion certificates",
-      "Community forum access",
-      "Messaging with instructors",
-      "Progress tracking",
-    ],
-    premiumExtras: [
-      "All masterclass access included",
-      "Priority & dedicated support",
-      "Early access to new courses",
-      "Exclusive annual member badge",
-      "Coupon code eligible",
-    ],
-  },
-];
-
-// ── FAQ data ──────────────────────────────────────────────────────────────────
-const FAQS = [
-  {
-    q: "What is the difference between Courses and Masterclasses?",
-    a: "Courses are part of our standard curriculum available to all subscribers. Masterclasses are exclusive premium sessions led by world-renowned pastry chefs — available to purchase individually on Monthly, or fully included in the Annual plan.",
-  },
-  {
-    q: "Can I switch plans later?",
-    a: "Yes. You can upgrade or change your plan at any time. Your new plan takes effect immediately and remaining credit is applied.",
-  },
-  {
-    q: "Is there a free trial?",
-    a: "We do not offer a free tier, but you can browse the course catalog and instructor profiles without a subscription before committing.",
-  },
-  {
-    q: "What payment methods are accepted?",
-    a: "We accept all major credit and debit cards via our secure payment gateway.",
-  },
-  {
-    q: "Can I cancel my subscription?",
-    a: "Yes. You can cancel anytime. Access continues until the end of the current billing period.",
-  },
-  {
-    q: "How do I use a coupon code?",
-    a: "Coupon codes are only applicable to the Annual plan. When you click Subscribe on the Annual plan, you'll see an optional coupon field in the confirmation screen. Enter your code there to apply the discount before paying.",
-  },
-];
-
-// ── Floating particle ──────────────────────────────────────────────────────────
+// ── Floating particle ─────────────────────────────────────────────────────────
 const Dot: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
   <div className="sl-cl-hero__particle" style={style} />
-);
-
-// ── Check row ─────────────────────────────────────────────────────────────────
-const Check: React.FC<{ label: string; gold?: boolean }> = ({ label, gold }) => (
-  <div className="sl-pricing__check">
-    <i
-      className={`isax ${gold ? "isax-crown" : "isax-tick-circle"} sl-pricing__check-icon ${gold ? "sl-pricing__check-icon--gold" : ""}`}
-    />
-    <span className={gold ? "sl-pricing__check-label--gold" : ""}>{label}</span>
-  </div>
 );
 
 // ── Plan card ─────────────────────────────────────────────────────────────────
@@ -128,6 +41,7 @@ interface PlanCardProps {
 }
 
 const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, subscribing, onSubscribe }) => {
+  const { t } = useTranslation();
   const isActive = currentPlanId === plan.id;
   const isBusy = subscribing === plan.id;
   const isAnnual = plan.id === 'yearly';
@@ -150,7 +64,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
       overflow: 'visible',
     }}>
 
-      {/* Best Value badge — embedded in header, no float */}
+      {/* Best Value badge */}
       {isAnnual && (
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -160,7 +74,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
           textTransform: 'uppercase', marginBottom: 20, alignSelf: 'flex-start',
         }}>
           <i className="isax isax-crown" style={{ fontSize: 13 }} />
-          Best Value
+          {t('pricing.bestValue', 'Best Value')}
         </div>
       )}
 
@@ -182,10 +96,10 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
             color: isAnnual ? '#fff' : '#2C1810',
             margin: 0, lineHeight: 1,
           }}>
-            {isAnnual ? 'Annual' : 'Monthly'}
+            {isAnnual ? t('pricing.annual', 'Annual') : t('pricing.monthly', 'Monthly')}
           </h3>
           <div style={{ fontSize: 12, color: isAnnual ? 'rgba(255,255,255,0.45)' : '#9A8080', marginTop: 3 }}>
-            {isAnnual ? 'Best for dedicated learners' : 'Flexible month-to-month'}
+            {isAnnual ? t('pricing.annualSubtitle', 'Best for dedicated learners') : t('pricing.monthlySubtitle', 'Flexible month-to-month')}
           </div>
         </div>
       </div>
@@ -212,22 +126,22 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
           {isAnnual ? (
             <>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>≈ 325 MAD/month</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{t('pricing.approxPerMonth', '≈ 325 MAD/month')}</span>
               <span style={{
                 background: 'rgba(26,127,75,0.2)', color: '#4FD68E',
                 borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700,
               }}>
-                Save 780 MAD
+                {t('pricing.save780', 'Save 780 MAD')}
               </span>
             </>
           ) : (
-            <span style={{ fontSize: 12, color: '#9A8080' }}>Billed monthly</span>
+            <span style={{ fontSize: 12, color: '#9A8080' }}>{t('pricing.billedMonthly', 'Billed monthly')}</span>
           )}
         </div>
         {isAnnual && (
           <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
             <i className="isax isax-discount-shape" style={{ fontSize: 13, color: '#C5912C' }} />
-            <span style={{ fontSize: 12, color: '#C5912C', fontWeight: 600 }}>Coupon code eligible</span>
+            <span style={{ fontSize: 12, color: '#C5912C', fontWeight: 600 }}>{t('pricing.couponEligible', 'Coupon code eligible')}</span>
           </div>
         )}
       </div>
@@ -246,7 +160,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
             <span style={{ fontSize: 13.5, color: isAnnual ? 'rgba(255,255,255,0.75)' : '#3C2828', lineHeight: 1.4 }}>{f}</span>
           </div>
         ))}
-        {plan.premiumExtras.filter(f => f !== 'Coupon code eligible').map((f, i) => (
+        {plan.premiumExtras.filter(f => f !== t('pricing.feature.couponEligible', 'Coupon code eligible')).map((f, i) => (
           <div key={`g${i}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <i className="isax isax-crown" style={{
               fontSize: 16, flexShrink: 0, marginTop: 1,
@@ -270,7 +184,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }} disabled>
             <i className="isax isax-tick-circle" />
-            Current Plan
+            {t('pricing.currentPlan', 'Current Plan')}
           </button>
         ) : isSubscribed ? (
           <button
@@ -287,7 +201,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
               opacity: !!subscribing ? 0.65 : 1,
             }}
           >
-            Switch to {isAnnual ? 'Annual' : 'Monthly'}
+            {t('pricing.switchTo', 'Switch to {{plan}}', { plan: isAnnual ? t('pricing.annual', 'Annual') : t('pricing.monthly', 'Monthly') })}
           </button>
         ) : (
           <button
@@ -310,9 +224,9 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
             }}
           >
             {isBusy ? (
-              <><Spin size="small" style={{ marginRight: 6 }} />Processing…</>
+              <><Spin size="small" style={{ marginInlineEnd: 6 }} />{t('pricing.processing', 'Processing…')}</>
             ) : (
-              <>Subscribe <i className="isax isax-arrow-right-3" /></>
+              <>{t('pricing.subscribe', 'Subscribe')} <i className="isax isax-arrow-right-3" /></>
             )}
           </button>
         )}
@@ -340,8 +254,9 @@ interface ConfirmModalProps {
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, onConfirm, onCancel }) => {
-  const planLabel = plan.id === "monthly" ? "Monthly" : "Annual";
-  const allFeatures = [...plan.features, ...plan.premiumExtras.filter(f => f !== "Coupon code eligible")];
+  const { t } = useTranslation();
+  const planLabel = plan.id === "monthly" ? t('pricing.monthly', 'Monthly') : t('pricing.annual', 'Annual');
+  const allFeatures = [...plan.features, ...plan.premiumExtras.filter(f => f !== t('pricing.feature.couponEligible', 'Coupon code eligible'))];
 
   const [couponInput, setCouponInput] = useState('');
   const [couponValidation, setCouponValidation] = useState<CouponValidation | null>(null);
@@ -366,7 +281,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
         setAppliedCoupon(null);
       }
     } catch {
-      setCouponValidation({ valid: false, message: 'Failed to validate coupon. Please try again.' });
+      setCouponValidation({ valid: false, message: t('pricing.modal.couponValidateFailed', 'Failed to validate coupon. Please try again.') });
       setAppliedCoupon(null);
     } finally {
       setValidatingCoupon(false);
@@ -410,7 +325,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
           <button
             onClick={onCancel}
             style={{
-              position: 'absolute', top: 16, right: 16,
+              position: 'absolute', top: 16, insetInlineEnd: 16,
               background: 'rgba(255,255,255,0.1)', border: 'none',
               borderRadius: '50%', width: 32, height: 32,
               color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
@@ -433,10 +348,10 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
             </div>
             <div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
-                Order Summary
+                {t('pricing.modal.orderSummary', 'Order Summary')}
               </div>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#fff', fontFamily: '"Playfair Display", serif' }}>
-                {planLabel} Plan
+                {planLabel} {t('pricing.plan', 'Plan')}
               </div>
             </div>
           </div>
@@ -454,7 +369,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
           }}>
             <div>
               <div style={{ fontSize: 12, color: '#9B7B50', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
-                Total to Pay
+                {t('pricing.modal.totalToPay', 'Total to Pay')}
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#9B7B50' }}>MAD</span>
@@ -474,7 +389,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
                 )}
               </div>
               <div style={{ fontSize: 12, color: '#B89060', marginTop: 2 }}>
-                {plan.id === 'monthly' ? 'Billed monthly' : 'Billed annually · ≈ 325 MAD/month'}
+                {plan.id === 'monthly'
+                  ? t('pricing.billedMonthly', 'Billed monthly')
+                  : t('pricing.billedAnnually', 'Billed annually · ≈ 325 MAD/month')}
               </div>
             </div>
             {plan.savings && !couponValidation?.valid && (
@@ -502,7 +419,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
             <div style={{ marginBottom: 22 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#9B7B50', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
                 <i className="isax isax-discount-shape me-1" />
-                Have a coupon code?
+                {t('pricing.modal.haveCoupon', 'Have a coupon code?')}
               </div>
 
               {appliedCoupon ? (
@@ -523,7 +440,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
                       color: '#9B7B50', fontSize: 13, padding: 4,
                     }}
                   >
-                    Remove
+                    {t('pricing.modal.remove', 'Remove')}
                   </button>
                 </div>
               ) : (
@@ -535,7 +452,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
                       setCouponInput(e.target.value.toUpperCase());
                       setCouponValidation(null);
                     }}
-                    placeholder="Enter coupon code"
+                    placeholder={t('pricing.modal.couponPlaceholder', 'Enter coupon code')}
                     style={{
                       flex: 1, padding: '11px 14px', borderRadius: 10,
                       border: couponValidation && !couponValidation.valid
@@ -559,7 +476,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {validatingCoupon ? <Spin size="small" /> : 'Apply'}
+                    {validatingCoupon ? <Spin size="small" /> : t('pricing.modal.apply', 'Apply')}
                   </button>
                 </div>
               )}
@@ -576,7 +493,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
           {/* What's included */}
           <div style={{ marginBottom: 22 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#9B7B50', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>
-              What's included
+              {t('pricing.modal.whatsIncluded', "What's included")}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
               {allFeatures.map((f, i) => (
@@ -608,9 +525,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#2C1810' }}>{user.fullName}</div>
                 <div style={{ fontSize: 12, color: '#9B7B50' }}>{user.email}</div>
               </div>
-              <div style={{ marginLeft: 'auto', fontSize: 11, color: '#1A7F4B', fontWeight: 600 }}>
-                <i className="isax isax-verify" style={{ marginRight: 4 }} />
-                Verified
+              <div style={{ marginInlineStart: 'auto', fontSize: 11, color: '#1A7F4B', fontWeight: 600 }}>
+                <i className="isax isax-verify" style={{ marginInlineEnd: 4 }} />
+                {t('pricing.modal.verified', 'Verified')}
               </div>
             </div>
           )}
@@ -621,7 +538,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
             fontSize: 12, color: '#9B7B50', marginBottom: 22,
           }}>
             <i className="isax isax-shield-tick" style={{ fontSize: 16, color: '#1A7F4B' }} />
-            Secure payment powered by PayZone · Cancel anytime
+            {t('pricing.modal.securePayment', 'Secure payment powered by PayZone · Cancel anytime')}
           </div>
 
           {/* Actions */}
@@ -637,7 +554,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
                 transition: 'all 0.2s ease',
               }}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </button>
             <button
               onClick={() => onConfirm(appliedCoupon)}
@@ -658,9 +575,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
               }}
             >
               {subscribing ? (
-                <><Spin size="small" style={{ marginRight: 4 }} /> Processing…</>
+                <><Spin size="small" style={{ marginInlineEnd: 4 }} /> {t('pricing.processing', 'Processing…')}</>
               ) : (
-                <><i className="isax isax-lock-1" style={{ fontSize: 16 }} /> Confirm & Pay MAD {displayPrice.toLocaleString()}</>
+                <><i className="isax isax-lock-1" style={{ fontSize: 16 }} /> {t('pricing.modal.confirmPay', 'Confirm & Pay')} MAD {displayPrice.toLocaleString()}</>
               )}
             </button>
           </div>
@@ -672,6 +589,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 const PricePlanning: React.FC = () => {
+  const { t } = useTranslation();
   const route = all_routes;
   const navigate = useNavigate();
 
@@ -682,6 +600,77 @@ const PricePlanning: React.FC = () => {
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
 
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+
+  // ── Plans (inside component so t() works) ──────────────────────────────────
+  const PLANS: Plan[] = [
+    {
+      id: "monthly",
+      period: "monthly",
+      periodLabel: t('pricing.perMonth', '/ month'),
+      price: 390,
+      savings: null,
+      badge: null,
+      recommended: false,
+      couponEligible: false,
+      features: [
+        t('pricing.feature.allCourses', 'Access to all courses'),
+        t('pricing.feature.studentDashboard', 'Student dashboard'),
+        t('pricing.feature.certificates', 'Course completion certificates'),
+        t('pricing.feature.communityAccess', 'Community forum access'),
+        t('pricing.feature.messaging', 'Messaging with instructors'),
+        t('pricing.feature.progressTracking', 'Progress tracking'),
+      ],
+      premiumExtras: [
+        t('pricing.feature.individualMasterclass', 'Individual masterclass purchase'),
+        t('pricing.feature.standardSupport', 'Standard support'),
+      ],
+    },
+    {
+      id: "yearly",
+      period: "yearly",
+      periodLabel: t('pricing.perYear', '/ year'),
+      price: 3900,
+      savings: t('pricing.save780', 'Save 780 MAD'),
+      badge: t('pricing.bestValue', 'Best Value'),
+      recommended: true,
+      couponEligible: true,
+      features: [
+        t('pricing.feature.allCourses', 'Access to all courses'),
+        t('pricing.feature.studentDashboard', 'Student dashboard'),
+        t('pricing.feature.certificates', 'Course completion certificates'),
+        t('pricing.feature.communityAccess', 'Community forum access'),
+        t('pricing.feature.messaging', 'Messaging with instructors'),
+        t('pricing.feature.progressTracking', 'Progress tracking'),
+      ],
+      premiumExtras: [
+        t('pricing.feature.allMasterclasses', 'All masterclass access included'),
+        t('pricing.feature.prioritySupport', 'Priority & dedicated support'),
+        t('pricing.feature.earlyAccess', 'Early access to new courses'),
+        t('pricing.feature.annualBadge', 'Exclusive annual member badge'),
+        t('pricing.feature.couponEligible', 'Coupon code eligible'),
+      ],
+    },
+  ];
+
+  // ── FAQs (inside component so t() works) ──────────────────────────────────
+  const FAQS = [
+    { q: t('pricing.faq.q1', 'What is the difference between Courses and Masterclasses?'), a: t('pricing.faq.a1', 'Courses are part of our standard curriculum available to all subscribers. Masterclasses are exclusive premium sessions led by world-renowned pastry chefs — available to purchase individually on Monthly, or fully included in the Annual plan.') },
+    { q: t('pricing.faq.q2', 'Can I switch plans later?'), a: t('pricing.faq.a2', 'Yes. You can upgrade or change your plan at any time. Your new plan takes effect immediately and remaining credit is applied.') },
+    { q: t('pricing.faq.q3', 'Is there a free trial?'), a: t('pricing.faq.a3', 'We do not offer a free tier, but you can browse the course catalog and instructor profiles without a subscription before committing.') },
+    { q: t('pricing.faq.q4', 'What payment methods are accepted?'), a: t('pricing.faq.a4', 'We accept all major credit and debit cards via our secure payment gateway.') },
+    { q: t('pricing.faq.q5', 'Can I cancel my subscription?'), a: t('pricing.faq.a5', 'Yes. You can cancel anytime. Access continues until the end of the current billing period.') },
+    { q: t('pricing.faq.q6', 'How do I use a coupon code?'), a: t('pricing.faq.a6', "Coupon codes are only applicable to the Annual plan. When you click Subscribe on the Annual plan, you'll see an optional coupon field in the confirmation screen. Enter your code there to apply the discount before paying.") },
+  ];
+
+  // ── Why cards (inside component so t() works) ─────────────────────────────
+  const WHY_CARDS = [
+    { icon: "isax-video-play",   color: "gold",   title: t('pricing.why.card1.title', 'All Course Videos'),    desc: t('pricing.why.card1.desc', 'Stream every lesson in HD with lifetime progress tracking.') },
+    { icon: "isax-award",        color: "burg",   title: t('pricing.why.card2.title', 'Certificates'),         desc: t('pricing.why.card2.desc', 'Earn a SARALÖWE Academy certificate on every completed course.') },
+    { icon: "isax-people",       color: "forest", title: t('pricing.why.card3.title', 'Community Access'),     desc: t('pricing.why.card3.desc', 'Join our private community of cake artists worldwide.') },
+    { icon: "isax-message-text", color: "gold",   title: t('pricing.why.card4.title', 'Instructor Messaging'), desc: t('pricing.why.card4.desc', 'Ask questions directly to your instructors inside the platform.') },
+    { icon: "isax-chart-2",      color: "burg",   title: t('pricing.why.card5.title', 'Progress Dashboard'),   desc: t('pricing.why.card5.desc', 'Track your learning journey with a beautiful student dashboard.') },
+    { icon: "isax-crown",        color: "gold",   title: t('pricing.why.card6.title', 'Masterclasses*'),       desc: t('pricing.why.card6.desc', 'Annual plan includes all masterclasses. Monthly plan: buy individually.') },
+  ];
 
   const isSubscribed =
     currentSubscription?.status === "ACTIVE" ||
@@ -697,23 +686,19 @@ const PricePlanning: React.FC = () => {
           const sub = await subscriptionService.getMySubscription();
           setCurrentSubscription(sub);
         }
-      } catch {
-        /* silent */
-      } finally {
-        setLoading(false);
-      }
+      } catch { /* silent */ }
+      finally { setLoading(false); }
     };
     load();
-  }, [isAuthenticated]);
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Step 1 — show confirmation modal
   const handleSubscribe = (planId: string) => {
     if (!isAuthenticated) {
       Modal.confirm({
-        title: "Login Required",
-        content: "Please log in to start your subscription.",
-        okText: "Login",
-        cancelText: "Cancel",
+        title: t('pricing.loginRequired.title', 'Login Required'),
+        content: t('pricing.loginRequired.content', 'Please log in to start your subscription.'),
+        okText: t('pricing.loginRequired.okText', 'Login'),
+        cancelText: t('common.cancel', 'Cancel'),
         onOk: () => navigate(route.login),
       });
       return;
@@ -722,11 +707,9 @@ const PricePlanning: React.FC = () => {
     if (plan) setConfirmPlan(plan);
   };
 
-  // Step 2 — called when student confirms in the modal
   const handleConfirmPayment = async (couponCode: string | null) => {
     if (!confirmPlan) return;
     const planId = confirmPlan.id;
-
     try {
       setSubscribing(planId);
       const response = await subscriptionService.subscribe(planId, couponCode || undefined);
@@ -743,30 +726,29 @@ const PricePlanning: React.FC = () => {
       const axiosErr = err as { response?: { data?: { message?: string } } };
       setConfirmPlan(null);
       Modal.error({
-        title: "Subscription Failed",
-        content: axiosErr.response?.data?.message || "Failed to process subscription. Please try again.",
+        title: t('pricing.error.title', 'Subscription Failed'),
+        content: axiosErr.response?.data?.message || t('pricing.error.content', 'Failed to process subscription. Please try again.'),
       });
     } finally {
       setSubscribing(null);
     }
   };
 
-  // ── Particles ───────────────────────────────────────────────────────────────
   const dots = [
-    { top: "12%",  left: "8%",  w: 5, delay: "0s",   dur: "9s"  },
-    { top: "24%",  left: "88%", w: 7, delay: "1.5s",  dur: "11s" },
-    { top: "62%",  left: "4%",  w: 4, delay: "3s",    dur: "8s"  },
-    { top: "78%",  left: "92%", w: 6, delay: "0.8s",  dur: "10s" },
-    { top: "40%",  left: "50%", w: 3, delay: "2s",    dur: "7s"  },
-    { top: "88%",  left: "30%", w: 5, delay: "4s",    dur: "12s" },
-    { top: "18%",  left: "60%", w: 4, delay: "1s",    dur: "9s"  },
+    { top: "12%", left: "8%",  w: 5, delay: "0s",   dur: "9s"  },
+    { top: "24%", left: "88%", w: 7, delay: "1.5s",  dur: "11s" },
+    { top: "62%", left: "4%",  w: 4, delay: "3s",    dur: "8s"  },
+    { top: "78%", left: "92%", w: 6, delay: "0.8s",  dur: "10s" },
+    { top: "40%", left: "50%", w: 3, delay: "2s",    dur: "7s"  },
+    { top: "88%", left: "30%", w: 5, delay: "4s",    dur: "12s" },
+    { top: "18%", left: "60%", w: 4, delay: "1s",    dur: "9s"  },
   ];
 
   if (loading) {
     return (
       <div className="sl-pricing-loading">
         <Spin size="large" />
-        <p>Loading plans…</p>
+        <p>{t('pricing.loadingPlans', 'Loading plans…')}</p>
       </div>
     );
   }
@@ -774,49 +756,40 @@ const PricePlanning: React.FC = () => {
   return (
     <div className="sl-pricing-page">
 
-      {/* ══ HERO ══════════════════════════════════════════════════════════════ */}
+      {/* ══ HERO ══ */}
       <section className="sl-cl-hero sl-cl-hero--pricing">
         {dots.map((d, i) => (
-          <Dot
-            key={i}
-            style={{
-              top: d.top, left: d.left,
-              width: d.w, height: d.w,
-              animationDelay: d.delay, animationDuration: d.dur,
-            }}
-          />
+          <Dot key={i} style={{ top: d.top, left: d.left, width: d.w, height: d.w, animationDelay: d.delay, animationDuration: d.dur }} />
         ))}
         <div className="sl-cl-hero__inner container">
           <div className="sl-cl-hero__breadcrumb">
-            <Link to={route.homeone}>Home</Link>
+            <Link to={route.homeone}>{t('nav.home', 'Home')}</Link>
             <span className="sl-cl-hero__breadcrumb-sep">✦</span>
-            <span>Subscription Plans</span>
+            <span>{t('pricing.hero.breadcrumb', 'Subscription Plans')}</span>
           </div>
-          <div className="sl-cl-hero__script">Unlock Your Full Potential</div>
-          <h1 className="sl-cl-hero__title">Choose Your Plan</h1>
+          <div className="sl-cl-hero__script">{t('pricing.hero.script', 'Unlock Your Full Potential')}</div>
+          <h1 className="sl-cl-hero__title">{t('pricing.hero.title', 'Choose Your Plan')}</h1>
           <p className="sl-cl-hero__desc">
-            Every plan gives you unlimited access to courses, your student dashboard,
-            certificates and the community. The Annual plan also unlocks all Masterclasses.
+            {t('pricing.hero.desc', 'Every plan gives you unlimited access to courses, your student dashboard, certificates and the community. The Annual plan also unlocks all Masterclasses.')}
           </p>
 
-          {/* Active subscription banner */}
           {isSubscribed && (
             <div className="sl-pricing__active-banner">
               <i className="isax isax-crown" />
               <span>
-                You are subscribed —&nbsp;
+                {t('pricing.activeSubscription', 'You are subscribed')} —&nbsp;
                 {currentSubscription?.currentPeriodEnd
-                  ? `access until ${new Date(currentSubscription.currentPeriodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+                  ? `${t('pricing.accessUntil', 'access until')} ${new Date(currentSubscription.currentPeriodEnd).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}`
                   : user?.subscriptionEndDate
-                  ? `access until ${new Date(user.subscriptionEndDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
-                  : "currently active"}
+                  ? `${t('pricing.accessUntil', 'access until')} ${new Date(user.subscriptionEndDate).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}`
+                  : t('pricing.currentlyActive', 'currently active')}
               </span>
             </div>
           )}
         </div>
       </section>
 
-      {/* ══ PLAN CARDS ════════════════════════════════════════════════════════ */}
+      {/* ══ PLAN CARDS ══ */}
       <section className="sl-pricing__section">
         <div className="container">
           <div className="sl-pricing__grid" style={{ maxWidth: 820, margin: '0 auto' }}>
@@ -832,18 +805,17 @@ const PricePlanning: React.FC = () => {
             ))}
           </div>
 
-          {/* Not logged in nudge */}
           {!isAuthenticated && (
             <p className="sl-pricing__login-nudge">
-              Already have an account?{" "}
-              <Link to={route.login} className="sl-pricing__login-link">Sign in</Link>
-              {" "}to subscribe instantly.
+              {t('pricing.loginNudge', 'Already have an account?')}{" "}
+              <Link to={route.login} className="sl-pricing__login-link">{t('pricing.signIn', 'Sign in')}</Link>
+              {" "}{t('pricing.toSubscribe', 'to subscribe instantly.')}
             </p>
           )}
         </div>
       </section>
 
-      {/* ══ MASTERCLASS INFO ══════════════════════════════════════════════════ */}
+      {/* ══ MASTERCLASS INFO ══ */}
       <section className="sl-pricing__info-section">
         <div className="container">
           <div className="sl-pricing__info-banner">
@@ -851,33 +823,28 @@ const PricePlanning: React.FC = () => {
               <i className="isax isax-teacher" />
             </div>
             <div>
-              <h4 className="sl-pricing__info-title">About Masterclasses</h4>
+              <h4 className="sl-pricing__info-title">{t('pricing.masterclass.title', 'About Masterclasses')}</h4>
               <p className="sl-pricing__info-desc">
-                Masterclasses are exclusive live or recorded sessions led by world-renowned pastry chefs.
-                They are <strong>fully included in the Annual plan</strong> and can also be purchased
-                <strong> individually</strong> on the Monthly plan.
+                {t('pricing.masterclass.desc1', 'Masterclasses are exclusive live or recorded sessions led by world-renowned pastry chefs. They are')}{" "}
+                <strong>{t('pricing.masterclass.includedInAnnual', 'fully included in the Annual plan')}</strong>{" "}
+                {t('pricing.masterclass.desc2', 'and can also be purchased')}{" "}
+                <strong>{t('pricing.masterclass.individually', 'individually')}</strong>{" "}
+                {t('pricing.masterclass.desc3', 'on the Monthly plan.')}
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ WHY SUBSCRIBE ═════════════════════════════════════════════════════ */}
+      {/* ══ WHY SUBSCRIBE ══ */}
       <section className="sl-pricing__why-section">
         <div className="container">
           <div className="sl-pricing__why-header">
-            <div className="sl-pricing__why-script">Everything Included</div>
-            <h2 className="sl-pricing__why-title">What You Get With Every Plan</h2>
+            <div className="sl-pricing__why-script">{t('pricing.why.script', 'Everything Included')}</div>
+            <h2 className="sl-pricing__why-title">{t('pricing.why.title', 'What You Get With Every Plan')}</h2>
           </div>
           <div className="sl-pricing__why-grid">
-            {[
-              { icon: "isax-video-play",   color: "gold",    title: "All Course Videos",    desc: "Stream every lesson in HD with lifetime progress tracking." },
-              { icon: "isax-award",        color: "burg",    title: "Certificates",         desc: "Earn a SARALÖWE Academy certificate on every completed course." },
-              { icon: "isax-people",       color: "forest",  title: "Community Access",     desc: "Join our private community of cake artists worldwide." },
-              { icon: "isax-message-text", color: "gold",    title: "Instructor Messaging", desc: "Ask questions directly to your instructors inside the platform." },
-              { icon: "isax-chart-2",      color: "burg",    title: "Progress Dashboard",   desc: "Track your learning journey with a beautiful student dashboard." },
-              { icon: "isax-crown",        color: "gold",    title: "Masterclasses*",       desc: "Annual plan includes all masterclasses. Monthly plan: buy individually." },
-            ].map((item, i) => (
+            {WHY_CARDS.map((item, i) => (
               <div key={i} className={`sl-pricing__why-card sl-pricing__why-card--${item.color}`}>
                 <div className="sl-pricing__why-card-icon">
                   <i className={`isax ${item.icon}`} />
@@ -890,12 +857,12 @@ const PricePlanning: React.FC = () => {
         </div>
       </section>
 
-      {/* ══ FAQ ═══════════════════════════════════════════════════════════════ */}
+      {/* ══ FAQ ══ */}
       <section className="sl-pricing__faq-section">
         <div className="container">
           <div className="sl-pricing__faq-header">
-            <div className="sl-pricing__why-script">Got Questions?</div>
-            <h2 className="sl-pricing__why-title">Frequently Asked</h2>
+            <div className="sl-pricing__why-script">{t('pricing.faq.script', 'Got Questions?')}</div>
+            <h2 className="sl-pricing__why-title">{t('pricing.faq.title', 'Frequently Asked')}</h2>
           </div>
           <div className="sl-pricing__faq-list">
             {FAQS.map((faq, i) => (
@@ -917,22 +884,22 @@ const PricePlanning: React.FC = () => {
         </div>
       </section>
 
-      {/* ══ BOTTOM CTA ════════════════════════════════════════════════════════ */}
+      {/* ══ BOTTOM CTA ══ */}
       {!isAuthenticated && (
         <section className="sl-pricing__cta-section">
           <div className="container">
             <div className="sl-pricing__cta-box">
-              <div className="sl-pricing__cta-script">Ready to Begin?</div>
-              <h2 className="sl-pricing__cta-title">Start Your Artisan Journey Today</h2>
+              <div className="sl-pricing__cta-script">{t('pricing.cta.script', 'Ready to Begin?')}</div>
+              <h2 className="sl-pricing__cta-title">{t('pricing.cta.title', 'Start Your Artisan Journey Today')}</h2>
               <p className="sl-pricing__cta-desc">
-                Create your account and choose the plan that fits your learning pace.
+                {t('pricing.cta.desc', 'Create your account and choose the plan that fits your learning pace.')}
               </p>
               <div className="sl-pricing__cta-actions">
                 <Link to={route.register} className="sl-pricing__cta-btn sl-pricing__cta-btn--primary">
-                  Create Account <i className="isax isax-arrow-right-3 ms-2" />
+                  {t('pricing.cta.createAccount', 'Create Account')} <i className="isax isax-arrow-right-3 ms-2" />
                 </Link>
                 <Link to={route.courseList} className="sl-pricing__cta-btn sl-pricing__cta-btn--ghost">
-                  Browse Courses
+                  {t('pricing.cta.browseCourses', 'Browse Courses')}
                 </Link>
               </div>
             </div>
@@ -940,7 +907,7 @@ const PricePlanning: React.FC = () => {
         </section>
       )}
 
-      {/* ══ CONFIRMATION MODAL ════════════════════════════════════════════════ */}
+      {/* ══ CONFIRMATION MODAL ══ */}
       {confirmPlan && (
         <ConfirmModal
           plan={confirmPlan}

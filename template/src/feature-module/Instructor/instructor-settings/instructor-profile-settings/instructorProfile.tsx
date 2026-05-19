@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
+import { useTranslation } from 'react-i18next';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
 import { DatePicker, App } from 'antd';
 import { useAppSelector, useAppDispatch } from '../../../../core/redux/hooks';
@@ -37,6 +38,7 @@ const FormField = ({ label, children, required = true }: { label: string; childr
 );
 
 const InstructorProfileSettings = () => {
+  const { t } = useTranslation();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

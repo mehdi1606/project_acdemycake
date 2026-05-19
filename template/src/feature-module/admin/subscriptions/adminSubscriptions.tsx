@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { adminService } from '../../../services/api/admin.service';
 import { extractApiError } from '../../../services/api/error.utils';
@@ -29,6 +30,7 @@ interface SubscriptionRow {
 }
 
 const AdminSubscriptions: React.FC = () => {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<SubscriptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -67,7 +69,7 @@ const AdminSubscriptions: React.FC = () => {
         {/* Header */}
         <div className="d-flex align-items-center justify-content-between mb-4">
           <div>
-            <h5 className="fw-bold mb-1">Subscriptions</h5>
+            <h5 className="fw-bold mb-1">{t('admin.subscriptions.title', 'Subscriptions')}</h5>
             <p className="text-muted fs-13 mb-0">
               {totalElements} total subscription{totalElements !== 1 ? 's' : ''}
             </p>
@@ -84,7 +86,7 @@ const AdminSubscriptions: React.FC = () => {
               className={`btn btn-sm ${statusFilter === s ? 'btn-dark' : 'btn-outline-secondary'}`}
               onClick={() => handleStatus(s)}
             >
-              {s || 'All'}
+              {s || t('common.all', 'All')}
             </button>
           ))}
         </div>
@@ -96,12 +98,12 @@ const AdminSubscriptions: React.FC = () => {
               <table className="table table-hover mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-4 py-3">User</th>
-                    <th>Plan</th>
-                    <th>Status</th>
-                    <th>Start</th>
-                    <th>Expires</th>
-                    <th className="pe-4">Amount</th>
+                    <th className="ps-4 py-3">{t('admin.subscriptions.user', 'User')}</th>
+                    <th>{t('admin.subscriptions.plan', 'Plan')}</th>
+                    <th>{t('admin.subscriptions.status', 'Status')}</th>
+                    <th>{t('admin.subscriptions.startDate', 'Start')}</th>
+                    <th>{t('admin.subscriptions.endDate', 'Expires')}</th>
+                    <th className="pe-4">{t('admin.subscriptions.amount', 'Amount')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -113,7 +115,7 @@ const AdminSubscriptions: React.FC = () => {
                     </tr>
                   ) : rows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-5 text-muted">No subscriptions found.</td>
+                      <td colSpan={6} className="text-center py-5 text-muted">{t('admin.subscriptions.noSubscriptions', 'No subscriptions found.')}</td>
                     </tr>
                   ) : (
                     rows.map((r) => (
@@ -151,10 +153,10 @@ const AdminSubscriptions: React.FC = () => {
             <p className="text-muted fs-13 mb-0">Page {page + 1} of {totalPages}</p>
             <div className="d-flex gap-2">
               <button className="btn btn-outline-secondary btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
-                Previous
+                {t('common.previous', 'Previous')}
               </button>
               <button className="btn btn-outline-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
-                Next
+                {t('common.next', 'Next')}
               </button>
             </div>
           </div>

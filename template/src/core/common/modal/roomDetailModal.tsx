@@ -1,9 +1,11 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import Slider from "react-slick";
 import ImageWithBasePath from '../imageWithBasePath';
 import { Link } from 'react-router-dom';
 
 const RoomDetailModal = () => {
+  const { t } = useTranslation()
     const CustomNextArrow = ({ className, onClick }: any) => (
         <div className="owl-nav">
         <button type="button" role="presentation" className="owl-next"  onClick={onClick}>

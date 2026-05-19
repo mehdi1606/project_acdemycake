@@ -1,10 +1,12 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import ImageWithBasePath from '../../../../core/common/imageWithBasePath';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const Institutions = () => {
+    const { t } = useTranslation()
 
     //institutions_slider Slider
     const institutions_slider = {
@@ -51,9 +53,9 @@ const Institutions = () => {
             <section className="client-section">
                 <div className="container">
                     <h6 className="fw-medium text-center mb-4">
-                        Trusted by{" "}
+                        {t('institutions.trustedBy', 'Trusted by')}{" "}
                         <span className="text-decoration-underline text-secondary">20+</span>{" "}
-                        Institutions Around the World
+                        {t('institutions.institutionsAround', 'Institutions Around the World')}
                     </h6>
                         <Slider {...institutions_slider} className='institutions-slider lazy slider'>
                         <div className="institutions-items p-1">

@@ -52,6 +52,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> searchUsers(@Param("search") String search, Pageable pageable);
 
+    @Query("SELECT u FROM User u WHERE u.role = :role AND " +
+            "(LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<User> searchUsersByRole(@Param("role") UserRole role, @Param("search") String search, Pageable pageable);
+
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
     long countByRole(@Param("role") UserRole role);
 

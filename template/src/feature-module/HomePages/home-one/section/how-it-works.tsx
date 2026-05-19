@@ -1,36 +1,38 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
-
-const steps = [
-    {
-        num: '01',
-        icon: 'isax isax-user-add',
-        title: 'Create Your Account',
-        text: 'Sign up in under a minute. Choose the plan that suits you and unlock instant access to our full course library.',
-    },
-    {
-        num: '02',
-        icon: 'isax isax-book-1',
-        title: 'Choose Your Programme',
-        text: 'Browse disciplines — from sculpted fondant to sugar flowers and isomalt art. Filter by level, duration, or instructor.',
-    },
-    {
-        num: '03',
-        icon: 'isax isax-video-play',
-        title: 'Learn & Create',
-        text: 'Follow step-by-step video lessons, download technique sheets, and submit your creations for expert feedback.',
-    },
-    {
-        num: '04',
-        icon: 'isax isax-medal-star',
-        title: 'Earn Your Certificate',
-        text: 'Complete all modules and assessments to receive your industry-recognised SARALÖWE Academy certificate.',
-    },
-]
+import { useTranslation } from 'react-i18next'
 
 const Howitworks = () => {
+    const { t } = useTranslation()
     const route = all_routes
+
+    const steps = [
+        {
+            num: '01',
+            icon: 'isax isax-user-add',
+            title: t('home.howItWorks.step1.title', 'Create Your Account'),
+            text: t('home.howItWorks.step1.text', 'Sign up in under a minute. Choose the plan that suits you and unlock instant access to our full course library.'),
+        },
+        {
+            num: '02',
+            icon: 'isax isax-book-1',
+            title: t('home.howItWorks.step2.title', 'Choose Your Programme'),
+            text: t('home.howItWorks.step2.text', 'Browse disciplines — from sculpted fondant to sugar flowers and isomalt art. Filter by level, duration, or instructor.'),
+        },
+        {
+            num: '03',
+            icon: 'isax isax-video-play',
+            title: t('home.howItWorks.step3.title', 'Learn & Create'),
+            text: t('home.howItWorks.step3.text', 'Follow step-by-step video lessons, download technique sheets, and submit your creations for expert feedback.'),
+        },
+        {
+            num: '04',
+            icon: 'isax isax-medal-star',
+            title: t('home.howItWorks.step4.title', 'Earn Your Certificate'),
+            text: t('home.howItWorks.step4.text', 'Complete all modules and assessments to receive your industry-recognised SARALÖWE Academy certificate.'),
+        },
+    ]
     return (
         <section className="sl-section sl-process">
             <div className="container">
@@ -48,12 +50,12 @@ const Howitworks = () => {
                                     className="sl-script"
                                     style={{ fontSize: '1.8rem', color: 'var(--sl-gold)' }}
                                 >
-                                    Your journey
+                                    {t('home.howItWorks.ornament', 'Your journey')}
                                 </span>
                             </div>
-                            <h2 className="light" style={{ marginTop: '0.5rem' }}>From Curious to Couture</h2>
+                            <h2 className="light" style={{ marginTop: '0.5rem' }}>{t('home.howItWorks.title', 'From Curious to Couture')}</h2>
                             <p className="light">
-                                Four simple steps stand between you and a world-class cake design education.
+                                {t('home.howItWorks.subtitle', 'Four simple steps stand between you and a world-class cake design education.')}
                             </p>
                         </div>
 
@@ -124,7 +126,7 @@ const Howitworks = () => {
                             data-aos-duration="700"
                         >
                             <Link to={route.register} className="sl-btn-gold">
-                                Start Learning Today <i className="isax isax-arrow-right-1" />
+                                {t('home.howItWorks.cta', 'Start Learning Today')} <i className="isax isax-arrow-right-1" />
                             </Link>
                         </div>
                     </div>
@@ -159,7 +161,7 @@ const Howitworks = () => {
                             {/* Primary: storefront */}
                             <img
                                 src={`${process.env.PUBLIC_URL}/assets/img/Mockups/003.jpg`}
-                                alt="SARALÖWE Academy — Couture Pastry"
+                                alt={t('home.howItWorks.imageAlt', 'SARALÖWE Academy — Couture Pastry')}
                                 style={{
                                     width: '100%',
                                     display: 'block',

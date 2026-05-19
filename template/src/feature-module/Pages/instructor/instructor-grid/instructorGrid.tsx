@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Breadcrumb from "../../../../core/common/Breadcrumb/breadcrumb";
 import { Link } from "react-router-dom";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
@@ -6,6 +7,7 @@ import { Slider, SliderSingleProps } from "antd";
 import { all_routes } from "../../../router/all_routes";
 
 const InstructorGrid = () => {
+  const { t } = useTranslation()
   const formatter: NonNullable<SliderSingleProps["tooltip"]>["formatter"] = (
     value
   ) => `$${value}`;

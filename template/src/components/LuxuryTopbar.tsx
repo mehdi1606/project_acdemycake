@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n/i18n';
+import ReactCountryFlag from 'react-country-flag';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../core/redux/hooks';
 import { logout } from '../core/redux/authSlice';
 import { all_routes } from '../feature-module/router/all_routes';
-import ImageWithBasePath from '../core/common/imageWithBasePath';
+
 import { getFileUrl } from '../environment';
 import { notificationService } from '../services/api/notification.service';
 import { Notification } from '../services/api/types';
@@ -55,6 +58,7 @@ function notifColor(type: string): string {
 }
 
 const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
+  const { t } = useTranslation()
   const [dropdownOpen,   setDropdownOpen]   = useState(false);
   const [notifOpen,      setNotifOpen]      = useState(false);
   const [searchFocused,  setSearchFocused]  = useState(false);
@@ -132,7 +136,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
     navigate(all_routes.homeone);
   };
 
-  const handleMarkAsRead = async (notif: Notification) => {
+  const _handleMarkAsRead = async (notif: Notification) => {
     if (notif.isRead) return;
     try {
       await notificationService.markAsRead(notif.id);
@@ -275,9 +279,14 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   };
 
   const getRoleLabel = () => {
-    if (user?.role === 'ADMIN')      return 'Admin';
-    if (user?.role === 'INSTRUCTOR') return 'Instructor';
-    return 'Student';
+    if (user?.role === 'ADMIN')      return t('common.admin', 'Admin');
+    if (user?.role === 'INSTRUCTOR') return t('common.instructor', 'Instructor');
+    return t('common.student', 'Student');
+  };
+
+  const toggleLanguage = () => {
+    const next = i18n.language === 'ar' ? 'en' : 'ar';
+    i18n.changeLanguage(next);
   };
 
   const roleColor = getRoleColor();
@@ -286,7 +295,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
     <header className="luxury-topbar">
       {/* ── Left: sidebar toggle + logo ── */}
       <div className="topbar-left">
-        <button className="topbar-menu-btn" onClick={onSidebarToggle} title="Toggle sidebar">
+        <button className="topbar-menu-btn" onClick={onSidebarToggle} title={t('nav.toggleSidebar', 'Toggle sidebar')}>
           <i className="isax isax-menu" />
         </button>
 
@@ -306,7 +315,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         <i className="isax isax-search-normal-1" />
         <input
           type="text"
-          placeholder="Search courses, quizzes, students…"
+          placeholder={t('topbar.searchPlaceholder', 'Search courses, quizzes, students…')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setSearchFocused(true)}
@@ -317,11 +326,25 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
       {/* ── Right: actions + profile ── */}
       <div className="topbar-right">
 
+        {/* ── Language switcher ── */}
+        <button
+          className="topbar-action-btn"
+          onClick={toggleLanguage}
+          title={i18n.language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
+          style={{ padding: '4px 6px', display: 'flex', alignItems: 'center' }}
+        >
+          <ReactCountryFlag
+            countryCode={i18n.language === 'ar' ? 'SA' : 'GB'}
+            svg
+            style={{ width: 24, height: 16, borderRadius: 3, objectFit: 'cover', boxShadow: '0 1px 4px rgba(0,0,0,0.22)', display: 'block' }}
+          />
+        </button>
+
         {/* ── Notification bell ── */}
         <div style={{ position: 'relative' }} ref={notifRef}>
           <button
             className="topbar-action-btn"
-            title="Notifications"
+            title={t('notifications.title', 'Notifications')}
             onClick={() => setNotifOpen((o) => !o)}
             style={{ position: 'relative' }}
           >
@@ -353,7 +376,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <h6 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1a1a2e' }}>
-                    Notifications
+                    {t('notifications.title', 'Notifications')}
                   </h6>
                   {unreadCount > 0 && (
                     <span style={{
@@ -361,7 +384,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                       fontSize: 11, fontWeight: 700,
                       padding: '2px 7px', borderRadius: 10,
                     }}>
-                      {unreadCount} new
+                      {unreadCount} {t('notifications.new', 'new')}
                     </span>
                   )}
                 </div>
@@ -375,7 +398,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                       padding: '4px 8px', borderRadius: 6,
                     }}
                   >
-                    {markingAll ? 'Marking…' : 'Mark all read'}
+                    {markingAll ? t('notifications.marking', 'Marking…') : t('notifications.markAllRead', 'Mark All as Read')}
                   </button>
                 )}
               </div>
@@ -401,7 +424,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                       <i className="isax isax-notification-bing" style={{ fontSize: 24, color: 'rgba(107, 29, 42, 0.35)' }} />
                     </div>
                     <p style={{ margin: 0, fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>
-                      No notifications yet
+                      {t('notifications.noNotifications', 'No notifications yet')}
                     </p>
                   </div>
                 ) : (
@@ -482,7 +505,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                             color: '#9ca3af', fontSize: 14,
                           }}
                           className="notif-delete-btn"
-                          title="Dismiss"
+                          title={t('common.dismiss', 'Dismiss')}
                         >
                           <i className="isax isax-close-circle" />
                         </button>
@@ -509,7 +532,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                       fontSize: 12, fontWeight: 600, color: '#6B1D2A',
                     }}
                   >
-                    Refresh
+                    {t('common.refresh', 'Refresh')}
                   </button>
                 </div>
               )}
@@ -522,12 +545,12 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
           user?.subscriptionStatus === 'ACTIVE' ? (
             <span className="premium-badge">
               <i className="isax isax-crown-1" />
-              Premium
+              {t('nav.premium', 'Premium')}
             </span>
           ) : (
             <Link to={all_routes.pricingPlan} className="upgrade-btn">
               <i className="isax isax-crown-1" />
-              Upgrade
+              {t('nav.getPremium', 'Upgrade')}
             </Link>
           )
         )}
@@ -608,7 +631,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                   onClick={() => setDropdownOpen(false)}
                 >
                   <i className="isax isax-category" />
-                  Dashboard
+                  {t('nav.dashboard', 'Dashboard')}
                 </Link>
                 <Link
                   to={getProfileRoute()}
@@ -616,7 +639,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                   onClick={() => setDropdownOpen(false)}
                 >
                   <i className="isax isax-user" />
-                  {user?.role === 'ADMIN' ? 'Admin Profile' : 'My Profile'}
+                  {user?.role === 'ADMIN' ? t('nav.adminProfile', 'Admin Profile') : t('nav.myProfile', 'My Profile')}
                 </Link>
                 <Link
                   to={getSettingsRoute()}
@@ -624,7 +647,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                   onClick={() => setDropdownOpen(false)}
                 >
                   <i className="isax isax-setting-2" />
-                  Settings
+                  {t('nav.settings', 'Settings')}
                 </Link>
 
                 {/* Admin extras */}
@@ -636,7 +659,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                       onClick={() => setDropdownOpen(false)}
                     >
                       <i className="isax isax-people" />
-                      Manage Users
+                      {t('nav.manageUsers', 'Manage Users')}
                     </Link>
                     <Link
                       to={all_routes.adminCourses}
@@ -644,7 +667,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                       onClick={() => setDropdownOpen(false)}
                     >
                       <i className="isax isax-book" />
-                      Manage Courses
+                      {t('nav.manageCourses', 'Manage Courses')}
                     </Link>
                   </>
                 )}
@@ -654,7 +677,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
 
               <button className="dropdown-item logout-item" onClick={handleLogout}>
                 <i className="isax isax-logout" />
-                Sign Out
+                {t('nav.logout', 'Sign Out')}
               </button>
             </div>
           )}

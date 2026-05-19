@@ -2,9 +2,10 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ImageWithBasePath from '../imageWithBasePath'
 import { all_routes } from '../../../feature-module/router/all_routes'
+import { useTranslation } from 'react-i18next'
 
 const Footer = () => {
-
+  const { t } = useTranslation();
   return (
 <>
   {/* Footer */}

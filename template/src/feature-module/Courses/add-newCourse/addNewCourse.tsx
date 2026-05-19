@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
-import CustomSelect from '../../../core/common/commonSelect';
+
 import { CourseLevel, Language } from '../../../core/common/selectOption/json/selectOption';
 import DefaultEditor from "react-simple-wysiwyg";
 import VideoModal from '../../HomePages/home-one/section/videoModal';
 import { all_routes } from '../../router/all_routes';
-import ImageWithBasePath from '../../../core/common/imageWithBasePath';
+
 import { Chips, ChipsChangeEvent } from "primereact/chips";
 import { message, Modal, Spin } from 'antd';
 import { courseService } from '../../../services/api/course.service';
@@ -46,6 +47,7 @@ interface CourseFormData {
 }
 
 const AddNewCourse = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate();
   const route = all_routes
   const [value1, setValue1] = useState<any>([]);
@@ -330,19 +332,19 @@ const AddNewCourse = () => {
   };
 
   const handleRemoveTopic = (topicId: string) => {
-    setCurriculum(prev => prev.filter(t => t.id !== topicId));
+    setCurriculum(prev => prev.filter(topic => topic.id !== topicId));
   };
 
   const handleAddLesson = () => {
     if (!newLessonName.trim() || !activeLessonTopicId) return;
     const newLesson: Lesson = { id: `lesson-${Date.now()}`, name: newLessonName.trim(), isPreview: newLessonIsPreview };
-    setCurriculum(prev => prev.map(t => t.id === activeLessonTopicId ? { ...t, lessons: [...t.lessons, newLesson] } : t));
+    setCurriculum(prev => prev.map(topic => topic.id === activeLessonTopicId ? { ...topic, lessons: [...topic.lessons, newLesson] } : topic));
     setNewLessonName('');
     setNewLessonIsPreview(false);
   };
 
   const handleRemoveLesson = (topicId: string, lessonId: string) => {
-    setCurriculum(prev => prev.map(t => t.id === topicId ? { ...t, lessons: t.lessons.filter(l => l.id !== lessonId) } : t));
+    setCurriculum(prev => prev.map(topic => topic.id === topicId ? { ...topic, lessons: topic.lessons.filter(l => l.id !== lessonId) } : topic));
   };
 
   const handleAddFaq = () => {
@@ -366,7 +368,7 @@ const AddNewCourse = () => {
   };
 
   const [showModal, setShowModal] = useState(false);
-  const videoUrl = 'https://www.youtube.com/embed/1trvO6dqQUI';
+  const _videoUrl = 'https://www.youtube.com/embed/1trvO6dqQUI';
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false)

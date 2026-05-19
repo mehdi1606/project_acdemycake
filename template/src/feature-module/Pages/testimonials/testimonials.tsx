@@ -1,10 +1,12 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import Breadcrumb from "../../../core/common/Breadcrumb/breadcrumb";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 
 const Testimonials = () => {
+  const { t } = useTranslation()
 
     const route = all_routes
 

@@ -3,6 +3,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link, useSearchParams } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { InputNumber, message, Popconfirm, Switch } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { instructorService } from '../../../services/api/instructor.service';
 import { quizService } from '../../../services/api/quiz.service';
 import { Course, Quiz, CreateQuizRequest } from '../../../services/api/types';
@@ -45,6 +46,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const InstructorQuiz: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlLessonId = searchParams.get('lessonId') ?? undefined;
   const urlCourseId = searchParams.get('courseId') ?? undefined;
@@ -274,7 +276,7 @@ const InstructorQuiz: React.FC = () => {
             }}>
               <i className="isax isax-award" style={{ color: '#1a6e1a', fontSize: 20 }} />
               <div style={{ flex: 1 }}>
-                <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>Linked Quiz: {linkedQuiz.title}</strong>
+                <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>{t('instructor.quiz.linkedQuiz', 'Linked Quiz')}: {linkedQuiz.title}</strong>
                 <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 12 }}>
                   {linkedQuiz.questionCount ?? 0} questions · {linkedQuiz.duration ?? 0} min · Pass at {linkedQuiz.passingScore ?? 70}% ·{' '}
                   <span style={{ color: linkedQuiz.status === 'PUBLISHED' ? '#1a6e1a' : '#C5973E', fontWeight: 600 }}>{linkedQuiz.status}</span>
@@ -300,7 +302,7 @@ const InstructorQuiz: React.FC = () => {
                   setShowQuizBuilder(true);
                 }}
               >
-                <i className="isax isax-edit-2" style={{ marginRight: 4 }} /> Edit Quiz
+                <i className="isax isax-edit-2" style={{ marginRight: 4 }} /> {t('instructor.quiz.editQuiz', 'Edit Quiz')}
               </button>
             </div>
           )}
@@ -314,9 +316,9 @@ const InstructorQuiz: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: showLinkPanel ? 14 : 0, flexWrap: 'wrap' }}>
                 <i className="isax isax-link" style={{ color: '#C5973E', fontSize: 18 }} />
                 <div style={{ flex: 1 }}>
-                  <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>No quiz linked to this lesson yet</strong>
+                  <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>{t('instructor.quiz.noLinkedQuiz', 'No quiz linked to this lesson yet')}</strong>
                   <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 12 }}>
-                    Create a new quiz below, or link one of your existing quizzes to this lesson.
+                    {t('instructor.quiz.noLinkedQuizSubtitle', 'Create a new quiz below, or link one of your existing quizzes to this lesson.')}
                   </p>
                 </div>
                 <button
@@ -325,7 +327,7 @@ const InstructorQuiz: React.FC = () => {
                   onClick={() => setShowLinkPanel((v) => !v)}
                 >
                   <i className={`isax ${showLinkPanel ? 'isax-minus-cirlce' : 'isax-link'}`} style={{ marginRight: 4 }} />
-                  {showLinkPanel ? 'Cancel' : 'Link Existing Quiz'}
+                  {showLinkPanel ? t('common.cancel', 'Cancel') : t('instructor.quiz.linkExistingQuiz', 'Link Existing Quiz')}
                 </button>
               </div>
 
@@ -340,7 +342,7 @@ const InstructorQuiz: React.FC = () => {
                       fontSize: 13, background: 'rgba(255,255,255,0.7)', color: 'var(--lx-text)', outline: 'none',
                     }}
                   >
-                    <option value="">— Select a quiz to link —</option>
+                    <option value="">— {t('instructor.quiz.selectQuizToLink', 'Select a quiz to link')} —</option>
                     {quizzes
                       .filter((q) => !q.lessonId) // only show unlinked quizzes
                       .map((q) => (
@@ -359,7 +361,7 @@ const InstructorQuiz: React.FC = () => {
                     ) : (
                       <i className="isax isax-link" />
                     )}
-                    Link Quiz
+                    {t('instructor.quiz.linkQuiz', 'Link Quiz')}
                   </button>
                 </div>
               )}
@@ -368,19 +370,19 @@ const InstructorQuiz: React.FC = () => {
 
           {/* Quiz List */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-            <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>My Quizzes</h5>
+            <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{t('instructor.quiz.myQuizzes', 'My Quizzes')}</h5>
             <button className="lx-btn lx-btn-gold" onClick={() => {
               setQuizForm({ ...emptyQuizForm, courseId: urlCourseId ?? '', lessonId: urlLessonId });
               setShowQuizBuilder(true);
             }} disabled={!loadingCourses && courses.length === 0}>
-              <i className="isax isax-add-circle" style={{ marginRight: 6 }} /> Create New Quiz
+              <i className="isax isax-add-circle" style={{ marginRight: 6 }} /> {t('instructor.quiz.createNewQuiz', 'Create New Quiz')}
             </button>
           </div>
 
           {loadingQuizzes ? (
             <div style={{ textAlign: 'center', padding: '48px 0' }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
-              <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading quizzes...</p>
+              <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('instructor.quiz.loadingQuizzes', 'Loading quizzes...')}</p>
             </div>
           ) : quizzes.length === 0 ? (
             <div className="lx-card">
@@ -388,10 +390,10 @@ const InstructorQuiz: React.FC = () => {
                 <span className="empty-icon" style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <i className="isax isax-message-question" style={{ fontSize: 24, color: 'var(--lx-text-muted)' }} />
                 </span>
-                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>No Quizzes Yet</h5>
-                <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, margin: 0 }}>Create your first quiz to test your students.</p>
+                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>{t('instructor.quiz.noQuizzes', 'No Quizzes Yet')}</h5>
+                <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, margin: 0 }}>{t('instructor.quiz.noQuizzesSubtitle', 'Create your first quiz to test your students.')}</p>
                 {!loadingCourses && courses.length === 0 && (
-                  <p style={{ color: '#C5973E', marginTop: 12, fontSize: 13 }}>You need to create a course first.</p>
+                  <p style={{ color: '#C5973E', marginTop: 12, fontSize: 13 }}>{t('instructor.quiz.needCourseFirst', 'You need to create a course first.')}</p>
                 )}
               </div>
             </div>
@@ -429,14 +431,14 @@ const InstructorQuiz: React.FC = () => {
                         {publishingId === quiz.id
                           ? <i className="isax isax-refresh" style={{ animation: 'spin 1s linear infinite' }} />
                           : quiz.status === 'PUBLISHED'
-                            ? <><i className="isax isax-eye-slash" style={{ marginRight: 4 }} />Unpublish</>
-                            : <><i className="isax isax-send-2" style={{ marginRight: 4 }} />Publish</>
+                            ? <><i className="isax isax-eye-slash" style={{ marginRight: 4 }} />{t('common.unpublish', 'Unpublish')}</>
+                            : <><i className="isax isax-send-2" style={{ marginRight: 4 }} />{t('common.publish', 'Publish')}</>
                         }
                       </button>
                       <Link to={`${all_routes.instructorQuizResult}?quizId=${quiz.id}`} className="lx-btn lx-btn-outline lx-btn-sm">
-                        <i className="isax isax-chart" style={{ marginRight: 4 }} /> Results
+                        <i className="isax isax-chart" style={{ marginRight: 4 }} /> {t('instructor.quiz.results', 'Results')}
                       </Link>
-                      <Popconfirm title="Delete Quiz" description="Are you sure? This cannot be undone." okText="Yes" cancelText="Cancel" okButtonProps={{ danger: true }} onConfirm={() => handleDeleteQuiz(quiz.id)}>
+                      <Popconfirm title={t('instructor.quiz.deleteQuiz', 'Delete Quiz')} description={t('instructor.quiz.deleteConfirm', 'Are you sure? This cannot be undone.')} okText={t('common.yes', 'Yes')} cancelText={t('common.cancel', 'Cancel')} okButtonProps={{ danger: true }} onConfirm={() => handleDeleteQuiz(quiz.id)}>
                         <button className="lx-btn lx-btn-sm" style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}>
                           <i className="isax isax-trash" />
                         </button>
@@ -453,11 +455,11 @@ const InstructorQuiz: React.FC = () => {
           {/* Quiz Builder */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>Create New Quiz</h5>
-              <small style={{ color: 'var(--lx-text-muted)' }}>Step {currentStep}/4 — {stepTitle(currentStep)}</small>
+              <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{t('instructor.quiz.createNewQuiz', 'Create New Quiz')}</h5>
+              <small style={{ color: 'var(--lx-text-muted)' }}>{t('instructor.quiz.step', 'Step')} {currentStep}/4 — {stepTitle(currentStep)}</small>
             </div>
             <button className="lx-btn lx-btn-outline" onClick={() => { setShowQuizBuilder(false); setCurrentStep(1); setQuizForm(emptyQuizForm); resetCurrentQuestion(); }}>
-              <i className="isax isax-close-circle" style={{ marginRight: 4 }} /> Cancel
+              <i className="isax isax-close-circle" style={{ marginRight: 4 }} /> {t('common.cancel', 'Cancel')}
             </button>
           </div>
 
@@ -467,10 +469,10 @@ const InstructorQuiz: React.FC = () => {
           {currentStep === 1 && (
             <div className="lx-card">
               <div className="lx-card-body">
-                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 24 }}>Quiz Basic Information</h5>
+                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 24 }}>{t('instructor.quiz.basicInfo', 'Quiz Basic Information')}</h5>
 
                 <div style={{ marginBottom: 16 }}>
-                  <label style={labelStyle}>Select Course <span style={{ color: '#8B2335' }}>*</span></label>
+                  <label style={labelStyle}>{t('instructor.quiz.selectCourse', 'Select Course')} <span style={{ color: '#8B2335' }}>*</span></label>
                   {urlLessonId && urlCourseId ? (
                     // Locked to the course from the lesson link
                     <div style={{ ...inputStyle, color: 'var(--lx-text-muted)', display: 'flex', alignItems: 'center', gap: 8, cursor: 'not-allowed', opacity: 0.8 }}>
@@ -480,13 +482,13 @@ const InstructorQuiz: React.FC = () => {
                   ) : loadingCourses ? (
                     <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--lx-text-muted)' }}>
                       <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                      Loading courses…
+                      {t('common.loadingCourses', 'Loading courses…')}
                     </div>
                   ) : coursesError ? (
                     <div style={{ padding: '8px 12px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139, 35, 53, 0.06)', border: '1px solid rgba(139, 35, 53, 0.12)', color: '#8B2335', fontSize: 13 }}>{coursesError}</div>
                   ) : (
                     <select style={{ ...inputStyle, cursor: 'pointer' }} value={quizForm.courseId} onChange={(e) => handleFormChange('courseId', e.target.value)}>
-                      <option value="">— Select a course —</option>
+                      <option value="">— {t('instructor.quiz.selectCoursePrompt', 'Select a course')} —</option>
                       {courses.map((course: Course) => (
                         <option key={course.id} value={course.id}>
                           {course.title}{course.status !== 'PUBLISHED' ? ` (${String(course.status).replace('_', ' ')})` : ''}
@@ -495,42 +497,42 @@ const InstructorQuiz: React.FC = () => {
                     </select>
                   )}
                   {!loadingCourses && !coursesError && courses.length === 0 && (
-                    <p style={{ margin: '8px 0 0', fontSize: 12, color: '#C5973E' }}>You have no courses yet. Create a course first.</p>
+                    <p style={{ margin: '8px 0 0', fontSize: 12, color: '#C5973E' }}>{t('instructor.quiz.noCoursesYet', 'You have no courses yet. Create a course first.')}</p>
                   )}
                   {urlLessonId && (
                     <p style={{ margin: '6px 0 0', fontSize: 11, color: '#C5973E' }}>
                       <i className="isax isax-award" style={{ marginRight: 4 }} />
-                      This quiz will be linked to the lesson automatically.
+                      {t('instructor.quiz.linkedToLesson', 'This quiz will be linked to the lesson automatically.')}
                     </p>
                   )}
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                  <label style={labelStyle}>Quiz Title <span style={{ color: '#8B2335' }}>*</span></label>
-                  <input style={{ ...inputStyle, borderColor: quizForm.title && quizForm.title.length < 5 ? '#8B2335' : undefined }} value={quizForm.title} onChange={(e) => handleFormChange('title', e.target.value)} placeholder="Enter quiz title (min 5 characters)" />
-                  {quizForm.title && quizForm.title.length < 5 && <small style={{ color: '#8B2335', fontSize: 12 }}>Title must be at least 5 characters.</small>}
+                  <label style={labelStyle}>{t('instructor.quiz.quizTitle', 'Quiz Title')} <span style={{ color: '#8B2335' }}>*</span></label>
+                  <input style={{ ...inputStyle, borderColor: quizForm.title && quizForm.title.length < 5 ? '#8B2335' : undefined }} value={quizForm.title} onChange={(e) => handleFormChange('title', e.target.value)} placeholder={t('instructor.quiz.quizTitlePlaceholder', 'Enter quiz title (min 5 characters)')} />
+                  {quizForm.title && quizForm.title.length < 5 && <small style={{ color: '#8B2335', fontSize: 12 }}>{t('instructor.quiz.titleTooShort', 'Title must be at least 5 characters.')}</small>}
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                  <label style={labelStyle}>Description</label>
-                  <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={3} value={quizForm.description} onChange={(e) => handleFormChange('description', e.target.value)} placeholder="Describe what this quiz covers..." />
+                  <label style={labelStyle}>{t('common.description', 'Description')}</label>
+                  <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={3} value={quizForm.description} onChange={(e) => handleFormChange('description', e.target.value)} placeholder={t('instructor.quiz.descriptionPlaceholder', 'Describe what this quiz covers...')} />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                   <div>
-                    <label style={labelStyle}>Duration (minutes) <span style={{ color: '#8B2335' }}>*</span></label>
+                    <label style={labelStyle}>{t('instructor.quiz.duration', 'Duration (minutes)')} <span style={{ color: '#8B2335' }}>*</span></label>
                     <InputNumber style={{ width: '100%' }} min={1} max={180} value={quizForm.duration} onChange={(v) => handleFormChange('duration', (v || 30) as number)} />
                   </div>
                   <div>
-                    <label style={labelStyle}>Passing Score (%) <span style={{ color: '#8B2335' }}>*</span></label>
+                    <label style={labelStyle}>{t('instructor.quiz.passingScore', 'Passing Score (%)')} <span style={{ color: '#8B2335' }}>*</span></label>
                     <InputNumber style={{ width: '100%' }} min={1} max={100} value={quizForm.passingScore} onChange={(v) => handleFormChange('passingScore', (v || 70) as number)} />
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
-                  <button className="lx-btn lx-btn-outline" onClick={() => setShowQuizBuilder(false)}>Cancel</button>
+                  <button className="lx-btn lx-btn-outline" onClick={() => setShowQuizBuilder(false)}>{t('common.cancel', 'Cancel')}</button>
                   <button className="lx-btn lx-btn-gold" disabled={!isStep1Valid} onClick={() => setCurrentStep(2)}>
-                    Next: Questions <i className="isax isax-arrow-right-3" style={{ marginLeft: 4 }} />
+                    {t('instructor.quiz.nextQuestions', 'Next: Questions')} <i className="isax isax-arrow-right-3" style={{ marginLeft: 4 }} />
                   </button>
                 </div>
               </div>
@@ -543,36 +545,36 @@ const InstructorQuiz: React.FC = () => {
               {/* Question Editor */}
               <div className="lx-card">
                 <div className="lx-card-header">
-                  <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{editingQuestionId ? 'Edit Question' : 'Add New Question'}</h5>
+                  <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{editingQuestionId ? t('instructor.quiz.editQuestion', 'Edit Question') : t('instructor.quiz.addNewQuestion', 'Add New Question')}</h5>
                 </div>
                 <div className="lx-card-body">
                   <div style={{ marginBottom: 16 }}>
-                    <label style={labelStyle}>Question Type</label>
+                    <label style={labelStyle}>{t('instructor.quiz.questionType', 'Question Type')}</label>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {[
-                        { key: 'multiple_choice' as QuestionType, label: 'Multiple Choice' },
-                        { key: 'multiple_select' as QuestionType, label: 'Multiple Select' },
-                        { key: 'true_false' as QuestionType, label: 'True / False' },
-                      ].map((t) => (
-                        <button key={t.key} type="button" className={`lx-btn lx-btn-sm ${currentQuestion.type === t.key ? 'lx-btn-gold' : 'lx-btn-outline'}`} onClick={() => handleQuestionTypeChange(t.key)}>
-                          {t.label}
+                        { key: 'multiple_choice' as QuestionType, label: t('instructor.quiz.multipleChoice', 'Multiple Choice') },
+                        { key: 'multiple_select' as QuestionType, label: t('instructor.quiz.multipleSelect', 'Multiple Select') },
+                        { key: 'true_false' as QuestionType, label: t('instructor.quiz.trueFalse', 'True / False') },
+                      ].map((qt) => (
+                        <button key={qt.key} type="button" className={`lx-btn lx-btn-sm ${currentQuestion.type === qt.key ? 'lx-btn-gold' : 'lx-btn-outline'}`} onClick={() => handleQuestionTypeChange(qt.key)}>
+                          {qt.label}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <label style={labelStyle}>Question <span style={{ color: '#8B2335' }}>*</span></label>
-                    <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={3} value={currentQuestion.text} onChange={(e) => setCurrentQuestion((prev) => ({ ...prev, text: e.target.value }))} placeholder="Enter your question..." />
+                    <label style={labelStyle}>{t('instructor.quiz.question', 'Question')} <span style={{ color: '#8B2335' }}>*</span></label>
+                    <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={3} value={currentQuestion.text} onChange={(e) => setCurrentQuestion((prev) => ({ ...prev, text: e.target.value }))} placeholder={t('instructor.quiz.questionPlaceholder', 'Enter your question...')} />
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <label style={labelStyle}>Points</label>
+                    <label style={labelStyle}>{t('instructor.quiz.points', 'Points')}</label>
                     <InputNumber style={{ width: 120 }} min={1} max={100} value={currentQuestion.points} onChange={(v) => setCurrentQuestion((prev) => ({ ...prev, points: (v || 1) as number }))} />
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <label style={labelStyle}>Answer Options <span style={{ color: '#8B2335' }}>*</span></label>
+                    <label style={labelStyle}>{t('instructor.quiz.answerOptions', 'Answer Options')} <span style={{ color: '#8B2335' }}>*</span></label>
                     {currentQuestion.options.map((option, idx) => (
                       <div key={option.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         <span style={{ fontWeight: 700, width: 24, color: 'var(--lx-text-mid)' }}>{String.fromCharCode(65 + idx)}.</span>
@@ -594,21 +596,21 @@ const InstructorQuiz: React.FC = () => {
                     ))}
                     {currentQuestion.type !== 'true_false' && currentQuestion.options.length < 6 && (
                       <button className="lx-btn lx-btn-outline lx-btn-sm" type="button" onClick={addOption}>
-                        <i className="isax isax-add" style={{ marginRight: 4 }} /> Add Option
+                        <i className="isax isax-add" style={{ marginRight: 4 }} /> {t('instructor.quiz.addOption', 'Add Option')}
                       </button>
                     )}
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <label style={labelStyle}>Explanation <small style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>(optional)</small></label>
-                    <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={2} value={currentQuestion.explanation || ''} onChange={(e) => setCurrentQuestion((prev) => ({ ...prev, explanation: e.target.value }))} placeholder="Explain the correct answer..." />
+                    <label style={labelStyle}>{t('instructor.quiz.explanation', 'Explanation')} <small style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>({t('common.optional', 'optional')})</small></label>
+                    <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={2} value={currentQuestion.explanation || ''} onChange={(e) => setCurrentQuestion((prev) => ({ ...prev, explanation: e.target.value }))} placeholder={t('instructor.quiz.explanationPlaceholder', 'Explain the correct answer...')} />
                   </div>
 
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button type="button" className="lx-btn lx-btn-gold" disabled={!isCurrentQuestionValid} onClick={addQuestionToQuiz}>
-                      {editingQuestionId ? 'Update Question' : 'Add Question'}
+                      {editingQuestionId ? t('instructor.quiz.updateQuestion', 'Update Question') : t('instructor.quiz.addQuestion', 'Add Question')}
                     </button>
-                    {editingQuestionId && <button type="button" className="lx-btn lx-btn-outline" onClick={resetCurrentQuestion}>Cancel Edit</button>}
+                    {editingQuestionId && <button type="button" className="lx-btn lx-btn-outline" onClick={resetCurrentQuestion}>{t('instructor.quiz.cancelEdit', 'Cancel Edit')}</button>}
                   </div>
                 </div>
               </div>
@@ -620,13 +622,13 @@ const InstructorQuiz: React.FC = () => {
                     <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
                       Quiz Questions <span style={{ marginLeft: 8, padding: '2px 10px', borderRadius: 12, background: 'rgba(107, 29, 42, 0.08)', color: 'var(--lx-primary)', fontSize: 12, fontWeight: 600 }}>{quizForm.questions.length}</span>
                     </h5>
-                    <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>Total: {totalPoints} pts</span>
+                    <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{t('instructor.quiz.total', 'Total')}: {totalPoints} {t('instructor.quiz.pts', 'pts')}</span>
                   </div>
                   <div style={{ maxHeight: 520, overflowY: 'auto' }}>
                     {quizForm.questions.length === 0 ? (
                       <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--lx-text-muted)' }}>
-                        <p style={{ margin: '0 0 4px' }}>No questions added yet</p>
-                        <small>Add questions from the left panel</small>
+                        <p style={{ margin: '0 0 4px' }}>{t('instructor.quiz.noQuestionsYet', 'No questions added yet')}</p>
+                        <small>{t('instructor.quiz.addFromLeft', 'Add questions from the left panel')}</small>
                       </div>
                     ) : (
                       quizForm.questions.map((q, index) => (
@@ -656,7 +658,7 @@ const InstructorQuiz: React.FC = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                   <button className="lx-btn lx-btn-outline" onClick={() => setCurrentStep(1)}>
-                    <i className="isax isax-arrow-left-2" style={{ marginRight: 4 }} /> Back
+                    <i className="isax isax-arrow-left-2" style={{ marginRight: 4 }} /> {t('common.back', 'Back')}
                   </button>
                   <button className="lx-btn lx-btn-gold" disabled={!isStep2Valid} onClick={() => {
                     if (quizForm.questions.length === 0 && isCurrentQuestionValid) {
@@ -665,7 +667,7 @@ const InstructorQuiz: React.FC = () => {
                     }
                     setCurrentStep(3);
                   }}>
-                    Next: Settings <i className="isax isax-arrow-right-3" style={{ marginLeft: 4 }} />
+                    {t('instructor.quiz.nextSettings', 'Next: Settings')} <i className="isax isax-arrow-right-3" style={{ marginLeft: 4 }} />
                   </button>
                 </div>
               </div>
@@ -676,12 +678,12 @@ const InstructorQuiz: React.FC = () => {
           {currentStep === 3 && (
             <div className="lx-card">
               <div className="lx-card-body">
-                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 24 }}>Quiz Settings</h5>
+                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 24 }}>{t('instructor.quiz.quizSettings', 'Quiz Settings')}</h5>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   {[
-                    { label: 'Shuffle Questions', desc: 'Random order for each attempt', field: 'shuffleQuestions' as const, value: quizForm.shuffleQuestions },
-                    { label: 'Show Correct Answers', desc: 'After completion', field: 'showCorrectAnswers' as const, value: quizForm.showCorrectAnswers },
-                    { label: 'Allow Retake', desc: 'Students can retry', field: 'allowRetake' as const, value: quizForm.allowRetake },
+                    { label: t('instructor.quiz.shuffleQuestions', 'Shuffle Questions'), desc: t('instructor.quiz.shuffleDesc', 'Random order for each attempt'), field: 'shuffleQuestions' as const, value: quizForm.shuffleQuestions },
+                    { label: t('instructor.quiz.showCorrectAnswers', 'Show Correct Answers'), desc: t('instructor.quiz.showCorrectDesc', 'After completion'), field: 'showCorrectAnswers' as const, value: quizForm.showCorrectAnswers },
+                    { label: t('instructor.quiz.allowRetake', 'Allow Retake'), desc: t('instructor.quiz.allowRetakeDesc', 'Students can retry'), field: 'allowRetake' as const, value: quizForm.allowRetake },
                   ].map((s) => (
                     <div key={s.field} style={{ padding: 20, borderRadius: 'var(--lx-radius)', background: 'rgba(255, 255, 255, 0.6)', border: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
@@ -692,8 +694,8 @@ const InstructorQuiz: React.FC = () => {
                     </div>
                   ))}
                   <div style={{ padding: 20, borderRadius: 'var(--lx-radius)', background: 'rgba(255, 255, 255, 0.6)', border: '1px solid rgba(107, 29, 42, 0.06)' }}>
-                    <h6 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 600, color: 'var(--lx-text)' }}>Maximum Attempts</h6>
-                    <small style={{ color: 'var(--lx-text-muted)' }}>Limit attempts</small>
+                    <h6 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 600, color: 'var(--lx-text)' }}>{t('instructor.quiz.maxAttempts', 'Maximum Attempts')}</h6>
+                    <small style={{ color: 'var(--lx-text-muted)' }}>{t('instructor.quiz.limitAttempts', 'Limit attempts')}</small>
                     <div style={{ marginTop: 8 }}>
                       <InputNumber min={1} max={10} value={quizForm.maxAttempts} disabled={!quizForm.allowRetake} onChange={(v) => handleFormChange('maxAttempts', (v || 3) as number)} />
                     </div>
@@ -701,10 +703,10 @@ const InstructorQuiz: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
                   <button className="lx-btn lx-btn-outline" onClick={() => setCurrentStep(2)}>
-                    <i className="isax isax-arrow-left-2" style={{ marginRight: 4 }} /> Back
+                    <i className="isax isax-arrow-left-2" style={{ marginRight: 4 }} /> {t('common.back', 'Back')}
                   </button>
                   <button className="lx-btn lx-btn-gold" onClick={() => setCurrentStep(4)}>
-                    Next: Review <i className="isax isax-arrow-right-3" style={{ marginLeft: 4 }} />
+                    {t('instructor.quiz.nextReview', 'Next: Review')} <i className="isax isax-arrow-right-3" style={{ marginLeft: 4 }} />
                   </button>
                 </div>
               </div>
@@ -715,14 +717,14 @@ const InstructorQuiz: React.FC = () => {
           {currentStep === 4 && (
             <div className="lx-card">
               <div className="lx-card-body">
-                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 24 }}>Review Your Quiz</h5>
+                <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 24 }}>{t('instructor.quiz.reviewQuiz', 'Review Your Quiz')}</h5>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
                   <div>
                     {[
-                      { label: 'Title', value: quizForm.title },
-                      { label: 'Course', value: courses.find((c) => c.id === quizForm.courseId)?.title || 'Not selected' },
-                      ...(quizForm.description ? [{ label: 'Description', value: quizForm.description }] : []),
+                      { label: t('instructor.quiz.quizTitle', 'Title'), value: quizForm.title },
+                      { label: t('instructor.courses.courseTitle', 'Course'), value: courses.find((c) => c.id === quizForm.courseId)?.title || t('common.notSelected', 'Not selected') },
+                      ...(quizForm.description ? [{ label: t('common.description', 'Description'), value: quizForm.description }] : []),
                     ].map((f) => (
                       <div key={f.label} style={{ padding: 14, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)', marginBottom: 12 }}>
                         <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{f.label}</p>
@@ -732,10 +734,10 @@ const InstructorQuiz: React.FC = () => {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     {[
-                      { value: quizForm.questions.length, label: 'Questions', bg: 'var(--lx-primary)' },
-                      { value: totalPoints, label: 'Total Points', bg: '#2D5F3F' },
-                      { value: quizForm.duration, label: 'Minutes', bg: '#C5973E' },
-                      { value: `${quizForm.passingScore}%`, label: 'Pass Score', bg: '#8B6D5E' },
+                      { value: quizForm.questions.length, label: t('instructor.quiz.questions', 'Questions'), bg: 'var(--lx-primary)' },
+                      { value: totalPoints, label: t('instructor.quiz.totalPoints', 'Total Points'), bg: '#2D5F3F' },
+                      { value: quizForm.duration, label: t('instructor.quiz.minutes', 'Minutes'), bg: '#C5973E' },
+                      { value: `${quizForm.passingScore}%`, label: t('instructor.quiz.passScore', 'Pass Score'), bg: '#8B6D5E' },
                     ].map((s) => (
                       <div key={s.label} style={{ padding: 16, borderRadius: 'var(--lx-radius)', background: s.bg, color: '#fff', textAlign: 'center' }}>
                         <div style={{ fontSize: 22, fontWeight: 700 }}>{s.value}</div>
@@ -745,7 +747,7 @@ const InstructorQuiz: React.FC = () => {
                   </div>
                 </div>
 
-                <h6 style={{ fontSize: 14, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 12 }}>Questions Preview</h6>
+                <h6 style={{ fontSize: 14, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 12 }}>{t('instructor.quiz.questionsPreview', 'Questions Preview')}</h6>
                 <div style={{ borderRadius: 'var(--lx-radius)', border: '1px solid rgba(107, 29, 42, 0.08)', maxHeight: 320, overflowY: 'auto' }}>
                   {quizForm.questions.map((q, idx) => (
                     <div key={q.id} style={{ padding: '14px 20px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
@@ -766,13 +768,13 @@ const InstructorQuiz: React.FC = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
                   <button className="lx-btn lx-btn-outline" onClick={() => setCurrentStep(3)}>
-                    <i className="isax isax-arrow-left-2" style={{ marginRight: 4 }} /> Back
+                    <i className="isax isax-arrow-left-2" style={{ marginRight: 4 }} /> {t('common.back', 'Back')}
                   </button>
                   <button className="lx-btn lx-btn-gold" onClick={handleSubmitQuiz} disabled={submitting} style={{ padding: '10px 24px' }}>
                     {submitting ? (
-                      <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: 8 }} />Creating...</>
+                      <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: 8 }} />{t('instructor.quiz.creating', 'Creating...')}</>
                     ) : (
-                      <><i className="isax isax-tick-circle" style={{ marginRight: 4 }} /> Create Quiz</>
+                      <><i className="isax isax-tick-circle" style={{ marginRight: 4 }} /> {t('instructor.quiz.createQuiz', 'Create Quiz')}</>
                     )}
                   </button>
                 </div>

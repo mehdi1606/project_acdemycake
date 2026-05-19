@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import ReactApexChart from 'react-apexcharts';
+import { ApexOptions } from 'apexcharts';
 import instructorService from '../../../services/api/instructor.service';
+import { useTranslation } from 'react-i18next';
 import {
   InstructorEarning as EarningItem,
   EarningsSummary,
@@ -177,6 +179,7 @@ const StatusBadge = ({ status }: { status?: string }) => {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const InstructorEarning = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ActiveTab>('earnings')
 
   const [summary, setSummary] = useState<EarningsSummary | null>(null)
@@ -267,7 +270,7 @@ const InstructorEarning = () => {
   const chartLabels = (summary?.monthlyBreakdown ?? []).map((m) => m.month)
   const chartValues = (summary?.monthlyBreakdown ?? []).map((m) => Number(m.amount))
 
-  const chartOptions: ApexCharts.ApexOptions = {
+  const chartOptions: ApexOptions = {
     chart: { type: 'area', height: 280, toolbar: { show: false }, zoom: { enabled: false } },
     colors: ['#6B1D2A'],
     dataLabels: { enabled: false },
@@ -282,11 +285,11 @@ const InstructorEarning = () => {
     },
     yaxis: {
       labels: {
-        formatter: (val) => (val >= 1000 ? (val / 1000).toFixed(1) + 'K' : val.toFixed(0)),
+        formatter: (val: number) => (val >= 1000 ? (val / 1000).toFixed(1) + 'K' : val.toFixed(0)),
         style: { colors: 'var(--lx-text-muted)' },
       },
     },
-    tooltip: { y: { formatter: (val) => val.toFixed(2) + ' MAD' } },
+    tooltip: { y: { formatter: (val: number) => val.toFixed(2) + ' MAD' } },
     grid: { borderColor: 'rgba(101,28,50,0.08)' },
   }
 

@@ -1,7 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 
 const Benefits = () => {
+  const { t } = useTranslation()
   return (
     <>
       {/* benefits */}

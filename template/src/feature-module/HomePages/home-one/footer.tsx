@@ -1,8 +1,10 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../router/all_routes'
 
 const Footer = () => {
+    const { t } = useTranslation()
     const route = all_routes
 
     return (
@@ -42,9 +44,7 @@ const Footer = () => {
                         <div className="sl-footer__divider" />
 
                         <p className="sl-footer__description">
-                            The world's premier online destination for luxury cake design education.
-                            Expert-led programmes, industry-recognised certificates, and a global
-                            community of passionate pastry artists.
+                            {t('footer.descriptionLong', "The world's premier online destination for luxury cake design education. Expert-led programmes, industry-recognised certificates, and a global community of passionate pastry artists.")}
                         </p>
                         <div className="sl-footer__tagline">l'art du gâteau</div>
 
@@ -61,32 +61,32 @@ const Footer = () => {
                     <div className="col-lg-5">
                         <div className="row row-gap-4">
                             <div className="col-6 col-md-4">
-                                <div className="sl-footer__heading">Learn</div>
+                                <div className="sl-footer__heading">{t('footer.learn', 'Learn')}</div>
                                 <ul className="sl-footer__links">
-                                    <li><Link to={route.courseList}>All Courses</Link></li>
-                                    <li><Link to={route.masterclass}>Masterclasses</Link></li>
-                                    <li><Link to={route.instructorList}>Instructors</Link></li>
-                                    <li><Link to={route.pricingPlan}>Pricing</Link></li>
-                                    <li><Link to={route.courseGrid}>Certificates</Link></li>
+                                    <li><Link to={route.courseList}>{t('footer.allCourses', 'All Courses')}</Link></li>
+                                    <li><Link to={route.masterclass}>{t('footer.masterclasses', 'Masterclasses')}</Link></li>
+                                    <li><Link to={route.instructorList}>{t('footer.instructors', 'Instructors')}</Link></li>
+                                    <li><Link to={route.pricingPlan}>{t('footer.pricing', 'Pricing')}</Link></li>
+                                    <li><Link to={route.courseGrid}>{t('student.certificates.title', 'Certificates')}</Link></li>
                                 </ul>
                             </div>
                             <div className="col-6 col-md-4">
-                                <div className="sl-footer__heading">Academy</div>
+                                <div className="sl-footer__heading">{t('footer.academy', 'Academy')}</div>
                                 <ul className="sl-footer__links">
-                                    <li><Link to={route.about_us}>About Us</Link></li>
-                                    <li><Link to={route.instructorList}>Our Artists</Link></li>
-                                    <li><Link to={route.blogGrid}>Journal</Link></li>
-                                    <li><Link to={route.FAQ}>FAQs</Link></li>
-                                    <li><Link to={route.contactUs}>Contact</Link></li>
+                                    <li><Link to={route.about_us}>{t('footer.about', 'About Us')}</Link></li>
+                                    <li><Link to={route.instructorList}>{t('footer.ourArtists', 'Our Artists')}</Link></li>
+                                    <li><Link to={route.blogGrid}>{t('footer.journal', 'Journal')}</Link></li>
+                                    <li><Link to={route.FAQ}>{t('footer.faq', 'FAQs')}</Link></li>
+                                    <li><Link to={route.contactUs}>{t('footer.contact', 'Contact')}</Link></li>
                                 </ul>
                             </div>
                             <div className="col-6 col-md-4">
-                                <div className="sl-footer__heading">Legal</div>
+                                <div className="sl-footer__heading">{t('footer.legal', 'Legal')}</div>
                                 <ul className="sl-footer__links">
-                                    <li><Link to={route.termsConditions}>Terms of Use</Link></li>
-                                    <li><Link to={route.privacyPolicy}>Privacy Policy</Link></li>
-                                    <li><Link to="#">Cookie Policy</Link></li>
-                                    <li><Link to="#">Refund Policy</Link></li>
+                                    <li><Link to={route.termsConditions}>{t('footer.termsOfUse', 'Terms of Use')}</Link></li>
+                                    <li><Link to={route.privacyPolicy}>{t('footer.privacy', 'Privacy Policy')}</Link></li>
+                                    <li><Link to="#">{t('footer.cookiePolicy', 'Cookie Policy')}</Link></li>
+                                    <li><Link to="#">{t('footer.refundPolicy', 'Refund Policy')}</Link></li>
                                 </ul>
                             </div>
                         </div>
@@ -94,18 +94,18 @@ const Footer = () => {
 
                     {/* ── Newsletter column ── */}
                     <div className="col-lg-3">
-                        <div className="sl-footer__heading">Studio Newsletter</div>
+                        <div className="sl-footer__heading">{t('footer.newsletter', 'Studio Newsletter')}</div>
                         <p style={{
                             fontFamily: 'var(--sl-font-body)', fontSize: '0.8rem',
                             color: 'rgba(245,218,223,0.42)', lineHeight: 1.7, marginBottom: '1.25rem',
                         }}>
-                            Receive new course announcements, technique tips, and exclusive student offers.
+                            {t('footer.newsletterDesc', 'Receive new course announcements, technique tips, and exclusive student offers.')}
                         </p>
                         <form onSubmit={e => e.preventDefault()}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <input
                                     type="email"
-                                    placeholder="Your email address"
+                                    placeholder={t('footer.emailPlaceholder', 'Your email address')}
                                     style={{
                                         background: 'rgba(255,255,255,0.05)',
                                         border: '1px solid rgba(245,218,223,0.12)',
@@ -122,7 +122,7 @@ const Footer = () => {
                                     className="sl-btn-gold"
                                     style={{ justifyContent: 'center', width: '100%' }}
                                 >
-                                    Subscribe
+                                    {t('footer.subscribe', 'Subscribe')}
                                 </button>
                             </div>
                         </form>
@@ -149,8 +149,8 @@ const Footer = () => {
                                 letterSpacing: '0.08em',
                                 lineHeight: 1.6,
                             }}>
-                                Crafted by Science.<br />
-                                Elevated by Art.
+                                {t('footer.craftedByScience', 'Crafted by Science.')}<br />
+                                {t('footer.elevatedByArt', 'Elevated by Art.')}
                             </div>
                         </div>
                     </div>
@@ -160,12 +160,12 @@ const Footer = () => {
                 <div className="sl-footer__border" />
                 <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
                     <p className="sl-footer__copy mb-0">
-                        © {new Date().getFullYear()} SARALÖWE Academy. All rights reserved.
+                        © {new Date().getFullYear()} SARALÖWE Academy. {t('footer.allRightsReserved', 'All rights reserved.')}
                     </p>
                     <div className="sl-footer__bottom-links">
-                        <Link to={route.termsConditions}>Terms</Link>
-                        <Link to={route.privacyPolicy}>Privacy</Link>
-                        <Link to="#">Cookies</Link>
+                        <Link to={route.termsConditions}>{t('footer.terms', 'Terms')}</Link>
+                        <Link to={route.privacyPolicy}>{t('footer.privacy', 'Privacy')}</Link>
+                        <Link to="#">{t('footer.cookies', 'Cookies')}</Link>
                     </div>
                 </div>
             </div>

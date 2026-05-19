@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { message, Pagination } from 'antd';
@@ -29,6 +30,7 @@ const formatCurrency = (amount: number | undefined) => {
 };
 
 const AdminPendingCourses = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { pendingCourses, pendingCoursesPagination, isLoadingCourses, error } = useAppSelector(
     (state) => state.admin
@@ -99,9 +101,9 @@ const AdminPendingCourses = () => {
       }}>
         <i className="isax isax-info-circle" style={{ fontSize: 24, color: '#C5973E', flexShrink: 0 }} />
         <div>
-          <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>Pending Approvals</strong>
+          <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>{t('admin.sidebar.pendingApprovals', 'Pending Approvals')}</strong>
           <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-mid)' }}>
-            Review and approve courses submitted by instructors. Approved courses will be published and visible to students.
+            {t('admin.courses.pendingApprovalDesc', 'Review and approve courses submitted by instructors. Approved courses will be published and visible to students.')}
           </p>
         </div>
       </div>
@@ -110,7 +112,7 @@ const AdminPendingCourses = () => {
       <div className="lx-card">
         <div className="lx-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-            Courses Awaiting Approval
+            {t('admin.courses.pendingApproval', 'Courses Awaiting Approval')}
             {pendingCourses.length > 0 && (
               <span style={{
                 marginLeft: 8, padding: '2px 10px', borderRadius: 12,
@@ -121,7 +123,7 @@ const AdminPendingCourses = () => {
             )}
           </h5>
           <Link to={all_routes.adminCourses} className="lx-btn lx-btn-outline lx-btn-sm">
-            <i className="isax isax-arrow-left" style={{ marginRight: 4 }} /> All Courses
+            <i className="isax isax-arrow-left" style={{ marginRight: 4 }} /> {t('admin.courses.allCourses', 'All Courses')}
           </Link>
         </div>
 
@@ -135,19 +137,19 @@ const AdminPendingCourses = () => {
               <span className="empty-icon" style={{ background: 'rgba(45, 95, 63, 0.08)' }}>
                 <i className="isax isax-tick-circle" style={{ fontSize: 28, color: '#2D5F3F' }} />
               </span>
-              <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>All Caught Up!</h6>
-              <p>No courses pending approval at the moment.</p>
+              <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('admin.courses.allCaughtUp', 'All Caught Up!')}</h6>
+              <p>{t('admin.courses.noPendingCourses', 'No courses pending approval at the moment.')}</p>
             </div>
           ) : (
             <table className="lx-table">
               <thead>
                 <tr>
-                  <th>Course</th>
-                  <th>Instructor</th>
-                  <th>Level</th>
-                  <th>Price</th>
-                  <th>Submitted</th>
-                  <th style={{ textAlign: 'center' }}>Actions</th>
+                  <th>{t('admin.courses.courseTitle', 'Course')}</th>
+                  <th>{t('admin.courses.instructor', 'Instructor')}</th>
+                  <th>{t('common.level', 'Level')}</th>
+                  <th>{t('common.price', 'Price')}</th>
+                  <th>{t('admin.courses.submitted', 'Submitted')}</th>
+                  <th style={{ textAlign: 'center' }}>{t('admin.courses.actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -253,32 +255,32 @@ const AdminPendingCourses = () => {
             boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Reject Course</h5>
+              <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('admin.courses.reject', 'Reject Course')}</h5>
               <button onClick={() => { setRejectModalVisible(false); setRejectReason(''); setSelectedCourseId(null); }} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
                 <i className="isax isax-close-circle" />
               </button>
             </div>
             <div style={{ padding: 24 }}>
               <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
-                Are you sure you want to reject this course?
+                {t('admin.courses.rejectConfirm', 'Are you sure you want to reject this course?')}
               </p>
               <textarea
                 style={inputStyle as React.CSSProperties}
-                placeholder="Reason for rejection (will be sent to instructor)"
+                placeholder={t('admin.courses.rejectReason', 'Reason for rejection (will be sent to instructor)')}
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 rows={3}
               />
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={() => { setRejectModalVisible(false); setRejectReason(''); setSelectedCourseId(null); }}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={() => { setRejectModalVisible(false); setRejectReason(''); setSelectedCourseId(null); }}>{t('common.cancel', 'Cancel')}</button>
               <button
                 type="button"
                 className="lx-btn"
                 style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
                 onClick={confirmReject}
               >
-                Reject Course
+                {t('admin.courses.reject', 'Reject Course')}
               </button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import { useAppDispatch, useAppSelector } from "../../../core/redux/hooks";
@@ -24,6 +25,7 @@ const Particle: React.FC<{ style: React.CSSProperties }> = ({ style }) => (
 );
 
 const Login = () => {
+  const { t } = useTranslation();
   const { message } = App.useApp();
 
   const [passwordVisibility, setPasswordVisibility] = useState({
@@ -179,16 +181,15 @@ const Login = () => {
             />
           </div>
 
-          <div className="sl-auth__panel-tagline">The Art of Cake Couture</div>
+          <div className="sl-auth__panel-tagline">{t('auth.login.panelTagline', 'The Art of Cake Couture')}</div>
 
           <h2 className="sl-auth__panel-headline">
-            Craft. Create.<br />
-            <span className="sl-auth__panel-headline--gold">Inspire.</span>
+            {t('auth.login.panelHeadline', 'Craft. Create.')}<br />
+            <span className="sl-auth__panel-headline--gold">{t('auth.login.panelInspire', 'Inspire.')}</span>
           </h2>
 
           <p className="sl-auth__panel-desc">
-            Join a world-class atelier where luxury cake design meets artisan mastery.
-            Learn from podium-winning instructors and transform your passion.
+            {t('auth.login.panelDesc', 'Join a world-class atelier where luxury cake design meets artisan mastery. Learn from podium-winning instructors and transform your passion.')}
           </p>
 
         </div>
@@ -212,22 +213,22 @@ const Login = () => {
               <span className="sl-auth__logo-text">SARALÖWE</span>
             </Link>
             <Link to={route.homeone} className="sl-auth__back-link">
-              <i className="isax isax-arrow-left-2 me-1" />Back to Home
+              <i className="isax isax-arrow-left-2 me-1" />{t('common.back', 'Back to Home')}
             </Link>
           </div>
 
           {/* Heading */}
-          <h1 className="sl-auth__form-title">Welcome Back</h1>
-          <p className="sl-auth__form-subtitle">Sign in to continue your journey</p>
+          <h1 className="sl-auth__form-title">{t('auth.login.title', 'Welcome Back')}</h1>
+          <p className="sl-auth__form-subtitle">{t('auth.login.subtitle', 'Sign in to continue your journey')}</p>
 
           {/* Registration success alert */}
           {showVerificationAlert && (
             <Alert
-              message="Registration Successful!"
+              message={t('auth.login.registrationSuccess', 'Registration Successful!')}
               description={
                 <div>
-                  <p className="mb-2">We've sent a verification email to <strong>{registeredEmail}</strong>.</p>
-                  <p className="mb-0">Please check your inbox and click the verification link before logging in.</p>
+                  <p className="mb-2">{t('auth.login.verificationSent', "We've sent a verification email to")} <strong>{registeredEmail}</strong>.</p>
+                  <p className="mb-0">{t('auth.login.checkInbox', 'Please check your inbox and click the verification link before logging in.')}</p>
                 </div>
               }
               type="success"
@@ -258,15 +259,15 @@ const Login = () => {
               onClose={() => { dispatch(clearError()); setResendState('idle'); }}
               className="mb-3"
               style={{ borderRadius: 8 }}
-              message="Email Not Verified"
+              message={t('auth.login.emailNotVerified', 'Email Not Verified')}
               description={
                 resendState === 'sent' ? (
                   <span style={{ color: '#3a7d44' }}>
-                    <strong>Verification email sent!</strong> Check your inbox and click the link.
+                    <strong>{t('auth.login.verificationEmailSent', 'Verification email sent!')}</strong> {t('auth.login.checkInboxLink', 'Check your inbox and click the link.')}
                   </span>
                 ) : (
                   <span>
-                    Please verify your email before signing in.{' '}
+                    {t('auth.login.pleaseVerify', 'Please verify your email before signing in.')}{' '}
                     <button
                       type="button"
                       onClick={handleResendVerification}
@@ -277,7 +278,7 @@ const Login = () => {
                         textDecoration: 'underline', fontSize: 'inherit',
                       }}
                     >
-                      {resendState === 'sending' ? 'Sending…' : 'Resend verification email'}
+                      {resendState === 'sending' ? t('auth.login.sending', 'Sending…') : t('auth.login.resendVerification', 'Resend verification email')}
                     </button>
                   </span>
                 )
@@ -289,7 +290,7 @@ const Login = () => {
             {/* Email */}
             <div className="sl-auth__field">
               <label className="sl-auth__label">
-                Email <span className="sl-auth__required">*</span>
+                {t('auth.login.email', 'Email')} <span className="sl-auth__required">*</span>
               </label>
               <div className="sl-auth__input-wrap">
                 <input
@@ -299,7 +300,7 @@ const Login = () => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   className={`sl-auth__input${fieldErrors.email ? " sl-auth__input--error" : ""}`}
-                  placeholder="Enter your email"
+                  placeholder={t('auth.login.emailPlaceholder', 'Enter your email')}
                   disabled={isLoading}
                   autoComplete="email"
                 />
@@ -316,7 +317,7 @@ const Login = () => {
             {/* Password */}
             <div className="sl-auth__field">
               <label className="sl-auth__label">
-                Password <span className="sl-auth__required">*</span>
+                {t('auth.login.password', 'Password')} <span className="sl-auth__required">*</span>
               </label>
               <div className="sl-auth__input-wrap">
                 <input
@@ -326,7 +327,7 @@ const Login = () => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   className={`sl-auth__input${fieldErrors.password ? " sl-auth__input--error" : ""}`}
-                  placeholder="Enter your password"
+                  placeholder={t('auth.login.passwordPlaceholder', 'Enter your password')}
                   disabled={isLoading}
                   autoComplete="current-password"
                 />
@@ -352,10 +353,10 @@ const Login = () => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span>Remember Me</span>
+                <span>{t('auth.login.rememberMe', 'Remember Me')}</span>
               </label>
               <Link to={route.forgotpassword} className="sl-auth__forgot">
-                Forgot Password?
+                {t('auth.login.forgotPassword', 'Forgot Password?')}
               </Link>
             </div>
 
@@ -366,18 +367,18 @@ const Login = () => {
               disabled={isLoading}
             >
               {isLoading ? (
-                <><Spin size="small" className="me-2" />Signing In...</>
+                <><Spin size="small" className="me-2" />{t('auth.login.signingIn', 'Signing In...')}</>
               ) : (
-                <>Sign In <i className="isax isax-arrow-right-3 ms-1" /></>
+                <>{t('auth.login.signIn', 'Sign In')} <i className="isax isax-arrow-right-3 ms-1" /></>
               )}
             </button>
           </form>
 
           {/* Sign-up link */}
           <div className="sl-auth__switch">
-            Don't have an account?{" "}
+            {t('auth.login.noAccount', "Don't have an account?")}{" "}
             <Link to={route.register} className="sl-auth__switch-link">
-              Create one
+              {t('auth.login.createOne', 'Create one')}
             </Link>
           </div>
         </div>

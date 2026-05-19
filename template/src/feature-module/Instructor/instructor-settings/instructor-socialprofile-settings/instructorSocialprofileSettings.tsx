@@ -1,6 +1,7 @@
 import React from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
+import { useTranslation } from 'react-i18next';
 
 const socialFields = [
   { label: 'Twitter', placeholder: 'https://www.twitter.com/', icon: 'fa-brands fa-x-twitter', color: '#1DA1F2' },
@@ -24,6 +25,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const InstructorSocialprofileSettings = () => {
+  const { t } = useTranslation();
   return (
     <LuxuryDashboardLayout>
       <div className="lx-section-header" style={{ marginBottom: 20 }}>

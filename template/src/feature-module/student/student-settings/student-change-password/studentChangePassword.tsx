@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import SettingsLinks from '../settingsLinks/settingsLinks';
 import { message } from 'antd';
@@ -46,6 +47,7 @@ const calcStrength = (v: string): StrengthLevel => {
 };
 
 const StudentChangePassword = () => {
+  const { t } = useTranslation();
   const { user } = useAppSelector((s) => s.auth);
 
   const [currentPwVisible, setCurrentPwVisible] = useState(false);
@@ -86,7 +88,7 @@ const StudentChangePassword = () => {
   return (
     <LuxuryDashboardLayout>
       <div className="lx-section-header" style={{ marginBottom: 20 }}>
-        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Settings</h5>
+        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.settings.title', 'Settings')}</h5>
       </div>
       <SettingsLinks />
 
@@ -96,23 +98,23 @@ const StudentChangePassword = () => {
           <div style={{ paddingBottom: 28, marginBottom: 28, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
             <div style={{ maxWidth: 520 }}>
               <h6 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-                Change Password
+                {t('student.changePassword.title', 'Change Password')}
               </h6>
               <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--lx-text-muted)' }}>
-                Update your password to keep your account secure.
+                {t('student.changePassword.desc', 'Update your password to keep your account secure.')}
               </p>
 
               <form onSubmit={handleSubmit}>
                 {/* Current Password */}
                 <div style={{ marginBottom: 16 }}>
                   <label style={labelStyle}>
-                    Current Password <span style={{ color: '#8B2335' }}>*</span>
+                    {t('student.changePassword.currentPassword', 'Current Password')} <span style={{ color: '#8B2335' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type={currentPwVisible ? 'text' : 'password'}
                       style={inputStyle}
-                      placeholder="Enter current password"
+                      placeholder={t('student.changePassword.enterCurrentPassword', 'Enter current password')}
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
@@ -127,13 +129,13 @@ const StudentChangePassword = () => {
                 {/* New Password */}
                 <div style={{ marginBottom: 16 }}>
                   <label style={labelStyle}>
-                    New Password <span style={{ color: '#8B2335' }}>*</span>
+                    {t('student.changePassword.newPassword', 'New Password')} <span style={{ color: '#8B2335' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type={newPwVisible ? 'text' : 'password'}
                       style={inputStyle}
-                      placeholder="Enter new password"
+                      placeholder={t('student.changePassword.enterNewPassword', 'Enter new password')}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
@@ -156,13 +158,13 @@ const StudentChangePassword = () => {
                 {/* Confirm Password */}
                 <div style={{ marginBottom: 20 }}>
                   <label style={labelStyle}>
-                    Confirm Password <span style={{ color: '#8B2335' }}>*</span>
+                    {t('student.changePassword.confirmPassword', 'Confirm Password')} <span style={{ color: '#8B2335' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type={confirmPwVisible ? 'text' : 'password'}
                       style={inputStyle}
-                      placeholder="Confirm new password"
+                      placeholder={t('student.changePassword.confirmNewPassword', 'Confirm new password')}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
@@ -174,13 +176,13 @@ const StudentChangePassword = () => {
                   </div>
                   {confirmPassword && newPassword && confirmPassword !== newPassword && (
                     <span style={{ fontSize: 12, color: '#8B2335', marginTop: 6, display: 'block' }}>
-                      Passwords do not match
+                      {t('student.changePassword.passwordsNoMatch', 'Passwords do not match')}
                     </span>
                   )}
                 </div>
 
                 <button className="lx-btn lx-btn-gold" type="submit" disabled={saving}>
-                  {saving ? 'Saving...' : 'Change Password'}
+                  {saving ? t('student.settings.saving', 'Saving...') : t('student.changePassword.update', 'Change Password')}
                 </button>
               </form>
             </div>
@@ -189,15 +191,15 @@ const StudentChangePassword = () => {
           {/* Email (read-only, informational) */}
           <div style={{ maxWidth: 520 }}>
             <h6 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-              Your Email
+              {t('student.changePassword.yourEmail', 'Your Email')}
             </h6>
             <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--lx-text-muted)' }}>
-              Your current email address is{' '}
+              {t('student.changePassword.currentEmailIs', 'Your current email address is')}{' '}
               <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{user?.email ?? '—'}</span>
             </p>
             <p style={{ margin: 0, fontSize: 12, color: 'var(--lx-text-muted)', padding: '10px 14px', background: 'rgba(107, 29, 42, 0.03)', borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(107, 29, 42, 0.05)' }}>
               <i className="isax isax-info-circle me-2" />
-              Email changes are not supported at this time. Contact support if you need to update your email.
+              {t('student.changePassword.emailChangeNote', 'Email changes are not supported at this time. Contact support if you need to update your email.')}
             </p>
           </div>
         </div>

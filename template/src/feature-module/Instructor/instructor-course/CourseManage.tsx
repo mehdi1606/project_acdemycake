@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { instructorService } from '../../../services/api/instructor.service';
 import { courseService } from '../../../services/api/course.service';
@@ -220,6 +221,7 @@ interface ModuleWithLessons extends CourseModule {
 
 /* ── Component ─────────────────────────────────────────── */
 const CourseManage: React.FC = () => {
+  const { t } = useTranslation();
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { message } = App.useApp();
@@ -365,6 +367,7 @@ const CourseManage: React.FC = () => {
     }
   }, [textLesson, message]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchCourseData = useCallback(async () => {
     if (!courseId) return;
     try {

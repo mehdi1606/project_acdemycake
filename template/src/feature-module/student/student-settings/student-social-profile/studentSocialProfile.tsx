@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import SettingsLinks from '../settingsLinks/settingsLinks';
 import { message } from 'antd';
@@ -29,6 +30,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const StudentSocialProfile = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => s.auth);
   const [saving, setSaving] = useState(false);

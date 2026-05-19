@@ -19,10 +19,10 @@
 import React, { useEffect } from 'react'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
+import { useTranslation } from 'react-i18next'
 
 import BannerSection from './section/banner'
 import Benefits from './section/benefits'
-import Featuredcourse from './section/featured-course'
 import WhyChooseUs from './section/why-choose-us'
 import Howitworks from './section/how-it-works'
 import BrandGallery from './section/brand-gallery'
@@ -63,6 +63,7 @@ const SlMarquee: React.FC = () => {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 const HomeOne: React.FC = () => {
+    const { t } = useTranslation();
     useEffect(() => {
         AOS.init({
             once: true,
@@ -81,8 +82,8 @@ const HomeOne: React.FC = () => {
             {/* 2 — Marquee discipline strip */}
             <SlMarquee />
 
-            {/* 3 — Featured Courses (3D tilt) */}
-            <Featuredcourse />
+            {/* 3 — Featured Courses (hidden until courses are published) */}
+            {/* <Featuredcourse /> */}
 
             {/* 4 — Why Choose Us (animated stats + visual panels) */}
             <WhyChooseUs />

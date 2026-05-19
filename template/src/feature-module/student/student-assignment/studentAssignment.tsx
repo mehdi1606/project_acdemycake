@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { assignmentService } from '../../../services/api/assignment.service';
 import { Assignment, Submission, SubmitAssignmentRequest } from '../../../services/api/types';
@@ -22,6 +23,7 @@ const gradeColor = (grade: number, total: number) => {
 };
 
 const StudentAssignment = () => {
+  const { t } = useTranslation();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -107,7 +109,7 @@ const StudentAssignment = () => {
       <LuxuryDashboardLayout>
         <div className="lx-section-header" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-            My Assignments
+            {t('student.assignments.title', 'My Assignments')}
             {totalElements > 0 && (
               <span style={{ marginLeft: 10, padding: '2px 10px', borderRadius: 12, background: 'rgba(107,29,42,0.08)', color: 'var(--lx-primary)', fontSize: 12, fontWeight: 600 }}>
                 {totalElements}
@@ -120,19 +122,19 @@ const StudentAssignment = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', marginBottom: 20, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)', color: '#8B2335', fontSize: 14 }}>
             <i className="isax isax-warning-2" />
             <span style={{ flex: 1 }}>{error}</span>
-            <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => load(page)}>Retry</button>
+            <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => load(page)}>{t('common.tryAgain', 'Retry')}</button>
           </div>
         )}
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--lx-text-light)', fontSize: 14 }}>
             <i className="isax isax-refresh" style={{ fontSize: 24, display: 'block', marginBottom: 12 }} />
-            Loading assignments…
+            {t('common.loading', 'Loading assignments…')}
           </div>
         ) : assignments.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--lx-text-light)', fontSize: 14 }}>
             <i className="isax isax-document" style={{ fontSize: 40, display: 'block', marginBottom: 12, opacity: 0.4 }} />
-            No assignments yet
+            {t('student.assignments.noAssignments', 'No assignments yet')}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -147,8 +149,8 @@ const StudentAssignment = () => {
                     </div>
                     {a.courseTitle && <div style={{ fontSize: 12, color: 'var(--lx-text-light)', marginBottom: 4 }}>{a.courseTitle}</div>}
                     <div style={{ display: 'flex', gap: 16, fontSize: 12, color: past ? '#dc2626' : 'var(--lx-text-light)' }}>
-                      <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />Due: {fmt(a.dueDate)}</span>
-                      <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />Marks: {a.totalMark}</span>
+                      <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />{t('student.assignments.due', 'Due')}: {fmt(a.dueDate)}</span>
+                      <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />{t('student.assignments.marks', 'Marks')}: {a.totalMark}</span>
                     </div>
                   </div>
                   <button
@@ -157,7 +159,7 @@ const StudentAssignment = () => {
                     onClick={() => openAssignment(a)}
                     disabled={a.status !== 'PUBLISHED'}
                   >
-                    View
+                    {t('common.view', 'View')}
                   </button>
                 </div>
               );
@@ -168,9 +170,9 @@ const StudentAssignment = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
-            <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</button>
+            <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" disabled={page === 0} onClick={() => setPage(p => p - 1)}>{t('common.previous', 'Previous')}</button>
             <span style={{ lineHeight: '32px', fontSize: 13, color: 'var(--lx-text-light)' }}>Page {page + 1} of {totalPages}</span>
-            <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+            <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>{t('common.next', 'Next')}</button>
           </div>
         )}
       </LuxuryDashboardLayout>
@@ -183,7 +185,7 @@ const StudentAssignment = () => {
       {/* Back */}
       <div style={{ marginBottom: 20 }}>
         <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={back} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <i className="isax isax-arrow-left-2" />Back to assignments
+          <i className="isax isax-arrow-left-2" />{t('student.assignments.backToList', 'Back to assignments')}
         </button>
       </div>
 
@@ -199,18 +201,18 @@ const StudentAssignment = () => {
             </div>
           )}
           <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 13, color: 'var(--lx-text-light)' }}>
-            <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />Due: {fmt(selected.dueDate)}</span>
-            <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />Total marks: {selected.totalMark}</span>
+            <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />{t('student.assignments.due', 'Due')}: {fmt(selected.dueDate)}</span>
+            <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />{t('student.assignments.totalMarks', 'Total marks')}: {selected.totalMark}</span>
           </div>
         </div>
       )}
 
       {loadingSubmission ? (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--lx-text-light)', fontSize: 14 }}>Checking submission…</div>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--lx-text-light)', fontSize: 14 }}>{t('student.assignments.checkingSubmission', 'Checking submission…')}</div>
       ) : activeTab === 'result' && submission ? (
         // ── Show Result ──
         <div style={{ background: 'var(--lx-card)', border: '1px solid var(--lx-border)', borderRadius: 'var(--lx-radius)', padding: '20px 24px' }}>
-          <h6 style={{ fontWeight: 700, marginBottom: 16 }}>Your Submission</h6>
+          <h6 style={{ fontWeight: 700, marginBottom: 16 }}>{t('student.assignments.yourSubmission', 'Your Submission')}</h6>
 
           {submission.grade !== undefined && submission.grade !== null ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '14px 18px', borderRadius: 10, background: 'var(--lx-bg)' }}>
@@ -221,45 +223,45 @@ const StudentAssignment = () => {
                 <div style={{ fontSize: 13, fontWeight: 600, color: gradeColor(submission.grade, submission.totalMark) }}>
                   {Math.round((submission.grade / submission.totalMark) * 100)}%
                 </div>
-                {submission.gradedByName && <div style={{ fontSize: 12, color: 'var(--lx-text-light)' }}>Graded by {submission.gradedByName}</div>}
+                {submission.gradedByName && <div style={{ fontSize: 12, color: 'var(--lx-text-light)' }}>{t('student.assignments.gradedBy', 'Graded by')} {submission.gradedByName}</div>}
               </div>
             </div>
           ) : (
             <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(217,119,6,0.08)', color: '#d97706', fontSize: 13, fontWeight: 600 }}>
-              <i className="isax isax-clock" style={{ marginRight: 6 }} />Awaiting grading
+              <i className="isax isax-clock" style={{ marginRight: 6 }} />{t('student.assignments.awaitingGrading', 'Awaiting grading')}
             </div>
           )}
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-light)', marginBottom: 4 }}>Your Answer</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-light)', marginBottom: 4 }}>{t('student.assignments.yourAnswer', 'Your Answer')}</div>
             <div style={{ background: 'var(--lx-bg)', borderRadius: 8, padding: '12px 16px', fontSize: 14, whiteSpace: 'pre-wrap' }}>{submission.content}</div>
           </div>
 
           {submission.fileUrl && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-light)', marginBottom: 4 }}>Attached File</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-light)', marginBottom: 4 }}>{t('student.assignments.attachedFile', 'Attached File')}</div>
               <a href={submission.fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: 'var(--lx-primary)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <i className="isax isax-paperclip-2" />View attachment
+                <i className="isax isax-paperclip-2" />{t('student.assignments.viewAttachment', 'View attachment')}
               </a>
             </div>
           )}
 
           {submission.feedback && (
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-light)', marginBottom: 4 }}>Instructor Feedback</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-light)', marginBottom: 4 }}>{t('student.assignments.instructorFeedback', 'Instructor Feedback')}</div>
               <div style={{ background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.15)', borderRadius: 8, padding: '12px 16px', fontSize: 14, whiteSpace: 'pre-wrap' }}>{submission.feedback}</div>
             </div>
           )}
 
           <div style={{ marginTop: 14, fontSize: 12, color: 'var(--lx-text-light)' }}>
-            Submitted: {fmt(submission.submittedAt)}
+            {t('student.assignments.submitted', 'Submitted')}: {fmt(submission.submittedAt)}
           </div>
         </div>
       ) : (
         // ── Submit Form ──
         <form onSubmit={handleSubmit}>
           <div style={{ background: 'var(--lx-card)', border: '1px solid var(--lx-border)', borderRadius: 'var(--lx-radius)', padding: '20px 24px' }}>
-            <h6 style={{ fontWeight: 700, marginBottom: 16 }}>Submit Your Work</h6>
+            <h6 style={{ fontWeight: 700, marginBottom: 16 }}>{t('student.assignments.submitWork', 'Submit Your Work')}</h6>
 
             {submitError && (
               <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.12)', color: '#dc2626', fontSize: 13 }}>
@@ -269,20 +271,20 @@ const StudentAssignment = () => {
 
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                Your Answer <span style={{ color: '#dc2626' }}>*</span>
+                {t('student.assignments.yourAnswer', 'Your Answer')} <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <textarea
                 required
                 rows={8}
                 value={content}
                 onChange={e => setContent(e.target.value)}
-                placeholder="Write your answer here…"
+                placeholder={t('student.assignments.answerPlaceholder', 'Write your answer here…')}
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--lx-border)', background: 'var(--lx-bg)', fontSize: 14, resize: 'vertical', outline: 'none', color: 'var(--lx-text)' }}
               />
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>File URL (optional)</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{t('student.assignments.fileUrl', 'File URL')} ({t('common.optional', 'optional')})</label>
               <input
                 type="url"
                 value={fileUrl}
@@ -294,9 +296,9 @@ const StudentAssignment = () => {
 
             <div style={{ display: 'flex', gap: 10 }}>
               <button type="submit" className="lx-btn lx-btn-primary" disabled={submitting || !content.trim()}>
-                {submitting ? 'Submitting…' : 'Submit Assignment'}
+                {submitting ? t('common.loading', 'Submitting…') : t('student.assignments.submitAssignment', 'Submit Assignment')}
               </button>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={back}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={back}>{t('common.cancel', 'Cancel')}</button>
             </div>
           </div>
         </form>

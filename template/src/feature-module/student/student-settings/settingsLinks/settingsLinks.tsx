@@ -1,8 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
 
 const SettingsLinks = () => {
+  const { t } = useTranslation();
   const route = all_routes;
   const location = useLocation();
   return (

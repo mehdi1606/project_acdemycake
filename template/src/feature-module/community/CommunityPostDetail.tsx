@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Spin } from 'antd';
 import LuxuryDashboardLayout from '../../components/LuxuryDashboardLayout';
@@ -34,6 +35,7 @@ const formatDate = (iso: string) =>
 // ─── component ────────────────────────────────────────────────────────────────
 
 const CommunityPostDetail: React.FC = () => {
+  const { t } = useTranslation()
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
 

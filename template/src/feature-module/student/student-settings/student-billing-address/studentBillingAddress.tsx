@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import SettingsLinks from '../settingsLinks/settingsLinks';
 import SettingsModal from '../settingsModal/settingsModal';
@@ -16,6 +17,7 @@ const initialAddresses: Address[] = [
 ];
 
 const StudentBillingAddress = () => {
+  const { t } = useTranslation();
   const [addresses] = useState<Address[]>(initialAddresses);
   const [showDelete, setShowDelete] = useState(false);
 

@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next';
 import VideoModal from '../../HomePages/home-one/section/videoModal';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import { all_routes } from '../../router/all_routes';
 
 const CourseDetailsTwo = () => {
-
+    const { t } = useTranslation()
     const [showModal, setShowModal] = useState(false);
     const videoUrl = 'https://www.youtube.com/embed/1trvO6dqQUI';
 

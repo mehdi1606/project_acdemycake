@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import Table from '../../../core/common/dataTable/index';
 import { instructorService } from '../../../services/api/instructor.service';
@@ -32,9 +33,11 @@ const statCards: StatCardDef[] = [
   { label: 'Free Courses', key: 'free', icon: 'isax-gift', color: '#2D8CFF', bg: 'rgba(45, 140, 255, 0.06)' },
   { label: 'Paid Courses', key: 'paid', icon: 'isax-wallet-money', color: '#6B1D2A', bg: 'rgba(107, 29, 42, 0.06)' },
 ];
+// Note: statCards labels are replaced dynamically via t() in the component render
 
 /* ── Component ─────────────────────────────────────────── */
 const InstructorCourse = () => {
+  const { t } = useTranslation();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<CourseStats>({ active: 0, pending: 0, draft: 0, free: 0, paid: 0 });
@@ -126,7 +129,7 @@ const InstructorCourse = () => {
 
   const columns = [
     {
-      title: 'Course Name',
+      title: t('instructor.courses.courseTitle', 'Course Name'),
       dataIndex: 'CourseName',
       render: (text: string, record: any) => {
         const courseObj = courses.find((c) => c.id === record.id);
@@ -172,12 +175,12 @@ const InstructorCourse = () => {
       sorter: (a: any, b: any) => a.CourseName.localeCompare(b.CourseName),
     },
     {
-      title: 'Students',
+      title: t('instructor.courses.students', 'Students'),
       dataIndex: 'Students',
       sorter: (a: any, b: any) => a.Students - b.Students,
     },
     {
-      title: 'Price',
+      title: t('instructor.courses.coursePrice', 'Price'),
       dataIndex: 'Price',
       render: (text: string) => (
         <span style={{
@@ -194,7 +197,7 @@ const InstructorCourse = () => {
       },
     },
     {
-      title: 'Ratings',
+      title: t('instructor.courses.rating', 'Ratings'),
       dataIndex: 'Ratings',
       render: (text: string) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -205,13 +208,13 @@ const InstructorCourse = () => {
       sorter: (a: any, b: any) => parseFloat(a.Ratings) - parseFloat(b.Ratings),
     },
     {
-      title: 'Status',
+      title: t('common.status', 'Status'),
       dataIndex: 'Status',
       render: (text: string) => getStatusBadge(text),
       sorter: (a: any, b: any) => a.Status.localeCompare(b.Status),
     },
     {
-      title: 'Action',
+      title: t('common.actions', 'Action'),
       dataIndex: '',
       render: (_: any, record: any) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -301,7 +304,7 @@ const InstructorCourse = () => {
       {/* ── Table Card ── */}
       <div className="lx-card">
         <div className="lx-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>My Courses</h6>
+          <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courses.title', 'My Courses')}</h6>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Link
               to={all_routes.addNewCourse}
@@ -309,7 +312,7 @@ const InstructorCourse = () => {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13 }}
             >
               <i className="isax isax-add-circle" style={{ fontSize: 14 }} />
-              Add New Course
+              {t('instructor.courses.addNew', 'Add New Course')}
             </Link>
             <div style={{
               display: 'flex', gap: 4, padding: 3, borderRadius: 8,
@@ -347,7 +350,7 @@ const InstructorCourse = () => {
                 borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite', margin: '0 auto 16px',
               }} />
-              <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>Loading courses...</p>
+              <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>{t('common.loading', 'Loading...')}</p>
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : courses.length === 0 ? (
@@ -359,9 +362,9 @@ const InstructorCourse = () => {
               }}>
                 <i className="isax isax-book-1" style={{ fontSize: 28, color: 'var(--lx-text-muted)' }} />
               </div>
-              <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>No Courses Yet</h6>
+              <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courses.noCourses', 'No courses yet')}</h6>
               <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--lx-text-muted)' }}>
-                Start creating your first course today!
+                {t('instructor.courses.createFirst', 'Create your first course')}!
               </p>
               <Link
                 to={all_routes.addNewCourse}
@@ -369,7 +372,7 @@ const InstructorCourse = () => {
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
               >
                 <i className="isax isax-add-circle" style={{ fontSize: 16 }} />
-                Create Course
+                {t('instructor.courses.addNew', 'Add New Course')}
               </Link>
             </div>
           ) : (
@@ -403,13 +406,13 @@ const InstructorCourse = () => {
             }}>
               <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
             </div>
-            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>Delete Course?</h5>
+            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courses.deleteCourse', 'Delete Course?')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
-              Are you sure you want to delete this course? This action cannot be undone.
+              {t('instructor.courses.deleteConfirm', 'Are you sure you want to delete this course? This action cannot be undone.')}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={() => setDeleteModal(false)}>
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="button" className="lx-btn" disabled={deleting}
@@ -420,7 +423,7 @@ const InstructorCourse = () => {
                 }}
                 onClick={handleDeleteConfirm}
               >
-                {deleting ? 'Deleting...' : 'Yes, Delete'}
+                {deleting ? t('common.loading', 'Loading...') : t('common.yes', 'Yes') + ', ' + t('common.delete', 'Delete')}
               </button>
             </div>
           </div>

@@ -10,6 +10,7 @@
  *  3. Show SUCCESS / FAILED / TIMEOUT states with SARALÖWE brand styling
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { paymentService } from '../../../services/api/payment.service';
 import { all_routes } from '../../router/all_routes';
@@ -36,6 +37,7 @@ const particles = [
 
 // ── main component ────────────────────────────────────────────────────────────
 const PaymentCallbackPage: React.FC = () => {
+  const { t } = useTranslation()
   const route     = all_routes;
   const dispatch  = useAppDispatch();
   const [params]  = useSearchParams();

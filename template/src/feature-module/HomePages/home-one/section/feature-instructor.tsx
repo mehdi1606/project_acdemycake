@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SVG cake-pattern background (inline data-url) — mimics the screenshot overlay
@@ -71,20 +72,18 @@ const CAKE_PATTERN_SVG = `
 const PATTERN_URL = `url("data:image/svg+xml,${encodeURIComponent(CAKE_PATTERN_SVG)}")`
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Stats data
-   ───────────────────────────────────────────────────────────────────────────── */
-const STATS = [
-  { icon: 'isax isax-medal-star',   value: '15+',      label: 'Years of\nExperience'   },
-  { icon: 'isax isax-star',         value: '500+',     label: 'Recipes\nCreated'        },
-  { icon: 'isax isax-profile-2user',value: '5 000+',   label: 'Students\nTrained'       },
-  { icon: 'isax isax-instagram',    value: '100 000+', label: 'Instagram\nFollowers'    },
-]
-
-/* ─────────────────────────────────────────────────────────────────────────────
    Component
    ───────────────────────────────────────────────────────────────────────────── */
 const Featureinstructor = () => {
+  const { t } = useTranslation()
   const avatarSrc = 'assets/img/avatar/avatar1.jpeg'
+
+  const STATS = [
+    { icon: 'isax isax-medal-star',   value: '15+',      label: t('home.instructor.yearsExperience', 'Years of\nExperience')   },
+    { icon: 'isax isax-star',         value: '500+',     label: t('home.instructor.recipesCreated', 'Recipes\nCreated')        },
+    { icon: 'isax isax-profile-2user',value: '5 000+',   label: t('home.instructor.studentsTrained', 'Students\nTrained')       },
+    { icon: 'isax isax-instagram',    value: '100 000+', label: t('home.instructor.instagramFollowers', 'Instagram\nFollowers')    },
+  ]
   const firstName = 'Sara'
   const restName  = 'Alöwe'
 
@@ -142,7 +141,7 @@ const Featureinstructor = () => {
               }}>
                 <img
                   src={avatarSrc}
-                  alt="Sara Alöwe"
+                  alt={t('home.instructor.avatarAlt', 'Sara Alöwe')}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </div>
@@ -180,7 +179,7 @@ const Featureinstructor = () => {
               fontWeight: 600,
               textTransform: 'uppercase',
             }}>
-              Meet The Author
+              {t('home.instructor.meetTheAuthor', 'Meet The Author')}
             </p>
 
             {/* Name */}
@@ -203,19 +202,10 @@ const Featureinstructor = () => {
               marginBottom: 32,
             }}>
               <p style={{ margin: '0 0 14px' }}>
-                Sara Alöwe is a <strong style={{ color: '#fff' }}>cake designer</strong> and{' '}
-                <strong style={{ color: '#fff' }}>passionate instructor</strong>, known for her
-                attention to detail and artistic approach to pastry. After many requests from her
-                students, she compiled her expertise into a{' '}
-                <strong style={{ color: '#fff' }}>three-volume collection</strong> featuring{' '}
-                <strong style={{ color: '#fff' }}>30 innovative cake recipes</strong> for modern cake design.
+                {t('home.instructor.bio1', 'Sara Alöwe is a cake designer and passionate instructor, known for her attention to detail and artistic approach to pastry. After many requests from her students, she compiled her expertise into a three-volume collection featuring 30 innovative cake recipes for modern cake design.')}
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: '#fff' }}>Cupcake Evolution – 10 Innovative Cake Recipes</strong> is
-                the first volume in this series, dedicated to{' '}
-                <strong style={{ color: '#fff' }}>stability</strong>,{' '}
-                <strong style={{ color: '#fff' }}>creativity</strong>, and{' '}
-                <strong style={{ color: '#fff' }}>excellence</strong> in contemporary pastry.
+                {t('home.instructor.bio2', 'Cupcake Evolution – 10 Innovative Cake Recipes is the first volume in this series, dedicated to stability, creativity, and excellence in contemporary pastry.')}
               </p>
             </div>
 
@@ -288,8 +278,7 @@ const Featureinstructor = () => {
                 lineHeight: 1.75,
                 margin: '0 0 10px',
               }}>
-                "Alchemy is not magic… it's the science of natural ingredients, carefully
-                balanced to create stability and beauty in cakes."
+                {t('home.instructor.quote', '"Alchemy is not magic… it\'s the science of natural ingredients, carefully balanced to create stability and beauty in cakes."')}
               </p>
               <p style={{
                 color: '#C5973E',
@@ -298,7 +287,7 @@ const Featureinstructor = () => {
                 margin: 0,
                 letterSpacing: '0.04em',
               }}>
-                — Saralöwe
+                {t('home.instructor.quoteAuthor', '— Saralöwe')}
               </p>
             </div>
 

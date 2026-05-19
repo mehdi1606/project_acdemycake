@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 import Slider from "react-slick";
 
 const Institution = () => {
+    const { t } = useTranslation()
     const institutionslider = {
         slidesToShow: 7,
         slidesToScroll: 1,

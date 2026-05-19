@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import SettingsLinks from '../settingsLinks/settingsLinks';
 
@@ -35,6 +36,7 @@ const accounts: LinkedAccount[] = [
 ];
 
 const StudentLinkedAccounts = () => {
+  const { t } = useTranslation();
   return (
     <LuxuryDashboardLayout>
       <div className="lx-section-header" style={{ marginBottom: 20 }}>

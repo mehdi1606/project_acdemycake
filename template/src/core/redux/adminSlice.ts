@@ -1,10 +1,9 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
   AdminDashboard,
   AdminUser,
   Course,
   PaymentTransaction,
-  PaginatedResponse,
 } from '../../services/api/types';
 import adminService from '../../services/api/admin.service';
 

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 type PasswordField = "password" | "confirmPassword";
 const LockScreen = () => {
+  const { t } = useTranslation()
   const [passwordVisibility, setPasswordVisibility] = useState({
     password: false,
     confirmPassword: false,
@@ -36,7 +38,7 @@ const LockScreen = () => {
               />
             </div>
             <div className="topic">
-              <h1 className="fs-32 fw-bold mb-3 text-center">Welcome Back</h1>
+              <h1 className="fs-32 fw-bold mb-3 text-center">{t('auth.lockScreen.welcomeBack', 'Welcome Back')}</h1>
             </div>
             <div className="d-flex align-items-center justify-content-center mb-4">
               <div className="text-center">
@@ -53,7 +55,7 @@ const LockScreen = () => {
             <form onSubmit={handleSubmit} className="mb-3 pb-3">
               <div className="mb-3 position-relative">
                 <label className="form-label">
-                  Password <span className="text-danger"> *</span>
+                  {t('auth.lockScreen.password', 'Password')} <span className="text-danger"> *</span>
                 </label>
                 <div className="position-relative">
                   <input
@@ -72,7 +74,7 @@ const LockScreen = () => {
               </div>
               <div className="d-grid">
                 <Link to={route.homeone} className="btn btn-secondary btn-lg">
-                  Sign In
+                  {t('auth.login.signIn', 'Sign In')}
                   <i className="isax isax-arrow-right-3 ms-1" />
                 </Link>
               </div>

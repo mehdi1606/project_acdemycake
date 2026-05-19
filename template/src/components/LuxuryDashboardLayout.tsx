@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryTopbar from './LuxuryTopbar';
 import LuxurySidebar from './LuxurySidebar';
 
@@ -7,6 +8,7 @@ interface LuxuryDashboardLayoutProps {
 }
 
 const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children }) => {
+  const { t } = useTranslation()
   const [sidebarCollapsed,  setSidebarCollapsed]  = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 

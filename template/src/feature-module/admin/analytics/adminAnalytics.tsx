@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ReactApexChart from 'react-apexcharts';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { adminService } from '../../../services/api/admin.service';
@@ -14,6 +15,7 @@ const STAT_CARDS = [
 ];
 
 const AdminAnalytics: React.FC = () => {
+  const { t } = useTranslation()
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

@@ -4,48 +4,17 @@ import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { logout } from '../../../core/redux/authSlice';
 import { getFileUrl } from '../../../environment';
+import { useTranslation } from 'react-i18next';
 
 const adminSidebarData = [
-  {
-    title: 'Dashboard',
-    icon: 'isax isax-category',
-    route: all_routes.adminDashboard,
-  },
-  {
-    title: 'User Management',
-    icon: 'isax isax-people',
-    route: all_routes.adminUsers,
-  },
-  {
-    title: 'Course Management',
-    icon: 'isax isax-book',
-    route: all_routes.adminCourses,
-  },
-  {
-    title: 'Pending Approvals',
-    icon: 'isax isax-clock',
-    route: all_routes.adminPendingCourses,
-  },
-  {
-    title: 'Categories',
-    icon: 'isax isax-folder-2',
-    route: all_routes.adminCategories,
-  },
-  {
-    title: 'Transactions',
-    icon: 'isax isax-card',
-    route: all_routes.adminTransactions,
-  },
-  {
-    title: 'Support Tickets',
-    icon: 'isax isax-ticket',
-    route: all_routes.adminTickets,
-  },
-  {
-    title: 'Coupons',
-    icon: 'isax isax-discount-shape',
-    route: all_routes.adminCoupons,
-  },
+  { title: 'Dashboard',         i18nKey: 'admin.sidebar.dashboard',       icon: 'isax isax-category',        route: all_routes.adminDashboard },
+  { title: 'User Management',   i18nKey: 'admin.sidebar.userManagement',  icon: 'isax isax-people',           route: all_routes.adminUsers },
+  { title: 'Course Management', i18nKey: 'admin.sidebar.courseManagement',icon: 'isax isax-book',             route: all_routes.adminCourses },
+  { title: 'Pending Approvals', i18nKey: 'admin.sidebar.pendingApprovals',icon: 'isax isax-clock',            route: all_routes.adminPendingCourses },
+  { title: 'Categories',        i18nKey: 'admin.sidebar.categories',      icon: 'isax isax-folder-2',         route: all_routes.adminCategories },
+  { title: 'Transactions',      i18nKey: 'admin.sidebar.transactions',    icon: 'isax isax-card',             route: all_routes.adminTransactions },
+  { title: 'Support Tickets',   i18nKey: 'admin.sidebar.tickets',         icon: 'isax isax-ticket',           route: all_routes.adminTickets },
+  { title: 'Coupons',           i18nKey: 'admin.sidebar.coupons',         icon: 'isax isax-discount-shape',   route: all_routes.adminCoupons },
 ];
 
 const AdminSidebar = () => {
@@ -53,6 +22,7 @@ const AdminSidebar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -101,13 +71,13 @@ const AdminSidebar = () => {
               </div>
               <div className="ms-3">
                 <h6 className="mb-0 text-white">{user?.fullName || 'Admin'}</h6>
-                <small className="text-white-50">Administrator</small>
+                <small className="text-white-50">{t('common.admin', 'Administrator')}</small>
               </div>
             </div>
           </div>
 
           <h6 className="mb-3 text-uppercase" style={{ fontSize: '12px', letterSpacing: '1px', color: '#888' }}>
-            Admin Panel
+            {t('admin.sidebar.panel', 'Admin Panel')}
           </h6>
           <ul className="mb-3 pb-1">
             {adminSidebarData.map((menu, index) => (
@@ -119,14 +89,14 @@ const AdminSidebar = () => {
                   }`}
                 >
                   <i className={`${menu.icon} me-2`} />
-                  {menu.title}
+                  {t(menu.i18nKey, menu.title)}
                 </Link>
               </li>
             ))}
           </ul>
           <hr />
           <h6 className="mb-3 text-uppercase" style={{ fontSize: '12px', letterSpacing: '1px', color: '#888' }}>
-            Account
+            {t('admin.sidebar.account', 'Account')}
           </h6>
           <ul>
             <li>
@@ -137,7 +107,7 @@ const AdminSidebar = () => {
                 }`}
               >
                 <i className="isax isax-setting-2 me-2" />
-                Settings
+                {t('admin.sidebar.settings', 'Settings')}
               </Link>
             </li>
             <li>
@@ -147,7 +117,7 @@ const AdminSidebar = () => {
                 style={{ cursor: 'pointer' }}
               >
                 <i className="isax isax-logout me-2" />
-                Logout
+                {t('admin.sidebar.logout', 'Logout')}
               </span>
             </li>
           </ul>

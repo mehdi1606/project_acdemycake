@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Spin } from "antd";
+import { useTranslation } from "react-i18next";
 
 import LuxuryDashboardLayout from "../../../components/LuxuryDashboardLayout";
 import { all_routes } from "../../router/all_routes";
@@ -9,6 +10,7 @@ import profileService from "../../../services/api/profile.service";
 import { User } from "../../../services/api/types";
 
 const StudentProfile = () => {
+  const { t } = useTranslation();
   const route = all_routes;
   const { user: reduxUser } = useAppSelector((state) => state.auth);
   const [user, setUser] = useState<User | null>(reduxUser);
@@ -70,10 +72,10 @@ const StudentProfile = () => {
     <LuxuryDashboardLayout>
       {/* Page Header */}
       <div className="d-flex align-items-center justify-content-between mb-4">
-        <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>My Profile</h5>
+        <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{t('student.profile.title', 'My Profile')}</h5>
         <Link to={route.studentSettings} className="lx-btn lx-btn-outline lx-btn-sm">
           <i className="isax isax-edit-2" />
-          Edit Profile
+          {t('student.profile.editProfile', 'Edit Profile')}
         </Link>
       </div>
 
@@ -82,7 +84,7 @@ const StudentProfile = () => {
         <div className="lx-card-body">
           {/* Basic Information */}
           <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20 }}>
-            Basic Information
+            {t('student.profile.basicInfo', 'Basic Information')}
           </h6>
 
           <div className="row g-4">
@@ -97,10 +99,10 @@ const StudentProfile = () => {
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Full Name
+                  {t('student.profile.fullName', 'Full Name')}
                 </p>
                 <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>
-                  {user?.fullName || "Not set"}
+                  {user?.fullName || t('student.profile.notSet', 'Not set')}
                 </span>
               </div>
             </div>
@@ -116,14 +118,14 @@ const StudentProfile = () => {
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Email
+                  {t('student.profile.email', 'Email')}
                 </p>
                 <span className="d-inline-flex align-items-center gap-2" style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>
-                  {user?.email || "Not set"}
+                  {user?.email || t('student.profile.notSet', 'Not set')}
                   {user?.isEmailVerified ? (
-                    <span className="lx-badge badge-success" style={{ fontSize: 11 }}>Verified</span>
+                    <span className="lx-badge badge-success" style={{ fontSize: 11 }}>{t('student.profile.verified', 'Verified')}</span>
                   ) : (
-                    <span className="lx-badge badge-warning" style={{ fontSize: 11 }}>Not Verified</span>
+                    <span className="lx-badge badge-warning" style={{ fontSize: 11 }}>{t('student.profile.notVerified', 'Not Verified')}</span>
                   )}
                 </span>
               </div>
@@ -140,10 +142,10 @@ const StudentProfile = () => {
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Phone Number
+                  {t('student.profile.phone', 'Phone Number')}
                 </p>
                 <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>
-                  {user?.phone || "Not set"}
+                  {user?.phone || t('student.profile.notSet', 'Not set')}
                 </span>
               </div>
             </div>
@@ -159,7 +161,7 @@ const StudentProfile = () => {
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Registration Date
+                  {t('student.profile.registrationDate', 'Registration Date')}
                 </p>
                 <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>
                   {formatDate(user?.createdAt)}
@@ -178,7 +180,7 @@ const StudentProfile = () => {
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Subscription Status
+                  {t('student.subscription.status', 'Subscription Status')}
                 </p>
                 <span
                   className={`lx-badge ${user?.subscriptionStatus === 'ACTIVE' ? 'badge-success' : 'badge-slate'}`}
@@ -200,7 +202,7 @@ const StudentProfile = () => {
                   }}
                 >
                   <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Subscription Expires
+                    {t('student.subscription.validUntil', 'Subscription Expires')}
                   </p>
                   <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>
                     {formatDate(user.subscriptionEndDate)}
@@ -220,10 +222,10 @@ const StudentProfile = () => {
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Bio
+                  {t('student.profile.bio', 'Bio')}
                 </p>
                 <span style={{ fontSize: 14, color: user?.bio ? 'var(--lx-text)' : 'var(--lx-text-muted)', fontWeight: 400, lineHeight: 1.7 }}>
-                  {user?.bio || "No bio set. Add a bio to tell others about yourself."}
+                  {user?.bio || t('student.profile.noBio', 'No bio set. Add a bio to tell others about yourself.')}
                 </span>
               </div>
             </div>
@@ -237,7 +239,7 @@ const StudentProfile = () => {
             <>
               <div style={{ borderTop: '1px solid rgba(107, 29, 42, 0.06)', margin: '28px 0 20px' }} />
               <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20 }}>
-                Social Links
+                {t('student.settings.socialLinks', 'Social Links')}
               </h6>
               <div className="row g-4">
                 {socialLinks.website && (

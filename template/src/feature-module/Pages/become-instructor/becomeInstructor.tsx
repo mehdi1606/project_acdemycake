@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Breadcrumb from "../../../core/common/Breadcrumb/breadcrumb";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link } from "react-router-dom";
 import CountUp from "react-countup";
 type PasswordField = "password" | "confirmPassword";
 const BecomeInstructor = () => {
+  const { t } = useTranslation()
   const [passwordVisibility, setPasswordVisibility] = useState({
          password: false,
          confirmPassword: false,

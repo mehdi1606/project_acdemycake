@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import courseService from '../../../services/api/course.service';
 import quizService from '../../../services/api/quiz.service';
@@ -50,6 +51,7 @@ const panelTitle: React.CSSProperties = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const CourseWatch: React.FC = () => {
+  const { t } = useTranslation()
   const { courseSlug } = useParams<{ courseSlug: string }>();
   const navigate       = useNavigate();
   const routes         = all_routes;
@@ -433,10 +435,10 @@ const CourseWatch: React.FC = () => {
         <div style={{ width:80, height:80, borderRadius:'50%', background:'rgba(139,35,53,0.08)', border:'2px solid rgba(139,35,53,0.2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
           <i className="fa-solid fa-circle-exclamation" style={{ fontSize:36, color:BURG_D }} />
         </div>
-        <h4 style={{ fontFamily:"'Playfair Display',serif", color:'#2C1810', marginBottom:10 }}>Unable to Load Course</h4>
+        <h4 style={{ fontFamily:"'Playfair Display',serif", color:'#2C1810', marginBottom:10 }}>{t('courseWatch.unableToLoad', 'Unable to Load Course')}</h4>
         <p style={{ color:'#9A8080', fontSize:14, marginBottom:24 }}>{error}</p>
         <Link to={routes.studentCourses} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:10, background:`linear-gradient(135deg,${BURG},${BURG_D})`, color:WHITE, textDecoration:'none', fontWeight:700, fontSize:14 }}>
-          <i className="fa-solid fa-arrow-left" />Back to My Courses
+          <i className="fa-solid fa-arrow-left" />{t('courseWatch.backToMyCourses', 'Back to My Courses')}
         </Link>
       </div>
     </div>
@@ -470,7 +472,7 @@ const CourseWatch: React.FC = () => {
             </Link>
             <button
               onClick={() => navigate(-1)}
-              title="Go back"
+              title={t('courseWatch.goBack', 'Go back')}
               style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'rgba(255,255,255,0.5)', transition:'all 0.2s' }}
             >
               <i className="fa-solid fa-arrow-left" style={{ fontSize:12 }} />
@@ -487,8 +489,8 @@ const CourseWatch: React.FC = () => {
           {/* Progress */}
           <div style={{ marginBottom:16 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-              <span style={{ fontSize:10, fontWeight:800, color:GOLD, textTransform:'uppercase', letterSpacing:'0.08em' }}>Your Progress</span>
-              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)' }}>{doneLessons}/{totalLessons} lessons</span>
+              <span style={{ fontSize:10, fontWeight:800, color:GOLD, textTransform:'uppercase', letterSpacing:'0.08em' }}>{t('courseWatch.yourProgress', 'Your Progress')}</span>
+              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)' }}>{doneLessons}/{totalLessons} {t('common.lessons', 'lessons')}</span>
             </div>
             <div style={{ height:6, borderRadius:3, background:'rgba(255,255,255,0.07)', overflow:'hidden', position:'relative' }}>
               <div style={{
@@ -500,7 +502,7 @@ const CourseWatch: React.FC = () => {
               }} />
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', marginTop:4 }}>
-              <span style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{pct}% complete</span>
+              <span style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{pct}% {t('courseWatch.complete', 'complete')}</span>
               {pct===100 && <span style={{ fontSize:10, color:'#4ADE80', fontWeight:700 }}>🎉 Done!</span>}
             </div>
           </div>
@@ -510,8 +512,8 @@ const CourseWatch: React.FC = () => {
             <div style={{ marginBottom:12, padding:'10px 14px', borderRadius:10, background:'rgba(74,222,128,0.07)', border:'1px solid rgba(74,222,128,0.18)', display:'flex', alignItems:'center', gap:10 }}>
               <i className="fa-solid fa-trophy" style={{ color:GOLD, fontSize:18 }} />
               <div>
-                <p style={{ margin:0, fontWeight:800, fontSize:12, color:'#4ADE80' }}>Course Complete!</p>
-                <p style={{ margin:0, fontSize:10, color:'rgba(74,222,128,0.65)' }}>Certificate generated</p>
+                <p style={{ margin:0, fontWeight:800, fontSize:12, color:'#4ADE80' }}>{t('courseWatch.courseComplete', 'Course Complete!')}</p>
+                <p style={{ margin:0, fontSize:10, color:'rgba(74,222,128,0.65)' }}>{t('courseWatch.certificateGenerated', 'Certificate generated')}</p>
               </div>
             </div>
           )}
@@ -554,7 +556,7 @@ const CourseWatch: React.FC = () => {
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ margin:0, fontSize:12, fontWeight:700, color:WHITE, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{mod.title}</p>
-                    <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{mDone}/{mTotal} lessons</p>
+                    <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{mDone}/{mTotal} {t('common.lessons', 'lessons')}</p>
                   </div>
                   <i className={`fa-solid ${isOpen?'fa-chevron-up':'fa-chevron-down'}`} style={{ fontSize:9, color:'rgba(255,255,255,0.25)', flexShrink:0 }} />
                 </div>
@@ -621,10 +623,10 @@ const CourseWatch: React.FC = () => {
           <div style={{ flex:1, display:'flex', alignItems:'center', gap:8 }}>
             <Link to={routes.homeone} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:5, transition:'color 0.2s' }}>
               <i className="fa-solid fa-house" style={{ fontSize:11 }} />
-              Home
+              {t('sharedComponents.breadcrumb.home', 'Home')}
             </Link>
             <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
-            <Link to={routes.studentCourses} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, transition:'color 0.2s' }}>My Courses</Link>
+            <Link to={routes.studentCourses} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, transition:'color 0.2s' }}>{t('nav.myCourses', 'My Courses')}</Link>
             <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
             <span style={{ color:GOLD, fontSize:12, fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:260 }}>
               {selectedLesson?.title ?? course?.title ?? ''}
@@ -648,7 +650,7 @@ const CourseWatch: React.FC = () => {
           {lessonLoading ? (
             <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:14, minHeight:300 }}>
               <div style={{ width:44, height:44, borderRadius:'50%', border:`4px solid rgba(197,151,62,0.15)`, borderTopColor:GOLD, animation:'spin 0.9s linear infinite' }} />
-              <span style={{ color:'#9A8080', fontSize:14, fontWeight:600 }}>Loading lesson…</span>
+              <span style={{ color:'#9A8080', fontSize:14, fontWeight:600 }}>{t('courseWatch.loadingLesson', 'Loading lesson…')}</span>
             </div>
           ) : selectedLesson ? (
             <>
@@ -913,7 +915,7 @@ const CourseWatch: React.FC = () => {
                           };
                           const fc = fileMap[ext] ?? { icon:'fa-file', color:BURG, bg:'rgba(101,28,50,0.06)' };
                           const sz = res.size ? (res.size>1024*1024?`${(res.size/1024/1024).toFixed(1)} MB`:`${Math.round(res.size/1024)} KB`) : '';
-                          const fileUrl = getFileUrl(res.url) ?? res.url;
+                          const _fileUrl = getFileUrl(res.url) ?? res.url;
 
                           return (
                             <div key={res.id}>

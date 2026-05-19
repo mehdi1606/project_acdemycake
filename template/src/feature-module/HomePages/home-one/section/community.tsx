@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ImageWithBasePath from '../../../../core/common/imageWithBasePath'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
@@ -14,6 +15,7 @@ const formatCount = (count: number): string => {
 };
 
 const Community = () => {
+    const { t } = useTranslation()
     const route = all_routes;
     const [stats, setStats] = useState<PlatformStats | null>(null);
 
@@ -37,13 +39,11 @@ const Community = () => {
                         <div className="col-lg-6">
                             <div className="section-header">
                                 <span className="fw-medium text-secondary text-decoration-underline mb-2 d-inline-block">
-                                    Advanced Learning
+                                    {t('communitySec.advancedLearning', 'Advanced Learning')}
                                 </span>
-                                <h2>Creating a community of learners.</h2>
+                                <h2>{t('communitySec.title', 'Creating a community of learners.')}</h2>
                                 <p>
-                                    We're dedicated to transforming education by providing a diverse
-                                    range of high-quality courses that cater to learners of all
-                                    levels.
+                                    {t('communitySec.description', "We're dedicated to transforming education by providing a diverse range of high-quality courses that cater to learners of all levels.")}
                                 </p>
                             </div>
                             <div className="community-item d-flex align-items-center">
@@ -51,10 +51,9 @@ const Community = () => {
                                     <i className="isax isax-book-saved5" />
                                 </span>
                                 <div>
-                                    <h5 className="mb-2">Learn from anywhere</h5>
+                                    <h5 className="mb-2">{t('communitySec.learnAnywhere', 'Learn from anywhere')}</h5>
                                     <p className="mb-0">
-                                        Learning from anywhere has become a transform aspect of modern
-                                        education, allowing individuals.
+                                        {t('communitySec.learnAnywhereDesc', 'Learning from anywhere has become a transform aspect of modern education, allowing individuals.')}
                                     </p>
                                 </div>
                             </div>
@@ -63,10 +62,9 @@ const Community = () => {
                                     <i className="isax isax-bookmark5" />
                                 </span>
                                 <div>
-                                    <h5 className="mb-2">Expert Mentors</h5>
+                                    <h5 className="mb-2">{t('communitySec.expertMentors', 'Expert Mentors')}</h5>
                                     <p className="mb-0">
-                                        Learning from anywhere has become a transform aspect of modern
-                                        education, allowing individuals.
+                                        {t('communitySec.expertMentorsDesc', 'Learning from anywhere has become a transform aspect of modern education, allowing individuals.')}
                                     </p>
                                 </div>
                             </div>
@@ -75,19 +73,18 @@ const Community = () => {
                                     <i className="isax isax-chart-26" />
                                 </span>
                                 <div>
-                                    <h5 className="mb-2">Learn in demand skills</h5>
+                                    <h5 className="mb-2">{t('communitySec.learnSkills', 'Learn in demand skills')}</h5>
                                     <p className="mb-0">
-                                        In today's rapidly evolving job market, learning in demand
-                                        skills is crucial for career advancement.
+                                        {t('communitySec.learnSkillsDesc', "In today's rapidly evolving job market, learning in demand skills is crucial for career advancement.")}
                                     </p>
                                 </div>
                             </div>
                             <div className="d-flex align-items-center gap-2">
                                 <Link to={route.login} className="btn btn-secondary btn-md">
-                                    Enroll as Student
+                                    {t('trust.enrollAsStudent', 'Enroll as Student')}
                                 </Link>
                                 <Link to={route.becomeAnInstructor} className="btn btn-dark btn-md">
-                                    Apply as Tutor
+                                    {t('trust.applyAsTutor', 'Apply as Tutor')}
                                 </Link>
                             </div>
                         </div>
@@ -154,7 +151,7 @@ const Community = () => {
                                             </span>
                                         </div>
                                         <p className="mb-0">
-                                            <span className="text-secondary">{stats ? formatCount(stats.totalEnrollments) : '...'}</span> Students Enrolled
+                                            <span className="text-secondary">{stats ? formatCount(stats.totalEnrollments) : '...'}</span> {t('communitySec.studentsEnrolled', 'Students Enrolled')}
                                         </p>
                                     </div>
                                 </div>

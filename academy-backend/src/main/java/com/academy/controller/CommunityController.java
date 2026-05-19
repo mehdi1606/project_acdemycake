@@ -8,13 +8,16 @@ import com.academy.dto.response.PageResponse;
 import com.academy.dto.response.PostResponse;
 import com.academy.entity.enums.PostType;
 import com.academy.service.CommunityService;
+import com.academy.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -24,6 +27,11 @@ import java.util.UUID;
 public class CommunityController {
 
     private final CommunityService communityService;
+    private final FileStorageService fileStorageService;
+
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+        "image/png", "image/jpeg", "image/jpg", "image/webp"
+    );
 
     @GetMapping("/posts")
     @Operation(summary = "Get community posts with pagination")
@@ -42,6 +50,18 @@ public class CommunityController {
     public ResponseEntity<ApiResponse<PostResponse>> getPostById(@PathVariable UUID id) {
         PostResponse response = communityService.getPostById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/posts/upload-image")
+    @Operation(summary = "Upload an image to attach to a community post")
+    public ResponseEntity<ApiResponse<String>> uploadPostImage(@RequestParam("file") MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Only PNG, JPG and WebP images are allowed"));
+        }
+        String relativePath = fileStorageService.storeFile(file, "community");
+        String url = fileStorageService.getFileUrl(relativePath);
+        return ResponseEntity.ok(ApiResponse.success("Image uploaded", url));
     }
 
     @PostMapping("/posts")

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { all_routes } from "../../router/all_routes";
 
 const ComingSoon = () => {
+  const { t } = useTranslation()
 
       const [seconds, setSeconds] = useState(60);
     
@@ -65,25 +67,25 @@ const ComingSoon = () => {
           </div>
           <div className="coming-soon-topic">
             <h3 className="h2 mb-3">
-              We are Coming<span className="text-secondary ms-1"> Soon!!!</span>
+              {t('auth.comingSoon.heading', 'We are Coming')}<span className="text-secondary ms-1"> {t('auth.comingSoon.soon', 'Soon!!!')}</span>
             </h3>
-            <p>Stay tuned for something amazing</p>
+            <p>{t('auth.comingSoon.subtitle', 'Stay tuned for something amazing')}</p>
           </div>
           <ul className="coming-soon-timer">
             <li>
-              <span className="days">54</span>days
+              <span className="days">54</span>{t('auth.comingSoon.days', 'days')}
             </li>
             <li className="seperate-dot" />
             <li>
-              <span className="hours">10</span>Hrs
+              <span className="hours">10</span>{t('auth.comingSoon.hrs', 'Hrs')}
             </li>
             <li className="seperate-dot" />
             <li>
-              <span className="minutes">47</span>Min
+              <span className="minutes">47</span>{t('auth.comingSoon.min', 'Min')}
             </li>
             <li className="seperate-dot" />
             <li>
-              <span className="seconds">{formatTime(seconds)}</span>Sec
+              <span className="seconds">{formatTime(seconds)}</span>{t('auth.comingSoon.sec', 'Sec')}
             </li>
           </ul>
           <div className="error-box-img coming-soon-img">
@@ -94,19 +96,19 @@ const ComingSoon = () => {
             />
           </div>
           <form className="mt-5">
-            <b>Notify me when the website is launched</b>
+            <b>{t('auth.comingSoon.notifyLabel', 'Notify me when the website is launched')}</b>
             <div className="bg-white border rounded-2 p-2 mt-2 mb-3">
               <div className="input-group">
                 <input
                   className="form-control focus-shadow-none border-0 me-1"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t('auth.comingSoon.emailPlaceholder', 'Enter your email')}
                 />
                 <button
                   type="button"
                   className="btn btn-secondary rounded-2 mb-0"
                 >
-                  Notify Me!
+                  {t('auth.comingSoon.notifyButton', 'Notify Me!')}
                 </button>
               </div>
             </div>

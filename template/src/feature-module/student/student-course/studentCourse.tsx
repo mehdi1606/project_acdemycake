@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
@@ -29,9 +30,10 @@ type Enrollment = {
 const PAGE_SIZE = 9;
 
 const StudentCourse: React.FC = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
-  const { enrollments, totalPages, currentPage, isLoading, error } = useAppSelector(
+  const { enrollments, totalPages, currentPage: _currentPage, isLoading, error } = useAppSelector(
     (state: any) => state.student
   ) as {
     enrollments: Enrollment[];
@@ -106,21 +108,21 @@ const StudentCourse: React.FC = () => {
     getFileUrl(thumbnail) ?? 'assets/img/course/course-01.jpg';
 
   const tabs: { key: FilterTab; label: string; count: number }[] = [
-    { key: 'all', label: 'All', count: allCount },
-    { key: 'active', label: 'Active', count: activeCount },
-    { key: 'completed', label: 'Completed', count: completedCount },
+    { key: 'all', label: t('student.courses.all', 'All'), count: allCount },
+    { key: 'active', label: t('student.courses.active', 'Active'), count: activeCount },
+    { key: 'completed', label: t('student.courses.completed', 'Completed'), count: completedCount },
   ];
 
   return (
     <LuxuryDashboardLayout>
       {/* ── Glass Page Header ── */}
       <div className="lx-section-header mb-4">
-        <h5 className="section-title">Enrolled Courses</h5>
+        <h5 className="section-title">{t('student.courses.title', 'Enrolled Courses')}</h5>
         <div style={{ display: 'flex', gap: 8 }}>
-          {tabs.map((t) => (
+          {tabs.map((tab) => (
             <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key)}
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
               style={{
                 padding: '7px 18px',
                 borderRadius: 'var(--lx-radius)',
@@ -128,16 +130,16 @@ const StudentCourse: React.FC = () => {
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'var(--lx-transition)',
-                border: activeTab === t.key ? 'none' : '1.5px solid rgba(107, 29, 42, 0.10)',
-                background: activeTab === t.key
+                border: activeTab === tab.key ? 'none' : '1.5px solid rgba(107, 29, 42, 0.10)',
+                background: activeTab === tab.key
                   ? 'linear-gradient(135deg, var(--lx-primary) 0%, var(--lx-primary-dark) 100%)'
                   : 'var(--lx-glass-light)',
-                color: activeTab === t.key ? '#fff' : 'var(--lx-text-mid)',
-                backdropFilter: activeTab === t.key ? 'none' : 'blur(8px)',
-                boxShadow: activeTab === t.key ? '0 4px 16px rgba(107, 29, 42, 0.25)' : 'none',
+                color: activeTab === tab.key ? '#fff' : 'var(--lx-text-mid)',
+                backdropFilter: activeTab === tab.key ? 'none' : 'blur(8px)',
+                boxShadow: activeTab === tab.key ? '0 4px 16px rgba(107, 29, 42, 0.25)' : 'none',
               }}
             >
-              {t.label} ({t.count})
+              {tab.label} ({tab.count})
             </button>
           ))}
         </div>
@@ -156,7 +158,7 @@ const StudentCourse: React.FC = () => {
               className="lx-btn lx-btn-outline lx-btn-sm"
               onClick={() => dispatch(fetchMyEnrollments({ page, size: PAGE_SIZE }))}
             >
-              Retry
+              {t('common.tryAgain', 'Retry')}
             </button>
           </div>
         </div>
@@ -175,19 +177,19 @@ const StudentCourse: React.FC = () => {
               <div className="empty-icon"><i className="isax isax-book" /></div>
               <h6>
                 {activeTab === 'completed'
-                  ? 'No completed courses yet'
+                  ? t('student.courses.noCompletedCourses', 'No completed courses yet')
                   : activeTab === 'active'
-                  ? 'No active courses'
-                  : 'No courses enrolled yet'}
+                  ? t('student.courses.noActiveCourses', 'No active courses')
+                  : t('student.courses.noCourses', 'No courses enrolled yet')}
               </h6>
               <p>
                 {activeTab === 'all'
-                  ? 'Start your learning journey by enrolling in a course.'
-                  : 'Keep learning to see courses here.'}
+                  ? t('student.dashboard.startLearning', 'Start your learning journey by enrolling in a course.')
+                  : t('student.courses.keepLearning', 'Keep learning to see courses here.')}
               </p>
               {activeTab === 'all' && (
                 <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
-                  Browse Courses
+                  {t('student.courses.browseNow', 'Browse Courses')}
                 </Link>
               )}
             </div>
@@ -234,7 +236,7 @@ const StudentCourse: React.FC = () => {
                       }}
                     >
                       <i className="isax isax-tick-circle" style={{ fontSize: 13 }} />
-                      Completed
+                      {t('student.courses.completed', 'Completed')}
                     </span>
                   )}
                 </div>
@@ -253,7 +255,7 @@ const StudentCourse: React.FC = () => {
                   </Link>
 
                   <p className="course-meta">
-                    {enrollment.completedLessons} / {enrollment.totalLessons} lessons completed
+                    {enrollment.completedLessons} / {enrollment.totalLessons} {t('common.lessons', 'lessons')} {t('common.completed', 'completed')}
                   </p>
 
                   <div className="d-flex align-items-center gap-2">
@@ -265,7 +267,7 @@ const StudentCourse: React.FC = () => {
                           style={{ flex: 1, justifyContent: 'center' }}
                         >
                           <i className="isax isax-medal-star" />
-                          View Certificate
+                          {t('student.certificates.download', 'View Certificate')}
                         </button>
                       ) : (
                         <Link
@@ -274,7 +276,7 @@ const StudentCourse: React.FC = () => {
                           style={{ flex: 1, justifyContent: 'center' }}
                         >
                           <i className="isax isax-medal" />
-                          My Certificates
+                          {t('student.certificates.title', 'My Certificates')}
                         </Link>
                       )
                     ) : (
@@ -284,7 +286,7 @@ const StudentCourse: React.FC = () => {
                         style={{ flex: 1, justifyContent: 'center' }}
                       >
                         <i className="isax isax-play-circle" />
-                        Continue Learning
+                        {t('student.dashboard.continueLearning', 'Continue Learning')}
                       </Link>
                     )}
                     <Link
@@ -378,7 +380,7 @@ const StudentCourse: React.FC = () => {
               <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>
                   <i className="isax isax-medal-star" style={{ color: 'var(--lx-gold)', marginRight: 8 }} />
-                  Certificate of Completion
+                  {t('student.certificates.title', 'Certificate of Completion')}
                 </h5>
                 <button onClick={closeCertModal} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}>
                   <i className="isax isax-close-circle" />
@@ -390,12 +392,12 @@ const StudentCourse: React.FC = () => {
                 {certLoading ? (
                   <div style={{ textAlign: 'center', padding: '40px 0' }}>
                     <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
-                    <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading certificate...</p>
+                    <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('student.certificates.loading', 'Loading certificate...')}</p>
                   </div>
                 ) : !certData ? (
                   <div style={{ textAlign: 'center', padding: '40px 0' }}>
                     <i className="isax isax-warning-2" style={{ fontSize: 32, color: '#8B2335', display: 'block', marginBottom: 12 }} />
-                    <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>Could not load certificate. Please try again.</p>
+                    <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('student.certificates.loadError', 'Could not load certificate. Please try again.')}</p>
                   </div>
                 ) : (
                   <>
@@ -410,19 +412,19 @@ const StudentCourse: React.FC = () => {
                         <i className="isax isax-medal-star" style={{ fontSize: 36, color: 'var(--lx-gold, #C5973E)' }} />
                       </div>
                       <p style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 700, color: 'var(--lx-text-muted)', letterSpacing: '1px', marginBottom: 12 }}>
-                        Certificate of Completion
+                        {t('student.certificates.title', 'Certificate of Completion')}
                       </p>
-                      <p style={{ fontSize: 15, color: 'var(--lx-text-muted)', marginBottom: 6 }}>This is to certify that</p>
+                      <p style={{ fontSize: 15, color: 'var(--lx-text-muted)', marginBottom: 6 }}>{t('student.certificates.certifyText', 'This is to certify that')}</p>
                       <h3 style={{ fontWeight: 800, color: 'var(--lx-text)', marginBottom: 6, fontSize: 22 }}>{certData.studentName}</h3>
-                      <p style={{ fontSize: 15, color: 'var(--lx-text-muted)', marginBottom: 6 }}>has successfully completed</p>
+                      <p style={{ fontSize: 15, color: 'var(--lx-text-muted)', marginBottom: 6 }}>{t('student.certificates.successfullyCompleted', 'has successfully completed')}</p>
                       <h4 style={{ fontWeight: 700, color: 'var(--lx-primary)', marginBottom: 16, fontSize: 18 }}>{certData.courseTitle}</h4>
                       {certData.instructorName && (
                         <p style={{ fontSize: 14, color: 'var(--lx-text-muted)', marginBottom: 4 }}>
-                          Instructor: <strong style={{ color: 'var(--lx-text)' }}>{certData.instructorName}</strong>
+                          {t('common.instructor', 'Instructor')}: <strong style={{ color: 'var(--lx-text)' }}>{certData.instructorName}</strong>
                         </p>
                       )}
                       <p style={{ fontSize: 14, color: 'var(--lx-text-muted)', marginBottom: 16 }}>
-                        Completed on {formatDate(certData.completionDate || certData.issuedAt)}
+                        {t('student.certificates.completedOn', 'Completed on')} {formatDate(certData.completionDate || certData.issuedAt)}
                       </p>
                       <div style={{ display: 'inline-block', padding: '4px 16px', borderRadius: 20, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}>
                         <span style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginRight: 4 }}>Certificate #:</span>
@@ -433,11 +435,11 @@ const StudentCourse: React.FC = () => {
                     {/* Details grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                       {[
-                        { label: 'Student Name', value: certData.studentName },
-                        { label: 'Course', value: certData.courseTitle },
-                        { label: 'Certificate #', value: certData.certificateNumber, code: true },
-                        { label: 'Issued Date', value: formatDate(certData.issuedAt) },
-                        ...(certData.instructorName ? [{ label: 'Instructor', value: certData.instructorName }] : []),
+                        { label: t('student.certificates.studentName', 'Student Name'), value: certData.studentName },
+                        { label: t('student.certificates.courseName', 'Course'), value: certData.courseTitle },
+                        { label: t('student.certificates.certificateId', 'Certificate #'), value: certData.certificateNumber, code: true },
+                        { label: t('student.certificates.issuedDate', 'Issued Date'), value: formatDate(certData.issuedAt) },
+                        ...(certData.instructorName ? [{ label: t('common.instructor', 'Instructor'), value: certData.instructorName }] : []),
                       ].map((item) => (
                         <div key={item.label}>
                           <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</p>
@@ -455,7 +457,7 @@ const StudentCourse: React.FC = () => {
 
               {/* Modal footer */}
               <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107,29,42,0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                <button className="lx-btn lx-btn-outline" onClick={closeCertModal}>Close</button>
+                <button className="lx-btn lx-btn-outline" onClick={closeCertModal}>{t('common.close', 'Close')}</button>
                 {certData && (
                   <button
                     className="lx-btn lx-btn-gold"
@@ -467,7 +469,7 @@ const StudentCourse: React.FC = () => {
                     ) : (
                       <i className="isax isax-import" />
                     )}
-                    Download PDF
+                    {t('student.certificates.download', 'Download PDF')}
                   </button>
                 )}
               </div>

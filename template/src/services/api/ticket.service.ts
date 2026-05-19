@@ -49,7 +49,7 @@ export interface TicketStats {
   closed: number;
 }
 
-interface PageResponse<T> {
+export interface PageResponse<T> {
   content: T[];
   page: number;
   size: number;
@@ -169,3 +169,60 @@ class TicketService {
 
 export const ticketService = new TicketService();
 export default ticketService;
+
+// ─── Contact Messages (public form + admin view) ──────────────────────────────
+
+export interface ContactMessagePayload {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface ContactStats {
+  total: number;
+  unread: number;
+}
+
+class ContactService {
+  /** Public — no auth required */
+  async submit(payload: ContactMessagePayload): Promise<void> {
+    await api.post('/public/contact', payload);
+  }
+
+  /** Admin — requires ADMIN role */
+  async getAll(page = 0, size = 10, unreadOnly?: boolean): Promise<PageResponse<ContactMessage>> {
+    const res = await api.get<PageResponse<ContactMessage>>('/admin/contact-messages', {
+      params: { page, size, ...(unreadOnly ? { unreadOnly: true } : {}) },
+    });
+    return res.data;
+  }
+
+  async getStats(): Promise<ContactStats> {
+    const res = await api.get<ContactStats>('/admin/contact-messages/stats');
+    return res.data;
+  }
+
+  async markRead(id: string): Promise<ContactMessage> {
+    const res = await api.patch<ContactMessage>(`/admin/contact-messages/${id}/read`);
+    return res.data;
+  }
+
+  async deleteMessage(id: string): Promise<void> {
+    await api.delete(`/admin/contact-messages/${id}`);
+  }
+}
+
+export const contactService = new ContactService();

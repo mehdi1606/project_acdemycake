@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import SettingsLinks from '../settingsLinks/settingsLinks';
 import { message } from 'antd';
@@ -49,6 +50,7 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () =>
 );
 
 const StudentNotification = () => {
+  const { t } = useTranslation();
   const [toggles, setToggles] = useState<Record<string, boolean>>(defaultToggles);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -101,7 +103,7 @@ const StudentNotification = () => {
           <h6 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>{title}</h6>
         </div>
         <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => toggleAllGroup(items)}>
-          Toggle all
+          {t('student.notifications.toggleAll', 'Toggle all')}
         </button>
       </div>
       <div className="lx-card-body" style={{ padding: 0 }}>
@@ -131,7 +133,7 @@ const StudentNotification = () => {
   return (
     <LuxuryDashboardLayout>
       <div className="lx-section-header" style={{ marginBottom: 20 }}>
-        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Settings</h5>
+        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.settings.title', 'Settings')}</h5>
       </div>
       <SettingsLinks />
 
@@ -141,12 +143,12 @@ const StudentNotification = () => {
         </div>
       ) : (
         <>
-          {renderSection('General Notifications', 'isax-notification', generalNotifs)}
-          {renderSection('Email Notifications', 'isax-sms', emailNotifs)}
+          {renderSection(t('student.notifications.generalNotifications', 'General Notifications'), 'isax-notification', generalNotifs)}
+          {renderSection(t('student.notifications.emailNotifications', 'Email Notifications'), 'isax-sms', emailNotifs)}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
             <button className="lx-btn lx-btn-gold" type="button" onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Preferences'}
+              {saving ? t('student.settings.saving', 'Saving...') : t('student.notifications.save', 'Save Preferences')}
             </button>
           </div>
         </>

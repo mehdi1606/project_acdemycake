@@ -4,6 +4,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Spin } from 'antd';
 import { useAppSelector } from '../../core/redux/hooks';
 import { messageService, ConversationInfo, ChatMessage } from '../../services/api/message.service';
@@ -57,6 +58,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   initialParticipantId,
   initialParticipantName,
 }) => {
+  const { t } = useTranslation()
   const currentUser = useAppSelector((s) => s.auth.user);
 
   // ── conversation list ──────────────────────────────────────────────────────
@@ -74,7 +76,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   const [sending, setSending] = useState(false);
 
   // ── ws connection state ───────────────────────────────────────────────────
-  const [wsConnected, setWsConnected] = useState(false);
+  const [_wsConnected, setWsConnected] = useState(false);
 
   // ── refs ──────────────────────────────────────────────────────────────────
   const messagesEndRef = useRef<HTMLDivElement>(null);

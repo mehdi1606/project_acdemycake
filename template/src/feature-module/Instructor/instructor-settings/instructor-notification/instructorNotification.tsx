@@ -1,13 +1,15 @@
 import React from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
+import { useTranslation } from 'react-i18next';
 
 const InstructorNotification: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <LuxuryDashboardLayout>
       <div className="content">
         <div className="mb-3">
-          <h5>Settings</h5>
+          <h5>{t('student.settings.title', 'Settings')}</h5>
         </div>
 
         <InstructorSettingsLink />

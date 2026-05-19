@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import {
   CATEGORY_LABELS,
@@ -9,6 +10,9 @@ import {
   TicketStats,
   TicketStatus,
   ticketService,
+  ContactMessage,
+  ContactStats,
+  contactService,
 } from '../../../services/api/ticket.service';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -46,6 +50,211 @@ const priorityBadge = (priority: string) => {
 
 const PAGE_SIZE = 10;
 
+// ─── Contact messages panel (inner component for clean separation) ─────────────
+const ContactMessagesPanel: React.FC = () => {
+  const { t } = useTranslation();
+  const [messages, setMessages]       = useState<ContactMessage[]>([]);
+  const [stats, setStats]             = useState<ContactStats | null>(null);
+  const [loading, setLoading]         = useState(true);
+  const [page, setPage]               = useState(0);
+  const [totalPages, setTotalPages]   = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [unreadOnly, setUnreadOnly]   = useState(false);
+  const [expanded, setExpanded]       = useState<string | null>(null);
+  const [deleting, setDeleting]       = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [data, s] = await Promise.all([
+        contactService.getAll(page, PAGE_SIZE, unreadOnly || undefined),
+        contactService.getStats(),
+      ]);
+      setMessages(data.content ?? []);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
+      setStats(s);
+    } catch { /* silent */ }
+    finally { setLoading(false); }
+  }, [page, unreadOnly]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const markRead = async (id: string) => {
+    await contactService.markRead(id);
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m));
+    setStats(prev => prev ? { ...prev, unread: Math.max(0, prev.unread - 1) } : prev);
+  };
+
+  const deleteMsg = async (id: string) => {
+    setDeleting(id);
+    try {
+      await contactService.deleteMessage(id);
+      setMessages(prev => prev.filter(m => m.id !== id));
+      setStats(prev => prev ? { ...prev, total: prev.total - 1 } : prev);
+    } finally { setDeleting(null); }
+  };
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  return (
+    <>
+      {/* Stats row */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
+        {[
+          { label: 'Total',  value: stats?.total  ?? 0, icon: 'isax-message-text', color: 'slate' },
+          { label: 'Unread', value: stats?.unread ?? 0, icon: 'isax-sms-notification', color: 'gold'  },
+        ].map(s => (
+          <div className="lx-stat-card" key={s.label} style={{ flex: '0 0 auto', minWidth: 140 }}>
+            <span className={`stat-icon ${s.color}`}>
+              <i className={`isax ${s.icon}`} style={{ fontSize: 20 }} />
+            </span>
+            <div>
+              <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: 0 }}>{s.label}</p>
+              <h4 style={{ fontSize: 22, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{s.value}</h4>
+            </div>
+          </div>
+        ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+          <button
+            className={`lx-btn lx-btn-sm ${unreadOnly ? 'lx-btn-gold' : 'lx-btn-outline'}`}
+            onClick={() => { setUnreadOnly(v => !v); setPage(0); }}
+          >
+            <i className="isax isax-sms-notification" style={{ marginRight: 4 }} />
+            {t('admin.contact.unreadOnly', 'Unread only')}
+            {stats && stats.unread > 0 && (
+              <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 10, background: '#8B2335', color: '#fff', fontSize: 11, fontWeight: 600 }}>
+                {stats.unread}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Messages list */}
+      <div className="lx-card">
+        <div className="lx-card-body" style={{ padding: 0 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="lx-empty-state">
+              <span className="empty-icon"><i className="isax isax-message-text" style={{ fontSize: 28 }} /></span>
+              <p>{t('admin.contact.noMessages', 'No contact messages yet.')}</p>
+            </div>
+          ) : (
+            <div>
+              {messages.map(msg => (
+                <div
+                  key={msg.id}
+                  style={{
+                    borderBottom: '1px solid rgba(107,29,42,0.07)',
+                    background: msg.isRead ? 'transparent' : 'rgba(197,145,44,0.04)',
+                  }}
+                >
+                  {/* Summary row */}
+                  <div
+                    style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 14 }}
+                    onClick={() => {
+                      setExpanded(prev => prev === msg.id ? null : msg.id);
+                      if (!msg.isRead) markRead(msg.id);
+                    }}
+                  >
+                    {/* Unread dot */}
+                    <div style={{ marginTop: 6, flexShrink: 0 }}>
+                      {!msg.isRead
+                        ? <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lx-primary)' }} />
+                        : <div style={{ width: 8, height: 8 }} />
+                      }
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                          <span style={{ fontWeight: msg.isRead ? 500 : 700, fontSize: 14, color: 'var(--lx-text)' }}>{msg.name}</span>
+                          <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{msg.email}</span>
+                          {msg.phone && <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{msg.phone}</span>}
+                        </div>
+                        <span style={{ fontSize: 12, color: 'var(--lx-text-muted)', flexShrink: 0 }}>{formatDate(msg.createdAt)}</span>
+                      </div>
+                      <p style={{ margin: '4px 0 0', fontWeight: 600, fontSize: 13, color: 'var(--lx-text)' }}>{msg.subject}</p>
+                      {expanded !== msg.id && (
+                        <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--lx-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 480 }}>
+                          {msg.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <i
+                      className={`isax isax-arrow-${expanded === msg.id ? 'up' : 'down'}-2`}
+                      style={{ flexShrink: 0, color: 'var(--lx-text-muted)', fontSize: 16, marginTop: 2 }}
+                    />
+                  </div>
+
+                  {/* Expanded body */}
+                  {expanded === msg.id && (
+                    <div style={{ padding: '0 20px 20px 42px' }}>
+                      <div style={{
+                        padding: '16px 18px',
+                        background: 'rgba(107,29,42,0.03)',
+                        borderRadius: 10,
+                        border: '1px solid rgba(107,29,42,0.07)',
+                        fontSize: 14, lineHeight: 1.7, color: 'var(--lx-text)',
+                        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                        marginBottom: 14,
+                      }}>
+                        {msg.message}
+                      </div>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <a
+                          href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject)}`}
+                          className="lx-btn lx-btn-gold lx-btn-sm"
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <i className="isax isax-send-2" style={{ marginRight: 4 }} />
+                          {t('admin.contact.replyEmail', 'Reply via Email')}
+                        </a>
+                        <button
+                          type="button"
+                          className="lx-btn lx-btn-outline lx-btn-sm"
+                          style={{ color: '#c0392b', borderColor: 'rgba(192,57,43,0.3)' }}
+                          disabled={deleting === msg.id}
+                          onClick={() => deleteMsg(msg.id)}
+                        >
+                          <i className="isax isax-trash" style={{ marginRight: 4 }} />
+                          {deleting === msg.id ? '…' : t('common.delete', 'Delete')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+          <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
+            Page {page + 1} of {totalPages} ({totalElements} messages)
+          </span>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</button>
+            {Array.from({ length: totalPages }, (_, i) => i).map(i => (
+              <button key={i} className={`lx-btn lx-btn-sm ${i === page ? 'lx-btn-gold' : 'lx-btn-outline'}`} onClick={() => setPage(i)}>{i + 1}</button>
+            ))}
+            <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
@@ -61,6 +270,8 @@ const inputStyle: React.CSSProperties = {
 // ─── component ────────────────────────────────────────────────────────────────
 
 const AdminTickets = () => {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<'tickets' | 'contact'>('tickets');
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -172,11 +383,11 @@ const AdminTickets = () => {
           Page {page + 1} of {totalPages} ({totalElements} tickets)
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</button>
+          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>{t('common.previous', 'Previous')}</button>
           {pages.map(i => (
             <button key={i} className={`lx-btn lx-btn-sm ${i === page ? 'lx-btn-gold' : 'lx-btn-outline'}`} onClick={() => setPage(i)}>{i + 1}</button>
           ))}
-          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>{t('common.next', 'Next')}</button>
         </div>
       </div>
     );
@@ -184,17 +395,57 @@ const AdminTickets = () => {
 
   return (
     <LuxuryDashboardLayout>
-      <div className="lx-section-header" style={{ marginBottom: 24 }}>
-        <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>Support Tickets</h5>
+      {/* ── Page header + tab switcher ─── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>
+          {activeTab === 'tickets'
+            ? t('admin.tickets.title', 'Support Tickets')
+            : t('admin.contact.title', 'Contact Messages')}
+        </h5>
+        <div style={{ display: 'flex', background: 'rgba(107,29,42,0.05)', borderRadius: 10, padding: 4, gap: 4 }}>
+          {([
+            { key: 'tickets', label: t('admin.tickets.title', 'Support Tickets'), icon: 'isax-ticket' },
+            { key: 'contact', label: t('admin.contact.title', 'Contact Messages'), icon: 'isax-message-text' },
+          ] as const).map(tab => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '8px 18px',
+                borderRadius: 8,
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.18s',
+                background: activeTab === tab.key ? 'var(--lx-primary)' : 'transparent',
+                color: activeTab === tab.key ? '#fff' : 'var(--lx-text-muted)',
+              }}
+            >
+              <i className={`isax ${tab.icon}`} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* ── Contact Messages Tab ─── */}
+      {activeTab === 'contact' && <ContactMessagesPanel />}
+
+      {/* ── Support Tickets Tab ─── */}
+      {activeTab === 'tickets' && <>
 
       {/* ── Stats cards ─── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Total', value: stats?.total ?? 0, color: 'slate', icon: 'isax-ticket' },
-          { label: 'Open', value: stats?.open ?? 0, color: 'sage', icon: 'isax-folder-open' },
-          { label: 'In Progress', value: stats?.inProgress ?? 0, color: 'gold', icon: 'isax-clock' },
-          { label: 'Closed', value: stats?.closed ?? 0, color: 'amber', icon: 'isax-tick-circle' },
+          { label: t('common.total', 'Total'), value: stats?.total ?? 0, color: 'slate', icon: 'isax-ticket' },
+          { label: t('admin.tickets.open', 'Open'), value: stats?.open ?? 0, color: 'sage', icon: 'isax-folder-open' },
+          { label: t('admin.tickets.inProgress', 'In Progress'), value: stats?.inProgress ?? 0, color: 'gold', icon: 'isax-clock' },
+          { label: t('admin.tickets.closed', 'Closed'), value: stats?.closed ?? 0, color: 'amber', icon: 'isax-tick-circle' },
         ].map((s) => (
           <div className="lx-stat-card" key={s.label}>
             <span className={`stat-icon ${s.color}`}>
@@ -221,7 +472,7 @@ const AdminTickets = () => {
             className={`lx-btn lx-btn-sm ${filterStatus === s ? 'lx-btn-gold' : 'lx-btn-outline'}`}
             onClick={() => handleFilterChange(s as TicketStatus | '')}
           >
-            {s === '' ? 'All' : STATUS_LABELS[s as TicketStatus]}
+            {s === '' ? t('admin.tickets.all', 'All') : STATUS_LABELS[s as TicketStatus]}
             {s === 'OPEN' && stats && stats.open > 0 && (
               <span style={{
                 marginLeft: 6, padding: '1px 7px', borderRadius: 10,
@@ -246,44 +497,44 @@ const AdminTickets = () => {
           ) : tickets.length === 0 ? (
             <div className="lx-empty-state">
               <span className="empty-icon"><i className="isax isax-ticket" style={{ fontSize: 28 }} /></span>
-              <p>No tickets found.</p>
+              <p>{t('admin.tickets.noTickets', 'No tickets found.')}</p>
             </div>
           ) : (
             <table className="lx-table">
               <thead>
                 <tr>
-                  <th>Ticket</th>
-                  <th>Student</th>
-                  <th>Subject</th>
-                  <th>Category</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th>Action</th>
+                  <th>{t('admin.tickets.ticketNumber', 'Ticket')}</th>
+                  <th>{t('admin.tickets.student', 'Student')}</th>
+                  <th>{t('admin.tickets.subject', 'Subject')}</th>
+                  <th>{t('admin.tickets.category', 'Category')}</th>
+                  <th>{t('admin.tickets.priority', 'Priority')}</th>
+                  <th>{t('admin.tickets.status', 'Status')}</th>
+                  <th>{t('admin.tickets.date', 'Date')}</th>
+                  <th>{t('common.actions', 'Action')}</th>
                 </tr>
               </thead>
               <tbody>
-                {tickets.map((t) => (
-                  <tr key={t.id}>
+                {tickets.map((ticket) => (
+                  <tr key={ticket.id}>
                     <td>
-                      <span style={{ color: 'var(--lx-primary)', fontWeight: 600 }}>{t.ticketNumber}</span>
+                      <span style={{ color: 'var(--lx-primary)', fontWeight: 600 }}>{ticket.ticketNumber}</span>
                     </td>
                     <td>
-                      <p style={{ margin: 0, fontWeight: 500, fontSize: 13 }}>{t.studentName}</p>
-                      <small style={{ color: 'var(--lx-text-muted)', fontSize: 12 }}>{t.studentEmail}</small>
+                      <p style={{ margin: 0, fontWeight: 500, fontSize: 13 }}>{ticket.studentName}</p>
+                      <small style={{ color: 'var(--lx-text-muted)', fontSize: 12 }}>{ticket.studentEmail}</small>
                     </td>
                     <td style={{ maxWidth: 180 }}>
-                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={t.subject}>
-                        {t.subject}
+                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={ticket.subject}>
+                        {ticket.subject}
                       </span>
                     </td>
-                    <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[t.category]}</span></td>
-                    <td>{priorityBadge(t.priority)}</td>
-                    <td>{statusBadge(t.status)}</td>
-                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(t.createdAt)}</td>
+                    <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[ticket.category]}</span></td>
+                    <td>{priorityBadge(ticket.priority)}</td>
+                    <td>{statusBadge(ticket.status)}</td>
+                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(ticket.createdAt)}</td>
                     <td>
-                      <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(t)}>
-                        <i className="isax isax-eye" style={{ marginRight: 4 }} /> View
+                      <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(ticket)}>
+                        <i className="isax isax-eye" style={{ marginRight: 4 }} /> {t('common.view', 'View')}
                       </button>
                     </td>
                   </tr>
@@ -297,7 +548,7 @@ const AdminTickets = () => {
       {renderPagination()}
 
       {/* ─── Ticket Detail Modal ─── */}
-      {activeTicket && (
+      {activeTicket && activeTab === 'tickets' && (
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
@@ -341,7 +592,7 @@ const AdminTickets = () => {
               padding: '10px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)',
               background: 'rgba(107, 29, 42, 0.02)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
             }}>
-              <span style={{ color: 'var(--lx-text-muted)', fontSize: 13, fontWeight: 600, marginRight: 4 }}>Change status:</span>
+              <span style={{ color: 'var(--lx-text-muted)', fontSize: 13, fontWeight: 600, marginRight: 4 }}>{t('admin.tickets.changeStatus', 'Change status:')}</span>
               {(['OPEN', 'IN_PROGRESS', 'CLOSED'] as TicketStatus[]).map((s) => (
                 <button
                   key={s}
@@ -378,7 +629,7 @@ const AdminTickets = () => {
                     }}>
                       <small style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12 }}>
                         {msg.isAdminReply ? (
-                          <span><strong>You (Admin)</strong> · <i className="isax isax-shield-tick" style={{ color: 'var(--lx-primary)' }} /></span>
+                          <span><strong>{t('admin.tickets.youAdmin', 'You (Admin)')}</strong> · <i className="isax isax-shield-tick" style={{ color: 'var(--lx-primary)' }} /></span>
                         ) : (
                           <strong>{activeTicket.studentName}</strong>
                         )}
@@ -406,7 +657,7 @@ const AdminTickets = () => {
                 <textarea
                   style={inputStyle}
                   rows={2}
-                  placeholder="Type your reply to the student…"
+                  placeholder={t('admin.tickets.replyPlaceholder', 'Type your reply to the student…')}
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   onKeyDown={(e) => {
@@ -424,7 +675,7 @@ const AdminTickets = () => {
                   {replying ? (
                     <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} />
                   ) : (
-                    <><i className="isax isax-send-2" style={{ marginRight: 4 }} />Send</>
+                    <><i className="isax isax-send-2" style={{ marginRight: 4 }} />{t('messages.send', 'Send')}</>
                   )}
                 </button>
               </div>
@@ -436,7 +687,7 @@ const AdminTickets = () => {
                   color: '#2D5F3F', fontSize: 14, textAlign: 'center',
                 }}>
                   <i className="isax isax-tick-circle" style={{ marginRight: 6 }} />
-                  Ticket closed.
+                  {t('admin.tickets.ticketClosed', 'Ticket closed.')}
                   {activeTicket.closedAt && <span> Resolved on {formatDate(activeTicket.closedAt)}</span>}
                 </div>
               </div>
@@ -444,6 +695,10 @@ const AdminTickets = () => {
           </div>
         </div>
       )}
+
+      {/* Close the tickets tab fragment */}
+      </>}
+
     </LuxuryDashboardLayout>
   );
 };

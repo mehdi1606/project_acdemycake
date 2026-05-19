@@ -4,11 +4,13 @@ import { instructorSidebarData } from '../../../core/common/data/json/instructor
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch } from '../../../core/redux/hooks';
 import { logout } from '../../../core/redux/authSlice';
+import { useTranslation } from 'react-i18next';
 
 const InstructorSidebar = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -19,7 +21,7 @@ const InstructorSidebar = () => {
     <div className="col-lg-3">
       <div className="settings-sidebar mb-lg-0 theiaStickySidebar">
         <div>
-          <h6 className="mb-3">Main Menu</h6>
+          <h6 className="mb-3">{t('common.mainMenu', 'Main Menu')}</h6>
           <ul className="mb-3 pb-1">
             {instructorSidebarData.map((menu: any, index: any) => (
               <li key={index}>
@@ -29,14 +31,13 @@ const InstructorSidebar = () => {
                     location.pathname === menu.route || location.pathname === menu.subRoute ? 'active' : ''
                   }`}
                 >
-                  <i className={`${menu.icon} me-2`} />
-                  {menu.title}
+                  <><i className={`${menu.icon} me-2`} />{t(menu.i18nKey, menu.title)}</>
                 </Link>
               </li>
             ))}
           </ul>
           <hr />
-          <h6 className="mb-3">Account Settings</h6>
+          <h6 className="mb-3">{t('student.settings.title', 'Account Settings')}</h6>
           <ul>
             <li>
               <Link
@@ -46,7 +47,7 @@ const InstructorSidebar = () => {
                 }`}
               >
                 <i className="isax isax-setting-25 me-2" />
-                Settings
+                {t('instructor.sidebar.settings', 'Settings')}
               </Link>
             </li>
             <li>
@@ -56,7 +57,7 @@ const InstructorSidebar = () => {
                 style={{ cursor: 'pointer' }}
               >
                 <i className="isax isax-logout5 me-2" />
-                Logout
+                {t('instructor.sidebar.logout', 'Logout')}
               </span>
             </li>
           </ul>

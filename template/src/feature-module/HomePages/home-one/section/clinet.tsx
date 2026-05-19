@@ -1,8 +1,10 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import ImageWithBasePath from '../../../../core/common/imageWithBasePath'
 import Slider from 'react-slick';
 
 const Clinet = () => {
+    const { t } = useTranslation()
 
     //Client Slider
     const clientslider = {

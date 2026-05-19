@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
@@ -8,6 +9,7 @@ import { Quiz } from '../../../services/api/types';
 const PAGE_SIZE = 10;
 
 const StudentQuiz = () => {
+  const { t } = useTranslation();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -47,7 +49,7 @@ const StudentQuiz = () => {
       {/* Header */}
       <div className="lx-section-header" style={{ marginBottom: 24 }}>
         <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-          My Quizzes
+          {t('student.quiz.title', 'My Quizzes')}
           {totalElements > 0 && (
             <span style={{
               marginLeft: 10, padding: '2px 10px', borderRadius: 12,
@@ -74,7 +76,7 @@ const StudentQuiz = () => {
             className="lx-btn lx-btn-sm lx-btn-outline"
             onClick={() => loadQuizzes(page)}
           >
-            Retry
+            {t('common.tryAgain', 'Retry')}
           </button>
         </div>
       )}
@@ -90,10 +92,10 @@ const StudentQuiz = () => {
             <span className="empty-icon" style={{ background: 'rgba(107, 29, 42, 0.06)' }}>
               <i className="isax isax-note-2" style={{ fontSize: 28, color: 'var(--lx-primary)' }} />
             </span>
-            <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>No quizzes available</h6>
-            <p>Enroll in courses that have published quizzes to see them here.</p>
+            <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('student.quiz.noQuizzes', 'No quizzes available')}</h6>
+            <p>{t('student.quiz.noQuizzesDesc', 'Enroll in courses that have published quizzes to see them here.')}</p>
             <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
-              Browse Courses
+              {t('student.wishlist.browseNow', 'Browse Courses')}
             </Link>
           </div>
         </div>
@@ -162,7 +164,7 @@ const StudentQuiz = () => {
                 className="lx-btn lx-btn-gold lx-btn-sm"
                 style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4 }}
               >
-                Take Quiz
+                {t('student.quiz.startQuiz', 'Take Quiz')}
                 <i className="isax isax-arrow-right-1" />
               </Link>
             </div>

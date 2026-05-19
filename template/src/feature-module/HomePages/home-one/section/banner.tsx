@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { all_routes } from '../../../router/all_routes'
 import { courseService } from '../../../../services/api/course.service'
 import { PlatformStats } from '../../../../services/api/types'
@@ -50,6 +51,7 @@ const StatItem: React.FC<{
 
 // ── Main Banner ───────────────────────────────────────────────────────────────
 const BannerSection: React.FC = () => {
+  const { t } = useTranslation();
     const route = all_routes
     const navigate = useNavigate()
     const scrollY = useScrollParallax()
@@ -85,7 +87,7 @@ const BannerSection: React.FC = () => {
     }
 
     // Scroll-driven values
-    const bgParallax = scrollY * 0.3
+    const _bgParallax = scrollY * 0.3
     const graphicParallax = scrollY * 0.15
     const contentParallax = scrollY * 0.08
 
@@ -160,7 +162,7 @@ const BannerSection: React.FC = () => {
                                 data-aos="fade-down"
                                 data-aos-duration="700"
                             >
-                                <span>Couture Pastry · Academy Est. 2010</span>
+                                <span>{t('banner.couturePastry', 'Couture Pastry · Academy Est. 2010')}</span>
                             </div>
 
                             {/* Animated title block */}
@@ -175,7 +177,7 @@ const BannerSection: React.FC = () => {
                                     className="sl-banner__tagline"
                                     style={{ display: 'block' }}
                                 >
-                                    The Art of Cake
+                                    {t('banner.theArtOfCake', 'The Art of Cake')}
                                 </span>
                             </div>
 
@@ -199,7 +201,7 @@ const BannerSection: React.FC = () => {
                                 data-aos-delay="220"
                                 data-aos-duration="700"
                             >
-                                Academy of Couture Pastry Design
+                                {t('banner.academySubtitle', 'Academy of Couture Pastry Design')}
                             </p>
 
                             <p
@@ -208,9 +210,7 @@ const BannerSection: React.FC = () => {
                                 data-aos-delay="300"
                                 data-aos-duration="800"
                             >
-                                Master the world's most coveted sugar art techniques under elite
-                                pastry artists. Bespoke programmes, lifetime access, and certificates
-                                recognised by luxury hospitality brands globally.
+                                {t('banner.description', "Master the world's most coveted sugar art techniques under elite pastry artists. Bespoke programmes, lifetime access, and certificates recognised by luxury hospitality brands globally.")}
                             </p>
 
                             {/* Search */}
@@ -223,13 +223,13 @@ const BannerSection: React.FC = () => {
                             >
                                 <button type="button" className="sl-search-category"
                                     onClick={() => navigate(route.courseList)}>
-                                    All Disciplines
+                                    {t('banner.allDisciplines', 'All Disciplines')}
                                     <i className="isax isax-arrow-down5" style={{ fontSize: '0.7rem', marginLeft: 4 }} />
                                 </button>
                                 <div className="search-divider" />
                                 <input
                                     type="text"
-                                    placeholder="Search courses, techniques…"
+                                    placeholder={t('banner.searchPlaceholder', 'Search courses, techniques…')}
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
                                 />
@@ -246,10 +246,10 @@ const BannerSection: React.FC = () => {
                                 data-aos-duration="700"
                             >
                                 <Link to={route.courseList} className="sl-btn-gold sl-btn-magnetic">
-                                    Explore Courses <i className="isax isax-arrow-right-1" />
+                                    {t('banner.exploreCourses', 'Explore Courses')} <i className="isax isax-arrow-right-1" />
                                 </Link>
                                 <Link to={route.register} className="sl-btn-outline">
-                                    Enrol Free
+                                    {t('banner.enrolFree', 'Enrol Free')}
                                 </Link>
                             </div>
 
@@ -263,11 +263,11 @@ const BannerSection: React.FC = () => {
                             >
                                 {stats && (
                                     <>
-                                        <StatItem rawValue={stats.totalCourses} label="Courses" inView={statsVisible} delay={0} />
+                                        <StatItem rawValue={stats.totalCourses} label={t('banner.courses', 'Courses')} inView={statsVisible} delay={0} />
                                         <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
-                                        <StatItem rawValue={stats.totalEnrollments} label="Enrolments" inView={statsVisible} delay={200} />
+                                        <StatItem rawValue={stats.totalEnrollments} label={t('banner.enrolments', 'Enrolments')} inView={statsVisible} delay={200} />
                                         <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
-                                        <StatItem rawValue={stats.totalInstructors} label="Expert Tutors" inView={statsVisible} delay={400} />
+                                        <StatItem rawValue={stats.totalInstructors} label={t('banner.expertTutors', 'Expert Tutors')} inView={statsVisible} delay={400} />
                                     </>
                                 )}
                                 {!stats && (
@@ -277,7 +277,7 @@ const BannerSection: React.FC = () => {
                                         color: 'rgba(245,218,223,0.3)',
                                         letterSpacing: '0.1em',
                                     }}>
-                                        — Loading —
+                                        {t('banner.loading', '— Loading —')}
                                     </div>
                                 )}
                             </div>
@@ -365,12 +365,12 @@ const BannerSection: React.FC = () => {
                                         fontFamily: 'var(--sl-font-body)', fontSize: '0.56rem',
                                         letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--sl-gold)',
                                     }}>
-                                        Industry Recognised
+                                        {t('banner.industryRecognised', 'Industry Recognised')}
                                     </div>
                                     <div style={{
                                         fontFamily: 'var(--sl-font-display)', fontSize: '0.8rem', color: 'var(--sl-blush)',
                                     }}>
-                                        Certificates · Est. 2010
+                                        {t('banner.certificatesEst', 'Certificates · Est. 2010')}
                                     </div>
                                 </div>
                             </div>

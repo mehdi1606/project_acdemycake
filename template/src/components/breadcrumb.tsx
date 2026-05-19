@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 interface BreadcrumbProps {
@@ -10,6 +11,7 @@ interface BreadcrumbProps {
 }
 
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ title, parent }) => {
+  const { t } = useTranslation()
   return (
     <div className="content-header py-3 border-bottom mb-4 bg-white">
       <div className="container-fluid">

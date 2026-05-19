@@ -3,6 +3,7 @@
  * Generate, list, deactivate and delete coupon codes for the Annual plan.
  */
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import api from '../../../services/api/axios.config';
 import { extractApiError } from '../../../services/api/error.utils';
@@ -62,6 +63,7 @@ const inputStyle: React.CSSProperties = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 const AdminCoupons: React.FC = () => {
+  const { t } = useTranslation();
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
@@ -160,13 +162,13 @@ const AdminCoupons: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <div style={{ fontSize: 12, color: '#9B7B50', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
-              Admin Panel
+              {t('admin.sidebar.panel', 'Admin Panel')}
             </div>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: '#2C1810', fontFamily: '"Playfair Display", serif', margin: 0 }}>
-              Coupon Management
+              {t('admin.coupons.title', 'Coupon Management')}
             </h1>
             <p style={{ fontSize: 14, color: '#9B7B50', margin: '6px 0 0' }}>
-              Generate discount codes redeemable once per user on the Annual plan.
+              {t('admin.coupons.subtitle', 'Generate discount codes redeemable once per user on the Annual plan.')}
             </p>
           </div>
           <button
@@ -180,7 +182,7 @@ const AdminCoupons: React.FC = () => {
             }}
           >
             <i className="isax isax-add-circle" />
-            New Coupon
+            {t('admin.coupons.newCoupon', 'New Coupon')}
           </button>
         </div>
 
@@ -216,7 +218,7 @@ const AdminCoupons: React.FC = () => {
           }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#2C1810', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
               <i className="isax isax-discount-shape" style={{ color: '#C5912C' }} />
-              Create New Coupon
+              {t('admin.coupons.createNewCoupon', 'Create New Coupon')}
             </h3>
 
             {formError && (
@@ -233,7 +235,7 @@ const AdminCoupons: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 {/* Code */}
                 <div>
-                  <label style={labelStyle}>Coupon Code *</label>
+                  <label style={labelStyle}>{t('admin.coupons.couponCode', 'Coupon Code')} *</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       type="text"
@@ -252,14 +254,14 @@ const AdminCoupons: React.FC = () => {
                         fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
                       }}
                     >
-                      Auto-generate
+                      {t('admin.coupons.autoGenerate', 'Auto-generate')}
                     </button>
                   </div>
                 </div>
 
                 {/* Discount */}
                 <div>
-                  <label style={labelStyle}>Discount Percentage *</label>
+                  <label style={labelStyle}>{t('admin.coupons.discountPercentage', 'Discount Percentage')} *</label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="number"
@@ -274,7 +276,7 @@ const AdminCoupons: React.FC = () => {
 
                 {/* Max uses */}
                 <div>
-                  <label style={labelStyle}>Max Uses (blank = unlimited)</label>
+                  <label style={labelStyle}>{t('admin.coupons.maxUses', 'Max Uses (blank = unlimited)')}</label>
                   <input
                     type="number"
                     min={1}
@@ -287,7 +289,7 @@ const AdminCoupons: React.FC = () => {
 
                 {/* Expires */}
                 <div>
-                  <label style={labelStyle}>Expiry Date (optional)</label>
+                  <label style={labelStyle}>{t('admin.coupons.expiryDate', 'Expiry Date (optional)')}</label>
                   <input
                     type="datetime-local"
                     value={form.expiresAt}
@@ -299,7 +301,7 @@ const AdminCoupons: React.FC = () => {
 
               {/* Description */}
               <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Description / Note (optional)</label>
+                <label style={labelStyle}>{t('admin.coupons.descriptionNote', 'Description / Note (optional)')}</label>
                 <input
                   type="text"
                   value={form.description}
@@ -339,7 +341,7 @@ const AdminCoupons: React.FC = () => {
                     background: '#fff', color: '#6B4A2A', fontWeight: 600, cursor: 'pointer',
                   }}
                 >
-                  Cancel
+                  {t('common.cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -352,7 +354,7 @@ const AdminCoupons: React.FC = () => {
                     display: 'flex', alignItems: 'center', gap: 8,
                   }}
                 >
-                  {creating ? 'Creating…' : <><i className="isax isax-tick-circle" /> Create Coupon</>}
+                  {creating ? t('admin.coupons.creating', 'Creating…') : <><i className="isax isax-tick-circle" /> {t('admin.coupons.createCoupon', 'Create Coupon')}</>}
                 </button>
               </div>
             </form>
@@ -384,14 +386,14 @@ const AdminCoupons: React.FC = () => {
 
           {loading ? (
             <div style={{ padding: 48, textAlign: 'center', color: '#9B7B50' }}>
-              Loading coupons…
+              {t('admin.coupons.loadingCoupons', 'Loading coupons…')}
             </div>
           ) : coupons.length === 0 ? (
             <div style={{ padding: 56, textAlign: 'center' }}>
               <i className="isax isax-discount-shape" style={{ fontSize: 40, color: 'rgba(197,145,44,0.3)', display: 'block', marginBottom: 12 }} />
-              <div style={{ fontWeight: 600, color: '#9B7B50' }}>No coupons yet</div>
+              <div style={{ fontWeight: 600, color: '#9B7B50' }}>{t('admin.coupons.noCoupons', 'No coupons yet')}</div>
               <div style={{ fontSize: 13, color: '#B5967A', marginTop: 4 }}>
-                Click "New Coupon" to create your first discount code.
+                {t('admin.coupons.clickNewCoupon', 'Click "New Coupon" to create your first discount code.')}
               </div>
             </div>
           ) : (
@@ -399,7 +401,7 @@ const AdminCoupons: React.FC = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: 'rgba(197,145,44,0.04)' }}>
-                    {['Code', 'Discount', 'Usage', 'Status', 'Expires', 'Created', 'Actions'].map(h => (
+                    {[t('admin.coupons.code', 'Code'), t('admin.coupons.discount', 'Discount'), t('admin.coupons.usage', 'Usage'), t('common.status', 'Status'), t('admin.coupons.expires', 'Expires'), t('common.date', 'Created'), t('common.actions', 'Actions')].map(h => (
                       <th key={h} style={{
                         padding: '12px 16px', textAlign: 'left',
                         fontWeight: 700, color: '#9B7B50',
@@ -462,7 +464,7 @@ const AdminCoupons: React.FC = () => {
                           background: coupon.isActive ? 'rgba(26,127,75,0.1)' : 'rgba(232,84,84,0.1)',
                           color: coupon.isActive ? '#1A7F4B' : '#E85454',
                         }}>
-                          {coupon.isActive ? 'Active' : 'Inactive'}
+                          {coupon.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px', color: coupon.expiresAt && new Date(coupon.expiresAt) < new Date() ? '#E85454' : '#9B7B50' }}>

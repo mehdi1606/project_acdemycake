@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 const BackToTop = () => {
+  const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

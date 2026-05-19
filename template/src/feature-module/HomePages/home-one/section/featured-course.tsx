@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
@@ -11,6 +12,7 @@ import { useMouseTilt } from '../hooks/useMouseTilt'
 
 // ── Single card with 3D tilt ──────────────────────────────────────────────────
 const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
+    const { t } = useTranslation()
     const route = all_routes
     const { containerRef, handleMouseMove, handleMouseLeave } = useMouseTilt({
         maxAngle: 8,
@@ -47,7 +49,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
                 />
                 <div className="sl-course-card__img-overlay" />
                 <div className="sl-course-card__badge">
-                    {course.category?.name || 'Cake Design'}
+                    {course.category?.name || t('home.benefits.cakeDesign', 'Cake Design')}
                 </div>
             </div>
 
@@ -62,7 +64,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
                                 (e.target as HTMLImageElement).src = 'assets/img/user/user-01.jpg'
                             }}
                         />
-                        <span>{course.instructor?.fullName || 'Instructor'}</span>
+                        <span>{course.instructor?.fullName || t('common.instructor', 'Instructor')}</span>
                     </Link>
                     <span className="sl-course-card__category">
                         {course.category?.name || 'Design'}
@@ -82,7 +84,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
                         ))}
                     </span>
                     <span>{course.ratingAverage?.toFixed(1) || '5.0'}</span>
-                    <span style={{ opacity: 0.5 }}>· {course.enrolledCount ?? 0} students</span>
+                    <span style={{ opacity: 0.5 }}>· {course.enrolledCount ?? 0} {t('common.students', 'students')}</span>
                 </div>
 
                 <div className="sl-course-card__footer">
@@ -92,7 +94,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
                         to={`${route.courseDetails}/${course.slug}`}
                         className="sl-course-card__cta sl-btn-magnetic"
                     >
-                        {!course.requiresPurchase ? 'Enrol Free' : 'View Course'}
+                        {!course.requiresPurchase ? t('home.featured.enrolFree', 'Enrol Free') : t('common.view', 'View Course')}
                     </Link>
                 </div>
             </div>
@@ -102,6 +104,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
 
 // ── Section ───────────────────────────────────────────────────────────────────
 const Featuredcourse: React.FC = () => {
+  const { t } = useTranslation();
     const route = all_routes
     const [courses, setCourses] = useState<Course[]>([])
     const [loading, setLoading] = useState(true)
@@ -140,12 +143,11 @@ const Featuredcourse: React.FC = () => {
                     data-aos-duration="800"
                 >
                     <div className="sl-ornament justify-content-center">
-                        <span className="sl-script" style={{ fontSize: '1.8rem' }}>Programmes</span>
+                        <span className="sl-script" style={{ fontSize: '1.8rem' }}>{t('home.featured.ornament', 'Programmes')}</span>
                     </div>
-                    <h2 style={{ marginTop: '0.4rem' }}>Featured Courses</h2>
+                    <h2 style={{ marginTop: '0.4rem' }}>{t('home.featured.title', 'Featured Courses')}</h2>
                     <p>
-                        Discover our most-loved programmes, curated by industry-leading pastry artists
-                        for every level of cake designer.
+                        {t('home.featured.description', 'Discover our most-loved programmes, curated by industry-leading pastry artists for every level of cake designer.')}
                     </p>
                 </div>
 
@@ -155,13 +157,13 @@ const Featuredcourse: React.FC = () => {
                         color: 'var(--sl-burgundy)', fontFamily: 'var(--sl-font-body)',
                         letterSpacing: '0.1em', opacity: 0.5,
                     }}>
-                        Loading courses…
+                        {t('home.featured.loadingCourses', 'Loading courses…')}
                     </div>
                 ) : courses.length === 0 ? (
                     <div className="text-center py-5" style={{
                         color: 'rgba(101,28,50,0.45)', fontFamily: 'var(--sl-font-body)',
                     }}>
-                        No courses available yet. Check back soon.
+                        {t('home.featured.noCoursesYet', 'No courses available yet. Check back soon.')}
                     </div>
                 ) : (
                     <div className="sl-slider-wrap">
@@ -183,7 +185,7 @@ const Featuredcourse: React.FC = () => {
                     data-aos-duration="700"
                 >
                     <Link to={route.courseList} className="sl-btn-dark sl-btn-magnetic">
-                        View All Courses <i className="isax isax-arrow-right-1" />
+                        {t('home.featured.viewAllCourses', 'View All Courses')} <i className="isax isax-arrow-right-1" />
                     </Link>
                 </div>
             </div>

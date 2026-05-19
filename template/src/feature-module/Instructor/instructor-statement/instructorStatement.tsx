@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { instructorService } from '../../../services/api/instructor.service';
+import { useTranslation } from 'react-i18next';
 import { InstructorEarning, PaginatedResponse } from '../../../services/api/types';
 
 function formatDate(iso: string) {
@@ -31,6 +32,7 @@ const PayoutStatusBadge = ({ status }: { status: string }) => {
 };
 
 const InstructorStatement: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<PaginatedResponse<InstructorEarning> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DateRangePicker } from 'react-bootstrap-daterangepicker';
 import moment from 'moment';
 import 'bootstrap-daterangepicker/daterangepicker.css';
 
 const PredefinedDateRanges: React.FC = () => {
+  const { t } = useTranslation()
   const [state, setState] = useState({
     start: moment().subtract(29, 'days'),
     end: moment(),

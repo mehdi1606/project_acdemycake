@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './i18n/i18n'; // ← must be imported before any component
 import "../src/style/css/iconsax.css";
 import ALLRoutes from './feature-module/router/router';
 import ErrorBoundary from './components/ErrorBoundary';

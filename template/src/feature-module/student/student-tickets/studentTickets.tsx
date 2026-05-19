@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Spin } from 'antd';
 import {
@@ -48,6 +49,7 @@ const PAGE_SIZE = 10;
 
 // ─── Component ─────────────────────────────────────────
 const StudentTickets: React.FC = () => {
+  const { t } = useTranslation();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -137,7 +139,7 @@ const StudentTickets: React.FC = () => {
     setClosing(true);
     try {
       await ticketService.closeTicket(activeTicket.id);
-      setActiveTicket((t) => t ? { ...t, status: 'CLOSED' } : t);
+      setActiveTicket((prev) => prev ? { ...prev, status: 'CLOSED' } : prev);
       loadTickets();
       loadStats();
     } catch { /* ignore */ } finally {
@@ -209,10 +211,10 @@ const StudentTickets: React.FC = () => {
       {/* Stats */}
       <div className="row g-4 mb-4">
         {[
-          { label: 'Total Tickets', value: stats?.total ?? 0, icon: 'isax isax-ticket', color: 'gold' },
-          { label: 'Open',          value: stats?.open ?? 0,  icon: 'isax isax-folder-open', color: 'slate' },
-          { label: 'In Progress',   value: stats?.inProgress ?? 0, icon: 'isax isax-clock', color: 'amber' },
-          { label: 'Closed',        value: stats?.closed ?? 0, icon: 'isax isax-tick-circle', color: 'sage' },
+          { label: t('student.tickets.totalTickets', 'Total Tickets'), value: stats?.total ?? 0, icon: 'isax isax-ticket', color: 'gold' },
+          { label: t('student.tickets.open', 'Open'),          value: stats?.open ?? 0,  icon: 'isax isax-folder-open', color: 'slate' },
+          { label: t('student.tickets.inProgress', 'In Progress'),   value: stats?.inProgress ?? 0, icon: 'isax isax-clock', color: 'amber' },
+          { label: t('student.tickets.closed', 'Closed'),        value: stats?.closed ?? 0, icon: 'isax isax-tick-circle', color: 'sage' },
         ].map((s) => (
           <div className="col-6 col-md-3" key={s.label}>
             <div className="lx-stat-card">
@@ -239,13 +241,13 @@ const StudentTickets: React.FC = () => {
               style={filterStatus === s ? { background: 'var(--lx-primary)', color: '#fff', border: '1.5px solid var(--lx-primary)' } : {}}
               onClick={() => handleFilterChange(s as TicketStatus | '')}
             >
-              {s === '' ? 'All' : STATUS_LABELS[s as TicketStatus]}
+              {s === '' ? t('common.all', 'All') : STATUS_LABELS[s as TicketStatus]}
             </button>
           ))}
         </div>
         <button type="button" className="lx-btn lx-btn-gold" onClick={() => setShowCreateModal(true)}>
           <i className="isax isax-add-circle" />
-          New Ticket
+          {t('student.tickets.newTicket', 'New Ticket')}
         </button>
       </div>
 
@@ -272,11 +274,11 @@ const StudentTickets: React.FC = () => {
           <div className="lx-card-body">
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-ticket" /></div>
-              <h6>No tickets found.</h6>
-              <p>Need help? Open a support ticket and we'll get back to you.</p>
+              <h6>{t('student.tickets.noTickets', 'No tickets found.')}</h6>
+              <p>{t('student.tickets.noTicketsDesc', 'Need help? Open a support ticket and we\'ll get back to you.')}</p>
               <button className="lx-btn lx-btn-gold" onClick={() => setShowCreateModal(true)}>
                 <i className="isax isax-add-circle" />
-                Open your first ticket
+                {t('student.tickets.openFirstTicket', 'Open your first ticket')}
               </button>
             </div>
           </div>
@@ -288,31 +290,31 @@ const StudentTickets: React.FC = () => {
               <table className="lx-table">
                 <thead>
                   <tr>
-                    <th>Ticket ID</th>
-                    <th>Date</th>
-                    <th>Subject</th>
-                    <th>Category</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th>{t('student.tickets.ticketId', 'Ticket ID')}</th>
+                    <th>{t('student.orders.date', 'Date')}</th>
+                    <th>{t('student.tickets.subject', 'Subject')}</th>
+                    <th>{t('common.category', 'Category')}</th>
+                    <th>{t('student.tickets.priority', 'Priority')}</th>
+                    <th>{t('common.status', 'Status')}</th>
+                    <th>{t('common.actions', 'Action')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tickets.map((t) => (
-                    <tr key={t.id}>
-                      <td><span style={{ color: 'var(--lx-primary)', fontWeight: 600, fontSize: 13 }}>{t.ticketNumber}</span></td>
-                      <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(t.createdAt)}</td>
+                  {tickets.map((ticket) => (
+                    <tr key={ticket.id}>
+                      <td><span style={{ color: 'var(--lx-primary)', fontWeight: 600, fontSize: 13 }}>{ticket.ticketNumber}</span></td>
+                      <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(ticket.createdAt)}</td>
                       <td style={{ maxWidth: 200 }}>
-                        <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500, color: 'var(--lx-text)', fontSize: 13 }} title={t.subject}>
-                          {t.subject}
+                        <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500, color: 'var(--lx-text)', fontSize: 13 }} title={ticket.subject}>
+                          {ticket.subject}
                         </span>
                       </td>
-                      <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[t.category]}</span></td>
-                      <td>{priorityBadge(t.priority)}</td>
-                      <td>{statusBadge(t.status)}</td>
+                      <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[ticket.category]}</span></td>
+                      <td>{priorityBadge(ticket.priority)}</td>
+                      <td>{statusBadge(ticket.status)}</td>
                       <td>
-                        <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(t)}>
-                          <i className="isax isax-eye" /> View
+                        <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(ticket)}>
+                          <i className="isax isax-eye" /> {t('common.view', 'View')}
                         </button>
                       </td>
                     </tr>
@@ -349,7 +351,7 @@ const StudentTickets: React.FC = () => {
               }}
             >
               <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>Open New Support Ticket</h5>
+                <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>{t('student.tickets.newTicket', 'Open New Support Ticket')}</h5>
                 <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}>
                   <i className="isax isax-close-circle" />
                 </button>
@@ -358,12 +360,12 @@ const StudentTickets: React.FC = () => {
                 <div style={{ padding: 24 }}>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                      Subject <span style={{ color: '#8B2335' }}>*</span>
+                      {t('student.tickets.subject', 'Subject')} <span style={{ color: '#8B2335' }}>*</span>
                     </label>
                     <input
                       type="text"
                       style={inputStyle}
-                      placeholder="Brief description of your issue"
+                      placeholder={t('student.tickets.subjectPlaceholder', 'Brief description of your issue')}
                       value={form.subject}
                       onChange={(e) => setForm(f => ({ ...f, subject: e.target.value }))}
                       required
@@ -372,7 +374,7 @@ const StudentTickets: React.FC = () => {
                   <div className="row g-3" style={{ marginBottom: 16 }}>
                     <div className="col-md-6">
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                        Category <span style={{ color: '#8B2335' }}>*</span>
+                        {t('common.category', 'Category')} <span style={{ color: '#8B2335' }}>*</span>
                       </label>
                       <select
                         style={inputStyle}
@@ -386,7 +388,7 @@ const StudentTickets: React.FC = () => {
                     </div>
                     <div className="col-md-6">
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                        Priority <span style={{ color: '#8B2335' }}>*</span>
+                        {t('student.tickets.priority', 'Priority')} <span style={{ color: '#8B2335' }}>*</span>
                       </label>
                       <select
                         style={inputStyle}
@@ -401,12 +403,12 @@ const StudentTickets: React.FC = () => {
                   </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                      Description <span style={{ color: '#8B2335' }}>*</span>
+                      {t('student.tickets.description', 'Description')} <span style={{ color: '#8B2335' }}>*</span>
                     </label>
                     <textarea
                       style={{ ...inputStyle, resize: 'vertical' } as React.CSSProperties}
                       rows={5}
-                      placeholder="Describe your issue in detail…"
+                      placeholder={t('student.tickets.descPlaceholder', 'Describe your issue in detail…')}
                       value={form.description}
                       onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
                       required
@@ -414,11 +416,11 @@ const StudentTickets: React.FC = () => {
                   </div>
                 </div>
                 <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                  <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                  <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowCreateModal(false)}>{t('common.cancel', 'Cancel')}</button>
                   <button type="submit" className="lx-btn lx-btn-gold" disabled={creating}>
                     {creating ? (
-                      <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />Submitting…</>
-                    ) : 'Submit Ticket'}
+                      <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />{t('student.tickets.submitting', 'Submitting…')}</>
+                    ) : t('student.tickets.submit', 'Submit Ticket')}
                   </button>
                 </div>
               </form>
@@ -475,14 +477,14 @@ const StudentTickets: React.FC = () => {
                 {detailLoading ? (
                   <div className="d-flex justify-content-center py-4"><Spin /></div>
                 ) : !activeTicket.messages || activeTicket.messages.length === 0 ? (
-                  <p style={{ color: 'var(--lx-text-muted)', textAlign: 'center', padding: '16px 0' }}>No messages yet.</p>
+                  <p style={{ color: 'var(--lx-text-muted)', textAlign: 'center', padding: '16px 0' }}>{t('student.tickets.noMessages', 'No messages yet.')}</p>
                 ) : (
                   activeTicket.messages.map((msg: TicketMessage) => (
                     <div key={msg.id} className={`d-flex mb-3 ${msg.isAdminReply ? '' : 'flex-row-reverse'}`}>
                       <div className={`d-flex flex-column ${msg.isAdminReply ? 'align-items-start' : 'align-items-end'}`} style={{ maxWidth: '78%' }}>
                         <small style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12 }}>
                           {msg.isAdminReply ? (
-                            <><i className="isax isax-shield-tick" style={{ color: 'var(--lx-primary)', marginRight: 4 }} />Support Team</>
+                            <><i className="isax isax-shield-tick" style={{ color: 'var(--lx-primary)', marginRight: 4 }} />{t('student.tickets.supportTeam', 'Support Team')}</>
                           ) : <strong>You</strong>}
                           {' · '}{formatDateTime(msg.createdAt)}
                         </small>
@@ -514,7 +516,7 @@ const StudentTickets: React.FC = () => {
                     <textarea
                       style={{ ...inputStyle, resize: 'none', flex: 1 } as React.CSSProperties}
                       rows={2}
-                      placeholder="Type your reply… (Enter to send)"
+                      placeholder={t('student.tickets.replyPlaceholder', 'Type your reply… (Enter to send)')}
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       onKeyDown={(e) => {
@@ -540,7 +542,7 @@ const StudentTickets: React.FC = () => {
                       onClick={handleClose}
                       disabled={closing}
                     >
-                      {closing ? <><Spin size="small" /> Closing...</> : 'Close Ticket'}
+                      {closing ? <><Spin size="small" /> {t('student.tickets.closing', 'Closing...')}</> : t('student.tickets.closeTicket', 'Close Ticket')}
                     </button>
                   </div>
                 </div>

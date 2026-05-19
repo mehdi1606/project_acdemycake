@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import ImageWithBasePath from '../../../core/common/imageWithBasePath';
@@ -6,6 +7,7 @@ import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 
 const ProfileCard = () => {
+  const { t } = useTranslation()
   const { user } = useAppSelector((state) => state.auth);
 
   return (

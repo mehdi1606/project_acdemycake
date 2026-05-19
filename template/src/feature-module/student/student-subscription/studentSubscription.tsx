@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import subscriptionService from '../../../services/api/subscription.service';
 import { Subscription, SubscriptionPlan } from '../../../services/api/types';
@@ -60,7 +61,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 // ─── component ────────────────────────────────────────────────────────────────
 
 const StudentSubscription: React.FC = () => {
-  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const _navigate = useNavigate();
 
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);

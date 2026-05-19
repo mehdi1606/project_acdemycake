@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { message } from 'antd';
 import { reviewService, MyReview } from '../../../services/api/review.service';
@@ -44,6 +45,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const StudentReviews = () => {
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState<MyReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);

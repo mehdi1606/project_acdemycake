@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const BannerCounter = () => {
+    const { t } = useTranslation()
     const [quantity, setQuantity] = useState<number>(0); // Default state is 0
 
   const handleIncrement = () => {

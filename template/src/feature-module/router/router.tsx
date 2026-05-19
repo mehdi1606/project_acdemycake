@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router";
 import { authRoutes, publicRoutes } from "./router.link";
 import Feature from "../feature";
 import AuthFeature from "../authFeature";
+import { useTranslation } from "react-i18next";
 
 const PageLoader: React.FC = () => (
   <div style={{
@@ -19,16 +20,18 @@ const PageLoader: React.FC = () => (
 );
 
 const ALLRoutes: React.FC = () => {
+  const { i18n } = useTranslation();
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route element={<Feature />}>
+        <Route element={<Feature key={i18n.language} />}>
           {publicRoutes.map((route, idx) => (
             <Route path={route.path} element={route.element} key={idx} />
           ))}
         </Route>
 
-        <Route element={<AuthFeature />}>
+        <Route element={<AuthFeature key={i18n.language} />}>
           {authRoutes.map((route, idx) => (
             <Route path={route.path} element={route.element} key={idx} />
           ))}

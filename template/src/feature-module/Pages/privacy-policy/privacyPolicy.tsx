@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
+import { useTranslation } from 'react-i18next';
 
 /* ─── Design tokens ──────────────────────────────────────────── */
 const GOLD   = '#C5973E';
@@ -340,6 +341,7 @@ const TabPill: React.FC<{ active: boolean; icon: string; label: string; onClick:
 
 /* ─── Main Component ─────────────────────────────────────────── */
 const PrivacyPolicy: React.FC = () => {
+  const { t } = useTranslation();
   const route = all_routes;
   const [activeTab, setActiveTab] = useState<'privacy' | 'refund'>('privacy');
 

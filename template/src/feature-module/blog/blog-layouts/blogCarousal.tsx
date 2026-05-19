@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import Breadcrumb from '../../../core/common/Breadcrumb/breadcrumb'
 import { Link } from 'react-router-dom'
 import ImageWithBasePath from '../../../core/common/imageWithBasePath'
@@ -6,6 +7,7 @@ import { all_routes } from '../../router/all_routes'
 import Slider from 'react-slick';
 
 const BlogCarousal = () => {
+  const { t } = useTranslation()
     const categoriesslider = {
         dots: true,
         infinite: true,

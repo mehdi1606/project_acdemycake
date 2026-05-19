@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../../core/redux/hooks";
 import { register, clearError } from "../../../core/redux/authSlice";
 import { Spin, Alert } from "antd";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
+import { useTranslation } from "react-i18next";
 
 interface FieldErrors {
   fullName?: string;
@@ -40,6 +41,7 @@ const Particle: React.FC<{ style: React.CSSProperties }> = ({ style }) => (
 );
 
 const Register: React.FC = () => {
+  const { t } = useTranslation();
   const [eye, setEye] = useState(true);
   const [eyeConfirm, setEyeConfirm] = useState(true);
   const [strength, setStrength] = useState("");
@@ -114,10 +116,10 @@ const Register: React.FC = () => {
 
   const passwordMessages = () => {
     switch (validationError) {
-      case 2: return <span className="sl-auth__pw-hint sl-auth__pw-hint--weak"><ImageWithBasePath src="assets/img/icon/angry.svg" className="me-2" alt="" />Weak — at least 8 characters</span>;
-      case 3: return <span className="sl-auth__pw-hint sl-auth__pw-hint--avg"><ImageWithBasePath src="assets/img/icon/anguish.svg" className="me-2" alt="" />Average — add a number</span>;
-      case 4: return <span className="sl-auth__pw-hint sl-auth__pw-hint--good"><ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />Almost — add a special character</span>;
-      case 5: return <span className="sl-auth__pw-hint sl-auth__pw-hint--great"><ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />Secure password ✓</span>;
+      case 2: return <span className="sl-auth__pw-hint sl-auth__pw-hint--weak"><ImageWithBasePath src="assets/img/icon/angry.svg" className="me-2" alt="" />{t('auth.register.pwHintWeak', 'Weak — at least 8 characters')}</span>;
+      case 3: return <span className="sl-auth__pw-hint sl-auth__pw-hint--avg"><ImageWithBasePath src="assets/img/icon/anguish.svg" className="me-2" alt="" />{t('auth.register.pwHintAverage', 'Average — add a number')}</span>;
+      case 4: return <span className="sl-auth__pw-hint sl-auth__pw-hint--good"><ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />{t('auth.register.pwHintGood', 'Almost — add a special character')}</span>;
+      case 5: return <span className="sl-auth__pw-hint sl-auth__pw-hint--great"><ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />{t('auth.register.pwHintSecure', 'Secure password ✓')}</span>;
       default: return null;
     }
   };
@@ -178,14 +180,13 @@ const Register: React.FC = () => {
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           </div>
-          <div className="sl-auth__panel-tagline">Begin Your Artisan Journey</div>
+          <div className="sl-auth__panel-tagline">{t('auth.register.panelTagline', 'Begin Your Artisan Journey')}</div>
           <h2 className="sl-auth__panel-headline">
-            Learn. Grow.<br />
-            <span className="sl-auth__panel-headline--gold">Excel.</span>
+            {t('auth.register.panelHeadline1', 'Learn. Grow.')}<br />
+            <span className="sl-auth__panel-headline--gold">{t('auth.register.panelHeadline2', 'Excel.')}</span>
           </h2>
           <p className="sl-auth__panel-desc">
-            Create your free account and unlock access to world-class masterclasses
-            in luxury cake design, sugar artistry, and couture patisserie.
+            {t('auth.register.panelDesc', 'Create your free account and unlock access to world-class masterclasses in luxury cake design, sugar artistry, and couture patisserie.')}
           </p>
         </div>
       </div>
@@ -208,12 +209,12 @@ const Register: React.FC = () => {
               <span className="sl-auth__logo-text">SARALÖWE</span>
             </Link>
             <Link to={route.homeone} className="sl-auth__back-link">
-              <i className="isax isax-arrow-left-2 me-1" />Back to Home
+              <i className="isax isax-arrow-left-2 me-1" />{t('common.backToHome', 'Back to Home')}
             </Link>
           </div>
 
-          <h1 className="sl-auth__form-title">Create Your Account</h1>
-          <p className="sl-auth__form-subtitle">Join as a student and start learning today</p>
+          <h1 className="sl-auth__form-title">{t('auth.register.title', 'Create Your Account')}</h1>
+          <p className="sl-auth__form-subtitle">{t('auth.register.subtitle', 'Join as a student and start learning today')}</p>
 
           {error && (
             <Alert
@@ -230,7 +231,7 @@ const Register: React.FC = () => {
           <form onSubmit={handleSubmit} noValidate>
             {/* Full Name */}
             <div className="sl-auth__field">
-              <label className="sl-auth__label">Full Name <span className="sl-auth__required">*</span></label>
+              <label className="sl-auth__label">{t('auth.register.fullName', 'Full Name')} <span className="sl-auth__required">*</span></label>
               <div className="sl-auth__input-wrap">
                 <input
                   type="text"
@@ -239,7 +240,7 @@ const Register: React.FC = () => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   className={`sl-auth__input${fieldErrors.fullName ? " sl-auth__input--error" : ""}`}
-                  placeholder="Enter your full name"
+                  placeholder={t('auth.register.fullNamePlaceholder', 'Enter your full name')}
                   disabled={isLoading}
                   autoComplete="name"
                 />
@@ -250,7 +251,7 @@ const Register: React.FC = () => {
 
             {/* Email */}
             <div className="sl-auth__field">
-              <label className="sl-auth__label">Email <span className="sl-auth__required">*</span></label>
+              <label className="sl-auth__label">{t('auth.register.email', 'Email')} <span className="sl-auth__required">*</span></label>
               <div className="sl-auth__input-wrap">
                 <input
                   type="email"
@@ -259,7 +260,7 @@ const Register: React.FC = () => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   className={`sl-auth__input${fieldErrors.email ? " sl-auth__input--error" : ""}`}
-                  placeholder="Enter your email"
+                  placeholder={t('auth.register.emailPlaceholder', 'Enter your email')}
                   disabled={isLoading}
                   autoComplete="email"
                 />
@@ -270,7 +271,7 @@ const Register: React.FC = () => {
 
             {/* Phone */}
             <div className="sl-auth__field">
-              <label className="sl-auth__label">Phone <span className="sl-auth__label--optional">(Optional)</span></label>
+              <label className="sl-auth__label">{t('common.phone', 'Phone')} <span className="sl-auth__label--optional">({t('common.optional', 'Optional')})</span></label>
               <div className="sl-auth__input-wrap">
                 <input
                   type="tel"
@@ -278,7 +279,7 @@ const Register: React.FC = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   className="sl-auth__input"
-                  placeholder="Enter your phone number"
+                  placeholder={t('auth.register.phonePlaceholder', 'Enter your phone number')}
                   disabled={isLoading}
                   autoComplete="tel"
                 />
@@ -288,7 +289,7 @@ const Register: React.FC = () => {
 
             {/* Password */}
             <div className="sl-auth__field">
-              <label className="sl-auth__label">Password <span className="sl-auth__required">*</span></label>
+              <label className="sl-auth__label">{t('auth.register.password', 'Password')} <span className="sl-auth__required">*</span></label>
               <div className="sl-auth__input-wrap">
                 <input
                   type={eye ? "password" : "text"}
@@ -297,7 +298,7 @@ const Register: React.FC = () => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   className={`sl-auth__input${fieldErrors.password ? " sl-auth__input--error" : ""}`}
-                  placeholder="Create a password (min 8 characters)"
+                  placeholder={t('auth.register.passwordPlaceholder', 'Create a password (min 8 characters)')}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
@@ -323,7 +324,7 @@ const Register: React.FC = () => {
 
             {/* Confirm Password */}
             <div className="sl-auth__field">
-              <label className="sl-auth__label">Confirm Password <span className="sl-auth__required">*</span></label>
+              <label className="sl-auth__label">{t('auth.register.confirmPassword', 'Confirm Password')} <span className="sl-auth__required">*</span></label>
               <div className="sl-auth__input-wrap">
                 <input
                   type={eyeConfirm ? "password" : "text"}
@@ -332,7 +333,7 @@ const Register: React.FC = () => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   className={`sl-auth__input${fieldErrors.confirmPassword ? " sl-auth__input--error" : ""}`}
-                  placeholder="Confirm your password"
+                  placeholder={t('auth.register.confirmPasswordPlaceholder', 'Confirm your password')}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
@@ -357,10 +358,10 @@ const Register: React.FC = () => {
                   }}
                 />
                 <span>
-                  I agree to the{" "}
-                  <Link to={route.termsConditions} className="sl-auth__terms-link">Terms of Service</Link>
-                  {" "}and{" "}
-                  <Link to={route.privacyPolicy} className="sl-auth__terms-link">Privacy Policy</Link>
+                  {t('auth.register.agreeTerms', 'I agree to the')}{" "}
+                  <Link to={route.termsConditions} className="sl-auth__terms-link">{t('auth.register.termsConditions', 'Terms of Service')}</Link>
+                  {" "}{t('common.and', 'and')}{" "}
+                  <Link to={route.privacyPolicy} className="sl-auth__terms-link">{t('auth.register.privacyPolicy', 'Privacy Policy')}</Link>
                 </span>
               </label>
               {fieldErrors.terms && <div className="sl-auth__field-error mt-1"><i className="isax isax-info-circle me-1" />{fieldErrors.terms}</div>}
@@ -369,16 +370,16 @@ const Register: React.FC = () => {
             {/* Submit */}
             <button type="submit" className="sl-auth__submit" disabled={isLoading}>
               {isLoading ? (
-                <><Spin size="small" className="me-2" />Creating Account...</>
+                <><Spin size="small" className="me-2" />{t('auth.register.creating', 'Creating account...')}</>
               ) : (
-                <>Create Account <i className="isax isax-arrow-right-3 ms-1" /></>
+                <>{t('auth.register.createAccount', 'Create Account')} <i className="isax isax-arrow-right-3 ms-1" /></>
               )}
             </button>
           </form>
 
           <div className="sl-auth__switch">
-            Already have an account?{" "}
-            <Link to={route.login} className="sl-auth__switch-link">Sign In</Link>
+            {t('auth.register.alreadyHaveAccount', 'Already have an account?')}{" "}
+            <Link to={route.login} className="sl-auth__switch-link">{t('auth.register.signIn', 'Sign In')}</Link>
           </div>
         </div>
       </div>

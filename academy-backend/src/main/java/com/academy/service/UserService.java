@@ -32,6 +32,8 @@ public interface UserService {
 
     PageResponse<UserResponse> getAllUsers(int page, int size, String search);
 
+    PageResponse<UserResponse> getInstructors(int page, int size, String search);
+
     void banUser(UUID userId, String reason);
 
     void unbanUser(UUID userId);

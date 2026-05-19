@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
-import ImageWithBasePath from '../../../core/common/imageWithBasePath';
+
+import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 
 interface Choice {
@@ -31,6 +32,7 @@ const sampleQuestions: Question[] = [
 ];
 
 const InstructorQuizQuestions: React.FC = () => {
+  const { t } = useTranslation();
   const [questions] = useState<Question[]>(sampleQuestions);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -78,20 +80,20 @@ const InstructorQuizQuestions: React.FC = () => {
               </h5>
               <div style={{ display: 'flex', gap: 16 }}>
                 <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <i className="isax isax-message-question" style={{ color: 'var(--lx-primary)' }} /> 25 Questions
+                  <i className="isax isax-message-question" style={{ color: 'var(--lx-primary)' }} /> 25 {t('instructor.quiz.questions', 'Questions')}
                 </span>
                 <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <i className="isax isax-clock" style={{ color: '#C5973E' }} /> 30 Minutes
+                  <i className="isax isax-clock" style={{ color: '#C5973E' }} /> 30 {t('instructor.quiz.minutes', 'Minutes')}
                 </span>
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <Link to={all_routes.instructorQuizResult} className="lx-btn lx-btn-sm lx-btn-outline">
-              View Results
+              {t('instructor.quiz.viewResults', 'View Results')}
             </Link>
             <button type="button" className="lx-btn lx-btn-sm lx-btn-gold" onClick={() => setShowAddModal(true)}>
-              Add Question
+              {t('instructor.quiz.addQuestion', 'Add Question')}
             </button>
           </div>
         </div>
@@ -165,7 +167,7 @@ const InstructorQuizQuestions: React.FC = () => {
                       {choice.text}
                     </span>
                     {choice.isCorrect && (
-                      <span className="lx-badge badge-success" style={{ marginLeft: 'auto' }}>Correct</span>
+                      <span className="lx-badge badge-success" style={{ marginLeft: 'auto' }}>{t('instructor.quiz.correct', 'Correct')}</span>
                     )}
                   </label>
                 ))}
@@ -193,30 +195,30 @@ const InstructorQuizQuestions: React.FC = () => {
             maxHeight: '85vh', overflowY: 'auto',
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Add New Question</h5>
+              <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.quiz.addNewQuestion', 'Add New Question')}</h5>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
                 <i className="isax isax-close-circle" />
               </button>
             </div>
             <div style={{ padding: 24 }}>
               <div style={{ marginBottom: 16 }}>
-                <label style={labelStyle}>Question <span style={{ color: '#8B2335' }}>*</span></label>
-                <input type="text" style={inputStyle} placeholder="Enter question..." />
+                <label style={labelStyle}>{t('instructor.quiz.question', 'Question')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <input type="text" style={inputStyle} placeholder={t('instructor.quiz.questionPlaceholder', 'Enter question...')} />
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label style={labelStyle}>Question Type <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.quiz.questionType', 'Question Type')} <span style={{ color: '#8B2335' }}>*</span></label>
                 <select
                   style={inputStyle}
                   value={questionType}
                   onChange={(e) => setQuestionType(e.target.value as 'multiple' | 'truefalse')}
                 >
-                  <option value="multiple">Multiple choice</option>
-                  <option value="truefalse">True or False</option>
+                  <option value="multiple">{t('instructor.quiz.multipleChoice', 'Multiple choice')}</option>
+                  <option value="truefalse">{t('instructor.quiz.trueFalse', 'True or False')}</option>
                 </select>
               </div>
 
-              <h6 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: 'var(--lx-text)' }}>Answers</h6>
+              <h6 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: 'var(--lx-text)' }}>{t('instructor.quiz.answers', 'Answers')}</h6>
 
               {choices.map((choice, idx) => (
                 <div key={idx} style={{ marginBottom: 12 }}>
@@ -241,7 +243,7 @@ const InstructorQuizQuestions: React.FC = () => {
                       }}>
                         {choice.isCorrect && <span style={{ color: '#fff', fontSize: 10, lineHeight: 1 }}>✓</span>}
                       </div>
-                      Correct Answer
+                      {t('instructor.quiz.correctAnswer', 'Correct Answer')}
                     </button>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -279,12 +281,12 @@ const InstructorQuizQuestions: React.FC = () => {
                   fontSize: 13, fontWeight: 600, color: 'var(--lx-primary)',
                 }}
               >
-                <i className="isax isax-add" /> Add Choice
+                <i className="isax isax-add" /> {t('instructor.quiz.addChoice', 'Add Choice')}
               </button>
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button type="button" className="lx-btn lx-btn-gold" onClick={() => setShowAddModal(false)}>Add Question</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowAddModal(false)}>{t('common.cancel', 'Cancel')}</button>
+              <button type="button" className="lx-btn lx-btn-gold" onClick={() => setShowAddModal(false)}>{t('instructor.quiz.addQuestion', 'Add Question')}</button>
             </div>
           </div>
         </div>
@@ -312,19 +314,19 @@ const InstructorQuizQuestions: React.FC = () => {
             }}>
               <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
             </div>
-            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>Delete Question</h5>
+            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.quiz.deleteQuestion', 'Delete Question')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
-              Are you sure you want to delete this question?
+              {t('instructor.quiz.deleteQuestionConfirm', 'Are you sure you want to delete this question?')}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowDeleteModal(false)}>{t('common.cancel', 'Cancel')}</button>
               <button
                 type="button"
                 className="lx-btn"
                 style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
                 onClick={() => setShowDeleteModal(false)}
               >
-                Yes, Delete
+                {t('common.yesDelete', 'Yes, Delete')}
               </button>
             </div>
           </div>

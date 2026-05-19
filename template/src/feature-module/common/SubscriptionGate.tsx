@@ -1,9 +1,10 @@
 /**
  * SubscriptionGate
- * Shown in place of course content when the visitor is not logged in.
- * Renders blurred ghost cards behind a centred lock panel.
+ * Shown in place of course content when the visitor is not logged in
+ * or lacks an active subscription. Fully bilingual EN / AR via i18n.
  */
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../router/all_routes';
 
@@ -31,13 +32,39 @@ const GhostCard: React.FC = () => (
   </div>
 );
 
-const SubscriptionGate: React.FC<Props> = ({ type = 'course', ghostCount = 6, isAuthenticated = false }) => {
+const SubscriptionGate: React.FC<Props> = ({
+  type = 'course',
+  ghostCount = 6,
+  isAuthenticated = false,
+}) => {
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language?.startsWith('ar');
   const route = all_routes;
-
   const isMasterclass = type === 'masterclass';
 
+  // ── Script line (italic eyebrow) ────────────────────────────────────────────
+  const scriptLine = isAuthenticated
+    ? t('sharedComponents.subscriptionGate.upgradeRequired')
+    : isMasterclass
+      ? t('sharedComponents.subscriptionGate.exclusiveAccess')
+      : t('sharedComponents.subscriptionGate.membersOnly');
+
+  // ── Main title ───────────────────────────────────────────────────────────────
+  const title = isAuthenticated
+    ? t('sharedComponents.subscriptionGate.subscriptionRequired')
+    : isMasterclass
+      ? t('sharedComponents.subscriptionGate.subscribeToViewMasterclasses')
+      : t('sharedComponents.subscriptionGate.subscriptionRequired');
+
+  // ── Description paragraph ────────────────────────────────────────────────────
+  const desc = isAuthenticated
+    ? t('sharedComponents.subscriptionGate.descAuthenticated')
+    : isMasterclass
+      ? t('sharedComponents.subscriptionGate.descMasterclass')
+      : t('sharedComponents.subscriptionGate.descDefault');
+
   return (
-    <div className="sl-gate">
+    <div className="sl-gate" dir={isAr ? 'rtl' : 'ltr'}>
       {/* Blurred ghost cards grid */}
       <div className="sl-gate__ghost-grid">
         {Array.from({ length: ghostCount }).map((_, i) => (
@@ -53,65 +80,34 @@ const SubscriptionGate: React.FC<Props> = ({ type = 'course', ghostCount = 6, is
             <i className="isax isax-lock sl-gate__icon" />
           </div>
 
-          <div className="sl-gate__script">
-            {isAuthenticated
-              ? 'Upgrade Required'
-              : (isMasterclass ? 'Exclusive Access' : 'Members Only')}
-          </div>
+          {/* Italic eyebrow */}
+          <div className="sl-gate__script">{scriptLine}</div>
 
-          <h3 className="sl-gate__title">
-            {isAuthenticated
-              ? 'A Subscription Is Required'
-              : (isMasterclass
-                  ? 'Subscribe to View Masterclasses'
-                  : 'A Subscription Is Required')}
-          </h3>
+          {/* Title */}
+          <h3 className="sl-gate__title">{title}</h3>
 
-          <p className="sl-gate__desc">
-            {isAuthenticated
-              ? 'Full access to our course catalogue is reserved for SARALÖWE Academy subscribers. Choose a plan to unlock all programmes.'
-              : (isMasterclass
-                  ? 'Our masterclasses are exclusive to SARALÖWE Academy subscribers. Choose a plan to unlock all programmes or purchase individual masterclasses.'
-                  : 'Full access to our course catalogue is available to SARALÖWE Academy subscribers. Choose a plan that suits your learning pace.')}
-          </p>
-
-          {/* Stats strip */}
-          <div className="sl-gate__stats">
-            <div className="sl-gate__stat">
-              <span className="sl-gate__stat-num">120+</span>
-              <span className="sl-gate__stat-lbl">Courses</span>
-            </div>
-            <div className="sl-gate__stat-divider" />
-            <div className="sl-gate__stat">
-              <span className="sl-gate__stat-num">50K+</span>
-              <span className="sl-gate__stat-lbl">Students</span>
-            </div>
-            <div className="sl-gate__stat-divider" />
-            <div className="sl-gate__stat">
-              <span className="sl-gate__stat-num">98%</span>
-              <span className="sl-gate__stat-lbl">Satisfaction</span>
-            </div>
-          </div>
+          {/* Description */}
+          <p className="sl-gate__desc">{desc}</p>
 
           {/* CTAs */}
           <div className="sl-gate__actions">
-            <Link to={route.pricingPlan} className="sl-gate__btn sl-gate__btn--gold">
-              View Plans <i className="isax isax-arrow-right-3 ms-2" />
-            </Link>
             {/* Only show Sign In when the visitor is NOT logged in */}
             {!isAuthenticated && (
               <Link to={route.login} className="sl-gate__btn sl-gate__btn--ghost">
-                Sign In
+                {t('sharedComponents.subscriptionGate.signIn')}
               </Link>
             )}
+            <Link to={route.pricingPlan} className="sl-gate__btn sl-gate__btn--gold">
+              {isAr ? <><i className="isax isax-arrow-left-3 me-2" />{t('sharedComponents.subscriptionGate.viewPlans')}</> : <>{t('sharedComponents.subscriptionGate.viewPlans')} <i className="isax isax-arrow-right-3 ms-2" /></>}
+            </Link>
           </div>
 
-          {/* Only show "Already subscribed? Log in" when visitor is a guest */}
+          {/* "Already subscribed? Log in" — guests only */}
           {!isAuthenticated && (
             <p className="sl-gate__footnote">
-              Already subscribed?{' '}
+              {t('sharedComponents.subscriptionGate.alreadySubscribed')}{' '}
               <Link to={route.login} className="sl-gate__footnote-link">
-                Log in to continue
+                {t('sharedComponents.subscriptionGate.logInToContinue')}
               </Link>
             </p>
           )}

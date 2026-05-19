@@ -6,8 +6,10 @@ import Slider from "react-slick";
 import authService from "../../../services/api/auth.service";
 import { extractApiError } from "../../../services/api/error.utils";
 import { Alert, Spin } from "antd";
+import { useTranslation } from "react-i18next";
 
 const ForgotPassword = () => {
+  const { t } = useTranslation();
   const route = all_routes;
 
   const [email, setEmail] = useState("");
@@ -69,8 +71,8 @@ const ForgotPassword = () => {
                         <ImageWithBasePath src="assets/img/auth/auth-1.svg" className="img-fluid" alt="Logo" />
                       </div>
                       <div className="mentor-course text-center">
-                        <h3 className="mb-2">Welcome to <br />SARA<span className="text-secondary">LÖWE</span> Academy</h3>
-                        <p>Master the art of luxury cake design with world-class instructors.</p>
+                        <h3 className="mb-2">{t('auth.forgotPassword.sliderTitle1', 'Welcome to')} <br />SARA<span className="text-secondary">LÖWE</span> Academy</h3>
+                        <p>{t('auth.forgotPassword.sliderDesc', 'Master the art of luxury cake design with world-class instructors.')}</p>
                       </div>
                     </div>
                   </div>
@@ -84,13 +86,13 @@ const ForgotPassword = () => {
                   <div className="w-100">
                     <div className="d-flex align-items-center justify-content-between login-header">
                       <ImageWithBasePath src="assets/img/logo.svg" className="img-fluid" alt="Logo" />
-                      <Link to={route.homeone} className="link-1">Back to Home</Link>
+                      <Link to={route.homeone} className="link-1">{t('common.backToHome', 'Back to Home')}</Link>
                     </div>
 
                     <div className="topic">
-                      <h1 className="fs-32 fw-bold mb-3">Forgot Password</h1>
+                      <h1 className="fs-32 fw-bold mb-3">{t('auth.forgotPassword.title', 'Forgot Password')}</h1>
                       <p className="fs-14 fw-normal mb-0">
-                        Enter your email and we'll send you a link to reset your password.
+                        {t('auth.forgotPassword.subtitle', "Enter your email and we'll send you a link to reset your password.")}
                       </p>
                     </div>
 
@@ -98,14 +100,14 @@ const ForgotPassword = () => {
                     {success ? (
                       <div className="mt-4">
                         <Alert
-                          message="Email Sent!"
+                          message={t('auth.forgotPassword.checkEmail', 'Email Sent!')}
                           description={
                             <>
                               <p className="mb-2">
-                                We've sent a password reset link to <strong>{email}</strong>.
+                                {t('auth.forgotPassword.linkSent', "We've sent a password reset link to")} <strong>{email}</strong>.
                               </p>
                               <p className="mb-0">
-                                Please check your inbox (and spam folder) and follow the instructions.
+                                {t('auth.forgotPassword.checkSpam', 'Please check your inbox (and spam folder) and follow the instructions.')}
                               </p>
                             </>
                           }
@@ -115,12 +117,12 @@ const ForgotPassword = () => {
                         />
                         <div className="mt-4 text-center">
                           <p className="fs-14">
-                            Didn't receive it?{" "}
+                            {t('auth.forgotPassword.didntReceive', "Didn't receive it?")}{" "}
                             <button
                               className="btn btn-link p-0 fs-14"
                               onClick={() => { setSuccess(false); setEmail(""); }}
                             >
-                              Try again
+                              {t('common.tryAgain', 'Try again')}
                             </button>
                           </p>
                         </div>
@@ -142,7 +144,7 @@ const ForgotPassword = () => {
 
                         <div className="mb-4 position-relative">
                           <label className="form-label">
-                            Email<span className="text-danger ms-1">*</span>
+                            {t('auth.forgotPassword.email', 'Email')}<span className="text-danger ms-1">*</span>
                           </label>
                           <div className="position-relative">
                             <input
@@ -152,7 +154,7 @@ const ForgotPassword = () => {
                               onChange={handleChange}
                               onBlur={handleBlur}
                               className={`form-control form-control-lg${emailError ? ' is-invalid' : ''}`}
-                              placeholder="Enter your email address"
+                              placeholder={t('auth.forgotPassword.emailPlaceholder', 'Enter your email address')}
                               disabled={isLoading}
                             />
                             <span>
@@ -174,9 +176,9 @@ const ForgotPassword = () => {
                             disabled={isLoading}
                           >
                             {isLoading ? (
-                              <><Spin size="small" className="me-2" />Sending...</>
+                              <><Spin size="small" className="me-2" />{t('auth.forgotPassword.sending', 'Sending...')}</>
                             ) : (
-                              <>Send Reset Link <i className="isax isax-arrow-right-3 ms-1" /></>
+                              <>{t('auth.forgotPassword.sendLink', 'Send Reset Link')} <i className="isax isax-arrow-right-3 ms-1" /></>
                             )}
                           </button>
                         </div>
@@ -184,8 +186,8 @@ const ForgotPassword = () => {
                     )}
 
                     <p className="fs-14 fw-normal d-flex align-items-center justify-content-center mt-3">
-                      Remember your password?
-                      <Link to={route.login} className="link-2 ms-1">Sign In</Link>
+                      {t('auth.forgotPassword.rememberPassword', 'Remember your password?')}
+                      <Link to={route.login} className="link-2 ms-1">{t('auth.login.signIn', 'Sign In')}</Link>
                     </p>
                   </div>
                 </div>

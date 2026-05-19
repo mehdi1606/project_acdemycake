@@ -1,4 +1,4 @@
-import api from './axios.config';
+import api, { apiMultipart } from './axios.config';
 import { CommunityPost, CommunityComment, PostType, PaginatedResponse, CreatePostRequest } from './types';
 
 class CommunityService {
@@ -21,6 +21,13 @@ class CommunityService {
   async getPostById(id: string): Promise<CommunityPost> {
     const response = await api.get<CommunityPost>(`${this.base}/posts/${id}`);
     return response.data;
+  }
+
+  async uploadPostImage(file: File): Promise<string> {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await apiMultipart.post<{ data: string }>(`${this.base}/posts/upload-image`, form);
+    return (response.data as any).data as string;
   }
 
   async createPost(data: CreatePostRequest): Promise<CommunityPost> {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Spin } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import { useTranslation } from 'react-i18next';
 import { instructorService } from '../../../services/api/instructor.service';
 import { InstructorDashboard as InstructorDashboardType } from '../../../services/api/types';
 
@@ -16,6 +17,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const InstructorPayout = () => {
+  const { t } = useTranslation();
   const [dashboardData, setDashboardData] = useState<InstructorDashboardType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWithdraw, setShowWithdraw] = useState(false);

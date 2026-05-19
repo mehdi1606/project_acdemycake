@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Spin } from 'antd';
 import LuxuryDashboardLayout from '../../components/LuxuryDashboardLayout';
@@ -11,13 +12,6 @@ import { all_routes } from '../router/all_routes';
 
 const avatarUrl = (url?: string) => getFileUrl(url) ?? 'assets/img/user/user-02.jpg';
 
-const TYPE_LABELS: Record<PostType, string> = {
-  DISCUSSION:   'Discussion',
-  QUESTION:     'Question',
-  RESOURCE:     'Resource',
-  ANNOUNCEMENT: 'Announcement',
-};
-
 const TYPE_BADGE: Record<PostType, string> = {
   DISCUSSION:   'primary',
   QUESTION:     'warning',
@@ -25,13 +19,21 @@ const TYPE_BADGE: Record<PostType, string> = {
   ANNOUNCEMENT: 'danger',
 };
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
-
 // ─── component ────────────────────────────────────────────────────────────────
 
 const CommunityPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+
+  const TYPE_LABELS: Record<PostType, string> = {
+    DISCUSSION:   t('community.type.DISCUSSION'),
+    QUESTION:     t('community.type.QUESTION'),
+    RESOURCE:     t('community.type.RESOURCE'),
+    ANNOUNCEMENT: t('community.type.ANNOUNCEMENT'),
+  };
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' });
 
   const [posts,      setPosts]      = useState<CommunityPost[]>([]);
   const [loading,    setLoading]    = useState(true);
@@ -48,6 +50,13 @@ const CommunityPage: React.FC = () => {
   const [formType,    setFormType]    = useState<PostType>('DISCUSSION');
   const [submitting,  setSubmitting]  = useState(false);
   const [formError,   setFormError]   = useState('');
+
+  // Image upload
+  const [_imageFile,     setImageFile]      = useState<File | null>(null);
+  const [imagePreview,   setImagePreview]   = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadedUrl,    setUploadedUrl]    = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -83,7 +92,6 @@ const CommunityPage: React.FC = () => {
   const toggleLike = async (post: CommunityPost, e: React.MouseEvent) => {
     e.stopPropagation();
     const wasLiked = post.isLikedByCurrentUser;
-    // Optimistic update
     setPosts((prev) =>
       prev.map((p) =>
         p.id === post.id
@@ -95,7 +103,6 @@ const CommunityPage: React.FC = () => {
       if (wasLiked) await communityService.unlikePost(post.id);
       else await communityService.likePost(post.id);
     } catch {
-      // Revert on error
       setPosts((prev) =>
         prev.map((p) =>
           p.id === post.id
@@ -106,32 +113,69 @@ const CommunityPage: React.FC = () => {
     }
   };
 
+  // ── image selection ───────────────────────────────────────────────────────
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setUploadingImage(true);
+    setUploadedUrl(null);
+    try {
+      const url = await communityService.uploadPostImage(file);
+      setUploadedUrl(url);
+    } catch {
+      setFormError(t('community.errorImageUpload'));
+      setImageFile(null);
+      setImagePreview(null);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setUploadedUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   // ── create post ───────────────────────────────────────────────────────────
   const openModal = () => {
     setFormTitle(''); setFormContent(''); setFormType('DISCUSSION'); setFormError('');
+    removeImage();
     setModalOpen(true);
   };
 
   const submitPost = async () => {
     if (!formTitle.trim() || !formContent.trim()) {
-      setFormError('Title and content are required.');
+      setFormError(t('community.errorRequired'));
+      return;
+    }
+    if (uploadingImage) {
+      setFormError(t('community.waitForUpload'));
       return;
     }
     setSubmitting(true);
     setFormError('');
     try {
-      const req: CreatePostRequest = { title: formTitle.trim(), content: formContent.trim(), postType: formType };
+      const req: CreatePostRequest = {
+        title: formTitle.trim(),
+        content: formContent.trim(),
+        postType: formType,
+        ...(uploadedUrl ? { imageUrls: [uploadedUrl] } : {}),
+      };
       const created = await communityService.createPost(req);
       setPosts((prev) => [created, ...prev]);
       setModalOpen(false);
     } catch {
-      setFormError('Failed to create post. Please try again.');
+      setFormError(t('community.errorCreate'));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleFilterType = (t: PostType | '') => { setFilterType(t); setPage(0); };
+  const handleFilterType = (ptype: PostType | '') => { setFilterType(ptype); setPage(0); };
 
   // ─── render ───────────────────────────────────────────────────────────────
   return (
@@ -140,12 +184,14 @@ const CommunityPage: React.FC = () => {
         {/* Header */}
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h4 className="fw-bold mb-1" style={{ color: 'var(--lx-primary, #6B1D2A)' }}>Community</h4>
-            <p className="text-muted mb-0 fs-14">Share knowledge, ask questions, and connect with fellow learners.</p>
+            <h4 className="fw-bold mb-1" style={{ color: 'var(--lx-primary, #6B1D2A)' }}>
+              {t('community.title')}
+            </h4>
+            <p className="text-muted mb-0 fs-14">{t('community.description')}</p>
           </div>
           <button className="btn btn-primary d-flex align-items-center gap-2" onClick={openModal}>
             <i className="isax isax-add-circle fs-18" />
-            New Post
+            {t('community.newPost')}
           </button>
         </div>
 
@@ -158,7 +204,7 @@ const CommunityPage: React.FC = () => {
             <input
               type="text"
               className="form-control"
-              placeholder="Search posts…"
+              placeholder={t('community.searchPlaceholder')}
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
             />
@@ -167,13 +213,13 @@ const CommunityPage: React.FC = () => {
             <button type="button"
               className={`btn btn-sm ${filterType === '' ? 'btn-dark' : 'btn-outline-secondary'}`}
               onClick={() => handleFilterType('')}
-            >All</button>
-            {(Object.keys(TYPE_LABELS) as PostType[]).map((t) => (
-              <button key={t} type="button"
-                className={`btn btn-sm ${filterType === t ? `btn-${TYPE_BADGE[t]}` : 'btn-outline-secondary'}`}
-                onClick={() => handleFilterType(t)}
+            >{t('community.all')}</button>
+            {(Object.keys(TYPE_LABELS) as PostType[]).map((ptype) => (
+              <button key={ptype} type="button"
+                className={`btn btn-sm ${filterType === ptype ? `btn-${TYPE_BADGE[ptype]}` : 'btn-outline-secondary'}`}
+                onClick={() => handleFilterType(ptype)}
               >
-                {TYPE_LABELS[t]}
+                {TYPE_LABELS[ptype]}
               </button>
             ))}
           </div>
@@ -185,7 +231,7 @@ const CommunityPage: React.FC = () => {
         ) : posts.length === 0 ? (
           <div className="text-center py-5 text-muted">
             <i className="isax isax-message-text fs-1 d-block mb-2" />
-            <p>No posts found. Be the first to post!</p>
+            <p>{t('community.noPostsFound')}</p>
           </div>
         ) : (
           <div className="row g-3">
@@ -216,7 +262,8 @@ const CommunityPage: React.FC = () => {
                       <div className="d-flex align-items-center gap-2">
                         {post.isPinned && (
                           <span className="badge bg-warning-subtle text-warning rounded-pill px-2">
-                            <i className="fa-solid fa-thumbtack me-1" style={{ fontSize: 9 }} />Pinned
+                            <i className="fa-solid fa-thumbtack me-1" style={{ fontSize: 9 }} />
+                            {t('community.pinned')}
                           </span>
                         )}
                         <span className={`badge bg-${TYPE_BADGE[post.postType]}-subtle text-${TYPE_BADGE[post.postType]} rounded-pill px-3`}>
@@ -261,12 +308,12 @@ const CommunityPage: React.FC = () => {
           <div className="d-flex justify-content-center mt-4 gap-2">
             <button className="btn btn-outline-secondary btn-sm" disabled={page === 0}
               onClick={() => setPage((p) => p - 1)}>
-              <i className="isax isax-arrow-left-2 fs-14" /> Prev
+              <i className="isax isax-arrow-left-2 fs-14" /> {t('community.prev')}
             </button>
             <span className="btn btn-sm disabled text-muted">{page + 1} / {totalPages}</span>
             <button className="btn btn-outline-secondary btn-sm" disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => p + 1)}>
-              Next <i className="isax isax-arrow-right-3 fs-14" />
+              {t('community.next')} <i className="isax isax-arrow-right-3 fs-14" />
             </button>
           </div>
         )}
@@ -274,39 +321,83 @@ const CommunityPage: React.FC = () => {
 
       {/* Create Post Modal */}
       <Modal
-        title="Create New Post"
+        title={t('community.createPost')}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         onOk={submitPost}
-        okText="Post"
+        okText={t('community.post')}
         confirmLoading={submitting}
-        okButtonProps={{ disabled: !formTitle.trim() || !formContent.trim() }}
+        okButtonProps={{ disabled: !formTitle.trim() || !formContent.trim() || uploadingImage }}
         width={600}
       >
         <div className="d-flex flex-column gap-3 pt-2">
           {formError && <div className="alert alert-danger py-2 mb-0">{formError}</div>}
+
           <div>
-            <label className="form-label fw-semibold">Title *</label>
-            <input type="text" className="form-control" placeholder="Give your post a descriptive title"
+            <label className="form-label fw-semibold">{t('community.titleLabel')} *</label>
+            <input type="text" className="form-control"
+              placeholder={t('community.titlePlaceholder')}
               value={formTitle} onChange={(e) => setFormTitle(e.target.value)} maxLength={200} />
           </div>
+
           <div>
-            <label className="form-label fw-semibold">Type *</label>
+            <label className="form-label fw-semibold">{t('community.typeLabel')} *</label>
             <div className="d-flex gap-2 flex-wrap">
-              {(Object.keys(TYPE_LABELS) as PostType[]).map((t) => (
-                <button key={t} type="button"
-                  className={`btn btn-sm ${formType === t ? `btn-${TYPE_BADGE[t]}` : 'btn-outline-secondary'}`}
-                  onClick={() => setFormType(t)}>
-                  {TYPE_LABELS[t]}
+              {(Object.keys(TYPE_LABELS) as PostType[]).map((ptype) => (
+                <button key={ptype} type="button"
+                  className={`btn btn-sm ${formType === ptype ? `btn-${TYPE_BADGE[ptype]}` : 'btn-outline-secondary'}`}
+                  onClick={() => setFormType(ptype)}>
+                  {TYPE_LABELS[ptype]}
                 </button>
               ))}
             </div>
           </div>
+
           <div>
-            <label className="form-label fw-semibold">Content *</label>
-            <textarea className="form-control" rows={6}
-              placeholder="Share your thoughts, question, or resource…"
+            <label className="form-label fw-semibold">{t('community.contentLabel')} *</label>
+            <textarea className="form-control" rows={5}
+              placeholder={t('community.contentPlaceholder')}
               value={formContent} onChange={(e) => setFormContent(e.target.value)} />
+          </div>
+
+          {/* Image upload */}
+          <div>
+            <label className="form-label fw-semibold">{t('community.attachImage')}</label>
+            {imagePreview ? (
+              <div className="position-relative d-inline-block">
+                <img src={imagePreview} alt="preview"
+                  style={{ maxHeight: 160, maxWidth: '100%', borderRadius: 8, border: '1px solid #dee2e6' }} />
+                {uploadingImage && (
+                  <div className="position-absolute inset-0 d-flex align-items-center justify-content-center"
+                    style={{ background: 'rgba(255,255,255,0.7)', borderRadius: 8, inset: 0 }}>
+                    <Spin size="small" />
+                    <span className="ms-2 fs-12">{t('community.uploadingImage')}</span>
+                  </div>
+                )}
+                {!uploadingImage && (
+                  <button type="button" className="btn btn-sm btn-danger ms-2 mt-1"
+                    onClick={removeImage}>
+                    <i className="isax isax-trash fs-14" /> {t('community.removeImage')}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  className="d-none"
+                  onChange={handleImageSelect}
+                />
+                <button type="button" className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
+                  onClick={() => fileInputRef.current?.click()}>
+                  <i className="isax isax-image fs-16" />
+                  {t('community.chooseImage')}
+                </button>
+                <p className="text-muted fs-12 mt-1 mb-0">{t('community.imageTip')}</p>
+              </div>
+            )}
           </div>
         </div>
       </Modal>

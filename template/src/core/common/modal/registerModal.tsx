@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import ImageWithBasePath from '../imageWithBasePath';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
@@ -9,6 +10,7 @@ import { all_routes } from '../../../feature-module/router/all_routes';
 type PasswordField = 'password' | 'confirmPassword';
 
 const RegisterModal = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useAppSelector((state) => state.auth);

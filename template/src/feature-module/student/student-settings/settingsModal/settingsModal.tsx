@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import CustomSelect from "../../../../core/common/commonSelect";
 import {
@@ -8,6 +9,7 @@ import {
 } from "../../../../core/common/selectOption/json/selectOption";
 
 const SettingsModal = () => {
+  const { t } = useTranslation()
   return (
     <>
       <>

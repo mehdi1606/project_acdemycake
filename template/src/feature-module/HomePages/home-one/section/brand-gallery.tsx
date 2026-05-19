@@ -7,54 +7,57 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
-
-const galleryItems = [
-    {
-        src: 'Mockups/009.jpg',
-        alt: 'SARALÖWE luxury satin ribbon — Crafted by Science, Elevated by Art',
-        caption: 'Signature Ribbon',
-        span: 'col-md-6',
-        aspectRatio: '4/3',
-    },
-    {
-        src: 'Mockups/006.jpg',
-        alt: 'SARALÖWE gold foil oval seal — Est. 2019',
-        caption: 'Gold Seal',
-        span: 'col-md-3',
-        aspectRatio: '3/4',
-    },
-    {
-        src: 'Mockups/015.jpg',
-        alt: 'SARALÖWE branded luxury shopping bag with toile de jouy pattern',
-        caption: 'Toile Bag',
-        span: 'col-md-3',
-        aspectRatio: '3/4',
-    },
-    {
-        src: 'Mockups/013.jpg',
-        alt: 'SARALÖWE branded invoice & luxury cakes',
-        caption: 'Stationery',
-        span: 'col-md-4',
-        aspectRatio: '3/2',
-    },
-    {
-        src: 'Mockups/016.jpg',
-        alt: 'SARALÖWE thank-you cards spread — red & blush toile',
-        caption: 'Thank-You Cards',
-        span: 'col-md-4',
-        aspectRatio: '3/2',
-    },
-    {
-        src: 'Mockups/008.jpg',
-        alt: 'SARALÖWE logo sticker sheet — multiple colorways',
-        caption: 'Sticker Collection',
-        span: 'col-md-4',
-        aspectRatio: '3/2',
-    },
-]
+import { useTranslation } from 'react-i18next'
 
 const BrandGallery = () => {
+    const { t } = useTranslation()
     const route = all_routes
+
+    const galleryItems = [
+        {
+            src: 'Mockups/009.jpg',
+            alt: 'SARALÖWE luxury satin ribbon — Crafted by Science, Elevated by Art',
+            caption: t('brandGallery.signatureRibbon', 'Signature Ribbon'),
+            span: 'col-md-6',
+            aspectRatio: '4/3',
+        },
+        {
+            src: 'Mockups/006.jpg',
+            alt: 'SARALÖWE gold foil oval seal — Est. 2019',
+            caption: t('brandGallery.goldSeal', 'Gold Seal'),
+            span: 'col-md-3',
+            aspectRatio: '3/4',
+        },
+        {
+            src: 'Mockups/015.jpg',
+            alt: 'SARALÖWE branded luxury shopping bag with toile de jouy pattern',
+            caption: t('brandGallery.toileBag', 'Toile Bag'),
+            span: 'col-md-3',
+            aspectRatio: '3/4',
+        },
+        {
+            src: 'Mockups/013.jpg',
+            alt: 'SARALÖWE branded invoice & luxury cakes',
+            caption: t('brandGallery.stationery', 'Stationery'),
+            span: 'col-md-4',
+            aspectRatio: '3/2',
+        },
+        {
+            src: 'Mockups/016.jpg',
+            alt: 'SARALÖWE thank-you cards spread — red & blush toile',
+            caption: t('brandGallery.thankYouCards', 'Thank-You Cards'),
+            span: 'col-md-4',
+            aspectRatio: '3/2',
+        },
+        {
+            src: 'Mockups/008.jpg',
+            alt: 'SARALÖWE logo sticker sheet — multiple colorways',
+            caption: t('brandGallery.stickerCollection', 'Sticker Collection'),
+            span: 'col-md-4',
+            aspectRatio: '3/2',
+        },
+    ]
+
     return (
         <section className="sl-section sl-section--burg" style={{ position: 'relative', overflow: 'hidden' }}>
             {/* Decorative graphic element (top-right) */}
@@ -92,13 +95,12 @@ const BrandGallery = () => {
                             className="sl-script"
                             style={{ fontSize: '1.8rem', color: 'var(--sl-gold)' }}
                         >
-                            The brand
+                            {t('brandGallery.ornament', 'The brand')}
                         </span>
                     </div>
-                    <h2 className="light" style={{ marginTop: '0.5rem' }}>A World of Couture Identity</h2>
+                    <h2 className="light" style={{ marginTop: '0.5rem' }}>{t('brandGallery.title', 'A World of Couture Identity')}</h2>
                     <p className="light" style={{ maxWidth: 560, margin: '0 auto' }}>
-                        Every touchpoint — from certificates to packaging — reflects SARALÖWE's
-                        commitment to luxury, artistry, and timeless elegance.
+                        {t('brandGallery.description', "Every touchpoint — from certificates to packaging — reflects SARALÖWE's commitment to luxury, artistry, and timeless elegance.")}
                     </p>
                 </div>
 
@@ -149,7 +151,7 @@ const BrandGallery = () => {
                     data-aos-duration="700"
                 >
                     <Link to={route.courseList} className="sl-btn-gold">
-                        Discover Our Programmes <i className="isax isax-arrow-right-1" />
+                        {t('brandGallery.discoverProgrammes', 'Discover Our Programmes')} <i className="isax isax-arrow-right-1" />
                     </Link>
                 </div>
             </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
@@ -9,6 +10,7 @@ import { getFileUrl } from '../../../environment';
 const PAGE_SIZE = 9;
 
 const StudentWishlist = () => {
+  const { t } = useTranslation();
   const [courses, setCourses] = useState<Course[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -84,7 +86,7 @@ const StudentWishlist = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-          Wishlist
+          {t('student.wishlist.title', 'Wishlist')}
           {totalElements > 0 && (
             <span style={{
               marginLeft: 10, padding: '2px 10px', borderRadius: 12,
@@ -103,7 +105,7 @@ const StudentWishlist = () => {
             onClick={() => setShowRemoveAllModal(true)}
           >
             <i className="isax isax-trash" style={{ marginRight: 4 }} />
-            Remove All
+            {t('student.wishlist.removeAll', 'Remove All')}
           </button>
         )}
       </div>
@@ -118,7 +120,7 @@ const StudentWishlist = () => {
           <i className="isax isax-warning-2" />
           <span style={{ flex: 1 }}>{error}</span>
           <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => loadWishlist(page)}>
-            Retry
+            {t('common.tryAgain', 'Retry')}
           </button>
         </div>
       )}
@@ -134,10 +136,10 @@ const StudentWishlist = () => {
             <span className="empty-icon" style={{ background: 'rgba(139, 35, 53, 0.06)' }}>
               <i className="isax isax-heart" style={{ fontSize: 28, color: '#8B2335' }} />
             </span>
-            <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>Your wishlist is empty</h6>
-            <p>Save courses you're interested in and come back to them later.</p>
+            <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('student.wishlist.empty', 'Your wishlist is empty')}</h6>
+            <p>{t('student.wishlist.emptyDesc', 'Save courses you\'re interested in and come back to them later.')}</p>
             <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
-              Browse Courses
+              {t('student.wishlist.browseNow', 'Browse Courses')}
             </Link>
           </div>
         </div>
@@ -175,7 +177,7 @@ const StudentWishlist = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', color: '#8B2335', fontSize: 16,
                   }}
-                  title="Remove from wishlist"
+                  title={t('student.wishlist.remove', 'Remove from wishlist')}
                   disabled={removingId === course.id}
                   onClick={() => handleRemove(course.id)}
                 >
@@ -218,7 +220,7 @@ const StudentWishlist = () => {
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
                     {course.ratingAverage
                       ? `${Number(course.ratingAverage).toFixed(1)} (${course.ratingCount ?? 0})`
-                      : 'No reviews'}
+                      : t('student.reviews.noReviews', 'No reviews')}
                   </span>
                 </div>
 
@@ -232,7 +234,7 @@ const StudentWishlist = () => {
                     className="lx-btn lx-btn-sm lx-btn-outline"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                   >
-                    View Course
+                    {t('common.view', 'View Course')}
                     <i className="fas fa-angle-right" style={{ fontSize: 10 }} />
                   </Link>
                 </div>
@@ -303,9 +305,9 @@ const StudentWishlist = () => {
             }}>
               <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
             </div>
-            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>Remove All</h5>
+            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.wishlist.removeAll', 'Remove All')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
-              Are you sure you want to remove all {totalElements} course{totalElements !== 1 ? 's' : ''} from your wishlist?
+              {t('student.wishlist.removeAllConfirm', 'Are you sure you want to remove all')} {totalElements} {t('student.wishlist.courses', 'course')}{totalElements !== 1 ? 's' : ''} {t('student.wishlist.fromWishlist', 'from your wishlist?')}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
               <button
@@ -314,7 +316,7 @@ const StudentWishlist = () => {
                 onClick={() => setShowRemoveAllModal(false)}
                 disabled={removingAll}
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="button"
@@ -323,7 +325,7 @@ const StudentWishlist = () => {
                 onClick={handleRemoveAll}
                 disabled={removingAll}
               >
-                {removingAll ? 'Removing...' : 'Yes, Remove All'}
+                {removingAll ? t('student.wishlist.removing', 'Removing...') : t('student.wishlist.yesRemoveAll', 'Yes, Remove All')}
               </button>
             </div>
           </div>

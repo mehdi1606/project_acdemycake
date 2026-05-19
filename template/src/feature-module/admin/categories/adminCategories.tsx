@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
 import { Modal, message, Spin, Input, Upload, Button } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import { all_routes } from '../../router/all_routes';
+
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import adminService from '../../../services/api/admin.service';
 import { getFileUrl } from '../../../environment';
@@ -12,6 +13,7 @@ import { CourseCategory } from '../../../services/api/types';
 const { TextArea } = Input;
 
 const AdminCategories = () => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -145,12 +147,12 @@ const AdminCategories = () => {
       {/* Page Header */}
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-          <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>Category Management</h5>
-          <p style={{ color: 'var(--lx-text-muted)', margin: 0, fontSize: 13 }}>Create and manage course categories</p>
+          <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>{t('admin.categories.title', 'Category Management')}</h5>
+          <p style={{ color: 'var(--lx-text-muted)', margin: 0, fontSize: 13 }}>{t('admin.categories.manageCategoriesDesc', 'Create and manage course categories')}</p>
         </div>
         <button className="lx-btn lx-btn-gold" onClick={openCreateModal}>
           <i className="isax isax-add" />
-          Add Category
+          {t('admin.categories.addCategory', 'Add Category')}
         </button>
       </div>
 
@@ -162,7 +164,7 @@ const AdminCategories = () => {
               <i className="isax isax-folder-2" />
             </div>
             <div className="stat-info">
-              <p className="stat-label">Total Categories</p>
+              <p className="stat-label">{t('admin.categories.totalCategories', 'Total Categories')}</p>
               <h3 className="stat-value">{categories.length}</h3>
             </div>
           </div>
@@ -173,7 +175,7 @@ const AdminCategories = () => {
               <i className="isax isax-book" />
             </div>
             <div className="stat-info">
-              <p className="stat-label">Total Courses</p>
+              <p className="stat-label">{t('admin.categories.courseCount', 'Total Courses')}</p>
               <h3 className="stat-value">
                 {categories.reduce((sum, cat) => sum + (cat.coursesCount || 0), 0)}
               </h3>
@@ -186,7 +188,7 @@ const AdminCategories = () => {
               <i className="isax isax-image" />
             </div>
             <div className="stat-info">
-              <p className="stat-label">With Images</p>
+              <p className="stat-label">{t('admin.categories.withImages', 'With Images')}</p>
               <h3 className="stat-value">
                 {categories.filter(cat => cat.imageUrl).length}
               </h3>
@@ -205,11 +207,11 @@ const AdminCategories = () => {
           <div className="lx-card-body">
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-folder-2" /></div>
-              <h6>No Categories Yet</h6>
-              <p>Create your first category to organize your courses.</p>
+              <h6>{t('admin.categories.noCategories', 'No Categories Yet')}</h6>
+              <p>{t('admin.categories.createFirstCategory', 'Create your first category to organize your courses.')}</p>
               <button className="lx-btn lx-btn-gold" onClick={openCreateModal}>
                 <i className="isax isax-add" />
-                Create Category
+                {t('admin.categories.addCategory', 'Create Category')}
               </button>
             </div>
           </div>
@@ -242,7 +244,7 @@ const AdminCategories = () => {
                     {category.name}
                   </h5>
                   <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', minHeight: 40, marginBottom: 12, lineHeight: 1.6 }}>
-                    {category.description || 'No description'}
+                    {category.description || t('admin.categories.noDescription', 'No description')}
                   </p>
                   <div className="d-flex align-items-center justify-content-between">
                     <span className="lx-badge badge-info">
@@ -276,12 +278,12 @@ const AdminCategories = () => {
 
       {/* Create/Edit Modal */}
       <Modal
-        title={isEditMode ? 'Edit Category' : 'Create New Category'}
+        title={isEditMode ? t('admin.categories.editCategory', 'Edit Category') : t('admin.categories.addCategory', 'Create New Category')}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={[
           <Button key="cancel" onClick={() => setIsModalOpen(false)}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </Button>,
           <Button
             key="submit"
@@ -289,34 +291,34 @@ const AdminCategories = () => {
             loading={isSubmitting}
             onClick={handleSubmit}
           >
-            {isEditMode ? 'Update' : 'Create'}
+            {isEditMode ? t('common.update', 'Update') : t('common.create', 'Create')}
           </Button>,
         ]}
       >
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-            Category Name <span style={{ color: '#8B2335' }}>*</span>
+            {t('admin.categories.categoryName', 'Category Name')} <span style={{ color: '#8B2335' }}>*</span>
           </label>
           <Input
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Enter category name"
+            placeholder={t('admin.categories.categoryNamePlaceholder', 'Enter category name')}
           />
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-            Description
+            {t('admin.categories.description', 'Description')}
           </label>
           <TextArea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Enter category description"
+            placeholder={t('admin.categories.descriptionPlaceholder', 'Enter category description')}
             rows={3}
           />
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-            Display Order
+            {t('admin.categories.displayOrder', 'Display Order')}
           </label>
           <Input
             type="number"
@@ -327,7 +329,7 @@ const AdminCategories = () => {
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-            Category Image
+            {t('admin.categories.categoryImage', 'Category Image')}
           </label>
           <Upload
             beforeUpload={() => false}
@@ -336,7 +338,7 @@ const AdminCategories = () => {
             accept="image/*"
             listType="picture"
           >
-            <Button icon={<UploadOutlined />}>Select Image</Button>
+            <Button icon={<UploadOutlined />}>{t('admin.categories.selectImage', 'Select Image')}</Button>
           </Upload>
           {isEditMode && editingCategory?.imageUrl && !imageFile && (
             <div style={{ marginTop: 8 }}>
@@ -353,7 +355,7 @@ const AdminCategories = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal
-        title="Delete Category"
+        title={t('admin.categories.deleteCategory', 'Delete Category')}
         open={deleteModalOpen}
         onCancel={() => {
           setDeleteModalOpen(false);
@@ -367,7 +369,7 @@ const AdminCategories = () => {
               setCategoryToDelete(null);
             }}
           >
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </Button>,
           <Button
             key="delete"
@@ -376,7 +378,7 @@ const AdminCategories = () => {
             loading={isSubmitting}
             onClick={handleDelete}
           >
-            Delete
+            {t('common.delete', 'Delete')}
           </Button>,
         ]}
       >

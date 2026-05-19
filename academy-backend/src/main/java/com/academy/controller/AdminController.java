@@ -54,6 +54,17 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/instructors")
+    @Operation(summary = "Get all instructors with pagination and optional search")
+    public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getInstructors(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String search) {
+
+        PageResponse<UserResponse> response = userService.getInstructors(page, size, search);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @GetMapping("/users/{id}")
     @Operation(summary = "Get user by ID")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable UUID id) {

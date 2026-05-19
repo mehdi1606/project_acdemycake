@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
-import { Spin, message, Pagination, Select, DatePicker } from 'antd';
+import { Spin, message, Pagination, Select } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchTransactions } from '../../../core/redux/adminSlice';
 
-const { RangePicker } = DatePicker;
 
 const AdminTransactions = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { transactions, transactionsPagination, isLoadingTransactions, error } =
     useAppSelector((state) => state.admin);
@@ -56,23 +57,23 @@ const AdminTransactions = () => {
     }).format(amount);
   };
 
-  const filteredTransactions = (transactions || []).filter((t: any) => {
-    if (statusFilter && t.status !== statusFilter) return false;
-    if (typeFilter && t.transactionType !== typeFilter) return false;
+  const filteredTransactions = (transactions || []).filter((tx: any) => {
+    if (statusFilter && tx.status !== statusFilter) return false;
+    if (typeFilter && tx.transactionType !== typeFilter) return false;
     return true;
   });
 
   const totalRevenue = (transactions || [])
-    .filter((t: any) => t.status === 'COMPLETED')
-    .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+    .filter((tx: any) => tx.status === 'COMPLETED')
+    .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
 
   const subscriptionRevenue = (transactions || [])
-    .filter((t: any) => t.status === 'COMPLETED' && t.transactionType === 'SUBSCRIPTION')
-    .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+    .filter((tx: any) => tx.status === 'COMPLETED' && tx.transactionType === 'SUBSCRIPTION')
+    .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
 
   const courseRevenue = (transactions || [])
-    .filter((t: any) => t.status === 'COMPLETED' && t.transactionType === 'COURSE_PURCHASE')
-    .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+    .filter((tx: any) => tx.status === 'COMPLETED' && tx.transactionType === 'COURSE_PURCHASE')
+    .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
 
   return (
     <LuxuryDashboardLayout>
@@ -80,19 +81,19 @@ const AdminTransactions = () => {
       <div className="row g-4 mb-4">
         {[
           {
-            label: 'Total Revenue',
+            label: t('admin.dashboard.totalRevenue', 'Total Revenue'),
             value: formatCurrency(totalRevenue),
             icon: 'isax isax-dollar-circle',
             color: 'gold',
           },
           {
-            label: 'Subscriptions',
+            label: t('admin.sidebar.subscriptions', 'Subscriptions'),
             value: formatCurrency(subscriptionRevenue),
             icon: 'isax isax-crown',
             color: 'sage',
           },
           {
-            label: 'Course Sales',
+            label: t('admin.transactions.courseSales', 'Course Sales'),
             value: formatCurrency(courseRevenue),
             icon: 'isax isax-book',
             color: 'slate',
@@ -115,28 +116,28 @@ const AdminTransactions = () => {
       {/* ── Transactions Table Card ── */}
       <div className="lx-card">
         <div className="lx-card-header">
-          <h6>All Transactions</h6>
+          <h6>{t('admin.transactions.title', 'All Transactions')}</h6>
           <div className="d-flex flex-wrap gap-2">
             <Select
-              placeholder="Filter by status"
+              placeholder={t('admin.transactions.filterByStatus', 'Filter by status')}
               allowClear
               style={{ width: 150 }}
               onChange={(value) => setStatusFilter(value || '')}
               options={[
-                { value: 'COMPLETED', label: 'Completed' },
-                { value: 'PENDING',   label: 'Pending' },
-                { value: 'FAILED',    label: 'Failed' },
-                { value: 'REFUNDED',  label: 'Refunded' },
+                { value: 'COMPLETED', label: t('admin.transactions.completed', 'Completed') },
+                { value: 'PENDING',   label: t('common.pending', 'Pending') },
+                { value: 'FAILED',    label: t('admin.transactions.failed', 'Failed') },
+                { value: 'REFUNDED',  label: t('admin.transactions.refunded', 'Refunded') },
               ]}
             />
             <Select
-              placeholder="Filter by type"
+              placeholder={t('admin.transactions.filterByType', 'Filter by type')}
               allowClear
               style={{ width: 160 }}
               onChange={(value) => setTypeFilter(value || '')}
               options={[
-                { value: 'SUBSCRIPTION',    label: 'Subscription' },
-                { value: 'COURSE_PURCHASE', label: 'Course Purchase' },
+                { value: 'SUBSCRIPTION',    label: t('admin.sidebar.subscriptions', 'Subscription') },
+                { value: 'COURSE_PURCHASE', label: t('admin.transactions.coursePurchase', 'Course Purchase') },
               ]}
             />
           </div>
@@ -150,20 +151,20 @@ const AdminTransactions = () => {
           ) : filteredTransactions.length === 0 ? (
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-card" /></div>
-              <h6>No Transactions Found</h6>
-              <p>No transactions match the current filter criteria.</p>
+              <h6>{t('admin.transactions.noTransactions', 'No Transactions Found')}</h6>
+              <p>{t('common.noResults', 'No transactions match the current filter criteria.')}</p>
             </div>
           ) : (
             <div className="table-responsive">
               <table className="lx-table">
                 <thead>
                   <tr>
-                    <th>Transaction ID</th>
-                    <th>User</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th>{t('admin.transactions.transactionId', 'Transaction ID')}</th>
+                    <th>{t('admin.transactions.user', 'User')}</th>
+                    <th>{t('admin.transactions.type', 'Type')}</th>
+                    <th>{t('admin.transactions.amount', 'Amount')}</th>
+                    <th>{t('admin.transactions.status', 'Status')}</th>
+                    <th>{t('admin.transactions.date', 'Date')}</th>
                   </tr>
                 </thead>
                 <tbody>

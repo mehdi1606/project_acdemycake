@@ -13,6 +13,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../../../services/api/auth.service';
 import { all_routes } from '../../router/all_routes';
+import { useTranslation } from 'react-i18next';
 
 type Stage = 'verifying' | 'success' | 'failed' | 'no-token';
 
@@ -31,6 +32,7 @@ const particles = [
 
 /* ── component ─────────────────────────────────────────────────────────────── */
 const VerifyEmailPage: React.FC = () => {
+  const { t } = useTranslation();
   const route           = all_routes;
   const [params]        = useSearchParams();
   const token           = params.get('token');
@@ -59,10 +61,10 @@ const VerifyEmailPage: React.FC = () => {
     try {
       await authService.resendVerificationEmail(resendEmail.trim());
       setResendState('sent');
-      setResendMsg(`A new verification link has been sent to ${resendEmail}.`);
+      setResendMsg(t('auth.verifyEmail.linkSentTo', 'A new verification link has been sent to {{email}}.', { email: resendEmail }));
     } catch {
       setResendState('error');
-      setResendMsg('Could not send the email. Please check the address and try again.');
+      setResendMsg(t('auth.verifyEmail.sendFailed', 'Could not send the email. Please check the address and try again.'));
     }
   };
 
@@ -72,8 +74,8 @@ const VerifyEmailPage: React.FC = () => {
       <div className="sl-vem__spinner-wrap">
         <div className="sl-vem__spinner" />
       </div>
-      <h2 className="sl-vem__title">Verifying Your Email…</h2>
-      <p className="sl-vem__desc">Just a moment — we're confirming your address.</p>
+      <h2 className="sl-vem__title">{t('auth.verifyEmail.verifying', 'Verifying Your Email…')}</h2>
+      <p className="sl-vem__desc">{t('auth.verifyEmail.verifyingDesc', 'Just a moment — we\'re confirming your address.')}</p>
     </div>
   );
 
@@ -83,15 +85,19 @@ const VerifyEmailPage: React.FC = () => {
         <i className="isax isax-tick-circle sl-vem__icon" />
       </div>
 
-      <div className="sl-vem__script">Welcome to</div>
+      <div className="sl-vem__script">{t('auth.verifyEmail.welcomeTo', 'Welcome to')}</div>
       <h2 className="sl-vem__title">SARALÖWE Academy</h2>
       <p className="sl-vem__desc">
-        Your email address has been verified successfully.
-        Your account is now active — sign in to start your artisan journey.
+        {t('auth.verifyEmail.successDesc', 'Your email address has been verified successfully. Your account is now active — sign in to start your artisan journey.')}
       </p>
 
       <div className="sl-vem__checklist">
-        {['Account activated', 'Access to all courses', 'Student dashboard ready', 'Community unlocked'].map((item, i) => (
+        {[
+          t('auth.verifyEmail.check1', 'Account activated'),
+          t('auth.verifyEmail.check2', 'Access to all courses'),
+          t('auth.verifyEmail.check3', 'Student dashboard ready'),
+          t('auth.verifyEmail.check4', 'Community unlocked'),
+        ].map((item, i) => (
           <div key={i} className="sl-vem__check-row">
             <i className="isax isax-tick-circle sl-vem__check-icon" />
             <span>{item}</span>
@@ -100,7 +106,7 @@ const VerifyEmailPage: React.FC = () => {
       </div>
 
       <Link to={route.login} className="sl-vem__btn sl-vem__btn--gold">
-        Sign In Now <i className="isax isax-arrow-right-3 ms-2" />
+        {t('auth.verifyEmail.signInNow', 'Sign In Now')} <i className="isax isax-arrow-right-3 ms-2" />
       </Link>
     </div>
   );
@@ -110,16 +116,15 @@ const VerifyEmailPage: React.FC = () => {
       <div className="sl-vem__icon-wrap sl-vem__icon-wrap--burg">
         <i className="isax isax-close-circle sl-vem__icon" />
       </div>
-      <h2 className="sl-vem__title">Verification Failed</h2>
+      <h2 className="sl-vem__title">{t('auth.verifyEmail.failedTitle', 'Verification Failed')}</h2>
       <p className="sl-vem__desc">
-        This link is invalid or has expired (links are valid for 24 hours).
-        Request a new one below.
+        {t('auth.verifyEmail.failedDesc', 'This link is invalid or has expired (links are valid for 24 hours). Request a new one below.')}
       </p>
 
       {/* Resend form */}
       <form className="sl-vem__resend-form" onSubmit={handleResend}>
         <label className="sl-vem__resend-label" htmlFor="resend-email">
-          Your email address
+          {t('auth.verifyEmail.yourEmail', 'Your email address')}
         </label>
         <div className="sl-vem__resend-row">
           <input
@@ -138,10 +143,10 @@ const VerifyEmailPage: React.FC = () => {
             disabled={resendState === 'sending' || resendState === 'sent'}
           >
             {resendState === 'sending'
-              ? <><span className="sl-vem__btn-spinner" /> Sending…</>
+              ? <><span className="sl-vem__btn-spinner" /> {t('auth.verifyEmail.sending', 'Sending…')}</>
               : resendState === 'sent'
-              ? <><i className="isax isax-tick-circle me-1" /> Sent</>
-              : 'Resend Link'}
+              ? <><i className="isax isax-tick-circle me-1" /> {t('auth.verifyEmail.sent', 'Sent')}</>
+              : t('auth.verifyEmail.resendLink', 'Resend Link')}
           </button>
         </div>
 
@@ -158,7 +163,7 @@ const VerifyEmailPage: React.FC = () => {
       </form>
 
       <Link to={route.login} className="sl-vem__back-link">
-        ← Back to Sign In
+        ← {t('auth.verifyEmail.backToSignIn', 'Back to Sign In')}
       </Link>
     </div>
   );
@@ -168,13 +173,12 @@ const VerifyEmailPage: React.FC = () => {
       <div className="sl-vem__icon-wrap sl-vem__icon-wrap--burg">
         <i className="isax isax-link-broken sl-vem__icon" />
       </div>
-      <h2 className="sl-vem__title">Invalid Link</h2>
+      <h2 className="sl-vem__title">{t('auth.verifyEmail.invalidLink', 'Invalid Link')}</h2>
       <p className="sl-vem__desc">
-        The verification link is missing or malformed. Please use the link sent to your inbox,
-        or request a new one below.
+        {t('auth.verifyEmail.invalidLinkDesc', 'The verification link is missing or malformed. Please use the link sent to your inbox, or request a new one below.')}
       </p>
       <Link to={route.login} className="sl-vem__btn sl-vem__btn--primary">
-        Back to Sign In
+        {t('auth.verifyEmail.backToSignIn', 'Back to Sign In')}
       </Link>
     </div>
   );
@@ -204,8 +208,8 @@ const VerifyEmailPage: React.FC = () => {
       </div>
 
       <p className="sl-vem__footer-note">
-        Need help?{' '}
-        <Link to={route.contactUs} className="sl-vem__footer-link">Contact support</Link>
+        {t('auth.verifyEmail.needHelp', 'Need help?')}{' '}
+        <Link to={route.contactUs} className="sl-vem__footer-link">{t('auth.verifyEmail.contactSupport', 'Contact support')}</Link>
       </p>
     </div>
   );

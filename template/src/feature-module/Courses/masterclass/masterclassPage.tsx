@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { App } from 'antd';
@@ -33,6 +34,7 @@ const MasterclassCard: React.FC<{
 }> = ({ course, inCart, onCart, index }) => {
   const route   = all_routes;
   const cardRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
   const { user } = useAppSelector(s => s.auth);
   const isStaff   = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR';
 
@@ -200,7 +202,7 @@ const MasterclassCard: React.FC<{
           <span style={{ color: 'rgba(197,145,44,0.4)', fontSize: '0.55rem' }}>✦</span>
           <span style={{ fontSize: '0.7rem', color: 'rgba(58,30,32,0.5)', display: 'flex', alignItems: 'center', gap: 4 }}>
             <i className="isax isax-video-play" style={{ fontSize: 12 }} />
-            {course.lessonsCount ?? 0} lessons
+            {course.lessonsCount ?? 0} {t('masterclass.lessons')}
           </span>
         </div>
 
@@ -210,14 +212,14 @@ const MasterclassCard: React.FC<{
           <div>
             {course.isEnrolled ? (
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1A7F4B', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <i className="fa-solid fa-check-circle" /> Enrolled
+                <i className="fa-solid fa-check-circle" /> {t('common.enrolled')}
               </span>
             ) : isStaff ? (
               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#651C32', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <i className="fa-solid fa-shield-halved" style={{ fontSize: 10 }} /> Free Access
+                <i className="fa-solid fa-shield-halved" style={{ fontSize: 10 }} /> {t('masterclass.freeAccess')}
               </span>
             ) : !course.requiresPurchase || (course.price ?? 0) === 0 ? (
-              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1A7F4B' }}>Free</span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1A7F4B' }}>{t('common.free')}</span>
             ) : (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
                 <span style={{
@@ -247,7 +249,7 @@ const MasterclassCard: React.FC<{
                 display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
-              Continue <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
+              {t('masterclass.continue')} <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
             </Link>
           ) : isStaff ? (
             /* Admin / Instructor: direct access — no payment */
@@ -261,7 +263,7 @@ const MasterclassCard: React.FC<{
                 display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
-              <i className="fa-solid fa-shield-halved" style={{ fontSize: 11 }} /> Access
+              <i className="fa-solid fa-shield-halved" style={{ fontSize: 11 }} /> {t('masterclass.access')}
             </Link>
           ) : inCart ? (
             <Link
@@ -274,7 +276,7 @@ const MasterclassCard: React.FC<{
                 display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
-              In Cart <i className="isax isax-bag-tick" style={{ fontSize: 11 }} />
+              {t('masterclass.inCart')} <i className="isax isax-bag-tick" style={{ fontSize: 11 }} />
             </Link>
           ) : (
             <button
@@ -290,7 +292,7 @@ const MasterclassCard: React.FC<{
               onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #C5912C 0%, #DEBB6B 100%)'; e.currentTarget.style.color = '#4E1420'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #4E1420 0%, #6B1D2A 100%)'; e.currentTarget.style.color = '#fff'; }}
             >
-              <i className="isax isax-bag-add" style={{ fontSize: 13 }} /> Enroll
+              <i className="isax isax-bag-add" style={{ fontSize: 13 }} /> {t('masterclass.enrollBtn')}
             </button>
           )}
         </div>
@@ -317,11 +319,12 @@ const SkeletonCard: React.FC<{ index: number }> = ({ index }) => (
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const MasterclassPage: React.FC = () => {
+  const { t } = useTranslation();
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
   const { items: cartItems } = useAppSelector(s => s.cart);
-  const { isAuthenticated } = useAppSelector(s => s.auth);
+  const { isAuthenticated: _isAuthenticated } = useAppSelector(s => s.auth);
 
   const [categories,    setCategories]    = useState<CourseCategory[]>([]);
   const [activeTab,     setActiveTab]     = useState<string>('all');
@@ -368,17 +371,20 @@ const MasterclassPage: React.FC = () => {
     }
   }, []);
 
-  // Re-fetch when tab or page changes
+  // Re-fetch when tab, page or language changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setCurrentPage(0);
     fetchCourses(activeTab, 0, searchQuery);
   }, [activeTab]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCourses(activeTab, currentPage, searchQuery);
   }, [currentPage]);
 
   // Search debounce
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const t = setTimeout(() => {
       setCurrentPage(0);
@@ -388,7 +394,7 @@ const MasterclassPage: React.FC = () => {
   }, [searchQuery]);
 
   const handleCart = (course: Course) => {
-    if (cartItems.some(i => i.id === course.id)) { message.info('Already in cart'); return; }
+    if (cartItems.some(i => i.id === course.id)) { message.info(t('masterclass.alreadyInCart')); return; }
     dispatch(addToCart({
       id: course.id, slug: course.slug, title: course.title,
       thumbnailUrl: course.thumbnailUrl, price: course.price ?? 0,
@@ -396,7 +402,7 @@ const MasterclassPage: React.FC = () => {
       instructorName: course.instructor?.fullName,
       instructorId: course.instructor?.id,
     }));
-    message.success('Added to cart');
+    message.success(t('masterclass.addedToCart'));
   };
 
   // Pagination numbers with ellipsis
@@ -443,7 +449,7 @@ const MasterclassPage: React.FC = () => {
                 fontStyle: 'italic', fontSize: '1.8rem',
                 color: '#C5912C', opacity: 0.85,
               }}>
-                Exclusivité
+                {t('masterclass.script')}
               </span>
             </div>
 
@@ -464,15 +470,14 @@ const MasterclassPage: React.FC = () => {
               fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 700,
               color: '#fff', marginBottom: '0.8rem', lineHeight: 1.2,
             }}>
-              Masterclasses
+              {t('masterclass.title')}
             </h1>
 
             <p data-aos="fade-up" data-aos-delay="180" data-aos-duration="700" style={{
               fontSize: '1rem', color: 'rgba(255,255,255,0.65)',
               lineHeight: 1.7, marginBottom: '1.8rem',
             }}>
-              Premium one-time courses crafted by our master pastry artists —
-              purchase individually and own them forever.
+              {t('masterclass.heroSubtitle')}
             </p>
 
             {/* Search bar */}
@@ -489,7 +494,7 @@ const MasterclassPage: React.FC = () => {
               <i className="isax isax-search-normal-1" style={{ color: 'rgba(255,255,255,0.4)', marginRight: 10, fontSize: 16 }} />
               <input
                 type="text"
-                placeholder="Search masterclasses…"
+                placeholder={t('masterclass.searchPlaceholder')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{
@@ -502,7 +507,7 @@ const MasterclassPage: React.FC = () => {
                 border: 'none', borderRadius: 30, padding: '8px 20px',
                 color: '#4E1420', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
               }}>
-                Search
+                {t('masterclass.search')}
               </button>
             </form>
 
@@ -511,9 +516,9 @@ const MasterclassPage: React.FC = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)',
             }}>
-              <Link to={route.homeone} style={{ color: 'rgba(197,145,44,0.7)', textDecoration: 'none' }}>Home</Link>
+              <Link to={route.homeone} style={{ color: 'rgba(197,145,44,0.7)', textDecoration: 'none' }}>{t('nav.home')}</Link>
               <span style={{ fontSize: '0.5rem' }}>✦</span>
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>Masterclasses</span>
+              <span style={{ color: 'rgba(255,255,255,0.6)' }}>{t('masterclass.title')}</span>
             </nav>
           </div>
         </div>
@@ -565,7 +570,7 @@ const MasterclassPage: React.FC = () => {
                 }}
               >
                 <i className="isax isax-crown" style={{ fontSize: 13 }} />
-                All Masterclasses
+                {t('masterclass.allMasterclasses')}
                 {totalElements > 0 && (
                   <span style={{
                     fontSize: '0.58rem', fontWeight: 700,
@@ -606,11 +611,11 @@ const MasterclassPage: React.FC = () => {
           {!courseLoading && courses.length > 0 && (
             <div className="sl-cl-toolbar" style={{ marginBottom: '1.75rem' }} data-aos="fade-down">
               <p className="sl-cl-toolbar__results">
-                Showing <strong>{totalElements}</strong> masterclass{totalElements !== 1 ? 'es' : ''}
+                {t('masterclass.showing')} <strong>{totalElements}</strong> {totalElements !== 1 ? t('courseCategory.masterclasses') : t('courseCategory.masterclass')}
                 {activeTab !== 'all' && (
-                  <> in <strong>{categories.find(c => c.id === activeTab)?.name}</strong></>
+                  <> {t('masterclass.in')} <strong>{categories.find(c => c.id === activeTab)?.name}</strong></>
                 )}
-                {searchQuery && <> matching "<strong>{searchQuery}</strong>"</>}
+                {searchQuery && <> {t('masterclass.matching')} "<strong>{searchQuery}</strong>"</>}
               </p>
               {searchQuery && (
                 <button
@@ -622,7 +627,7 @@ const MasterclassPage: React.FC = () => {
                   }}
                 >
                   <i className="isax isax-close-circle" style={{ marginRight: 4 }} />
-                  Clear search
+                  {t('masterclass.clearSearch')}
                 </button>
               )}
             </div>
@@ -639,25 +644,25 @@ const MasterclassPage: React.FC = () => {
             <div className="sl-cl-empty" data-aos="fade-up">
               <div className="sl-ornament">
                 <span className="sl-script" style={{ fontSize: '2rem' }}>
-                  {searchQuery ? 'No Results' : 'Coming Soon'}
+                  {searchQuery ? t('masterclass.noResults') : t('masterclass.comingSoon')}
                 </span>
               </div>
               <i className="isax isax-crown sl-cl-empty__icon" style={{ color: '#C5912C' }} />
               <h4 className="sl-cl-empty__title">
                 {searchQuery
-                  ? `No masterclasses found for "${searchQuery}"`
-                  : 'No masterclasses in this category yet'}
+                  ? t('courseCategory.noMasterclassesYet')
+                  : t('courseCategory.noMasterclassesYet')}
               </h4>
               <p className="sl-cl-empty__text">
                 {searchQuery
-                  ? 'Try a different search term or browse all masterclasses.'
-                  : 'Our master instructors are crafting exclusive masterclasses for this discipline. Check back soon.'}
+                  ? t('courseCategory.crafting')
+                  : t('courseCategory.crafting')}
               </p>
               <button
                 onClick={() => { setSearchQuery(''); setActiveTab('all'); }}
                 className="sl-btn-gold sl-btn-magnetic"
               >
-                Browse All Masterclasses <i className="isax isax-arrow-right-1" />
+                {t('masterclass.allMasterclasses')} <i className="isax isax-arrow-right-1" />
               </button>
             </div>
           ) : (
@@ -722,13 +727,13 @@ const MasterclassPage: React.FC = () => {
             >
               <i className="isax isax-book-1" style={{ fontSize: 36, color: 'rgba(197,145,44,0.6)', marginBottom: 12, display: 'block' }} />
               <h4 style={{ fontFamily: '"Playfair Display", serif', color: '#fff', marginBottom: 8 }}>
-                Looking for subscription courses?
+                {t('masterclass.ctaTitle')}
               </h4>
               <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                Access hundreds of Plan courses with a single SARALÖWE subscription.
+                {t('masterclass.ctaDesc')}
               </p>
               <Link to={route.courseList} className="sl-btn-gold sl-btn-magnetic">
-                Browse Plan Courses <i className="isax isax-arrow-right-1" />
+                {t('masterclass.ctaBtn')} <i className="isax isax-arrow-right-1" />
               </Link>
             </div>
           )}

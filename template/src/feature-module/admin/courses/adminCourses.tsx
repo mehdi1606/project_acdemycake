@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { Spin, message, Pagination, Popconfirm, Select } from 'antd';
@@ -8,6 +9,7 @@ import { fetchCourses, deleteCourse } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
 
 const AdminCourses = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { courses, coursesPagination, isLoadingCourses, error } = useAppSelector(
     (state) => state.admin
@@ -80,10 +82,10 @@ const AdminCourses = () => {
       {/* ── Stats Cards ── */}
       <div className="row g-4 mb-4">
         {[
-          { label: 'Total Courses',  value: courses?.length || 0,                                        icon: 'isax isax-book',        color: 'gold' },
-          { label: 'Published',      value: courses?.filter((c: any) => c.status === 'PUBLISHED').length || 0,  icon: 'isax isax-tick-circle', color: 'sage' },
-          { label: 'Pending',        value: courses?.filter((c: any) => c.status === 'PENDING_REVIEW').length || 0, icon: 'isax isax-clock', color: 'amber' },
-          { label: 'Drafts',         value: courses?.filter((c: any) => c.status === 'DRAFT').length || 0,      icon: 'isax isax-edit-2',      color: 'slate' },
+          { label: t('admin.dashboard.totalCourses', 'Total Courses'),  value: courses?.length || 0,                                        icon: 'isax isax-book',        color: 'gold' },
+          { label: t('common.published', 'Published'),                  value: courses?.filter((c: any) => c.status === 'PUBLISHED').length || 0,  icon: 'isax isax-tick-circle', color: 'sage' },
+          { label: t('common.pending', 'Pending'),                      value: courses?.filter((c: any) => c.status === 'PENDING_REVIEW').length || 0, icon: 'isax isax-clock', color: 'amber' },
+          { label: t('common.draft', 'Drafts'),                         value: courses?.filter((c: any) => c.status === 'DRAFT').length || 0,      icon: 'isax isax-edit-2',      color: 'slate' },
         ].map((s, i) => (
           <div key={i} className="col-xxl-3 col-lg-6 col-md-6">
             <div className="lx-stat-card">
@@ -102,24 +104,24 @@ const AdminCourses = () => {
       {/* ── Courses Table Card ── */}
       <div className="lx-card">
         <div className="lx-card-header">
-          <h6>All Courses</h6>
+          <h6>{t('admin.courses.allCourses', 'All Courses')}</h6>
           <div className="d-flex flex-wrap align-items-center gap-2">
             <Select
-              placeholder="Filter by status"
+              placeholder={t('admin.courses.status', 'Filter by status')}
               allowClear
               style={{ width: 180 }}
               onChange={(value) => setStatusFilter(value || '')}
               options={[
-                { value: 'PUBLISHED',      label: 'Published' },
-                { value: 'DRAFT',          label: 'Draft' },
-                { value: 'PENDING_REVIEW', label: 'Pending Review' },
-                { value: 'REJECTED',       label: 'Rejected' },
-                { value: 'ARCHIVED',       label: 'Archived' },
+                { value: 'PUBLISHED',      label: t('common.published', 'Published') },
+                { value: 'DRAFT',          label: t('common.draft', 'Draft') },
+                { value: 'PENDING_REVIEW', label: t('admin.courses.pendingApproval', 'Pending Review') },
+                { value: 'REJECTED',       label: t('common.rejected', 'Rejected') },
+                { value: 'ARCHIVED',       label: t('admin.courses.archived', 'Archived') },
               ]}
             />
             <Link to={all_routes.adminPendingCourses} className="lx-btn lx-btn-outline lx-btn-sm">
               <i className="isax isax-clock" />
-              Pending Approvals
+              {t('admin.sidebar.pendingApprovals', 'Pending Approvals')}
             </Link>
           </div>
         </div>
@@ -132,21 +134,21 @@ const AdminCourses = () => {
           ) : filteredCourses.length === 0 ? (
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-book" /></div>
-              <h6>No Courses Found</h6>
-              <p>No courses match the current filter criteria.</p>
+              <h6>{t('admin.courses.noCourses', 'No Courses Found')}</h6>
+              <p>{t('common.noResults', 'No courses match the current filter criteria.')}</p>
             </div>
           ) : (
             <div className="table-responsive">
               <table className="lx-table">
                 <thead>
                   <tr>
-                    <th>Course</th>
-                    <th>Instructor</th>
-                    <th>Level</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th style={{ textAlign: 'center' }}>Enrollments</th>
-                    <th style={{ textAlign: 'center' }}>Actions</th>
+                    <th>{t('admin.courses.courseTitle', 'Course')}</th>
+                    <th>{t('admin.courses.instructor', 'Instructor')}</th>
+                    <th>{t('common.level', 'Level')}</th>
+                    <th>{t('common.price', 'Price')}</th>
+                    <th>{t('admin.courses.status', 'Status')}</th>
+                    <th style={{ textAlign: 'center' }}>{t('admin.courses.students', 'Enrollments')}</th>
+                    <th style={{ textAlign: 'center' }}>{t('admin.courses.actions', 'Actions')}</th>
                   </tr>
                 </thead>
                 <tbody>

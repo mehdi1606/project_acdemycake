@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout'
+import { useTranslation } from 'react-i18next'
 import { instructorService, Assignment, AssignmentStatus } from '../../../services/api/instructor.service'
 import { Course, Submission } from '../../../services/api/types'
 import { assignmentService } from '../../../services/api/assignment.service'
@@ -100,6 +101,7 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
 )
 
 const InstructorAssignment: React.FC = () => {
+  const { t } = useTranslation();
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState<boolean>(true)

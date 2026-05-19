@@ -2,8 +2,10 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom'
 import { useAppSelector } from '../../../core/redux/hooks'
 import { all_routes } from '../../router/all_routes'
+import { useTranslation } from 'react-i18next'
 
 const InstructorProfile = () => {
+  const { t } = useTranslation();
   const { user } = useAppSelector((state) => state.auth);
 
   const formatDate = (dateString: string | undefined) => {

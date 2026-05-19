@@ -390,7 +390,7 @@ export const publicRoutes = [
   },
   {
     path: routes.instructorList,
-    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorList  /></RoleGuard>,
+    element: <RoleGuard allowedRoles={['ADMIN']}><InstructorList  /></RoleGuard>,
     route: Route,
   },
   {

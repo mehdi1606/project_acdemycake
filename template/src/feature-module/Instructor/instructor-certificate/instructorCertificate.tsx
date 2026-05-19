@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import certificateService from '../../../services/api/certificate.service';
+import { useTranslation } from 'react-i18next';
 import { Certificate } from '../../../services/api/types';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const InstructorCertificate = () => {
+  const { t } = useTranslation();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_URL, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../../environment';
 import { extractApiError } from './error.utils';
+import i18n from '../../i18n/i18n';
 
 /**
  * Fires a global notification event that UI components can listen to.
@@ -62,6 +63,9 @@ api.interceptors.request.use(
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.headers) {
+      config.headers['Accept-Language'] = i18n.language || 'en';
     }
     return config;
   },
@@ -154,6 +158,9 @@ apiMultipart.interceptors.request.use(
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.headers) {
+      config.headers['Accept-Language'] = i18n.language || 'en';
     }
     return config;
   },

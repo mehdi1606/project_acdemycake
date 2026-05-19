@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
+import { useTranslation } from 'react-i18next';
 
 /* ─── Design tokens ──────────────────────────────────────────── */
 const GOLD   = '#C5973E';
@@ -236,6 +237,7 @@ const sections = [
 
 /* ─── Component ──────────────────────────────────────────────── */
 const TermsCondition: React.FC = () => {
+  const { t } = useTranslation();
   const route = all_routes;
 
   return (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import {
   Spin,
@@ -53,6 +54,7 @@ interface User {
 }
 
 const AdminUsers: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
   const { users, usersPagination, isLoadingUsers, error } = useAppSelector(
     (state: any) => state.admin
@@ -160,18 +162,18 @@ const AdminUsers: React.FC = () => {
 
   const getRoleBadge = (role: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      ADMIN:      { cls: 'badge-danger',  label: 'Admin' },
-      INSTRUCTOR: { cls: 'badge-success', label: 'Instructor' },
-      STUDENT:    { cls: 'badge-warning', label: 'Student' },
+      ADMIN:      { cls: 'badge-danger',  label: t('common.admin', 'Admin') },
+      INSTRUCTOR: { cls: 'badge-success', label: t('common.instructor', 'Instructor') },
+      STUDENT:    { cls: 'badge-warning', label: t('common.student', 'Student') },
     };
     const b = map[role] || { cls: 'badge-info', label: role };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
   };
 
   const getStatusBadge = (isBanned: boolean, isEmailVerified: boolean) => {
-    if (isBanned) return <span className="lx-badge badge-danger">Banned</span>;
-    if (!isEmailVerified) return <span className="lx-badge badge-warning">Unverified</span>;
-    return <span className="lx-badge badge-success">Active</span>;
+    if (isBanned) return <span className="lx-badge badge-danger">{t('admin.users.banned', 'Banned')}</span>;
+    if (!isEmailVerified) return <span className="lx-badge badge-warning">{t('admin.users.unverified', 'Unverified')}</span>;
+    return <span className="lx-badge badge-success">{t('admin.users.active', 'Active')}</span>;
   };
 
   const filteredUsers: User[] = roleFilter
@@ -187,9 +189,9 @@ const AdminUsers: React.FC = () => {
       {/* ── Stats Cards ── */}
       <div className="row g-4 mb-4">
         {[
-          { label: 'Students',    value: studentCount,    icon: 'isax isax-user',        color: 'gold'  },
-          { label: 'Instructors', value: instructorCount, icon: 'isax isax-teacher',     color: 'sage'  },
-          { label: 'Admins',      value: adminCount,      icon: 'isax isax-shield-tick', color: 'rose'  },
+          { label: t('admin.users.students', 'Students'),       value: studentCount,    icon: 'isax isax-user',        color: 'gold'  },
+          { label: t('admin.users.instructors', 'Instructors'), value: instructorCount, icon: 'isax isax-teacher',     color: 'sage'  },
+          { label: t('admin.users.admins', 'Admins'),           value: adminCount,      icon: 'isax isax-shield-tick', color: 'rose'  },
         ].map((s, i) => (
           <div key={i} className="col-md-4">
             <div className="lx-stat-card">
@@ -208,23 +210,23 @@ const AdminUsers: React.FC = () => {
       {/* ── Glass Users Table ── */}
       <div className="lx-card">
         <div className="lx-card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
-          <h6>All Users</h6>
+          <h6>{t('admin.users.title', 'All Users')}</h6>
           <div className="d-flex flex-wrap gap-2 align-items-center">
             <Search
-              placeholder="Search users..."
+              placeholder={t('admin.users.searchUsers', 'Search users...')}
               allowClear
               onSearch={handleSearch}
               style={{ width: 250 }}
             />
             <Select
-              placeholder="Filter by role"
+              placeholder={t('admin.users.role', 'Filter by role')}
               allowClear
               style={{ width: 150 }}
               onChange={(value) => setRoleFilter(value || '')}
               options={[
-                { value: 'STUDENT', label: 'Students' },
-                { value: 'INSTRUCTOR', label: 'Instructors' },
-                { value: 'ADMIN', label: 'Admins' },
+                { value: 'STUDENT', label: t('admin.users.students', 'Students') },
+                { value: 'INSTRUCTOR', label: t('admin.users.instructors', 'Instructors') },
+                { value: 'ADMIN', label: t('admin.users.admins', 'Admins') },
               ]}
             />
             <button
@@ -234,7 +236,7 @@ const AdminUsers: React.FC = () => {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
               <i className="isax isax-user-add" />
-              Create User
+              {t('admin.users.addUser', 'Create User')}
             </button>
           </div>
         </div>
@@ -247,20 +249,20 @@ const AdminUsers: React.FC = () => {
           ) : filteredUsers.length === 0 ? (
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-people" /></div>
-              <h6>No users found</h6>
-              <p>Try adjusting your search or filters.</p>
+              <h6>{t('admin.users.noUsers', 'No users found')}</h6>
+              <p>{t('common.noResults', 'Try adjusting your search or filters.')}</p>
             </div>
           ) : (
             <div className="table-responsive">
               <table className="lx-table">
                 <thead>
                   <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Subscription</th>
-                    <th>Joined</th>
-                    <th style={{ textAlign: 'center' }}>Actions</th>
+                    <th>{t('admin.users.name', 'User')}</th>
+                    <th>{t('admin.users.role', 'Role')}</th>
+                    <th>{t('admin.users.status', 'Status')}</th>
+                    <th>{t('admin.subscriptions.plan', 'Subscription')}</th>
+                    <th>{t('admin.users.joinDate', 'Joined')}</th>
+                    <th style={{ textAlign: 'center' }}>{t('admin.users.actions', 'Actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -302,15 +304,15 @@ const AdminUsers: React.FC = () => {
                             }}
                           >
                             <i className="isax isax-crown-1" style={{ fontSize: 11, marginRight: 3 }} />
-                            Premium
+                            {t('admin.users.premium', 'Premium')}
                           </span>
                         ) : (
-                          <span className="lx-badge badge-info">Free</span>
+                          <span className="lx-badge badge-info">{t('admin.users.free', 'Free')}</span>
                         )}
                       </td>
                       <td>
                         <span style={{ fontSize: 12.5, color: 'var(--lx-text-muted)' }}>
-                          {new Date(user.createdAt).toLocaleDateString()}
+                          {new Date(user.createdAt).toLocaleDateString(i18n.language)}
                         </span>
                       </td>
                       <td>
@@ -397,7 +399,7 @@ const AdminUsers: React.FC = () => {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-              Create New User
+              {t('admin.users.addUser', 'Create New User')}
             </h5>
             <button
               type="button"
@@ -418,10 +420,10 @@ const AdminUsers: React.FC = () => {
                 <i className="isax isax-tick-circle" style={{ fontSize: 28, color: '#16a34a' }} />
               </div>
               <h5 style={{ fontWeight: 700, fontSize: 17, color: 'var(--lx-text)', marginBottom: 8 }}>
-                User Created!
+                {t('admin.users.userCreated', 'User Created!')}
               </h5>
               <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 28 }}>
-                The account was created and login credentials were sent to <strong>{createForm.email}</strong>.
+                {t('admin.users.credentialsSent', 'The account was created and login credentials were sent to')} <strong>{createForm.email}</strong>.
               </p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
                 <button type="button" className="lx-btn lx-btn-gold" onClick={() => {
@@ -429,10 +431,10 @@ const AdminUsers: React.FC = () => {
                   setCreateForm({ fullName: '', email: '', role: 'STUDENT' });
                   setCreateError(null);
                 }}>
-                  Create Another
+                  {t('admin.users.createAnother', 'Create Another')}
                 </button>
                 <button type="button" className="lx-btn lx-btn-outline" onClick={closeCreateModal}>
-                  Close
+                  {t('common.close', 'Close')}
                 </button>
               </div>
             </div>
@@ -454,7 +456,7 @@ const AdminUsers: React.FC = () => {
                 {/* Full Name */}
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                    Full Name <span style={{ color: '#8B2335' }}>*</span>
+                    {t('admin.users.name', 'Full Name')} <span style={{ color: '#8B2335' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -474,7 +476,7 @@ const AdminUsers: React.FC = () => {
                 {/* Email */}
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                    Email Address <span style={{ color: '#8B2335' }}>*</span>
+                    {t('admin.users.email', 'Email Address')} <span style={{ color: '#8B2335' }}>*</span>
                   </label>
                   <input
                     type="email"
@@ -494,7 +496,7 @@ const AdminUsers: React.FC = () => {
                 {/* Role */}
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                    Role <span style={{ color: '#8B2335' }}>*</span>
+                    {t('admin.users.role', 'Role')} <span style={{ color: '#8B2335' }}>*</span>
                   </label>
                   <select
                     value={createForm.role}
@@ -506,9 +508,9 @@ const AdminUsers: React.FC = () => {
                       cursor: 'pointer', appearance: 'auto',
                     }}
                   >
-                    <option value="STUDENT">Student</option>
-                    <option value="INSTRUCTOR">Instructor</option>
-                    <option value="ADMIN">Admin</option>
+                    <option value="STUDENT">{t('common.student', 'Student')}</option>
+                    <option value="INSTRUCTOR">{t('common.instructor', 'Instructor')}</option>
+                    <option value="ADMIN">{t('common.admin', 'Admin')}</option>
                   </select>
                 </div>
 
@@ -530,7 +532,7 @@ const AdminUsers: React.FC = () => {
                 display: 'flex', justifyContent: 'flex-end', gap: 10,
               }}>
                 <button type="button" className="lx-btn lx-btn-outline" onClick={closeCreateModal} disabled={creating}>
-                  Cancel
+                  {t('common.cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -540,12 +542,12 @@ const AdminUsers: React.FC = () => {
                   {creating ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
-                      Creating…
+                      {t('admin.users.creating', 'Creating…')}
                     </span>
                   ) : (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <i className="isax isax-user-add" />
-                      Create &amp; Send Email
+                      {t('admin.users.createAndSend', 'Create & Send Email')}
                     </span>
                   )}
                 </button>
@@ -557,7 +559,7 @@ const AdminUsers: React.FC = () => {
 
       {/* ── Ban User Modal ── */}
       <Modal
-        title="Ban User"
+        title={t('admin.users.banUser', 'Ban User')}
         open={banModalVisible}
         onOk={confirmBan}
         onCancel={() => {
@@ -565,14 +567,15 @@ const AdminUsers: React.FC = () => {
           setBanReason('');
           setSelectedUserId(null);
         }}
-        okText="Ban User"
+        okText={t('admin.users.banUser', 'Ban User')}
+        cancelText={t('common.cancel', 'Cancel')}
         okButtonProps={{ danger: true }}
       >
         <p style={{ color: 'var(--lx-text-mid)', marginBottom: 16 }}>
-          Are you sure you want to ban this user?
+          {t('admin.users.banConfirm', 'Are you sure you want to ban this user?')}
         </p>
         <Input.TextArea
-          placeholder="Reason for banning (optional)"
+          placeholder={t('admin.users.banReason', 'Reason for banning (optional)')}
           value={banReason}
           onChange={(e) => setBanReason(e.target.value)}
           rows={3}

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Spin } from 'antd';
+import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import CircleProgress from '../../Instructor/instructor-dashboard/circleProgress';
 import { all_routes } from '../../router/all_routes';
@@ -13,6 +14,7 @@ import {
 import { getFileUrl } from '../../../environment';
 
 const StudentDashboard = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { recentEnrollments, transactions, stats, isLoading } = useAppSelector(
     (s) => s.student
@@ -42,18 +44,18 @@ const StudentDashboard = () => {
       {/* ── Welcome Banner ── */}
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">
-          <p className="welcome-greeting">Good to see you again</p>
-          <h4>Welcome back, {firstName}! 👋</h4>
-          <p>Continue your learning journey — you're doing great.</p>
+          <p className="welcome-greeting">{t('student.dashboard.welcome', 'Good to see you again')}</p>
+          <h4>{t('student.dashboard.welcomeBack', 'Welcome back')}, {firstName}!</h4>
+          <p>{t('student.dashboard.continueLearning', 'Continue your learning journey — you\'re doing great.')}</p>
         </div>
         <div className="welcome-actions">
           <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
             <i className="isax isax-book" />
-            Browse Courses
+            {t('student.wishlist.browseNow', 'Browse Courses')}
           </Link>
           <Link to={all_routes.studentCourses} className="lx-btn lx-btn-outline">
             <i className="isax isax-play-circle" />
-            Continue Learning
+            {t('student.dashboard.continueLearning', 'Continue Learning')}
           </Link>
         </div>
       </div>
@@ -61,9 +63,9 @@ const StudentDashboard = () => {
       {/* ── Stats Cards ── */}
       <div className="row g-4 mb-4">
         {[
-          { label: 'Enrolled Courses', value: stats.enrolledCourses,  icon: 'isax isax-book',        color: 'gold' },
-          { label: 'Active Courses',   value: stats.activeCourses,    icon: 'isax isax-play-circle', color: 'rose' },
-          { label: 'Completed',        value: stats.completedCourses, icon: 'isax isax-medal',       color: 'sage' },
+          { label: t('student.dashboard.enrolledCourses', 'Enrolled Courses'), value: stats.enrolledCourses,  icon: 'isax isax-book',        color: 'gold' },
+          { label: t('student.dashboard.activeCourses', 'Active Courses'),   value: stats.activeCourses,    icon: 'isax isax-play-circle', color: 'rose' },
+          { label: t('common.completed', 'Completed'),        value: stats.completedCourses, icon: 'isax isax-medal',       color: 'sage' },
         ].map((s, i) => (
           <div key={i} className="col-md-4">
             <div className="lx-stat-card">
@@ -83,9 +85,9 @@ const StudentDashboard = () => {
 
       {/* ── Recently Enrolled Courses ── */}
       <div className="lx-section-header mb-4">
-        <h5 className="section-title">Recently Enrolled Courses</h5>
+        <h5 className="section-title">{t('student.dashboard.recentCourses', 'Recently Enrolled Courses')}</h5>
         <Link to={all_routes.studentCourses} className="lx-btn lx-btn-outline lx-btn-sm">
-          View All
+          {t('common.viewAll', 'View All')}
         </Link>
       </div>
 
@@ -98,10 +100,10 @@ const StudentDashboard = () => {
           <div className="lx-card-body">
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-book" /></div>
-              <h6>No courses enrolled yet</h6>
-              <p>Start your learning journey by enrolling in a course.</p>
+              <h6>{t('student.dashboard.noCoursesYet', 'No courses enrolled yet')}</h6>
+              <p>{t('student.dashboard.startLearning', 'Start your learning journey by enrolling in a course.')}</p>
               <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
-                Browse Courses
+                {t('student.wishlist.browseNow', 'Browse Courses')}
               </Link>
             </div>
           </div>
@@ -133,7 +135,7 @@ const StudentDashboard = () => {
                     {enr.courseTitle}
                   </Link>
                   <p className="course-meta">
-                    {enr.completedLessons} / {enr.totalLessons} lessons completed
+                    {enr.completedLessons} / {enr.totalLessons} {t('common.lessons', 'lessons')} {t('common.completed', 'completed')}
                   </p>
                   <Link
                     to={`${all_routes.courseWatch}/${enr.courseSlug}`}
@@ -141,7 +143,7 @@ const StudentDashboard = () => {
                     style={{ width: '100%', justifyContent: 'center' }}
                   >
                     <i className="isax isax-play-circle" />
-                    Continue Learning
+                    {t('student.dashboard.continueLearning', 'Continue Learning')}
                   </Link>
                 </div>
               </div>
@@ -156,9 +158,9 @@ const StudentDashboard = () => {
         <div className="col-xl-7">
           <div className="lx-card h-100">
             <div className="lx-card-header">
-              <h6>Recent Invoices</h6>
+              <h6>{t('student.dashboard.recentInvoices', 'Recent Invoices')}</h6>
               <Link to={all_routes.studentOrderHistory} className="lx-view-all">
-                View All
+                {t('common.viewAll', 'View All')}
               </Link>
             </div>
             <div className="lx-card-body">
@@ -167,7 +169,7 @@ const StudentDashboard = () => {
               ) : transactions.length === 0 ? (
                 <div className="lx-empty-state" style={{ padding: '32px 0' }}>
                   <div className="empty-icon"><i className="isax isax-card" /></div>
-                  <p>No transactions yet.</p>
+                  <p>{t('student.orders.noOrders', 'No transactions yet.')}</p>
                 </div>
               ) : (
                 transactions.map((txn) => (
@@ -176,7 +178,7 @@ const StudentDashboard = () => {
                     <div className="txn-info">
                       <p className="txn-name">
                         {txn.courseName ||
-                          (txn.transactionType === 'SUBSCRIPTION' ? 'Subscription' : 'Course Purchase')}
+                          (txn.transactionType === 'SUBSCRIPTION' ? t('student.subscription.title', 'Subscription') : t('student.dashboard.coursePurchase', 'Course Purchase'))}
                       </p>
                       <span className="txn-id">
                         #{txn.payzoneOrderId || txn.id.substring(0, 8).toUpperCase()}
@@ -199,7 +201,7 @@ const StudentDashboard = () => {
         <div className="col-xl-5">
           <div className="lx-card h-100">
             <div className="lx-card-header">
-              <h6>Course Progress</h6>
+              <h6>{t('student.dashboard.myProgress', 'Course Progress')}</h6>
             </div>
             <div className="lx-card-body">
               {isLoading ? (
@@ -207,7 +209,7 @@ const StudentDashboard = () => {
               ) : recentEnrollments.length === 0 ? (
                 <div className="lx-empty-state" style={{ padding: '32px 0' }}>
                   <div className="empty-icon"><i className="isax isax-chart" /></div>
-                  <p>No courses in progress.</p>
+                  <p>{t('student.dashboard.noCoursesYet', 'No courses in progress.')}</p>
                 </div>
               ) : (
                 recentEnrollments.map((enr) => (
@@ -221,7 +223,7 @@ const StudentDashboard = () => {
                         {enr.courseTitle}
                       </p>
                       <p style={{ fontSize: '12px', color: 'var(--lx-brown-muted)', margin: 0 }}>
-                        {enr.completedLessons} / {enr.totalLessons} lessons
+                        {enr.completedLessons} / {enr.totalLessons} {t('common.lessons', 'lessons')}
                       </p>
                     </div>
                     <CircleProgress value={enr.progressPercentage} />

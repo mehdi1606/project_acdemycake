@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 interface modals {
@@ -8,6 +9,7 @@ interface modals {
 }
 
 const VideoModal = ({ show, handleClose, videoUrl }:modals) => {
+  const { t } = useTranslation()
   return (
     <Modal className='video-modal' show={show} centered size='xl' onHide={handleClose}>
     <Modal.Header closeButton>

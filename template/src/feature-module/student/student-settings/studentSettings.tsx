@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import LuxuryDashboardLayout from "../../../components/LuxuryDashboardLayout"
 import { all_routes } from "../../router/all_routes"
 import { Link } from "react-router-dom"
@@ -32,6 +33,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 const StudentSettings = () => {
+  const { t } = useTranslation()
   const route = all_routes
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
@@ -124,7 +126,7 @@ const StudentSettings = () => {
   return (
     <LuxuryDashboardLayout>
       <div style={{ marginBottom: 20 }}>
-        <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>Settings</h5>
+        <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{t('student.settings.title', 'Settings')}</h5>
       </div>
 
       <SettingsLinks />
@@ -158,10 +160,10 @@ const StudentSettings = () => {
               </Link>
               <div>
                 <h6 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>
-                  <Link to={route.studentProfile} style={{ color: 'inherit', textDecoration: 'none' }}>Profile Photo</Link>
+                  <Link to={route.studentProfile} style={{ color: 'inherit', textDecoration: 'none' }}>{t('student.profile.uploadPhoto', 'Profile Photo')}</Link>
                 </h6>
                 <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: '0 0 10px' }}>
-                  PNG or JPG no bigger than 800px width and height
+                  {t('student.settings.photoHint', 'PNG or JPG no bigger than 800px width and height')}
                 </p>
                 <div>
                   <input
@@ -178,7 +180,7 @@ const StudentSettings = () => {
                     disabled={avatarUploading}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    {avatarUploading ? "Uploading..." : "Upload Photo"}
+                    {avatarUploading ? t('student.settings.uploading', 'Uploading...') : t('student.profile.uploadPhoto', 'Upload Photo')}
                   </button>
                 </div>
               </div>
@@ -186,14 +188,14 @@ const StudentSettings = () => {
 
             {/* Personal Details */}
             <div style={{ marginBottom: 24 }}>
-              <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>Personal Details</h5>
-              <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>Edit your personal information</p>
+              <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>{t('student.settings.personalDetails', 'Personal Details')}</h5>
+              <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>{t('student.settings.personalDetailsDesc', 'Edit your personal information')}</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               <div>
                 <label style={labelStyle}>
-                  Full Name <span style={{ color: '#8B2335' }}>*</span>
+                  {t('student.profile.fullName', 'Full Name')} <span style={{ color: '#8B2335' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -201,7 +203,7 @@ const StudentSettings = () => {
                   style={inputStyle}
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  placeholder="Enter your full name"
+                  placeholder={t('student.settings.enterFullName', 'Enter your full name')}
                   minLength={2}
                   maxLength={100}
                   required
@@ -209,30 +211,30 @@ const StudentSettings = () => {
               </div>
 
               <div>
-                <label style={labelStyle}>Email</label>
+                <label style={labelStyle}>{t('student.profile.email', 'Email')}</label>
                 <input
                   type="email"
                   style={{ ...inputStyle, background: 'rgba(107, 29, 42, 0.03)', cursor: 'not-allowed' }}
                   value={user?.email || ""}
                   disabled
                 />
-                <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>Email cannot be changed</small>
+                <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{t('student.settings.emailCannotChange', 'Email cannot be changed')}</small>
               </div>
 
               <div>
-                <label style={labelStyle}>Phone Number</label>
+                <label style={labelStyle}>{t('student.profile.phone', 'Phone Number')}</label>
                 <input
                   type="tel"
                   name="phone"
                   style={inputStyle}
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="Enter your phone number"
+                  placeholder={t('student.settings.enterPhone', 'Enter your phone number')}
                 />
               </div>
 
               <div>
-                <label style={labelStyle}>Member Since</label>
+                <label style={labelStyle}>{t('student.settings.memberSince', 'Member Since')}</label>
                 <input
                   type="text"
                   style={{ ...inputStyle, background: 'rgba(107, 29, 42, 0.03)', cursor: 'not-allowed' }}
@@ -242,14 +244,14 @@ const StudentSettings = () => {
               </div>
 
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelStyle}>Bio</label>
+                <label style={labelStyle}>{t('student.profile.bio', 'Bio')}</label>
                 <textarea
                   rows={4}
                   name="bio"
                   style={{ ...inputStyle, resize: 'vertical' as const }}
                   value={formData.bio}
                   onChange={handleInputChange}
-                  placeholder="Tell us about yourself..."
+                  placeholder={t('student.settings.bioPlaceholder', 'Tell us about yourself...')}
                   maxLength={1000}
                 />
                 <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{formData.bio.length}/1000 characters</small>
@@ -261,9 +263,9 @@ const StudentSettings = () => {
                 {saving ? (
                   <>
                     <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: 8 }} />
-                    Saving...
+                    {t('student.settings.saving', 'Saving...')}
                   </>
-                ) : "Update Profile"}
+                ) : t('student.profile.saveChanges', 'Update Profile')}
               </button>
             </div>
           </form>
@@ -273,12 +275,12 @@ const StudentSettings = () => {
       {/* Delete Account */}
       <div className="lx-card" style={{ marginBottom: 0 }}>
         <div className="lx-card-body">
-          <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 12 }}>Delete Account</h5>
+          <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 12 }}>{t('student.settings.deleteAccount', 'Delete Account')}</h5>
           <h6 style={{ fontSize: 14, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 4 }}>
-            Are you sure you want to delete your account?
+            {t('student.settings.deleteAccountConfirm', 'Are you sure you want to delete your account?')}
           </h6>
           <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', marginBottom: 16 }}>
-            Permanently removes your account and associated data from the system.
+            {t('student.settings.deleteAccountDesc', 'Permanently removes your account and associated data from the system.')}
           </p>
           <button
             type="button"
@@ -291,7 +293,7 @@ const StudentSettings = () => {
             data-bs-toggle="modal"
             data-bs-target="#delete_account"
           >
-            Delete Account
+            {t('student.settings.deleteAccount', 'Delete Account')}
           </button>
         </div>
       </div>

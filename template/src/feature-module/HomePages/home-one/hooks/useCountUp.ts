@@ -28,8 +28,9 @@ export const useCountUp = (
         }
 
         requestAnimationFrame(step)
+        const timer = timerRef.current
         return () => {
-            if (timerRef.current) clearTimeout(timerRef.current)
+            if (timer) clearTimeout(timer)
         }
     }, [end, duration, start, trigger])
 

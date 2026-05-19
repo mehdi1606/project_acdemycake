@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 import CountUp from "react-countup";
 
 const Counter = () => {
+  const { t } = useTranslation()
   return (
     <>
       {/* counter */}

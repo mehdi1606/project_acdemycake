@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { instructorService, InstructorStudentInfo } from '../../../services/api/instructor.service';
 import { getFileUrl } from '../../../environment';
 
 const StudentList: React.FC = () => {
+  const { t } = useTranslation();
   const [students, setStudents] = useState<InstructorStudentInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +90,7 @@ const StudentList: React.FC = () => {
     <LuxuryDashboardLayout>
       <div className="page-title d-flex align-items-center justify-content-between">
         <h5 className="fw-bold">
-          Students
+          {t('instructor.students.title', 'Students')}
           {!loading && (
             <span className="text-muted fs-14 fw-normal ms-2">({totalElements})</span>
           )}
@@ -113,7 +115,7 @@ const StudentList: React.FC = () => {
             <input
               type="text"
               className="form-control form-control-md"
-              placeholder="Search by name or email..."
+              placeholder={t('instructor.students.searchPlaceholder', 'Search by name or email...')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}
@@ -133,7 +135,7 @@ const StudentList: React.FC = () => {
               </button>
             )}
             <button type="button" className="btn btn-primary" onClick={handleSearchClick}>
-              Search
+              {t('common.search', 'Search')}
             </button>
           </div>
         </div>
@@ -151,15 +153,15 @@ const StudentList: React.FC = () => {
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">{t('common.loading', 'Loading...')}</span>
           </div>
-          <p className="mt-2 text-muted">Loading students...</p>
+          <p className="mt-2 text-muted">{t('instructor.students.loading', 'Loading students...')}</p>
         </div>
       ) : students.length === 0 ? (
         <div className="text-center py-5">
           <i className="isax isax-people fs-1 text-muted" />
           <p className="mt-2 text-muted">
-            {search ? `No students found matching "${search}"` : 'No students enrolled in your courses yet.'}
+            {search ? t('instructor.students.noSearchResults', 'No students found matching "{{search}}"', { search }) : t('instructor.students.noStudents', 'No students enrolled in your courses yet.')}
           </p>
         </div>
       ) : (
@@ -169,13 +171,13 @@ const StudentList: React.FC = () => {
             <table className="table table-hover align-middle">
               <thead className="table-light">
                 <tr>
-                  <th>Student</th>
-                  <th>Email</th>
-                  <th>Enrolled Since</th>
-                  <th>Courses</th>
-                  <th>Avg. Progress</th>
-                  <th>Last Active</th>
-                  <th>Action</th>
+                  <th>{t('instructor.students.student', 'Student')}</th>
+                  <th>{t('common.email', 'Email')}</th>
+                  <th>{t('instructor.students.enrolledSince', 'Enrolled Since')}</th>
+                  <th>{t('instructor.courses.title', 'Courses')}</th>
+                  <th>{t('instructor.students.avgProgress', 'Avg. Progress')}</th>
+                  <th>{t('instructor.students.lastActive', 'Last Active')}</th>
+                  <th>{t('common.actions', 'Action')}</th>
                 </tr>
               </thead>
 

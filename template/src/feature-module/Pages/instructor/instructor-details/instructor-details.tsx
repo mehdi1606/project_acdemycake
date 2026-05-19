@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import Breadcrumb from '../../../../core/common/Breadcrumb/breadcrumb';
 import { all_routes } from '../../../router/all_routes';
@@ -9,6 +10,7 @@ import { getFileUrl } from '../../../../environment';
 import CourseCard from '../../../../components/CourseCard';
 
 const InstructorDetails = () => {
+  const { t } = useTranslation()
   const { instructorId } = useParams<{ instructorId: string }>();
   const route = all_routes;
 

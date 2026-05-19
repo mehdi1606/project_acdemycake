@@ -1,7 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 
 const AboutSection = () => {
+  const { t } = useTranslation()
   return (
     <>
     

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/common/imageWithBasePath';
 import Slider from 'react-slick';
@@ -11,6 +12,7 @@ import { getFileUrl } from '../../../../environment';
 import { Spin } from 'antd';
 
 const Topcourses = () => {
+  const { t } = useTranslation()
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -100,7 +102,7 @@ const Topcourses = () => {
         <ImageWithBasePath className="top-courses-bg" src="./assets/img/bg/bg-20.png" alt="img" />
         <div className="container text-center py-5">
           <Spin size="large" />
-          <p className="mt-3">Loading categories...</p>
+          <p className="mt-3">{t('topCourses.loadingCategories', 'Loading categories...')}</p>
         </div>
       </section>
     );
@@ -113,10 +115,10 @@ const Topcourses = () => {
         <div className="container">
           <div className="section-header text-center">
             <span className="fw-medium text-secondary text-decoration-underline mb-2 d-inline-block">
-              Our Categories
+              {t('topCourses.ourCategories', 'Our Categories')}
             </span>
-            <h2>Top Courses &amp; Categories</h2>
-            <p>Categories will be available soon!</p>
+            <h2>{t('topCourses.title', 'Top Courses & Categories')}</h2>
+            <p>{t('topCourses.comingSoon', 'Categories will be available soon!')}</p>
           </div>
         </div>
       </section>
@@ -130,12 +132,11 @@ const Topcourses = () => {
         <div className="container">
           <div className="section-header text-center">
             <span className="fw-medium text-secondary text-decoration-underline mb-2 d-inline-block">
-              Our Categories
+              {t('topCourses.ourCategories', 'Our Categories')}
             </span>
-            <h2>Top Courses &amp; Categories</h2>
+            <h2>{t('topCourses.title', 'Top Courses & Categories')}</h2>
             <p>
-              The right course, guided by an expert mentor, can provide invaluable
-              insights, practical skills
+              {t('topCourses.description', 'The right course, guided by an expert mentor, can provide invaluable insights, practical skills')}
             </p>
           </div>
           <Slider {...topcourseslider} className="top-courses-slider lazy">
@@ -155,14 +156,14 @@ const Topcourses = () => {
                     <Link to={route.masterclass}>{category.name}</Link>
                   </h6>
                   {category.coursesCount > 0 && (
-                    <span className="badge badge-soft-primary mt-2">{category.coursesCount} courses</span>
+                    <span className="badge badge-soft-primary mt-2">{category.coursesCount} {t('topCourses.courses', 'courses')}</span>
                   )}
                 </div>
               </div>
             ))}
           </Slider>
           <Link to={route.masterclass} className="btn btn-primary btn-md">
-            View All Masterclasses
+            {t('topCourses.viewAllMasterclasses', 'View All Masterclasses')}
           </Link>
         </div>
       </section>

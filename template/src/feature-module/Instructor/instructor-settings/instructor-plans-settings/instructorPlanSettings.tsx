@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
 import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
+import { useTranslation } from 'react-i18next';
 
 /* ── Shared Styles ─────────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
@@ -122,6 +123,7 @@ const savedCards: SavedCard[] = [
 
 /* ── Component ────────────────────────────────────────── */
 const InstructorPlanSettings = () => {
+  const { t } = useTranslation();
   const [showPricing, setShowPricing] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [showAddCard, setShowAddCard] = useState(false);
@@ -133,7 +135,7 @@ const InstructorPlanSettings = () => {
 
   const filteredTransactions = statusFilter === 'All'
     ? transactions
-    : transactions.filter((t) => t.status === statusFilter);
+    : transactions.filter((tx) => tx.status === statusFilter);
 
   return (
     <LuxuryDashboardLayout>

@@ -1,9 +1,11 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import ImageWithBasePath from '../../../../core/common/imageWithBasePath'
 import { all_routes } from '../../../router/all_routes'
 
 const Latestblog = () => {
+    const { t } = useTranslation()
     const route = all_routes;
     return (
         <>
@@ -12,12 +14,11 @@ const Latestblog = () => {
                 <div className="container">
                     <div className="section-header text-center" data-aos="fade-up">
                         <span className="fw-medium text-secondary text-decoration-underline mb-2 d-inline-block">
-                            Articles &amp; Updates
+                            {t('blog.articlesUpdates', 'Articles & Updates')}
                         </span>
-                        <h2>Our&nbsp;Recent Blog &amp; Articles</h2>
+                        <h2>{t('blog.recentBlog', 'Our Recent Blog & Articles')}</h2>
                         <p>
-                            Explore curated content to enlighten, entertain and engage global
-                            readers.
+                            {t('blog.description', 'Explore curated content to enlighten, entertain and engage global readers.')}
                         </p>
                     </div>
                     <div className="latest-blog-main">
@@ -36,14 +37,14 @@ const Latestblog = () => {
                                     <div className="latest-blog-content">
                                         <div className="event-three-title">
                                             <div className="event-span-three d-flex align-items-center">
-                                                <span className="category">Lifestyle</span>
+                                                <span className="category">{t('blog.lifestyle', 'Lifestyle')}</span>
                                                 <div className="blog-date">
                                                     <i className="fa-solid fa-calendar" />
                                                     <span>09 Aug 2025</span>
                                                 </div>
                                             </div>
                                             <Link to={route.blogGrid}>
-                                                <h5>Why an LMS is Essential for Modern Education</h5>
+                                                <h5>{t('blog.article1', 'Why an LMS is Essential for Modern Education')}</h5>
                                             </Link>
                                         </div>
                                     </div>
@@ -74,7 +75,7 @@ const Latestblog = () => {
                                             <div className="latest-blog-content">
                                                 <div className="event-three-title">
                                                     <div className="event-span-three d-flex align-items-center">
-                                                        <span className="category">Productivity</span>
+                                                        <span className="category">{t('blog.productivity', 'Productivity')}</span>
                                                         <div className="blog-date">
                                                             <i className="fa-solid fa-calendar" />{" "}
                                                             <span>09 Aug 2025</span>
@@ -82,7 +83,7 @@ const Latestblog = () => {
                                                     </div>
                                                     <h5>
                                                         <Link to={route.blogGrid}>
-                                                            The Impact of LMS on Academic Journey Education
+                                                            {t('blog.article2', 'The Impact of LMS on Academic Journey Education')}
                                                         </Link>
                                                     </h5>
                                                 </div>
@@ -112,7 +113,7 @@ const Latestblog = () => {
                                             <div className="latest-blog-content">
                                                 <div className="event-three-title">
                                                     <div className="event-span-three d-flex align-items-center">
-                                                        <span className="category">Productivity</span>
+                                                        <span className="category">{t('blog.productivity', 'Productivity')}</span>
                                                         <div className="blog-date">
                                                             <i className="fa-solid fa-calendar" />
                                                             <span>09 Aug 2025</span>
@@ -120,7 +121,7 @@ const Latestblog = () => {
                                                     </div>
                                                     <h5>
                                                         <Link to={route.blogGrid}>
-                                                            Maximizing Academic Success with the Right LMS
+                                                            {t('blog.article3', 'Maximizing Academic Success with the Right LMS')}
                                                         </Link>
                                                     </h5>
                                                 </div>
@@ -150,7 +151,7 @@ const Latestblog = () => {
                                             <div className="latest-blog-content">
                                                 <div className="event-three-title">
                                                     <div className="event-span-three d-flex align-items-center">
-                                                        <span className="category">UI /UX</span>
+                                                        <span className="category">{t('blog.uiUx', 'UI / UX')}</span>
                                                         <div className="blog-date">
                                                             <i className="fa-solid fa-calendar" />
                                                             <span>09 Aug 2025</span>
@@ -158,7 +159,7 @@ const Latestblog = () => {
                                                     </div>
                                                     <h5>
                                                         <Link to={route.blogGrid}>
-                                                            Promoting Health &amp; Well being in Schools
+                                                            {t('blog.article4', 'Promoting Health & Well being in Schools')}
                                                         </Link>
                                                     </h5>
                                                 </div>
@@ -188,7 +189,7 @@ const Latestblog = () => {
                                             <div className="latest-blog-content">
                                                 <div className="event-three-title">
                                                     <div className="event-span-three d-flex align-items-center">
-                                                        <span className="category">Development</span>
+                                                        <span className="category">{t('blog.development', 'Development')}</span>
                                                         <div className="blog-date">
                                                             <i className="fa-solid fa-calendar" />
                                                             <span>09 Aug 2025</span>
@@ -196,7 +197,7 @@ const Latestblog = () => {
                                                     </div>
                                                     <h5>
                                                         <Link to={route.blogGrid}>
-                                                            How to Build and Run a Pilot Mentoring Program
+                                                            {t('blog.article5', 'How to Build and Run a Pilot Mentoring Program')}
                                                         </Link>
                                                     </h5>
                                                 </div>
@@ -219,7 +220,7 @@ const Latestblog = () => {
                             data-aos="fade-up"
                             to={route.blogGrid}
                         >
-                            View All Articles
+                            {t('blog.viewAllArticles', 'View All Articles')}
                         </Link>
                     </div>
                 </div>

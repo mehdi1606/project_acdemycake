@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../core/redux/hooks';
 import { logout } from '../core/redux/authSlice';
@@ -7,6 +8,7 @@ import { getFileUrl } from '../environment';
 import { message } from 'antd';
 
 const UserDropdown: React.FC = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
