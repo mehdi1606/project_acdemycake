@@ -92,6 +92,8 @@ const BannerSection: React.FC = () => {
     const contentParallax = scrollY * 0.08
 
     return (
+        <>
+        {/* Mobile + RTL styles are handled in saralowe-home.scss */}
         <section
             className="sl-banner"
             style={{
@@ -380,6 +382,7 @@ const BannerSection: React.FC = () => {
                 </div>
             </div>
         </section>
+        </>
     )
 }
 

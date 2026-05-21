@@ -34,6 +34,26 @@ const Benefits = () => {
         },
     ]
     return (
+        <>
+        <style>{`
+          /* ── Benefits mobile fixes ──────────────────────── */
+          @media (max-width: 576px) {
+            .sl-benefit-card { padding: 1.4rem 1.2rem !important; }
+            .sl-benefit-card__title { font-size: 1rem !important; }
+            .sl-benefit-card__text  { font-size: 0.83rem !important; }
+          }
+          /* ── Image wrapper — logical padding so badge never clips ── */
+          .sl-benefits-img-wrap {
+            padding-bottom: 26px;
+            padding-inline-end: 26px;
+          }
+          /* ── Badge — use logical inset so it flips in RTL ────────── */
+          .sl-benefits-badge {
+            position: absolute;
+            bottom: -18px;
+            inset-inline-end: -18px;
+          }
+        `}</style>
         <section className="sl-section sl-section--ivory">
             <div className="container">
 
@@ -61,7 +81,7 @@ const Benefits = () => {
                         data-aos-duration="900"
                         data-aos-delay="100"
                     >
-                        <div style={{ position: 'relative', maxWidth: 420, width: '100%' }}>
+                        <div className="sl-benefits-img-wrap" style={{ position: 'relative', maxWidth: 420, width: '100%' }}>
                             {/* Outer gold frame */}
                             <div style={{
                                 position: 'absolute', inset: '-10px',
@@ -81,8 +101,7 @@ const Benefits = () => {
                             />
 
                             {/* "Award-winning" badge */}
-                            <div style={{
-                                position: 'absolute', bottom: -18, right: -18,
+                            <div className="sl-benefits-badge" style={{
                                 background: 'var(--sl-burgundy)',
                                 color: 'var(--sl-blush)',
                                 fontFamily: 'var(--sl-font-body)',
@@ -103,7 +122,7 @@ const Benefits = () => {
                 {/* ── Three benefit cards ── */}
                 <div className="row g-4">
                     {benefits.map((b, i) => (
-                        <div key={i} className="col-lg-4 col-md-6">
+                        <div key={i} className="col-12 col-md-6 col-lg-4">
                             <div
                                 className={`sl-benefit-card sl-benefit-card--${b.accent}`}
                                 data-aos="fade-up"
@@ -126,6 +145,7 @@ const Benefits = () => {
 
             </div>
         </section>
+        </>
     )
 }
 

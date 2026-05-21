@@ -37,6 +37,24 @@ const Faq: React.FC = () => {
     const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i)
 
     return (
+        <>
+        <style>{`
+          /* ── FAQ mobile fixes ───────────────────────────── */
+          @media (max-width: 576px) {
+            .sl-faq-btn { padding: 0.85rem 1rem !important; }
+            .sl-faq-q   { font-size: 0.9rem !important; }
+            .sl-faq-a   { padding: 0 1rem 1rem !important; font-size: 0.85rem !important; }
+          }
+          /* ── RTL overrides ───────────────────────────────── */
+          [dir="rtl"] .sl-faq-btn { text-align: right; }
+          [dir="rtl"] .sl-faq-a  {
+            padding: 0 1.5rem 1.25rem;
+            text-align: right;
+          }
+          @media (max-width: 576px) {
+            [dir="rtl"] .sl-faq-a { padding: 0 1rem 1rem !important; }
+          }
+        `}</style>
         <section
             className="sl-section sl-section--white"
             style={{ paddingTop: '5rem', paddingBottom: '5rem' }}
@@ -81,6 +99,7 @@ const Faq: React.FC = () => {
                                 {/* Question row */}
                                 <button
                                     onClick={() => toggle(i)}
+                                    className="sl-faq-btn"
                                     style={{
                                         width: '100%',
                                         display: 'flex',
@@ -96,6 +115,7 @@ const Faq: React.FC = () => {
                                     aria-expanded={isOpen}
                                 >
                                     <span
+                                        className="sl-faq-q"
                                         style={{
                                             fontFamily: 'var(--sl-font-display)',
                                             fontSize: '1rem',
@@ -130,12 +150,13 @@ const Faq: React.FC = () => {
                                 {/* Answer */}
                                 <div
                                     style={{
-                                        maxHeight: isOpen ? 300 : 0,
+                                        maxHeight: isOpen ? 600 : 0,
                                         overflow: 'hidden',
                                         transition: 'max-height 0.4s cubic-bezier(0.4,0,0.2,1)',
                                     }}
                                 >
                                     <p
+                                        className="sl-faq-a"
                                         style={{
                                             fontFamily: 'var(--sl-font-body)',
                                             fontSize: '0.93rem',
@@ -154,6 +175,7 @@ const Faq: React.FC = () => {
                 </div>
             </div>
         </section>
+        </>
     )
 }
 

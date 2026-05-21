@@ -34,6 +34,31 @@ const Howitworks = () => {
         },
     ]
     return (
+        <>
+        <style>{`
+          /* ── How-It-Works RTL overrides ─────────────────── */
+          /* Step row: number circle on right in RTL — handled by browser flex reversal */
+          /* Corner marks on desktop mockup: flip left↔right */
+          [dir="rtl"] .sl-hiw-corner-tl {
+            left: auto !important;
+            right: -10px !important;
+            border-left: none !important;
+            border-right: 2px solid var(--sl-gold) !important;
+          }
+          [dir="rtl"] .sl-hiw-corner-br {
+            right: auto !important;
+            left: -10px !important;
+            border-right: none !important;
+            border-left: 2px solid var(--sl-gold) !important;
+          }
+          [dir="rtl"] .sl-hiw-ribbon {
+            left: auto !important;
+            right: -20px !important;
+          }
+          @media (max-width: 576px) {
+            .sl-process .sl-section__header h2 { font-size: clamp(1.6rem, 7vw, 2.4rem) !important; }
+          }
+        `}</style>
         <section className="sl-section sl-process">
             <div className="container">
                 <div className="row align-items-center g-5">
@@ -140,7 +165,7 @@ const Howitworks = () => {
                     >
                         <div style={{ position: 'relative', maxWidth: 460, width: '100%' }}>
                             {/* Corner accent top-left */}
-                            <div style={{
+                            <div className="sl-hiw-corner-tl" style={{
                                 position: 'absolute', top: -10, left: -10,
                                 width: 28, height: 28,
                                 borderTop: '2px solid var(--sl-gold)',
@@ -149,7 +174,7 @@ const Howitworks = () => {
                                 zIndex: 2,
                             }} />
                             {/* Corner accent bottom-right */}
-                            <div style={{
+                            <div className="sl-hiw-corner-br" style={{
                                 position: 'absolute', bottom: -10, right: -10,
                                 width: 28, height: 28,
                                 borderBottom: '2px solid var(--sl-gold)',
@@ -176,6 +201,7 @@ const Howitworks = () => {
 
                             {/* Floating ribbon detail */}
                             <div
+                                className="sl-hiw-ribbon"
                                 style={{
                                     position: 'absolute',
                                     bottom: -20,
@@ -204,6 +230,7 @@ const Howitworks = () => {
                 </div>
             </div>
         </section>
+        </>
     )
 }
 

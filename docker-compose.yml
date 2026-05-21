@@ -50,12 +50,12 @@ services:
       # JWT
       JWT_SECRET:      ${JWT_SECRET}
 
-      # CORS — frontend is served by Nginx on port 80
-      CORS_ALLOWED_ORIGINS: http://${SERVER_IP}
+      # CORS — frontend is served by Nginx on port 443
+      CORS_ALLOWED_ORIGINS: https://${SERVER_IP}
 
-      # Frontend & file URLs (all traffic goes through Nginx on port 80)
-      FRONTEND_URL:    http://${SERVER_IP}
-      FILE_BASE_URL:   http://${SERVER_IP}
+      # Frontend & file URLs (all traffic goes through Nginx on port 443)
+      FRONTEND_URL:    https://${SERVER_IP}
+      FILE_BASE_URL:   https://${SERVER_IP}
       FILE_UPLOAD_DIR: /app/uploads
 
       # PayZone
@@ -63,8 +63,8 @@ services:
       PAYZONE_MERCHANT_ID:  ${PAYZONE_MERCHANT_ID}
       PAYZONE_API_KEY:      ${PAYZONE_API_KEY}
       PAYZONE_SECRET_KEY:   ${PAYZONE_SECRET_KEY}
-      PAYZONE_CALLBACK_URL: http://${SERVER_IP}/api/v1/payments/webhook
-      PAYZONE_RETURN_URL:   http://${SERVER_IP}/payment/callback
+      PAYZONE_CALLBACK_URL: https://${SERVER_IP}/api/v1/payments/webhook
+      PAYZONE_RETURN_URL:   https://${SERVER_IP}/payment/callback
 
       # Mail
       MAIL_HOST:     ${MAIL_HOST}
@@ -103,8 +103,8 @@ services:
       dockerfile: Dockerfile
       args:
         # Baked into the React JS bundle at build time
-        REACT_APP_API_URL:     http://${SERVER_IP}
-        REACT_APP_WS_URL:      ws://${SERVER_IP}/ws
+        REACT_APP_API_URL:     https://${SERVER_IP}
+        REACT_APP_WS_URL:      wss://${SERVER_IP}/ws
         REACT_APP_NAME:        Academy
         REACT_APP_MUX_ENV_KEY: ${REACT_APP_MUX_ENV_KEY}
     container_name: academy-frontend
@@ -112,7 +112,10 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"    # Only this container is exposed to the internet
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - academy-net
 

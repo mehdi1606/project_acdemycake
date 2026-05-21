@@ -1,6 +1,7 @@
 package com.academy.dto.response;
 
 import com.academy.entity.ContactMessage;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class ContactMessageResponse {
     private String phone;
     private String subject;
     private String message;
+    @JsonProperty("isRead")
     private boolean isRead;
     private LocalDateTime createdAt;
 

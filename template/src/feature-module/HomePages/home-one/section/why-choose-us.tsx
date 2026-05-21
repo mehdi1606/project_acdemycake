@@ -355,6 +355,40 @@ const WhyChooseUs: React.FC = () => {
           .sl-why2__pillar { min-width: 50%; }
           .sl-why2__pillar + .sl-why2__pillar::before { display: none; }
           .sl-why2__pillar:nth-child(even) { border-left: 1px solid ${GOLD}33; }
+          /* Centre the lone 5th pillar */
+          .sl-why2__pillar:nth-child(5):last-child {
+            min-width: 100%;
+            border-left: none !important;
+            border-top: 1px solid ${GOLD}22;
+          }
+        }
+        @media (max-width: 380px) {
+          .sl-why2 { padding: 56px 0 52px; }
+          .sl-why2__pillar { min-width: 100%; }
+          .sl-why2__pillar:nth-child(even) { border-left: none; border-top: 1px solid ${GOLD}22; }
+          .sl-why2__pillar:nth-child(5):last-child { border-top: 1px solid ${GOLD}22; }
+        }
+
+        /* ── RTL overrides ───────────────────────────────────────── */
+        /* Separator between pillars: flip from left to right */
+        [dir="rtl"] .sl-why2__pillar + .sl-why2__pillar::before {
+          left: auto;
+          right: 0;
+        }
+        /* Mobile 2-col: border separator flip */
+        @media (max-width: 600px) {
+          [dir="rtl"] .sl-why2__pillar:nth-child(even) {
+            border-left: none;
+            border-right: 1px solid ${GOLD}33;
+          }
+          [dir="rtl"] .sl-why2__pillar:nth-child(5):last-child {
+            border-right: none !important;
+          }
+        }
+        @media (max-width: 380px) {
+          [dir="rtl"] .sl-why2__pillar:nth-child(even) {
+            border-right: none;
+          }
         }
       `}</style>
 

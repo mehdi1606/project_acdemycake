@@ -29,6 +29,51 @@ const CinematicCTA: React.FC = () => {
     }
 
     return (
+        <>
+        <style>{`
+          /* ── CinematicCTA mobile fixes ───────────────────── */
+          @media (max-width: 576px) {
+            .sl-cinematic-cta { padding: 72px 0 !important; }
+            .sl-cinematic-cta__title {
+              font-size: clamp(1.8rem, 9vw, 3rem) !important;
+              line-height: 1.2 !important;
+            }
+            .sl-cinematic-cta__script {
+              font-size: clamp(1.2rem, 5vw, 2rem) !important;
+            }
+            .sl-cinematic-cta__sub {
+              font-size: 0.88rem !important;
+              padding: 0 0.5rem !important;
+            }
+            .sl-cinematic-cta__actions {
+              flex-direction: column !important;
+              align-items: stretch !important;
+              gap: 12px !important;
+            }
+            .sl-cinematic-cta__actions a {
+              justify-content: center !important;
+              text-align: center !important;
+            }
+            .sl-cinematic-cta__trust {
+              gap: 1rem !important;
+              justify-content: flex-start !important;
+            }
+          }
+          @media (max-width: 380px) {
+            .sl-cinematic-cta__title { font-size: clamp(1.5rem, 11vw, 2rem) !important; }
+          }
+          /* ── RTL overrides ───────────────────────────────── */
+          [dir="rtl"] .sl-cinematic-cta__eyebrow { letter-spacing: 0.05em; }
+          [dir="rtl"] .sl-cinematic-cta__actions {
+            flex-direction: row-reverse;
+            flex-wrap: wrap;
+          }
+          @media (max-width: 576px) {
+            [dir="rtl"] .sl-cinematic-cta__actions {
+              flex-direction: column !important;
+            }
+          }
+        `}</style>
         <section
             ref={sectionRef}
             className="sl-cinematic-cta sl-section-reveal"
@@ -124,6 +169,7 @@ const CinematicCTA: React.FC = () => {
 
                         {/* Trust line */}
                         <div
+                            className="sl-cinematic-cta__trust"
                             style={{
                                 marginTop: '2.5rem',
                                 display: 'flex',
@@ -162,6 +208,7 @@ const CinematicCTA: React.FC = () => {
                 </div>
             </div>
         </section>
+        </>
     )
 }
 
