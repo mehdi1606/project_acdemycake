@@ -11,6 +11,7 @@ import { subscriptionService } from "../../../services/api/subscription.service"
 import { Subscription } from "../../../services/api/types";
 import { useAppSelector } from "../../../core/redux/hooks";
 import { Spin, Modal } from "antd";
+import PaymentBadges from "../../common/PaymentBadges";
 
 // ── Plan shape ────────────────────────────────────────────────────────────────
 interface Plan {
@@ -532,13 +533,16 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
             </div>
           )}
 
-          {/* Secure notice */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            fontSize: 12, color: '#9B7B50', marginBottom: 22,
-          }}>
-            <i className="isax isax-shield-tick" style={{ fontSize: 16, color: '#1A7F4B' }} />
-            {t('pricing.modal.securePayment', 'Secure payment powered by PayZone · Cancel anytime')}
+          {/* Secure notice + payment logos */}
+          <div style={{ marginBottom: 22 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              fontSize: 12, color: '#9B7B50', marginBottom: 12,
+            }}>
+              <i className="isax isax-shield-tick" style={{ fontSize: 16, color: '#1A7F4B' }} />
+              {t('pricing.modal.securePayment', 'Secure payment powered by PayZone · Cancel anytime')}
+            </div>
+            <PaymentBadges variant="light" />
           </div>
 
           {/* Actions */}
@@ -812,6 +816,12 @@ const PricePlanning: React.FC = () => {
               {" "}{t('pricing.toSubscribe', 'to subscribe instantly.')}
             </p>
           )}
+
+          {/* ── Payment method logos ── */}
+          <PaymentBadges
+            variant="light"
+            style={{ marginTop: 32 }}
+          />
         </div>
       </section>
 

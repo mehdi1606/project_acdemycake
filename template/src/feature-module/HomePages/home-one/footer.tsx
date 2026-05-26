@@ -2,6 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../router/all_routes'
+import PaymentBadges from '../../common/PaymentBadges'
 
 const Footer = () => {
     const { t } = useTranslation()
@@ -158,14 +159,21 @@ const Footer = () => {
 
                 {/* ── Bottom bar ── */}
                 <div className="sl-footer__border" />
-                <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-                    <p className="sl-footer__copy mb-0">
-                        © {new Date().getFullYear()} SARALÖWE Academy. {t('footer.allRightsReserved', 'All rights reserved.')}
-                    </p>
-                    <div className="sl-footer__bottom-links">
-                        <Link to={route.termsConditions}>{t('footer.terms', 'Terms')}</Link>
-                        <Link to={route.privacyPolicy}>{t('footer.privacy', 'Privacy')}</Link>
-                        <Link to="#">{t('footer.cookies', 'Cookies')}</Link>
+                <div className="d-flex flex-column align-items-center gap-4">
+
+                    {/* Payment badges */}
+                    <PaymentBadges variant="dark" />
+
+                    {/* Copyright + links row */}
+                    <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 w-100">
+                        <p className="sl-footer__copy mb-0">
+                            © {new Date().getFullYear()} SARALÖWE Academy. {t('footer.allRightsReserved', 'All rights reserved.')}
+                        </p>
+                        <div className="sl-footer__bottom-links">
+                            <Link to={route.termsConditions}>{t('footer.terms', 'Terms')}</Link>
+                            <Link to={route.privacyPolicy}>{t('footer.privacy', 'Privacy')}</Link>
+                            <Link to="#">{t('footer.cookies', 'Cookies')}</Link>
+                        </div>
                     </div>
                 </div>
             </div>

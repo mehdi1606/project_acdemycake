@@ -42,7 +42,8 @@
       "Bash(python -c \"import pdfplumber; pdf = pdfplumber.open\\('blog-ar-T8utbqIh.pdf'\\); [print\\(f'--- PAGE {i+1} ---\\\\n{p.extract_text\\(\\)}'\\) for i, p in enumerate\\(pdf.pages[:15]\\)]\")",
       "Bash(pip install *)",
       "Bash(python -c ' *)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Plateform\\\\academy-backend\\\\src\" -Recurse -Filter \"*message*\" -ErrorAction SilentlyContinue)"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Plateform\\\\academy-backend\\\\src\" -Recurse -Filter \"*message*\" -ErrorAction SilentlyContinue)",
+      "Bash(xargs grep -l -i \"plan\\\\|pricing\\\\|subscription\\\\|payment\\\\|checkout\\\\|subscribe\")"
     ]
   }
 }

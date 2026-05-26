@@ -6,6 +6,7 @@ import { useAppSelector, useAppDispatch } from '../../../core/redux/hooks';
 import { clearCart } from '../../../core/redux/cartSlice';
 import { App } from 'antd';
 import { getFileUrl } from '../../../environment';
+import PaymentBadges from '../../common/PaymentBadges';
 
 /* ── Design tokens ── */
 const GOLD   = '#C5973E';
@@ -395,10 +396,9 @@ const CourseCheckout = () => {
                       </h4>
                       <p style={{ margin: 0, fontSize: 12, color: '#999' }}>{t('courseCheckout.choosePayment', 'Choose your preferred payment')}</p>
                     </div>
-                    {/* Security badges */}
-                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <i className="isax isax-shield-tick" style={{ color: '#4caf50', fontSize: 18 }} />
-                      <span style={{ fontSize: 11, color: '#4caf50', fontWeight: 600 }}>{t('courseCheckout.secured', 'Secured')}</span>
+                    {/* Payment logos */}
+                    <div style={{ marginInlineStart: 'auto' }}>
+                      <PaymentBadges variant="light" label="" style={{ flexDirection: 'row', gap: 6 }} />
                     </div>
                   </div>
 
@@ -671,7 +671,7 @@ const CourseCheckout = () => {
                     <div style={{
                       background: `${GOLD}10`, border: `1px solid ${GOLD}30`,
                       borderRadius: 10, padding: '12px 14px',
-                      marginBottom: 20,
+                      marginBottom: 16,
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                     }}>
                       <i className="isax isax-shield-tick" style={{ color: GOLD, fontSize: 20, flexShrink: 0, marginTop: 1 }} />
@@ -680,6 +680,9 @@ const CourseCheckout = () => {
                         {t('courseCheckout.fullRefund', 'If you are not satisfied, get a full refund within 30 days.')}
                       </p>
                     </div>
+
+                    {/* Payment method logos */}
+                    <PaymentBadges variant="light" style={{ marginBottom: 20 }} />
 
                     {/* Submit */}
                     <button

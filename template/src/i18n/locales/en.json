@@ -21,7 +21,6 @@
     "wishlist": "Wishlist",
     "toggleSidebar": "Toggle sidebar"
   },
-
   "common": {
     "search": "Search",
     "filter": "Filter",
@@ -127,7 +126,6 @@
     "backToHome": "Back to Home",
     "dismiss": "Dismiss"
   },
-
   "sidebar": {
     "learning": "Learning",
     "account": "Account",
@@ -167,160 +165,83 @@
     "expand": "Expand",
     "collapse": "Collapse"
   },
-
   "auth": {
-    "login": {
-      "title": "Welcome Back",
-      "subtitle": "Sign in to your account to continue",
-      "email": "Email Address",
+    "comingSoon": {
+      "title": "Coming Soon",
+      "subtitle": "We're working on something amazing",
+      "description": "Our new platform is under construction. Stay tuned for the big reveal!",
+      "notifyMe": "Notify Me",
       "emailPlaceholder": "Enter your email",
+      "backToHome": "Back to Home",
+      "daysLabel": "Days",
+      "hoursLabel": "Hours",
+      "minutesLabel": "Minutes",
+      "secondsLabel": "Seconds"
+    },
+    "lockScreen": {
+      "welcomeBack": "Welcome Back",
       "password": "Password",
+      "title": "Lock Screen",
+      "subtitle": "Enter your password to unlock",
+      "passwordLabel": "Password",
       "passwordPlaceholder": "Enter your password",
-      "rememberMe": "Remember Me",
-      "forgotPassword": "Forgot Password?",
-      "signIn": "Sign In",
-      "signingIn": "Signing In...",
-      "noAccount": "Don't have an account?",
-      "createOne": "Create one",
-      "signUp": "Sign Up",
-      "orContinueWith": "Or continue with",
-      "panelTagline": "The Art of Cake Couture",
-      "panelHeadline": "Craft. Create.",
-      "panelInspire": "Inspire.",
-      "panelDesc": "Join a world-class atelier where luxury cake design meets artisan mastery. Learn from podium-winning instructors and transform your passion.",
-      "registrationSuccess": "Registration Successful!",
-      "verificationSent": "We've sent a verification email to",
-      "checkInbox": "Please check your inbox and click the verification link before logging in.",
-      "emailNotVerified": "Email Not Verified",
-      "verificationEmailSent": "Verification email sent!",
-      "checkInboxLink": "Check your inbox and click the link.",
-      "pleaseVerify": "Please verify your email before signing in.",
-      "sending": "Sending…",
-      "resendVerification": "Resend verification email"
-    },
-    "register": {
-      "title": "Create Account",
-      "subtitle": "Join as a student and start learning today",
-      "fullName": "Full Name",
-      "fullNamePlaceholder": "Enter your full name",
-      "email": "Email",
-      "emailPlaceholder": "Enter your email",
-      "phonePlaceholder": "Enter your phone number",
-      "password": "Password",
-      "passwordPlaceholder": "Create a password (min 8 characters)",
-      "confirmPassword": "Confirm Password",
-      "confirmPasswordPlaceholder": "Confirm your password",
-      "createAccount": "Create Account",
-      "alreadyHaveAccount": "Already have an account?",
-      "signIn": "Sign In",
-      "agreeTerms": "I agree to the",
-      "termsConditions": "Terms of Service",
-      "privacyPolicy": "Privacy Policy",
-      "creating": "Creating account...",
-      "panelTagline": "Begin Your Artisan Journey",
-      "panelHeadline1": "Learn. Grow.",
-      "panelHeadline2": "Excel.",
-      "panelDesc": "Create your free account and unlock access to world-class masterclasses in luxury cake design, sugar artistry, and couture patisserie.",
-      "pwHintWeak": "Weak — at least 8 characters",
-      "pwHintAverage": "Average — add a number",
-      "pwHintGood": "Almost — add a special character",
-      "pwHintSecure": "Secure password ✓"
-    },
-    "forgotPassword": {
-      "title": "Forgot Password",
-      "subtitle": "Enter your email and we'll send you a link to reset your password.",
-      "email": "Email",
-      "emailPlaceholder": "Enter your email address",
-      "sendLink": "Send Reset Link",
-      "backToLogin": "Back to Login",
-      "checkEmail": "Email Sent!",
-      "linkSent": "We've sent a password reset link to",
-      "checkSpam": "Please check your inbox (and spam folder) and follow the instructions.",
-      "didntReceive": "Didn't receive it?",
-      "rememberPassword": "Remember your password?",
-      "sending": "Sending...",
-      "sliderTitle1": "Welcome to",
-      "sliderDesc": "Master the art of luxury cake design with world-class instructors."
-    },
-    "resetPassword": {
-      "title": "Reset Password",
-      "newPassword": "New Password",
-      "confirmPassword": "Confirm Password",
-      "resetPassword": "Reset Password",
-      "success": "Password reset successfully",
-      "resetting": "Resetting..."
-    },
-    "verifyEmail": {
-      "title": "Verify Your Email",
-      "subtitle": "We've sent a verification link to your email address",
-      "resend": "Resend verification email",
-      "checkSpam": "Please also check your spam folder",
-      "verifying": "Verifying Your Email…",
-      "verifyingDesc": "Just a moment — we're confirming your address.",
-      "welcomeTo": "Welcome to",
-      "successDesc": "Your email address has been verified successfully. Your account is now active — sign in to start your artisan journey.",
-      "check1": "Account activated",
-      "check2": "Access to all courses",
-      "check3": "Student dashboard ready",
-      "check4": "Community unlocked",
-      "signInNow": "Sign In Now",
-      "failedTitle": "Verification Failed",
-      "failedDesc": "This link is invalid or has expired (links are valid for 24 hours). Request a new one below.",
-      "yourEmail": "Your email address",
-      "sending": "Sending…",
-      "sent": "Sent",
-      "resendLink": "Resend Link",
-      "linkSentTo": "A new verification link has been sent to {{email}}.",
-      "sendFailed": "Could not send the email. Please check the address and try again.",
-      "backToSignIn": "Back to Sign In",
-      "invalidLink": "Invalid Link",
-      "invalidLinkDesc": "The verification link is missing or malformed. Please use the link sent to your inbox, or request a new one below.",
-      "needHelp": "Need help?",
-      "contactSupport": "Contact support",
-      "checkInbox": "Please check your inbox and click the verification link before logging in.",
-      "resendEmail": "Resend verification email",
-      "backToLogin": "Back to Login"
+      "unlock": "Unlock",
+      "forgotPassword": "Forgot password?"
     },
     "otp": {
-      "title": "Email OTP",
-      "subtitle": "OTP sent to your Email Address ending",
-      "sliderTitle": "Welcome to",
-      "sliderAcademy": "Academy",
-      "sliderDesc": "Master the art of luxury cake design with world-class instructors.",
-      "verify": "Verify & Proceed",
-      "didntGet": "Didn't get the OTP?",
+      "title": "Enter OTP",
+      "subtitle": "We've sent a verification code to your email",
+      "otpLabel": "Verification Code",
+      "verify": "Verify",
       "resend": "Resend OTP",
-      "resending": "Resending...",
-      "enterEmailPrompt": "Please enter your email to resend verification:",
-      "verificationSent": "Verification email sent!",
-      "verificationFailed": "Failed to resend email."
+      "resendIn": "Resend in",
+      "seconds": "seconds",
+      "didntReceive": "Didn't receive the code?"
     },
     "setPassword": {
       "title": "Set Password",
-      "subtitle": "Your new password must be different from previous password",
-      "sliderTitle": "Welcome to",
-      "sliderDesc": "Master the art of luxury cake design with world-class instructors.",
+      "subtitle": "Create a new password for your account",
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",
-      "resetButton": "Reset Password"
+      "setPassword": "Set Password",
+      "requirements": "Password must be at least 8 characters"
     },
-    "comingSoon": {
-      "heading": "We are Coming",
-      "soon": "Soon!!!",
-      "subtitle": "Stay tuned for something amazing",
-      "days": "days",
-      "hrs": "Hrs",
-      "min": "Min",
-      "sec": "Sec",
-      "notifyLabel": "Notify me when the website is launched",
-      "emailPlaceholder": "Enter your email",
-      "notifyButton": "Notify Me!"
+    "underConstruction": {
+      "heading": "The Website is Under",
+      "construction": "Construction",
+      "desc": "We are working on fixing the problem. We back soon",
+      "title": "Under Construction",
+      "subtitle": "This page is currently being built",
+      "description": "We're working hard to bring you something amazing. Please check back soon.",
+      "backToHome": "Back to Home"
     },
-    "logout": {
-      "success": "You have been logged out successfully"
+    "verifyEmail": {
+      "title": "Verify Your Email",
+      "subtitle": "We've sent a verification link to",
+      "checkInbox": "Please check your inbox",
+      "resendEmail": "Resend Email",
+      "backToLogin": "Back to Login"
+    },
+    "error404": {
+      "heading": "Oh No! Error",
+      "desc": "This page you requested could not be found. May the force be with you!",
+      "title": "404 - Page Not Found",
+      "subtitle": "Oops! The page you're looking for doesn't exist.",
+      "description": "It might have been moved or deleted.",
+      "backToHome": "Back to Home",
+      "goBack": "Go Back"
+    },
+    "error500": {
+      "heading": "Oops! 500 Internal",
+      "serverError": "Server Error",
+      "desc": "We apologise and are fixing the problem. Please try again at a later stage",
+      "title": "500 - Server Error",
+      "subtitle": "Oops! Something went wrong on our end.",
+      "description": "Please try again later or contact support.",
+      "tryAgain": "Try Again",
+      "backToHome": "Back to Home"
     }
   },
-
   "home": {
     "hero": {
       "badge": "Sara Löwe Academy",
@@ -473,7 +394,6 @@
       "instagramFollowers": "Instagram\nFollowers"
     }
   },
-
   "courses": {
     "list": {
       "title": "All Courses",
@@ -556,7 +476,6 @@
       "readOnlyPlatform": "This resource is available for reading on the platform only"
     }
   },
-
   "student": {
     "sidebar": {
       "dashboard": "Dashboard",
@@ -746,7 +665,6 @@
       "friends": "Friends Referred"
     }
   },
-
   "instructor": {
     "sidebar": {
       "dashboard": "Dashboard",
@@ -885,7 +803,6 @@
       "instagram": "Instagram"
     }
   },
-
   "admin": {
     "sidebar": {
       "dashboard": "Dashboard",
@@ -1052,7 +969,6 @@
       "low": "Low"
     }
   },
-
   "pricing": {
     "bestValue": "Best Value",
     "annual": "Annual",
@@ -1123,12 +1039,30 @@
     "why": {
       "script": "Everything Included",
       "title": "What You Get With Every Plan",
-      "card1": { "title": "All Course Videos", "desc": "Stream every lesson in HD with lifetime progress tracking." },
-      "card2": { "title": "Certificates", "desc": "Earn a SARALÖWE Academy certificate on every completed course." },
-      "card3": { "title": "Community Access", "desc": "Join our private community of cake artists worldwide." },
-      "card4": { "title": "Instructor Messaging", "desc": "Ask questions directly to your instructors inside the platform." },
-      "card5": { "title": "Progress Dashboard", "desc": "Track your learning journey with a beautiful student dashboard." },
-      "card6": { "title": "Masterclasses*", "desc": "Annual plan includes all masterclasses. Monthly plan: buy individually." }
+      "card1": {
+        "title": "All Course Videos",
+        "desc": "Stream every lesson in HD with lifetime progress tracking."
+      },
+      "card2": {
+        "title": "Certificates",
+        "desc": "Earn a SARALÖWE Academy certificate on every completed course."
+      },
+      "card3": {
+        "title": "Community Access",
+        "desc": "Join our private community of cake artists worldwide."
+      },
+      "card4": {
+        "title": "Instructor Messaging",
+        "desc": "Ask questions directly to your instructors inside the platform."
+      },
+      "card5": {
+        "title": "Progress Dashboard",
+        "desc": "Track your learning journey with a beautiful student dashboard."
+      },
+      "card6": {
+        "title": "Masterclasses*",
+        "desc": "Annual plan includes all masterclasses. Monthly plan: buy individually."
+      }
     },
     "faq": {
       "script": "Got Questions?",
@@ -1163,7 +1097,6 @@
       "content": "Failed to process subscription. Please try again."
     }
   },
-
   "masterclass": {
     "title": "Masterclasses",
     "subtitle": "Premium learning experiences by Sara Löwe",
@@ -1196,7 +1129,6 @@
     "certificate": "Certificate",
     "community": "Community Access"
   },
-
   "pages": {
     "about": {
       "title": "About Sara Löwe Academy",
@@ -1249,7 +1181,6 @@
       "tryAgain": "Try Again"
     }
   },
-
   "quiz": {
     "title": "Quiz",
     "start": "Start Quiz",
@@ -1289,7 +1220,6 @@
       "notPublished": "Quiz not yet published"
     }
   },
-
   "footer": {
     "description": "The premier destination for professional cake design education.",
     "descriptionLong": "The world's premier online destination for luxury cake design education. Expert-led programmes, industry-recognised certificates, and a global community of passionate pastry artists.",
@@ -1329,7 +1259,6 @@
     "community": "Community",
     "blog": "Blog"
   },
-
   "notifications": {
     "title": "Notifications",
     "markAllRead": "Mark All as Read",
@@ -1338,11 +1267,9 @@
     "viewAll": "View All",
     "new": "new"
   },
-
   "topbar": {
     "searchPlaceholder": "Search courses, quizzes, students…"
   },
-
   "messages": {
     "title": "Messages",
     "newMessage": "New Message",
@@ -1353,7 +1280,6 @@
     "online": "Online",
     "offline": "Offline"
   },
-
   "community": {
     "title": "Community",
     "subtitle": "Connect with fellow students and instructors",
@@ -1371,7 +1297,7 @@
     "pinned": "Pinned",
     "prev": "Prev",
     "next": "Next",
-    "createPost": "Create New Post",
+    "createPost": "Create a Post",
     "titleLabel": "Title",
     "typeLabel": "Type",
     "contentLabel": "Content",
@@ -1398,7 +1324,6 @@
     "posts": "posts",
     "beFirstScript": "Be First",
     "noPostDesc": "Start the conversation — share insights, ask questions, or inspire your fellow students.",
-    "createPost": "Create a Post",
     "shareScript": "Share",
     "titlePlaceholderAlt": "What's on your mind?",
     "postPublished": "Post published!",
@@ -1421,7 +1346,6 @@
     "noCommentsYet": "No comments yet. Be the first to reply!",
     "loadMore": "Load more comments"
   },
-
   "banner": {
     "couturePastry": "Couture Pastry · Academy Est. 2010",
     "theArtOfCake": "The Art of Cake",
@@ -1438,7 +1362,6 @@
     "certificatesEst": "Certificates · Est. 2010",
     "loading": "— Loading —"
   },
-
   "brandGallery": {
     "ornament": "The brand",
     "title": "A World of Couture Identity",
@@ -1451,12 +1374,10 @@
     "thankYouCards": "Thank-You Cards",
     "stickerCollection": "Sticker Collection"
   },
-
   "institutions": {
     "trustedBy": "Trusted by",
     "institutionsAround": "Institutions Around the World"
   },
-
   "blog": {
     "articlesUpdates": "Articles & Updates",
     "recentBlog": "Our Recent Blog & Articles",
@@ -1472,7 +1393,6 @@
     "article5": "How to Build and Run a Pilot Mentoring Program",
     "viewAllArticles": "View All Articles"
   },
-
   "whyChooseUs": {
     "ornament": "By the numbers",
     "title": "Why SARALÖWE Stands Apart",
@@ -1500,7 +1420,6 @@
     "toileDeJouy": "Toile de Jouy",
     "discoverOurWorld": "Discover Our World"
   },
-
   "luxuryHero": {
     "premiumPlatform": "Premium E-Learning Platform",
     "searchPlaceholder": "What do you want to learn today?",
@@ -1515,7 +1434,6 @@
     "scroll": "Scroll",
     "luxuryCakeDesign": "Luxury Cake Design"
   },
-
   "courseDetails": {
     "shareProgress": "Share Your Progress",
     "courseIncludes": "This Course Includes",
@@ -1563,7 +1481,6 @@
     "inCart": "In Cart",
     "tags": "Tags"
   },
-
   "courseList": {
     "title": "All Courses",
     "subtitle": "Explore our complete course catalog",
@@ -1627,12 +1544,10 @@
     "adjustFilters": "Adjust your filters or search terms to discover our full catalogue.",
     "browseAllProgrammes": "Browse All Programmes"
   },
-
   "courseGrid": {
     "view": "View",
     "priceRange": "Price Range"
   },
-
   "courseCategory": {
     "byDiscipline": "By Discipline",
     "heroSubtitle": "Explore our programmes by discipline — from sugar flowers to architectural cake design",
@@ -1646,7 +1561,6 @@
     "alreadyInCart": "Already in cart",
     "addedToCart": "\"{{title}}\" added to cart"
   },
-
   "courseCart": {
     "title": "Shopping Cart",
     "cart": "Cart",
@@ -1678,7 +1592,6 @@
     "cartCleared": "Cart cleared",
     "loginToCheckout": "Please login to proceed to checkout"
   },
-
   "courseCheckout": {
     "title": "Checkout",
     "checkout": "Checkout",
@@ -1732,85 +1645,6 @@
     "privacyPolicy": "Privacy Policy",
     "backToCart": "Back to Cart"
   },
-
-  "auth": {
-    "comingSoon": {
-      "title": "Coming Soon",
-      "subtitle": "We're working on something amazing",
-      "description": "Our new platform is under construction. Stay tuned for the big reveal!",
-      "notifyMe": "Notify Me",
-      "emailPlaceholder": "Enter your email",
-      "backToHome": "Back to Home",
-      "daysLabel": "Days",
-      "hoursLabel": "Hours",
-      "minutesLabel": "Minutes",
-      "secondsLabel": "Seconds"
-    },
-    "lockScreen": {
-      "welcomeBack": "Welcome Back",
-      "password": "Password",
-      "title": "Lock Screen",
-      "subtitle": "Enter your password to unlock",
-      "passwordLabel": "Password",
-      "passwordPlaceholder": "Enter your password",
-      "unlock": "Unlock",
-      "forgotPassword": "Forgot password?"
-    },
-    "otp": {
-      "title": "Enter OTP",
-      "subtitle": "We've sent a verification code to your email",
-      "otpLabel": "Verification Code",
-      "verify": "Verify",
-      "resend": "Resend OTP",
-      "resendIn": "Resend in",
-      "seconds": "seconds",
-      "didntReceive": "Didn't receive the code?"
-    },
-    "setPassword": {
-      "title": "Set Password",
-      "subtitle": "Create a new password for your account",
-      "newPassword": "New Password",
-      "confirmPassword": "Confirm Password",
-      "setPassword": "Set Password",
-      "requirements": "Password must be at least 8 characters"
-    },
-    "underConstruction": {
-      "heading": "The Website is Under",
-      "construction": "Construction",
-      "desc": "We are working on fixing the problem. We back soon",
-      "title": "Under Construction",
-      "subtitle": "This page is currently being built",
-      "description": "We're working hard to bring you something amazing. Please check back soon.",
-      "backToHome": "Back to Home"
-    },
-    "verifyEmail": {
-      "title": "Verify Your Email",
-      "subtitle": "We've sent a verification link to",
-      "checkInbox": "Please check your inbox",
-      "resendEmail": "Resend Email",
-      "backToLogin": "Back to Login"
-    },
-    "error404": {
-      "heading": "Oh No! Error",
-      "desc": "This page you requested could not be found. May the force be with you!",
-      "title": "404 - Page Not Found",
-      "subtitle": "Oops! The page you're looking for doesn't exist.",
-      "description": "It might have been moved or deleted.",
-      "backToHome": "Back to Home",
-      "goBack": "Go Back"
-    },
-    "error500": {
-      "heading": "Oops! 500 Internal",
-      "serverError": "Server Error",
-      "desc": "We apologise and are fixing the problem. Please try again at a later stage",
-      "title": "500 - Server Error",
-      "subtitle": "Oops! Something went wrong on our end.",
-      "description": "Please try again later or contact support.",
-      "tryAgain": "Try Again",
-      "backToHome": "Back to Home"
-    }
-  },
-
   "about": {
     "hero": {
       "badge": "Our Story",
@@ -1848,7 +1682,6 @@
       "countries": "Countries"
     }
   },
-
   "contact": {
     "hero": {
       "badge": "Get In Touch",
@@ -1877,7 +1710,6 @@
       "followUs": "Follow Us"
     }
   },
-
   "faqPage": {
     "title": "Frequently Asked Questions",
     "subtitle": "Find answers to common questions about SARALÖWE Academy",
@@ -1891,7 +1723,6 @@
       "technical": "Technical"
     }
   },
-
   "instructorPages": {
     "grid": {
       "title": "Our Instructors",
@@ -1938,7 +1769,6 @@
       "socialLinks": "Social Links"
     }
   },
-
   "notification": {
     "title": "Notifications",
     "all": "All",
@@ -1951,125 +1781,12 @@
     "paymentReceived": "Payment Received",
     "reviewReceived": "Review Received"
   },
-
   "testimonials": {
     "title": "Student Testimonials",
     "subtitle": "What our students say about us",
     "readMore": "Read More",
     "verified": "Verified Student"
   },
-
-  "pricing": {
-    "bestValue": "Best Value",
-    "annual": "Annual",
-    "monthly": "Monthly",
-    "annualSubtitle": "Best for dedicated learners",
-    "monthlySubtitle": "Flexible month-to-month",
-    "perMonth": "/ month",
-    "perYear": "/ year",
-    "approxPerMonth": "≈ 325 MAD/month",
-    "save780": "Save 780 MAD",
-    "billedMonthly": "Billed monthly",
-    "billedAnnually": "Billed annually · ≈ 325 MAD/month",
-    "couponEligible": "Coupon code eligible",
-    "currentPlan": "Current Plan",
-    "switchTo": "Switch to {{plan}}",
-    "processing": "Processing…",
-    "subscribe": "Subscribe",
-    "plan": "Plan",
-    "loadingPlans": "Loading plans…",
-    "activeSubscription": "You are subscribed",
-    "accessUntil": "access until",
-    "currentlyActive": "currently active",
-    "loginNudge": "Already have an account?",
-    "signIn": "Sign in",
-    "toSubscribe": "to subscribe instantly.",
-    "feature": {
-      "allCourses": "Access to all courses",
-      "studentDashboard": "Student dashboard",
-      "certificates": "Course completion certificates",
-      "communityAccess": "Community forum access",
-      "messaging": "Messaging with instructors",
-      "progressTracking": "Progress tracking",
-      "individualMasterclass": "Individual masterclass purchase",
-      "standardSupport": "Standard support",
-      "allMasterclasses": "All masterclass access included",
-      "prioritySupport": "Priority & dedicated support",
-      "earlyAccess": "Early access to new courses",
-      "annualBadge": "Exclusive annual member badge",
-      "couponEligible": "Coupon code eligible"
-    },
-    "modal": {
-      "orderSummary": "Order Summary",
-      "totalToPay": "Total to Pay",
-      "haveCoupon": "Have a coupon code?",
-      "couponPlaceholder": "Enter coupon code",
-      "apply": "Apply",
-      "remove": "Remove",
-      "whatsIncluded": "What's included",
-      "verified": "Verified",
-      "securePayment": "Secure payment powered by PayZone · Cancel anytime",
-      "confirmPay": "Confirm & Pay",
-      "couponValidateFailed": "Failed to validate coupon. Please try again."
-    },
-    "hero": {
-      "breadcrumb": "Subscription Plans",
-      "script": "Unlock Your Full Potential",
-      "title": "Choose Your Plan",
-      "desc": "Every plan gives you unlimited access to courses, your student dashboard, certificates and the community. The Annual plan also unlocks all Masterclasses."
-    },
-    "masterclass": {
-      "title": "About Masterclasses",
-      "desc1": "Masterclasses are exclusive live or recorded sessions led by world-renowned pastry chefs. They are",
-      "includedInAnnual": "fully included in the Annual plan",
-      "desc2": "and can also be purchased",
-      "individually": "individually",
-      "desc3": "on the Monthly plan."
-    },
-    "why": {
-      "script": "Everything Included",
-      "title": "What You Get With Every Plan",
-      "card1": { "title": "All Course Videos", "desc": "Stream every lesson in HD with lifetime progress tracking." },
-      "card2": { "title": "Certificates", "desc": "Earn a SARALÖWE Academy certificate on every completed course." },
-      "card3": { "title": "Community Access", "desc": "Join our private community of cake artists worldwide." },
-      "card4": { "title": "Instructor Messaging", "desc": "Ask questions directly to your instructors inside the platform." },
-      "card5": { "title": "Progress Dashboard", "desc": "Track your learning journey with a beautiful student dashboard." },
-      "card6": { "title": "Masterclasses*", "desc": "Annual plan includes all masterclasses. Monthly plan: buy individually." }
-    },
-    "faq": {
-      "script": "Got Questions?",
-      "title": "Frequently Asked",
-      "q1": "What is the difference between Courses and Masterclasses?",
-      "a1": "Courses are part of our standard curriculum available to all subscribers. Masterclasses are exclusive premium sessions led by world-renowned pastry chefs — available to purchase individually on Monthly, or fully included in the Annual plan.",
-      "q2": "Can I switch plans later?",
-      "a2": "Yes. You can upgrade or change your plan at any time. Your new plan takes effect immediately and remaining credit is applied.",
-      "q3": "Is there a free trial?",
-      "a3": "We do not offer a free tier, but you can browse the course catalog and instructor profiles without a subscription before committing.",
-      "q4": "What payment methods are accepted?",
-      "a4": "We accept all major credit and debit cards via our secure payment gateway.",
-      "q5": "Can I cancel my subscription?",
-      "a5": "Yes. You can cancel anytime. Access continues until the end of the current billing period.",
-      "q6": "How do I use a coupon code?",
-      "a6": "Coupon codes are only applicable to the Annual plan. When you click Subscribe on the Annual plan, you'll see an optional coupon field in the confirmation screen. Enter your code there to apply the discount before paying."
-    },
-    "cta": {
-      "script": "Ready to Begin?",
-      "title": "Start Your Artisan Journey Today",
-      "desc": "Create your account and choose the plan that fits your learning pace.",
-      "createAccount": "Create Account",
-      "browseCourses": "Browse Courses"
-    },
-    "loginRequired": {
-      "title": "Login Required",
-      "content": "Please log in to start your subscription.",
-      "okText": "Login"
-    },
-    "error": {
-      "title": "Subscription Failed",
-      "content": "Failed to process subscription. Please try again."
-    }
-  },
-
   "privacyTerms": {
     "privacy": {
       "title": "Privacy Policy",
@@ -2095,7 +1812,6 @@
       "governing": "Governing Law"
     }
   },
-
   "paymentCallback": {
     "success": {
       "title": "Payment Successful!",
@@ -2122,7 +1838,6 @@
       "backToHome": "Back to Home"
     }
   },
-
   "studentPages": {
     "profileCard": {
       "editProfile": "Edit Profile",
@@ -2153,7 +1868,6 @@
       "selectAnswer": "Select an answer"
     }
   },
-
   "instructorSettingsPages": {
     "changePassword": {
       "title": "Change Password",
@@ -2245,7 +1959,6 @@
       "withdraw": "Withdraw"
     }
   },
-
   "adminPages": {
     "analytics": {
       "title": "Analytics",
@@ -2322,7 +2035,6 @@
       "viewAll": "View All"
     }
   },
-
   "sharedComponents": {
     "courseCard": {
       "addToCart": "Add to Cart",
@@ -2394,7 +2106,6 @@
       "label": "Back to top"
     }
   },
-
   "trust": {
     "trustedBy": "Trusted by",
     "happyStudents": "happy students and online users",
@@ -2406,7 +2117,6 @@
     "totalEnrollmentsDesc": "Students worldwide are building new skills with our platform.",
     "quote": "All courses are incredibly help people to achieve their goals"
   },
-
   "communitySec": {
     "advancedLearning": "Advanced Learning",
     "title": "Creating a community of learners.",
@@ -2419,7 +2129,6 @@
     "learnSkillsDesc": "In today's rapidly evolving job market, learning in demand skills is crucial for career advancement.",
     "studentsEnrolled": "Students Enrolled"
   },
-
   "topCourses": {
     "ourCategories": "Our Categories",
     "title": "Top Courses & Categories",
@@ -2429,9 +2138,11 @@
     "viewAllMasterclasses": "View All Masterclasses",
     "loadingCategories": "Loading categories..."
   },
-
   "datatable": {
     "page": "Page",
     "search": "Search"
+  },
+  "payment": {
+    "securePaymentAccepted": "Secure payment accepted"
   }
 }
