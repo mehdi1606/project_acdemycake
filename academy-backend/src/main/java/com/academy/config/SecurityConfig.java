@@ -125,6 +125,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/return").permitAll()
                         // CMI Chaabi server-to-server callback — no JWT (CMI posts without auth header)
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/callback").permitAll()
+                        // Public transaction status polling — used by payment callback page even if JWT expired
+                        .requestMatchers(HttpMethod.GET, "/api/v1/payments/cmi/status/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/certificates/verify/**").permitAll()

@@ -51,13 +51,18 @@ const PaymentCallbackPage: React.FC = () => {
   const pollCount             = useRef(0);
   const timerRef              = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Resolve transactionId: sessionStorage (primary) → URL query param (fallback)
+  // Resolve transactionId: sessionStorage → localStorage fallback → URL query param
+  // localStorage survives /login redirects (happens when access token expires mid-payment)
   const transactionId =
-    sessionStorage.getItem('sl_pending_txn_id') ||
-    params.get('transactionId')                 ||
+    sessionStorage.getItem('sl_pending_txn_id')  ||
+    localStorage.getItem('sl_pending_txn_id_fb') ||
+    params.get('transactionId')                  ||
     params.get('orderId');
 
-  const planId = sessionStorage.getItem('sl_pending_plan_id') || 'your';
+  const planId =
+    sessionStorage.getItem('sl_pending_plan_id') ||
+    localStorage.getItem('sl_pending_plan_id_fb') ||
+    'your';
 
   const planLabel: Record<string, string> = {
     monthly:   'Monthly',
@@ -69,6 +74,9 @@ const PaymentCallbackPage: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     sessionStorage.removeItem('sl_pending_txn_id');
     sessionStorage.removeItem('sl_pending_plan_id');
+    // Also clear the localStorage fallback
+    localStorage.removeItem('sl_pending_txn_id_fb');
+    localStorage.removeItem('sl_pending_plan_id_fb');
   };
 
   useEffect(() => {

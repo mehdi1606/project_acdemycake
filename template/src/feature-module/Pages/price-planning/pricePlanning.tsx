@@ -739,8 +739,12 @@ const PricePlanning: React.FC = () => {
       setSubscribing(planId);
       // ── CMI Chaabi: get form params, store txn id, auto-submit form to gateway
       const cmiResp = await paymentService.initiateCmiSubscription(planId, couponCode || undefined);
+      // Store in sessionStorage AND localStorage (localStorage survives /login redirects
+      // that happen when the 15-min JWT expires while the user is on the CMI page)
       sessionStorage.setItem('sl_pending_txn_id', cmiResp.transactionId);
       sessionStorage.setItem('sl_pending_plan_id', planId);
+      localStorage.setItem('sl_pending_txn_id_fb', cmiResp.transactionId);
+      localStorage.setItem('sl_pending_plan_id_fb', planId);
       setConfirmPlan(null);
       // Browser navigates away to the CMI hosted payment page — no return after this
       paymentService.submitCmiForm(cmiResp.gatewayUrl, cmiResp.formParams);

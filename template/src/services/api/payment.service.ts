@@ -35,9 +35,18 @@ class PaymentService {
     return response.data;
   }
 
+  /**
+   * Public status poll — no JWT required.
+   * Returns { status, transactionType, errorMessage }.
+   * Used by the payment callback page so polling keeps working even if the
+   * 15-minute access token expired while the user was on the CMI page.
+   */
   async getTransactionStatus(transactionId: string): Promise<PaymentTransaction> {
-    const response = await api.get<PaymentTransaction>(`/payments/transaction/${transactionId}`);
-    return response.data;
+    const response = await api.get<{ status: string; transactionType: string; errorMessage: string }>(
+      `/payments/cmi/status/${transactionId}`
+    );
+    // Adapt minimal status response to the PaymentTransaction shape the caller expects
+    return response.data as unknown as PaymentTransaction;
   }
 
   // ── CMI Chaabi Payment ──────────────────────────────────────────────────────

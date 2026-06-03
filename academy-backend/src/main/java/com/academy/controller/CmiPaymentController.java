@@ -2,8 +2,11 @@ package com.academy.controller;
 
 import com.academy.dto.response.ApiResponse;
 import com.academy.dto.response.CmiInitiateResponse;
+import com.academy.entity.PaymentTransaction;
 import com.academy.entity.User;
+import com.academy.entity.enums.PaymentStatus;
 import com.academy.integration.cmi.CmiPaymentService;
+import com.academy.repository.PaymentTransactionRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,8 +38,9 @@ import java.util.UUID;
 @Tag(name = "CMI Payment", description = "CMI Chaabi payment gateway endpoints")
 public class CmiPaymentController {
 
-    private final CmiPaymentService cmiPaymentService;
-    private final UserService       userService;
+    private final CmiPaymentService            cmiPaymentService;
+    private final UserService                  userService;
+    private final PaymentTransactionRepository transactionRepository;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -88,6 +92,35 @@ public class CmiPaymentController {
         URI target = URI.create(frontendUrl + "/payment/callback");
         log.info("CMI browser return → redirecting to {}", target);
         return ResponseEntity.status(HttpStatus.FOUND).location(target).build();
+    }
+
+    // ── Public transaction status (NO JWT required) ───────────────────────────
+
+    /**
+     * Public polling endpoint for the payment callback page.
+     *
+     * Returns only the status and type of a transaction — not sensitive details.
+     * The UUID is 128-bit random, making it safe to expose without authentication.
+     * This allows the payment callback page to poll even if the JWT has expired.
+     *
+     * Permitted in SecurityConfig as permitAll().
+     */
+    @GetMapping("/status/{transactionId}")
+    @Operation(summary = "Get payment status by transaction UUID — no auth required")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getPaymentStatus(
+            @PathVariable UUID transactionId) {
+
+        return transactionRepository.findById(transactionId)
+                .map(tx -> {
+                    Map<String, String> body = Map.of(
+                            "status",          tx.getStatus() != null ? tx.getStatus().name() : PaymentStatus.PENDING.name(),
+                            "transactionType", tx.getTransactionType() != null ? tx.getTransactionType() : "",
+                            "errorMessage",    tx.getErrorMessage() != null ? tx.getErrorMessage() : ""
+                    );
+                    return ResponseEntity.ok(ApiResponse.success(body));
+                })
+                .orElseGet(() -> ResponseEntity.ok(ApiResponse.success(
+                        Map.of("status", "NOT_FOUND", "transactionType", "", "errorMessage", ""))));
     }
 
     // ── Server-to-server callback (NO JWT — excluded from Spring Security) ────

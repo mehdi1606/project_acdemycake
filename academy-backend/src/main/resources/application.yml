@@ -74,6 +74,12 @@ spring:
     encoding: UTF-8
     cache: true
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false   # Serialize LocalDateTime as ISO-8601 strings, not arrays
+    deserialization:
+      fail-on-unknown-properties: false
+
 # Application Configuration
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}

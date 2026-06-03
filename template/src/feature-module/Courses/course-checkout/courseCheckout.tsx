@@ -68,6 +68,9 @@ const CourseCheckout = () => {
       sessionStorage.setItem('sl_pending_txn_id', cmiResp.transactionId);
       sessionStorage.setItem('sl_pending_plan_id', 'course');
       sessionStorage.setItem('sl_pending_course_id', firstItem.id);
+      // localStorage fallback — survives /login redirects when JWT expires mid-payment
+      localStorage.setItem('sl_pending_txn_id_fb', cmiResp.transactionId);
+      localStorage.setItem('sl_pending_plan_id_fb', 'course');
 
       if (remainingItems.length > 0) {
         sessionStorage.setItem('sl_checkout_queue', JSON.stringify(remainingItems));
