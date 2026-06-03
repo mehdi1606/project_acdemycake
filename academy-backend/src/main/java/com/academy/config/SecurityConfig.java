@@ -66,6 +66,7 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // ── Standard config for all app endpoints ─────────────────────────────
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
@@ -74,7 +75,20 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
+        // ── Permissive config for CMI gateway endpoints ────────────────────────
+        // CMI's servers POST to /cmi/callback and /cmi/return with
+        // Origin: https://test-chaabipayment.cmi.co.ma (or production CMI domain).
+        // These are NOT browser-to-backend calls — no credentials needed.
+        // Must be registered BEFORE "/**" so they take priority.
+        CorsConfiguration cmiConfig = new CorsConfiguration();
+        cmiConfig.setAllowedOriginPatterns(List.of("*"));
+        cmiConfig.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        cmiConfig.setAllowedHeaders(List.of("*"));
+        cmiConfig.setAllowCredentials(false);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/v1/payments/cmi/callback", cmiConfig);
+        source.registerCorsConfiguration("/api/v1/payments/cmi/return",   cmiConfig);
         source.registerCorsConfiguration("/**", config);
         return source;
     }
