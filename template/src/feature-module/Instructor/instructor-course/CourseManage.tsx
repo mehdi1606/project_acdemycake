@@ -538,7 +538,7 @@ const CourseManage: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       if (!file.type.startsWith('video/')) { message.error('Please select a valid video file'); return; }
-      if (file.size > 2 * 1024 * 1024 * 1024) { message.error('File size exceeds 2GB limit'); return; }
+      if (file.size > 4 * 1024 * 1024 * 1024) { message.error('File size exceeds 4 GB limit'); return; }
       setSelectedFile(file);
     }
   };
@@ -551,7 +551,7 @@ const CourseManage: React.FC = () => {
       await instructorService.uploadVideo(selectedLessonId, selectedFile, (progress) => {
         setUploadProgress(progress);
       });
-      message.success('Video uploaded successfully! Processing will begin shortly.');
+      message.success('Video uploaded successfully! It is ready to stream immediately.');
       setVideoModalVisible(false);
       setSelectedFile(null);
       fetchCourseData();
@@ -1082,7 +1082,7 @@ const CourseManage: React.FC = () => {
         }}>
           <i className="isax isax-info-circle" style={{ fontSize: 16, color: '#2D8CFF', flexShrink: 0 }} />
           <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
-            Your video will be automatically transcoded for optimal streaming. This may take a few minutes after upload completes.
+            Your video is stored directly on the server and is ready to stream as soon as the upload completes — no processing delay.
           </span>
         </div>
       </GlassModal>

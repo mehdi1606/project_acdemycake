@@ -288,12 +288,13 @@ class InstructorService {
     return response.data;
   }
 
-  // Upload video file (server-side upload to Mux)
+  // Upload video file to self-hosted streaming backend
   async uploadVideo(lessonId: string, file: File, onProgress?: (percent: number) => void): Promise<void> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('video', file); // field name must be 'video' (VideoStreamingController)
 
-    await apiMultipart.post(`/instructor/lessons/${lessonId}/video`, formData, {
+    await apiMultipart.post(`/videos/${lessonId}/upload`, formData, {
+      timeout: 0, // no timeout — large files can take minutes
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);

@@ -1,9 +1,10 @@
 /**
  * PaymentBadges — SARALÖWE Academy
- * Displays the 3 accepted payment logos:
- *   • Chaabi Payment (CMI)
- *   • Mastercard SecureCode
- *   • Verified by Visa
+ * Displays all 7 accepted payment logos:
+ *   • Chaabi Payment (CMI)  • CMI logo
+ *   • Verified by Visa      • Mastercard SecureCode
+ *   • MarocPay              • AMEX
+ *   • UnionPay
  *
  * Fully bilingual EN / AR — label translates automatically.
  * RTL-aware: logo row and label adapt to dir="rtl" on <html>.
@@ -21,9 +22,13 @@ interface PaymentBadgesProps {
 }
 
 const LOGOS = [
-  { src: '/assets/img/payment/LogoChaabiPayment.png',    alt: 'Chaabi Payment',        height: 28 },
-  { src: '/assets/img/payment/secure_code_logo.png',     alt: 'Mastercard SecureCode', height: 32 },
-  { src: '/assets/img/payment/tn_verified_by_visa.png',  alt: 'Verified by Visa',      height: 28 },
+  { src: '/assets/img/payment/LogoChaabiPayment.png',   alt: 'Chaabi Payment',        height: 28 },
+  { src: '/assets/img/payment/logo_cmi.png',            alt: 'CMI',                   height: 26 },
+  { src: '/assets/img/payment/tn_verified_by_visa.png', alt: 'Verified by Visa',      height: 28 },
+  { src: '/assets/img/payment/secure_code_logo.png',    alt: 'Mastercard SecureCode', height: 32 },
+  { src: '/assets/img/payment/MarocPay.png',            alt: 'MarocPay',              height: 26 },
+  { src: '/assets/img/payment/AMEX.png',                alt: 'American Express',      height: 24 },
+  { src: '/assets/img/payment/unionpay.png',            alt: 'UnionPay',              height: 24 },
 ];
 
 const PaymentBadges: React.FC<PaymentBadgesProps> = ({

@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import { useTranslation } from "react-i18next";
 import { subscriptionService } from "../../../services/api/subscription.service";
+import { paymentService } from "../../../services/api/payment.service";
 import { Subscription } from "../../../services/api/types";
 import { useAppSelector } from "../../../core/redux/hooks";
 import { Spin, Modal } from "antd";
@@ -540,7 +541,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
               fontSize: 12, color: '#9B7B50', marginBottom: 12,
             }}>
               <i className="isax isax-shield-tick" style={{ fontSize: 16, color: '#1A7F4B' }} />
-              {t('pricing.modal.securePayment', 'Secure payment powered by PayZone · Cancel anytime')}
+              {t('pricing.modal.securePayment', 'Secure payment via CMI Chaabi · Cancel anytime')}
             </div>
             <PaymentBadges variant="light" />
           </div>
@@ -716,16 +717,13 @@ const PricePlanning: React.FC = () => {
     const planId = confirmPlan.id;
     try {
       setSubscribing(planId);
-      const response = await subscriptionService.subscribe(planId, couponCode || undefined);
-      if (response.paymentUrl) {
-        sessionStorage.setItem('sl_pending_txn_id', String(response.transactionId));
-        sessionStorage.setItem('sl_pending_plan_id', planId);
-        window.location.href = response.paymentUrl;
-      } else {
-        const sub = await subscriptionService.getMySubscription();
-        setCurrentSubscription(sub);
-        setConfirmPlan(null);
-      }
+      // ── CMI Chaabi: get form params, store txn id, auto-submit form to gateway
+      const cmiResp = await paymentService.initiateCmiSubscription(planId, couponCode || undefined);
+      sessionStorage.setItem('sl_pending_txn_id', cmiResp.transactionId);
+      sessionStorage.setItem('sl_pending_plan_id', planId);
+      setConfirmPlan(null);
+      // Browser navigates away to the CMI hosted payment page — no return after this
+      paymentService.submitCmiForm(cmiResp.gatewayUrl, cmiResp.formParams);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
       setConfirmPlan(null);

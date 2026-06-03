@@ -1,17 +1,20 @@
 /**
  * PaymentCallbackPage
  *
- * Landing page after the payment gateway redirects the user back.
- * PayZone's return-url is configured as: http://localhost:3000/payment/callback
+ * Landing page after CMI Chaabi redirects the browser back (ok-url / fail-url).
  *
  * Flow:
- *  1. Read transactionId from sessionStorage (set by pricePlanning before redirect)
+ *  1. Read transactionId from sessionStorage (set before form-submit to CMI)
  *  2. Poll GET /payments/transaction/{id} every 3 s until status ≠ PENDING
- *  3. Show SUCCESS / FAILED / TIMEOUT states with SARALÖWE brand styling
+ *  3. On SUCCESS:
+ *     a. Refresh Redux user so subscriptionStatus / enrollments are up to date
+ *     b. If sessionStorage has sl_checkout_queue (multi-course cart), redirect
+ *        back to checkout so the next course can be paid
+ *  4. Show SUCCESS / FAILED / TIMEOUT states with SARALÖWE brand styling
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { paymentService } from '../../../services/api/payment.service';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch } from '../../../core/redux/hooks';
@@ -40,6 +43,7 @@ const PaymentCallbackPage: React.FC = () => {
   const { t } = useTranslation()
   const route     = all_routes;
   const dispatch  = useAppDispatch();
+  const navigate  = useNavigate();
   const [params]  = useSearchParams();
 
   const [stage, setStage]     = useState<Stage>('polling');
@@ -82,9 +86,17 @@ const PaymentCallbackPage: React.FC = () => {
         const txn = await paymentService.getTransactionStatus(transactionId);
 
         if (txn.status === 'COMPLETED') {
-          cleanup();
-          // Refresh Redux user so subscriptionStatus is up to date
+          // Refresh Redux user so subscriptionStatus / enrollments are up to date
           dispatch(fetchCurrentUser());
+          // Check if there are more courses in the cart queue (multi-course checkout)
+          const checkoutQueue = sessionStorage.getItem('sl_checkout_queue');
+          cleanup();
+          if (checkoutQueue) {
+            // More courses to pay — redirect back to checkout
+            sessionStorage.removeItem('sl_checkout_queue');
+            // Small delay so the user sees the redirect rather than instant jump
+            setTimeout(() => navigate(route.courseCheckout || '/courses/checkout'), 1500);
+          }
           setStage('success');
         } else if (txn.status === 'FAILED' || txn.status === 'CANCELLED') {
           cleanup();

@@ -58,13 +58,24 @@ services:
       FILE_BASE_URL:   https://${SERVER_IP}
       FILE_UPLOAD_DIR: /app/uploads
 
-      # PayZone
+      # PayZone (legacy)
       PAYZONE_API_URL:      https://api.payzone.ma
       PAYZONE_MERCHANT_ID:  ${PAYZONE_MERCHANT_ID}
       PAYZONE_API_KEY:      ${PAYZONE_API_KEY}
       PAYZONE_SECRET_KEY:   ${PAYZONE_SECRET_KEY}
       PAYZONE_CALLBACK_URL: https://${SERVER_IP}/api/v1/payments/webhook
       PAYZONE_RETURN_URL:   https://${SERVER_IP}/payment/callback
+
+      # CMI Chaabi Payment
+      CMI_CLIENT_ID:    ${CMI_CLIENT_ID}
+      CMI_STORE_KEY:    ${CMI_STORE_KEY}
+      CMI_GATEWAY_URL:  ${CMI_GATEWAY_URL}
+      # Server-to-server callback — CMI posts here directly (must be public)
+      CMI_CALLBACK_URL: https://${SERVER_IP}/api/v1/payments/cmi/callback
+      # Browser return — CMI posts browser here, backend converts POST→GET redirect
+      CMI_OK_URL:       https://${SERVER_IP}/api/v1/payments/cmi/return
+      CMI_FAIL_URL:     https://${SERVER_IP}/api/v1/payments/cmi/return
+      CMI_SHOP_URL:     https://${SERVER_IP}
 
       # Mail
       MAIL_HOST:     ${MAIL_HOST}

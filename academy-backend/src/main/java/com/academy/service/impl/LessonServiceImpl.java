@@ -13,6 +13,9 @@ import com.academy.exception.ResourceNotFoundException;
 import com.academy.integration.mux.MuxService;
 import com.academy.repository.CourseLessonRepository;
 import com.academy.repository.LessonProgressRepository;
+import com.academy.repository.VideoAssetRepository;
+import com.academy.service.VideoStorageService;
+import com.academy.service.VideoTokenService;
 import com.academy.security.UserPrincipal;
 import com.academy.service.EnrollmentService;
 import com.academy.service.LessonService;
@@ -49,16 +52,22 @@ public class LessonServiceImpl implements LessonService {
             "pdf", "doc", "docx", "ppt", "pptx", "txt", "jpg", "jpeg", "png", "gif"
     );
 
-    private final CourseLessonRepository lessonRepository;
+    private final CourseLessonRepository  lessonRepository;
     private final LessonProgressRepository progressRepository;
-    private final ModuleService moduleService;
-    private final UserService userService;
-    private final EnrollmentService enrollmentService;
-    private final MuxService muxService;
-    private final ObjectMapper objectMapper;
+    private final ModuleService            moduleService;
+    private final UserService              userService;
+    private final EnrollmentService        enrollmentService;
+    private final MuxService               muxService;
+    private final VideoStorageService      videoStorageService;
+    private final VideoTokenService        videoTokenService;
+    private final VideoAssetRepository     videoAssetRepository;
+    private final ObjectMapper             objectMapper;
 
     @Value("${app.file.upload-dir}")
     private String uploadDir;
+
+    @Value("${app.file.base-url}")
+    private String fileBaseUrl;
 
     @Override
     public CourseLesson findById(UUID id) {
@@ -160,6 +169,12 @@ public class LessonServiceImpl implements LessonService {
             muxService.deleteAsset(lesson.getMuxAssetId());
         }
 
+        // Delete local video file + asset record if present
+        if (lesson.getVideoFilePath() != null) {
+            videoStorageService.deleteVideo(lesson.getVideoFilePath());
+            videoAssetRepository.deleteByLessonId(lessonId);
+        }
+
         lessonRepository.delete(lesson);
         log.info("Lesson deleted: {}", lesson.getTitle());
     }
@@ -225,24 +240,34 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public VideoUrlResponse getVideoUrl(UUID lessonId) {
-        User user = getCurrentUser();
+        User         user   = getCurrentUser();
         CourseLesson lesson = findById(lessonId);
-        Course course = lesson.getModule().getCourse();
+        Course       course = lesson.getModule().getCourse();
 
-        if (lesson.getIsPreview()) {
-            return muxService.getSignedPlaybackUrl(lesson);
-        }
-
-        // Admin and instructors always get the video
-        boolean isStaff = user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR;
-        if (!isStaff && !enrollmentService.hasAccess(user, course)) {
-            throw new ForbiddenException("You don't have access to this lesson");
+        if (!lesson.getIsPreview()) {
+            boolean isStaff = user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR;
+            if (!isStaff && !enrollmentService.hasAccess(user, course)) {
+                throw new ForbiddenException("You don't have access to this lesson");
+            }
         }
 
         if (!lesson.isVideoReady()) {
             throw new BadRequestException("Video is not ready yet");
         }
 
+        // ── Local (self-hosted) video — generate signed streaming URL ──────────
+        if (lesson.getVideoFilePath() != null) {
+            String token     = videoTokenService.generateToken(lessonId, user.getId());
+            String streamUrl = fileBaseUrl + "/api/v1/videos/" + lessonId + "/stream?token=" + token;
+            return VideoUrlResponse.builder()
+                    .playbackUrl(streamUrl)
+                    .tokenId(token)
+                    .durationSeconds(lesson.getVideoDurationSeconds())
+                    .expiresAt(LocalDateTime.now().plusHours(2))
+                    .build();
+        }
+
+        // ── Legacy Mux video ──────────────────────────────────────────────────
         return muxService.getSignedPlaybackUrl(lesson);
     }
 
@@ -391,6 +416,47 @@ public class LessonServiceImpl implements LessonService {
         resources.remove(target);
         saveResourcesJson(lesson, resources);
         log.info("Resource {} removed from lesson '{}'", resourceId, lesson.getTitle());
+    }
+
+    // ── Video management ──────────────────────────────────────────────────────
+
+    @Override
+    public void verifyInstructorCanModifyLesson(UUID lessonId, UUID userId, UserRole userRole) {
+        if (userRole == UserRole.ADMIN) return;
+        CourseLesson lesson = findById(lessonId);
+        Course       course = lesson.getModule().getCourse();
+        if (!course.getInstructor().getId().equals(userId)) {
+            throw new ForbiddenException("You don't have permission to modify this lesson's video");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void registerLocalVideo(UUID lessonId, String filePath, String originalFilename,
+                                   String contentType, long fileSize) {
+        CourseLesson lesson = findById(lessonId);
+
+        // Replace any existing local video record
+        videoAssetRepository.findByLessonId(lessonId).ifPresent(existing -> {
+            videoStorageService.deleteVideo(existing.getFilePath());
+            videoAssetRepository.delete(existing);
+        });
+
+        VideoAsset asset = VideoAsset.builder()
+                .lesson(lesson)
+                .filePath(filePath)
+                .originalFilename(originalFilename)
+                .contentType(contentType)
+                .fileSize(fileSize)
+                .videoStatus("ready")
+                .build();
+        videoAssetRepository.save(asset);
+
+        lesson.setVideoFilePath(filePath);
+        lesson.setVideoStatus("ready");
+        lessonRepository.save(lesson);
+
+        log.info("Local video registered for lesson '{}': {}", lesson.getTitle(), filePath);
     }
 
     // ── helpers ────────────────────────────────────────────────────────────────

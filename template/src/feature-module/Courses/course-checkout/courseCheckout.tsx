@@ -1,12 +1,26 @@
+/**
+ * SARALÖWE Academy — Secure Course Checkout
+ *
+ * Replaced the fake payment simulation with real CMI Chaabi gateway.
+ *
+ * Flow:
+ *  1. Show order summary (items in Redux cart)
+ *  2. On "Proceed to Payment" — call paymentService.initiateCmiCourse(firstItem.id)
+ *  3. Store remaining cart items in sessionStorage as sl_checkout_queue
+ *  4. Auto-submit hidden form → browser navigates to CMI hosted payment page
+ *  5. CMI redirects back to /payment/callback → paymentCallback.tsx polls DB
+ *  6. On success, callback page checks sl_checkout_queue and re-routes here if needed
+ */
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector, useAppDispatch } from '../../../core/redux/hooks';
-import { clearCart } from '../../../core/redux/cartSlice';
+import { removeFromCart } from '../../../core/redux/cartSlice';
 import { App } from 'antd';
 import { getFileUrl } from '../../../environment';
 import PaymentBadges from '../../common/PaymentBadges';
+import { paymentService } from '../../../services/api/payment.service';
 
 /* ── Design tokens ── */
 const GOLD   = '#C5973E';
@@ -16,15 +30,13 @@ const BURG_D = '#8B2335';
 const IVORY  = '#F7F4EE';
 const DARK   = '#1A1614';
 
-type PaymentTab = 'card' | 'paypal' | 'bank';
-
 const CourseCheckout = () => {
   const { t } = useTranslation();
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
   const { items } = useAppSelector((s) => s.cart);
 
   const subtotal   = items.reduce((sum, item) => sum + (item.price ?? 0), 0);
@@ -32,100 +44,48 @@ const CourseCheckout = () => {
   const tax        = parseFloat((subtotal * 0.2).toFixed(2));
   const total      = parseFloat((subtotal + tax).toFixed(2));
 
-  const [payTab, setPayTab]         = useState<PaymentTab>('card');
   const [processing, setProcessing] = useState(false);
 
-  /* Billing form state */
-  const [form, setForm] = useState({
-    firstName:   user?.fullName?.split(' ')[0] ?? '',
-    lastName:    user?.fullName?.split(' ').slice(1).join(' ') ?? '',
-    email:       user?.email ?? '',
-    phone:       '',
-    address1:    '',
-    address2:    '',
-    city:        '',
-    country:     'Morocco',
-    saveInfo:    false,
-    cardNumber:  '',
-    cardName:    '',
-    expiry:      '',
-    cvv:         '',
-    paypalEmail: '',
-    bankName:    '',
-  });
-
-  const set = (field: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setForm(prev => ({ ...prev, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value }));
-
-  /* ── Helpers ── */
-  const formatCard = (val: string) =>
-    val.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
-
-  const formatExpiry = (val: string) => {
-    const v = val.replace(/\D/g, '').slice(0, 4);
-    return v.length >= 3 ? `${v.slice(0, 2)}/${v.slice(2)}` : v;
-  };
-
+  /* ── CMI checkout handler ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
       message.warning(t('courseCheckout.loginToPurchase', 'Please login to complete your purchase'));
+      navigate(route.login);
       return;
     }
     if (items.length === 0) {
       message.error(t('courseCart.empty', 'Your cart is empty'));
       return;
     }
+
     setProcessing(true);
-    /* Simulate payment processing */
-    await new Promise(r => setTimeout(r, 2200));
-    setProcessing(false);
-    dispatch(clearCart());
-    message.success(t('courseCheckout.paymentSuccess', 'Payment successful! You are now enrolled in your courses.'));
-    navigate(route.studentDashboard || '/');
-  };
+    try {
+      // Take the first course in the cart; store the rest in a queue
+      const [firstItem, ...remainingItems] = items;
 
-  /* ── Input style helper ── */
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '12px 16px',
-    border: '1.5px solid #e8e0d8',
-    borderRadius: 10, fontSize: 14, color: DARK,
-    background: '#faf8f5', outline: 'none',
-    transition: 'border-color .2s',
-    boxSizing: 'border-box',
-  };
-  const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 13, fontWeight: 600,
-    color: '#555', marginBottom: 6,
-  };
-  const fieldStyle: React.CSSProperties = {
-    marginBottom: 18,
-  };
+      const cmiResp = await paymentService.initiateCmiCourse(firstItem.id);
+      sessionStorage.setItem('sl_pending_txn_id', cmiResp.transactionId);
+      sessionStorage.setItem('sl_pending_plan_id', 'course');
+      sessionStorage.setItem('sl_pending_course_id', firstItem.id);
 
-  const tabBtn = (tab: PaymentTab, label: string, icon: string) => (
-    <button
-      type="button"
-      onClick={() => setPayTab(tab)}
-      style={{
-        flex: 1, padding: '12px 8px',
-        background: payTab === tab
-          ? `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_L} 100%)`
-          : '#fff',
-        border: payTab === tab ? 'none' : '1.5px solid #e8e0d8',
-        borderRadius: 10, cursor: 'pointer',
-        color: payTab === tab ? '#fff' : '#555',
-        fontWeight: 700, fontSize: 13,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', gap: 4,
-        transition: 'all .2s',
-        boxShadow: payTab === tab ? `0 4px 12px ${GOLD}44` : 'none',
-      }}
-    >
-      <i className={`isax ${icon}`} style={{ fontSize: 20 }} />
-      {label}
-    </button>
-  );
+      if (remainingItems.length > 0) {
+        sessionStorage.setItem('sl_checkout_queue', JSON.stringify(remainingItems));
+      } else {
+        sessionStorage.removeItem('sl_checkout_queue');
+      }
+
+      // Browser navigates away to CMI payment page — no further React work
+      paymentService.submitCmiForm(cmiResp.gatewayUrl, cmiResp.formParams);
+    } catch (err: unknown) {
+      setProcessing(false);
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      message.error(
+        axiosErr.response?.data?.message ||
+        t('courseCheckout.paymentFailed', 'Payment initiation failed. Please try again.')
+      );
+    }
+  };
 
   return (
     <div style={{ background: IVORY, minHeight: '100vh' }}>
@@ -182,7 +142,7 @@ const CourseCheckout = () => {
       </div>
 
       {/* ── Body ── */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 80px' }}>
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px 80px' }}>
 
         {items.length === 0 ? (
           <div style={{
@@ -219,20 +179,18 @@ const CourseCheckout = () => {
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'start' }}>
 
-              {/* ── Left Column ── */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+              {/* ── Left Column: Order details + CMI notice ── */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-                {/* Step 1: Billing */}
+                {/* Course list */}
                 <div style={{
                   background: '#fff', borderRadius: 20,
                   boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
                   border: '1px solid #f0ebe6', overflow: 'hidden',
                 }}>
-                  {/* Section header */}
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '20px 28px',
-                    borderBottom: '1px solid #f0ebe6',
+                    padding: '20px 28px', borderBottom: '1px solid #f0ebe6',
                   }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: '50%',
@@ -242,139 +200,74 @@ const CourseCheckout = () => {
                     }}>1</div>
                     <div>
                       <h4 style={{ margin: 0, fontFamily: "'Playfair Display', Georgia, serif", color: DARK, fontSize: 18 }}>
-                        {t('courseCheckout.billingInfo', 'Billing Information')}
+                        {t('courseCheckout.yourCourses', 'Your Courses')}
                       </h4>
-                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>{t('courseCheckout.billingDetails', 'Your personal and billing details')}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>
+                        {items.length} {items.length !== 1
+                          ? t('courseCart.coursesInCartPlural', 'courses selected')
+                          : t('courseCart.courseInCart', 'course selected')}
+                      </p>
                     </div>
                   </div>
 
-                  <div style={{ padding: '24px 28px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>{t('courseCheckout.firstName', 'First Name')} <span style={{ color: BURG }}>*</span></label>
-                        <input
-                          required
-                          type="text"
-                          value={form.firstName}
-                          onChange={set('firstName')}
-                          placeholder="Mohammed"
-                          style={inputStyle}
-                          onFocus={e => { e.target.style.borderColor = GOLD; }}
-                          onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                        />
-                      </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>{t('courseCheckout.lastName', 'Last Name')} <span style={{ color: BURG }}>*</span></label>
-                        <input
-                          required
-                          type="text"
-                          value={form.lastName}
-                          onChange={set('lastName')}
-                          placeholder="Alami"
-                          style={inputStyle}
-                          onFocus={e => { e.target.style.borderColor = GOLD; }}
-                          onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                        />
-                      </div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>{t('courseCheckout.emailAddress', 'Email Address')} <span style={{ color: BURG }}>*</span></label>
-                        <input
-                          required
-                          type="email"
-                          value={form.email}
-                          onChange={set('email')}
-                          placeholder="you@example.com"
-                          style={inputStyle}
-                          onFocus={e => { e.target.style.borderColor = GOLD; }}
-                          onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                        />
-                      </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>{t('courseCheckout.phoneOptional', 'Phone (Optional)')}</label>
-                        <input
-                          type="tel"
-                          value={form.phone}
-                          onChange={set('phone')}
-                          placeholder="+212 6XX XXX XXX"
-                          style={inputStyle}
-                          onFocus={e => { e.target.style.borderColor = GOLD; }}
-                          onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                        />
-                      </div>
-                    </div>
-                    <div style={fieldStyle}>
-                      <label style={labelStyle}>{t('courseCheckout.address1', 'Address Line 1')} <span style={{ color: BURG }}>*</span></label>
-                      <input
-                        required
-                        type="text"
-                        value={form.address1}
-                        onChange={set('address1')}
-                        placeholder="Street address, P.O. box"
-                        style={inputStyle}
-                        onFocus={e => { e.target.style.borderColor = GOLD; }}
-                        onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                      />
-                    </div>
-                    <div style={fieldStyle}>
-                      <label style={labelStyle}>{t('courseCheckout.address2Optional', 'Address Line 2 (Optional)')}</label>
-                      <input
-                        type="text"
-                        value={form.address2}
-                        onChange={set('address2')}
-                        placeholder="Apartment, suite, unit, etc."
-                        style={inputStyle}
-                        onFocus={e => { e.target.style.borderColor = GOLD; }}
-                        onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                      />
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>{t('courseCheckout.city', 'City')} <span style={{ color: BURG }}>*</span></label>
-                        <input
-                          required
-                          type="text"
-                          value={form.city}
-                          onChange={set('city')}
-                          placeholder="Casablanca"
-                          style={inputStyle}
-                          onFocus={e => { e.target.style.borderColor = GOLD; }}
-                          onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                        />
-                      </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>{t('courseCheckout.country', 'Country')} <span style={{ color: BURG }}>*</span></label>
-                        <select
-                          required
-                          value={form.country}
-                          onChange={set('country')}
-                          style={{ ...inputStyle, cursor: 'pointer' }}
-                          onFocus={e => { e.target.style.borderColor = GOLD; }}
-                          onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                        >
-                          <option value="Morocco">Morocco</option>
-                          <option value="Algeria">Algeria</option>
-                          <option value="Tunisia">Tunisia</option>
-                          <option value="Egypt">Egypt</option>
-                          <option value="France">France</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', marginTop: 4 }}>
-                      <input
-                        type="checkbox"
-                        checked={form.saveInfo}
-                        onChange={set('saveInfo')}
-                        style={{ width: 16, height: 16, accentColor: GOLD }}
-                      />
-                      <span style={{ fontSize: 13, color: '#666' }}>{t('courseCheckout.saveInfo', 'Save this information for next time')}</span>
-                    </label>
+                  <div style={{ padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {items.map((item) => {
+                      const thumb = getFileUrl(item.thumbnailUrl) ?? item.thumbnailUrl;
+                      return (
+                        <div key={item.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 14,
+                          padding: '14px 0',
+                          borderBottom: '1px dashed #f0ebe6',
+                        }}>
+                          <div style={{ flexShrink: 0, width: 72, height: 52, borderRadius: 10, overflow: 'hidden', background: `${GOLD}15` }}>
+                            {thumb ? (
+                              <img src={thumb} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <i className="isax isax-book-1" style={{ fontSize: 22, color: GOLD }} />
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{
+                              margin: 0, fontSize: 14, color: DARK, fontWeight: 600, lineHeight: 1.4,
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {item.title}
+                            </p>
+                            {item.instructorName && (
+                              <p style={{ margin: '3px 0 0', fontSize: 12, color: '#888' }}>
+                                {t('courseCheckout.by', 'by')} {item.instructorName}
+                              </p>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: GOLD }}>
+                              {item.price === 0 ? t('courseList.free', 'Free') : `${item.price.toFixed(2)} MAD`}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => dispatch(removeFromCart(item.id))}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: '#ccc', fontSize: 16, padding: 4,
+                                display: 'flex', alignItems: 'center',
+                                transition: 'color .2s',
+                              }}
+                              title={t('courseCart.remove', 'Remove')}
+                              onMouseEnter={e => (e.currentTarget.style.color = BURG)}
+                              onMouseLeave={e => (e.currentTarget.style.color = '#ccc')}
+                            >
+                              <i className="isax isax-close-circle" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Step 2: Payment */}
+                {/* CMI Payment notice */}
                 <div style={{
                   background: '#fff', borderRadius: 20,
                   boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
@@ -394,181 +287,56 @@ const CourseCheckout = () => {
                       <h4 style={{ margin: 0, fontFamily: "'Playfair Display', Georgia, serif", color: DARK, fontSize: 18 }}>
                         {t('courseCheckout.paymentMethod', 'Payment Method')}
                       </h4>
-                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>{t('courseCheckout.choosePayment', 'Choose your preferred payment')}</p>
-                    </div>
-                    {/* Payment logos */}
-                    <div style={{ marginInlineStart: 'auto' }}>
-                      <PaymentBadges variant="light" label="" style={{ flexDirection: 'row', gap: 6 }} />
+                      <p style={{ margin: 0, fontSize: 12, color: '#999' }}>
+                        {t('courseCheckout.secureGateway', 'Secured by CMI Chaabi Payment')}
+                      </p>
                     </div>
                   </div>
 
                   <div style={{ padding: '24px 28px' }}>
-                    {/* Tab selector */}
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-                                      {tabBtn('card', t('courseCheckout.creditCard', 'Credit Card'), 'isax-card')}
-                      {tabBtn('paypal', t('courseCheckout.paypal', 'PayPal'), 'isax-wallet-3')}
-                      {tabBtn('bank', t('courseCheckout.bankTransfer', 'Bank Transfer'), 'isax-bank')}
+                    {/* CMI gateway notice */}
+                    <div style={{
+                      background: `linear-gradient(135deg, #f9f4eb 0%, #fff8ed 100%)`,
+                      border: `1.5px solid ${GOLD}44`,
+                      borderRadius: 14, padding: '20px 24px',
+                      display: 'flex', alignItems: 'flex-start', gap: 14,
+                    }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                        background: `linear-gradient(135deg, ${GOLD}22 0%, ${GOLD_L}22 100%)`,
+                        border: `1.5px solid ${GOLD}44`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <i className="isax isax-card" style={{ fontSize: 22, color: GOLD }} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: DARK, marginBottom: 6 }}>
+                          {t('courseCheckout.cmiTitle', 'CMI Chaabi Secure Payment')}
+                        </div>
+                        <p style={{ margin: 0, fontSize: 13, color: '#666', lineHeight: 1.6 }}>
+                          {t('courseCheckout.cmiDesc', 'You will be redirected to the CMI Chaabi secure payment page to enter your card details. We do not store or process your card information.')}
+                        </p>
+                        {items.length > 1 && (
+                          <div style={{
+                            marginTop: 10, padding: '8px 12px',
+                            background: `rgba(197,151,62,0.08)`, borderRadius: 8,
+                            fontSize: 12, color: '#8B6914',
+                            display: 'flex', alignItems: 'center', gap: 6,
+                          }}>
+                            <i className="isax isax-info-circle" style={{ flexShrink: 0 }} />
+                            {t('courseCheckout.multiCourseInfo',
+                              `You have ${items.length} courses. Each course is processed in a separate secure transaction. Starting with: "${items[0]?.title}".`,
+                              { count: items.length, title: items[0]?.title }
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Card form */}
-                    {payTab === 'card' && (
-                      <div>
-                        <div style={fieldStyle}>
-                          <label style={labelStyle}>{t('courseCheckout.cardNumber', 'Card Number')} <span style={{ color: BURG }}>*</span></label>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              required
-                              type="text"
-                              value={form.cardNumber}
-                              onChange={e => setForm(p => ({ ...p, cardNumber: formatCard(e.target.value) }))}
-                              placeholder="1234 5678 9012 3456"
-                              maxLength={19}
-                              style={{ ...inputStyle, paddingRight: 48 }}
-                              onFocus={e => { e.target.style.borderColor = GOLD; }}
-                              onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                            />
-                            <i className="isax isax-card" style={{
-                              position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-                              fontSize: 20, color: '#ccc',
-                            }} />
-                          </div>
-                        </div>
-                        <div style={fieldStyle}>
-                          <label style={labelStyle}>{t('courseCheckout.nameOnCard', 'Name on Card')} <span style={{ color: BURG }}>*</span></label>
-                          <input
-                            required
-                            type="text"
-                            value={form.cardName}
-                            onChange={set('cardName')}
-                            placeholder="MOHAMMED ALAMI"
-                            style={inputStyle}
-                            onFocus={e => { e.target.style.borderColor = GOLD; }}
-                            onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                          />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                          <div style={fieldStyle}>
-                            <label style={labelStyle}>{t('courseCheckout.expiryDate', 'Expiry Date')} <span style={{ color: BURG }}>*</span></label>
-                            <input
-                              required
-                              type="text"
-                              value={form.expiry}
-                              onChange={e => setForm(p => ({ ...p, expiry: formatExpiry(e.target.value) }))}
-                              placeholder="MM/YY"
-                              maxLength={5}
-                              style={inputStyle}
-                              onFocus={e => { e.target.style.borderColor = GOLD; }}
-                              onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                            />
-                          </div>
-                          <div style={fieldStyle}>
-                            <label style={labelStyle}>{t('courseCheckout.cvv', 'CVV')} <span style={{ color: BURG }}>*</span></label>
-                            <div style={{ position: 'relative' }}>
-                              <input
-                                required
-                                type="password"
-                                value={form.cvv}
-                                onChange={e => setForm(p => ({ ...p, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-                                placeholder="•••"
-                                maxLength={4}
-                                style={{ ...inputStyle, paddingRight: 44 }}
-                                onFocus={e => { e.target.style.borderColor = GOLD; }}
-                                onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                              />
-                              <i className="isax isax-info-circle" style={{
-                                position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-                                fontSize: 16, color: '#ccc', cursor: 'pointer',
-                              }} title={t('courseCheckout.cvvHint', '3 or 4 digit security code on the back of your card')} />
-                            </div>
-                          </div>
-                        </div>
-                        {/* Accepted cards */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                          <span style={{ fontSize: 12, color: '#999' }}>{t('courseCheckout.weAccept', 'We accept:')}</span>
-                          {['isax-visa', 'isax-mastercardcard', 'isax-card'].map((ic, idx) => (
-                            <div key={idx} style={{
-                              width: 40, height: 26, borderRadius: 6,
-                              background: '#f5f5f5', border: '1px solid #e8e0d8',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}>
-                              <i className={`isax ${ic}`} style={{ fontSize: 14, color: '#888' }} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* PayPal form */}
-                    {payTab === 'paypal' && (
-                      <div>
-                        <div style={{
-                          background: '#f0f5ff', border: '1.5px solid #ccd9f5',
-                          borderRadius: 12, padding: '20px 24px',
-                          textAlign: 'center', marginBottom: 20,
-                        }}>
-                          <div style={{ fontSize: 36, color: '#003087', marginBottom: 8 }}>PayPal</div>
-                          <p style={{ margin: 0, color: '#555', fontSize: 13 }}>
-                            {t('courseCheckout.paypalRedirect', 'You will be redirected to PayPal to complete your payment securely.')}
-                          </p>
-                        </div>
-                        <div style={fieldStyle}>
-                          <label style={labelStyle}>{t('courseCheckout.paypalEmail', 'PayPal Email')} <span style={{ color: BURG }}>*</span></label>
-                          <input
-                            required
-                            type="email"
-                            value={form.paypalEmail}
-                            onChange={set('paypalEmail')}
-                            placeholder="your@paypal.com"
-                            style={inputStyle}
-                            onFocus={e => { e.target.style.borderColor = GOLD; }}
-                            onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Bank Transfer form */}
-                    {payTab === 'bank' && (
-                      <div>
-                        <div style={{
-                          background: `${GOLD}08`, border: `1.5px solid ${GOLD}30`,
-                          borderRadius: 12, padding: '20px 24px', marginBottom: 20,
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                            <i className="isax isax-info-circle" style={{ color: GOLD, fontSize: 20 }} />
-                            <strong style={{ color: DARK, fontSize: 14 }}>{t('courseCheckout.bankTransferInstructions', 'Bank Transfer Instructions')}</strong>
-                          </div>
-                          <p style={{ margin: 0, fontSize: 13, color: '#666', lineHeight: 1.7 }}>
-                            {t('courseCheckout.bankTransferDesc', 'Please transfer the total amount to the following account and include your order number as the reference. Your enrollment will be activated within 24 hours.')}
-                          </p>
-                          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {[
-                              ['Bank', 'Attijariwafa Bank'],
-                              ['Account Name', 'Academy Platform SARL'],
-                              ['IBAN', 'MA64 0011 0000 0000 0000 0000 000'],
-                              ['SWIFT', 'BCMAMAMC'],
-                            ].map(([k, v]) => (
-                              <div key={k} style={{ display: 'flex', gap: 10, fontSize: 13 }}>
-                                <span style={{ color: '#999', minWidth: 100 }}>{k}:</span>
-                                <strong style={{ color: DARK }}>{v}</strong>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div style={fieldStyle}>
-                          <label style={labelStyle}>{t('courseCheckout.yourBankName', 'Your Bank Name (Optional)')}</label>
-                          <input
-                            type="text"
-                            value={form.bankName}
-                            onChange={set('bankName')}
-                            placeholder="e.g. CIH Bank"
-                            style={inputStyle}
-                            onFocus={e => { e.target.style.borderColor = GOLD; }}
-                            onBlur={e => { e.target.style.borderColor = '#e8e0d8'; }}
-                          />
-                        </div>
-                      </div>
-                    )}
+                    {/* Accepted payment logos */}
+                    <div style={{ marginTop: 20 }}>
+                      <PaymentBadges variant="light" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -596,42 +364,6 @@ const CourseCheckout = () => {
                   </div>
 
                   <div style={{ padding: '20px 24px' }}>
-                    {/* Course list */}
-                    <div style={{ maxHeight: 260, overflowY: 'auto', marginBottom: 16, paddingRight: 4 }}>
-                      {items.map((item) => {
-                        const thumb = getFileUrl(item.thumbnailUrl) ?? item.thumbnailUrl;
-                        return (
-                          <div key={item.id} style={{
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            padding: '10px 0',
-                            borderBottom: '1px dashed #f0ebe6',
-                          }}>
-                            <div style={{ flexShrink: 0, width: 52, height: 40, borderRadius: 8, overflow: 'hidden', background: `${GOLD}15` }}>
-                              {thumb ? (
-                                <img src={thumb} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              ) : (
-                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <i className="isax isax-book-1" style={{ fontSize: 18, color: GOLD }} />
-                                </div>
-                              )}
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ margin: 0, fontSize: 12, color: DARK, fontWeight: 600, lineHeight: 1.4,
-                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {item.title}
-                              </p>
-                              {item.instructorName && (
-                                <p style={{ margin: '2px 0 0', fontSize: 11, color: '#999' }}>{item.instructorName}</p>
-                              )}
-                            </div>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                              {item.price === 0 ? t('courseList.free', 'Free') : `${item.price.toFixed(2)}`}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
                     {/* Price breakdown */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -654,10 +386,7 @@ const CourseCheckout = () => {
                     <div style={{ height: 1, background: '#f0ebe6', margin: '12px 0 16px' }} />
 
                     {/* Total */}
-                    <div style={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      marginBottom: 20,
-                    }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                       <span style={{ fontWeight: 700, color: DARK, fontSize: 16 }}>{t('courseCart.total', 'Total')}</span>
                       <span style={{
                         fontFamily: "'Playfair Display', Georgia, serif",
@@ -671,7 +400,7 @@ const CourseCheckout = () => {
                     <div style={{
                       background: `${GOLD}10`, border: `1px solid ${GOLD}30`,
                       borderRadius: 10, padding: '12px 14px',
-                      marginBottom: 16,
+                      marginBottom: 20,
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                     }}>
                       <i className="isax isax-shield-tick" style={{ color: GOLD, fontSize: 20, flexShrink: 0, marginTop: 1 }} />
@@ -681,25 +410,22 @@ const CourseCheckout = () => {
                       </p>
                     </div>
 
-                    {/* Payment method logos */}
-                    <PaymentBadges variant="light" style={{ marginBottom: 20 }} />
-
                     {/* Submit */}
                     <button
                       type="submit"
                       disabled={processing}
                       style={{
-                        width: '100%', padding: '15px',
+                        width: '100%', padding: '16px',
                         background: processing
                           ? '#ccc'
-                          : `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_L} 100%)`,
+                          : `linear-gradient(135deg, ${BURG} 0%, ${BURG_D} 100%)`,
                         color: '#fff', border: 'none',
-                        borderRadius: 50, cursor: processing ? 'not-allowed' : 'pointer',
-                        fontSize: 16, fontWeight: 700,
-                        boxShadow: processing ? 'none' : `0 6px 20px ${GOLD}55`,
+                        borderRadius: 14, cursor: processing ? 'not-allowed' : 'pointer',
+                        fontSize: 15, fontWeight: 700,
+                        boxShadow: processing ? 'none' : `0 6px 20px rgba(101,28,50,0.35)`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                         transition: 'all .2s',
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.4,
                       }}
                     >
                       {processing ? (
@@ -708,18 +434,21 @@ const CourseCheckout = () => {
                             <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
                             <path d="M12 2a10 10 0 0 1 10 10" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
                           </svg>
-                          {t('courseCheckout.processing', 'Processing Payment...')}
+                          {t('courseCheckout.redirecting', 'Redirecting to payment…')}
                         </>
                       ) : (
                         <>
-                          <i className="isax isax-lock" />
-                          {t('courseCheckout.completePurchase', 'Complete Purchase')} — {total.toFixed(2)} MAD
+                          <i className="isax isax-lock" style={{ fontSize: 18 }} />
+                          {t('courseCheckout.proceedToPayment', 'Proceed to Secure Payment')}
                         </>
                       )}
                     </button>
 
+                    {/* CMI logos */}
+                    <PaymentBadges variant="light" style={{ marginTop: 16 }} />
+
                     {/* Terms note */}
-                    <p style={{ margin: '14px 0 0', fontSize: 11, color: '#aaa', textAlign: 'center', lineHeight: 1.5 }}>
+                    <p style={{ margin: '12px 0 0', fontSize: 11, color: '#aaa', textAlign: 'center', lineHeight: 1.5 }}>
                       {t('courseCheckout.byCompleting', 'By completing your purchase, you agree to our')}{' '}
                       <Link to="/terms" style={{ color: GOLD }}>{t('courseCheckout.termsOfService', 'Terms of Service')}</Link>{' '}
                       {t('courseCheckout.and', 'and')}{' '}

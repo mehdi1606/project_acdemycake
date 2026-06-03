@@ -5,14 +5,21 @@ import {
   PaginatedResponse,
 } from './types';
 
+// ── CMI Chaabi response type ──────────────────────────────────────────────────
+export interface CmiInitiateResponse {
+  transactionId: string;          // our internal DB UUID → store in sessionStorage
+  gatewayUrl: string;             // CMI gateway URL to POST to
+  formParams: Record<string, string>; // all CMI params including pre-computed HASH
+}
+
 class PaymentService {
-  // Initiate course purchase payment
+  // ── Legacy (PayZone) ────────────────────────────────────────────────────────
+
   async purchaseCourse(courseId: number): Promise<InitiatePaymentResponse> {
     const response = await api.post<InitiatePaymentResponse>(`/payments/course/${courseId}`);
     return response.data;
   }
 
-  // Get payment history
   async getPaymentHistory(
     page = 0,
     size = 10
@@ -23,18 +30,76 @@ class PaymentService {
     return response.data;
   }
 
-  // Get transaction details
-  async getTransactionDetails(transactionId: number): Promise<PaymentTransaction> {
+  async getTransactionDetails(transactionId: string): Promise<PaymentTransaction> {
     const response = await api.get<PaymentTransaction>(`/payments/transaction/${transactionId}`);
     return response.data;
   }
 
-  // NOTE: The GET /callback endpoint has been removed from the backend.
-  // Payment status updates are driven exclusively by the signed POST /webhook.
-  // After a payment gateway redirect, fetch the latest transaction to check status:
   async getTransactionStatus(transactionId: string): Promise<PaymentTransaction> {
     const response = await api.get<PaymentTransaction>(`/payments/transaction/${transactionId}`);
     return response.data;
+  }
+
+  // ── CMI Chaabi Payment ──────────────────────────────────────────────────────
+
+  /**
+   * Initiate a CMI subscription payment.
+   * Returns form params that the frontend must auto-submit to the CMI gateway.
+   */
+  async initiateCmiSubscription(
+    planId: string,
+    couponCode?: string
+  ): Promise<CmiInitiateResponse> {
+    const params: Record<string, string> = { planId };
+    if (couponCode?.trim()) params.couponCode = couponCode.trim();
+
+    const response = await api.post<CmiInitiateResponse>(
+      '/payments/cmi/initiate/subscription',
+      null,
+      { params }
+    );
+    return response.data;
+  }
+
+  /**
+   * Initiate a CMI course purchase.
+   * Returns form params that the frontend must auto-submit to the CMI gateway.
+   */
+  async initiateCmiCourse(courseId: string): Promise<CmiInitiateResponse> {
+    const response = await api.post<CmiInitiateResponse>(
+      `/payments/cmi/initiate/course/${courseId}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Auto-submits a hidden HTML form to the CMI payment gateway.
+   * The browser navigates away to CMI's hosted payment page.
+   *
+   * @param gatewayUrl  The CMI gateway URL (from CmiInitiateResponse)
+   * @param formParams  All CMI params including HASH (from CmiInitiateResponse)
+   */
+  submitCmiForm(gatewayUrl: string, formParams: Record<string, string>): void {
+    // Remove any existing CMI form to prevent duplicates
+    const existing = document.getElementById('__cmi_pay_form__');
+    if (existing) existing.remove();
+
+    const form = document.createElement('form');
+    form.id     = '__cmi_pay_form__';
+    form.method = 'POST';
+    form.action = gatewayUrl;
+    form.style.display = 'none';
+
+    for (const [name, value] of Object.entries(formParams)) {
+      const input = document.createElement('input');
+      input.type  = 'hidden';
+      input.name  = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
   }
 }
 

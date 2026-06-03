@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import VideoPlayer from '../../../components/VideoPlayer';
 import courseService from '../../../services/api/course.service';
 import quizService from '../../../services/api/quiz.service';
 import {
@@ -104,11 +105,11 @@ const CourseWatch: React.FC = () => {
   const [timeLeft,    setTimeLeft]    = useState(0);
   const [submitting,  setSubmitting]  = useState(false);
 
-  const attemptIdRef  = useRef<string | null>(null);
-  const answersRef    = useRef<QuizAnswer[]>([]);
-  const quizPhaseRef  = useRef<QuizPhase>('loading');
-  const videoRef      = useRef<HTMLVideoElement>(null);
-  const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const attemptIdRef     = useRef<string | null>(null);
+  const answersRef       = useRef<QuizAnswer[]>([]);
+  const quizPhaseRef     = useRef<QuizPhase>('loading');
+  /** Timestamp (ms) of the last progress update sent to the backend. */
+  const lastProgressRef  = useRef<number>(0);
 
   // ── Load course ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -167,10 +168,11 @@ const CourseWatch: React.FC = () => {
       const detail = await courseService.getLessonDetail(lesson.id);
       setLessonDetail(detail);
       if (detail.contentType === 'VIDEO') {
-        if (detail.videoUrl) setVideoUrl(detail.videoUrl);
-        else if (detail.muxPlaybackId) {
-          try { const { videoUrl: u } = await courseService.getLessonVideoUrl(lesson.id); setVideoUrl(u); }
-          catch { setVideoUrl(null); }
+        try {
+          const { playbackUrl } = await courseService.getLessonVideoUrl(lesson.id);
+          setVideoUrl(playbackUrl || null);
+        } catch {
+          setVideoUrl(null);
         }
       }
     } catch { setLessonDetail(null); }
@@ -331,20 +333,15 @@ const CourseWatch: React.FC = () => {
   const fmtTime = (s: number) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
 
   // ── Video progress tracking ───────────────────────────────────────────────
-  const stopProgress = useCallback(() => {
-    if (progressTimer.current) { clearInterval(progressTimer.current); progressTimer.current = null; }
-  }, []);
-  useEffect(() => {
-    if (!lessonDetail?.id || lessonDetail.contentType !== 'VIDEO') return;
-    const lid = lessonDetail.id;
-    stopProgress();
-    progressTimer.current = setInterval(() => {
-      const v = videoRef.current;
-      if (!v || v.paused) return;
-      courseService.updateLessonProgress(lid, Math.floor(v.currentTime)).catch(() => {});
-    }, 30_000);
-    return stopProgress;
-  }, [lessonDetail, stopProgress]);
+  // Throttled to one backend call per 30 s via the lastProgressRef timestamp.
+  const handleVideoTimeUpdate = useCallback((currentTime: number, _duration: number) => {
+    if (!lessonDetail?.id) return;
+    const now = Date.now();
+    if (now - lastProgressRef.current >= 30_000) {
+      lastProgressRef.current = now;
+      courseService.updateLessonProgress(lessonDetail.id, Math.floor(currentTime)).catch(() => {});
+    }
+  }, [lessonDetail?.id]);
 
   const onVideoEnded = useCallback(async () => {
     if (!lessonDetail) return;
@@ -655,31 +652,16 @@ const CourseWatch: React.FC = () => {
           ) : selectedLesson ? (
             <>
               {/* ── Media zone ── */}
-              <div style={{ background:DARK_BG, flexShrink:0 }}>
+              <div style={{ background:'#000', flexShrink:0, width:'100%', position:'relative' }}>
 
-                {/* VIDEO */}
+                {/* VIDEO — full-width 16:9, height follows width naturally */}
                 {selectedLesson.contentType === 'VIDEO' && (
-                  <div style={{ aspectRatio:'16/9', position:'relative', background:'#000', maxHeight:'58vh' }}>
-                    {lessonDetail?.muxPlaybackId ? (
-                      <iframe
-                        title={selectedLesson.title}
-                        src={`https://player.mux.com/player.html?playback_id=${lessonDetail.muxPlaybackId}&metadata-video-title=${encodeURIComponent(selectedLesson.title)}`}
-                        style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                        allowFullScreen
-                      />
-                    ) : videoUrl ? (
-                      <video ref={videoRef} src={videoUrl} controls
-                        style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain' }}
-                        onEnded={onVideoEnded}
-                      />
-                    ) : (
-                      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', color:'rgba(255,255,255,0.2)', gap:10 }}>
-                        <i className="fa-solid fa-video-slash" style={{ fontSize:48 }} />
-                        <span style={{ fontSize:13 }}>Video not available</span>
-                      </div>
-                    )}
-                  </div>
+                  <VideoPlayer
+                    src={videoUrl}
+                    title={selectedLesson.title}
+                    onTimeUpdate={handleVideoTimeUpdate}
+                    onEnded={onVideoEnded}
+                  />
                 )}
 
                 {/* TEXT */}

@@ -64,8 +64,8 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 50MB
-      max-request-size: 100MB
+      max-file-size: 4096MB      # 4 GB — required for large video uploads
+      max-request-size: 4096MB
 
   thymeleaf:
     prefix: classpath:/templates/
@@ -113,7 +113,7 @@ mux:
   signing-private-key: ${MUX_SIGNING_PRIVATE_KEY:}
   webhook-secret: ${MUX_WEBHOOK_SECRET:}
 
-# PayZone Configuration
+# PayZone Configuration (legacy – kept for backward-compat)
 payzone:
   api-url: ${PAYZONE_API_URL:https://api.payzone.ma}
   merchant-id: ${PAYZONE_MERCHANT_ID:}
@@ -121,6 +121,23 @@ payzone:
   secret-key: ${PAYZONE_SECRET_KEY:}
   callback-url: ${PAYZONE_CALLBACK_URL:http://localhost:8080/api/v1/payments/webhook}
   return-url: ${PAYZONE_RETURN_URL:http://localhost:3000/payment/callback}
+
+# ── CMI Chaabi Payment ──────────────────────────────────────────────────────
+# Test environment:  client-id=600200127  store-key=TEST1234
+# Production:        use the real credentials from CMI
+# callbackUrl MUST be reachable from the internet (use ngrok in local dev)
+cmi:
+  client-id:    ${CMI_CLIENT_ID:820010041}
+  store-key:    ${CMI_STORE_KEY:saralowe@CMI2026}
+  gateway-url:  ${CMI_GATEWAY_URL:https://test-chaabipayment.cmi.co.ma/fim/est3dgate}
+  currency:     "504"                   # ISO 4217 numeric – 504 = MAD
+  # callbackUrl  = CMI server-to-server (must be public; use ngrok locally for real CMI tests)
+  # okUrl/failUrl = CMI POSTs browser here → /cmi/return redirects to React /payment/callback
+  #                 Works on localhost AND production without any nginx/dev-server changes.
+  callback-url: ${CMI_CALLBACK_URL:http://localhost:8080/api/v1/payments/cmi/callback}
+  ok-url:       ${CMI_OK_URL:http://localhost:8080/api/v1/payments/cmi/return}
+  fail-url:     ${CMI_FAIL_URL:http://localhost:8080/api/v1/payments/cmi/return}
+  shop-url:     ${CMI_SHOP_URL:https://www.saralowe.ma}
 
 # Swagger/OpenAPI
 springdoc:
@@ -184,3 +201,10 @@ logging:
 springdoc:
   swagger-ui:
     enabled: false
+
+# CMI URL overrides for production — /cmi/return handles POST→GET for both envs
+cmi:
+  callback-url: ${CMI_CALLBACK_URL:https://www.saralowe.ma/api/v1/payments/cmi/callback}
+  ok-url:       ${CMI_OK_URL:https://www.saralowe.ma/api/v1/payments/cmi/return}
+  fail-url:     ${CMI_FAIL_URL:https://www.saralowe.ma/api/v1/payments/cmi/return}
+  shop-url:     ${CMI_SHOP_URL:https://www.saralowe.ma}

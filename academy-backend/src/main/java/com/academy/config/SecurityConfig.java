@@ -69,7 +69,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Range"));
+        config.setExposedHeaders(List.of("Content-Range", "Accept-Ranges", "Content-Length"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
@@ -106,10 +107,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/payments/webhook").permitAll()
                         .requestMatchers("/api/v1/subscriptions/webhook").permitAll()
                         .requestMatchers("/api/v1/mux/webhook").permitAll()
+                        // CMI browser return after payment — POST from CMI, no JWT
+                        .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/return").permitAll()
+                        // CMI Chaabi server-to-server callback — no JWT (CMI posts without auth header)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/callback").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/certificates/verify/**").permitAll()
                         .requestMatchers("/files/**").permitAll()
+                        // Video streaming — token-gated, not JWT-gated
+                        .requestMatchers(HttpMethod.GET, "/api/v1/videos/*/stream").permitAll()
                         // WebSocket
                         .requestMatchers("/ws/**").permitAll()
                         // Actuator: ADMIN only

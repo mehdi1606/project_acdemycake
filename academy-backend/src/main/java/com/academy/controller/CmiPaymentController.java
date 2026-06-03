@@ -1,0 +1,121 @@
+package com.academy.controller;
+
+import com.academy.dto.response.ApiResponse;
+import com.academy.dto.response.CmiInitiateResponse;
+import com.academy.entity.User;
+import com.academy.integration.cmi.CmiPaymentService;
+import com.academy.security.UserPrincipal;
+import com.academy.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * CMI Chaabi Payment endpoints.
+ *
+ * POST /api/v1/payments/cmi/initiate/subscription   — initiate subscription payment
+ * POST /api/v1/payments/cmi/initiate/course/{id}    — initiate course purchase
+ * POST /api/v1/payments/cmi/callback                — CMI server-to-server callback (no JWT)
+ */
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/payments/cmi")
+@RequiredArgsConstructor
+@Tag(name = "CMI Payment", description = "CMI Chaabi payment gateway endpoints")
+public class CmiPaymentController {
+
+    private final CmiPaymentService cmiPaymentService;
+    private final UserService       userService;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
+    // ── Subscription ──────────────────────────────────────────────────────────
+
+    @PostMapping("/initiate/subscription")
+    @Operation(summary = "Initiate CMI subscription payment — returns form params to submit to gateway")
+    public ResponseEntity<ApiResponse<CmiInitiateResponse>> initiateSubscription(
+            @RequestParam(defaultValue = "yearly") String planId,
+            @RequestParam(required = false)         String couponCode,
+            @AuthenticationPrincipal UserPrincipal  principal) {
+
+        User user = userService.findById(principal.getId());
+        CmiInitiateResponse response = cmiPaymentService.initiateCmiSubscription(planId, couponCode, user);
+        return ResponseEntity.ok(ApiResponse.success("CMI payment form ready", response));
+    }
+
+    // ── Course purchase ───────────────────────────────────────────────────────
+
+    @PostMapping("/initiate/course/{courseId}")
+    @Operation(summary = "Initiate CMI course purchase — returns form params to submit to gateway")
+    public ResponseEntity<ApiResponse<CmiInitiateResponse>> initiateCourse(
+            @PathVariable UUID courseId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        User user = userService.findById(principal.getId());
+        CmiInitiateResponse response = cmiPaymentService.initiateCmiCoursePayment(courseId, user);
+        return ResponseEntity.ok(ApiResponse.success("CMI payment form ready", response));
+    }
+
+    // ── Browser return after payment (NO JWT) ─────────────────────────────────
+
+    /**
+     * CMI POSTs the browser to okUrl / failUrl after every payment attempt.
+     * Neither the React dev server nor nginx can serve index.html for a POST.
+     * This endpoint accepts the POST and converts it to a GET redirect to the
+     * React frontend — works identically on localhost and on production.
+     *
+     * The POST body from CMI is intentionally ignored: the React callback page
+     * reads sessionStorage (sl_pending_txn_id) and polls the DB for status.
+     */
+    @PostMapping(
+        value = "/return",
+        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
+    )
+    @Operation(summary = "CMI browser return URL — converts POST to GET redirect")
+    public ResponseEntity<Void> handleReturn() {
+        URI target = URI.create(frontendUrl + "/payment/callback");
+        log.info("CMI browser return → redirecting to {}", target);
+        return ResponseEntity.status(HttpStatus.FOUND).location(target).build();
+    }
+
+    // ── Server-to-server callback (NO JWT — excluded from Spring Security) ────
+
+    /**
+     * Called by CMI servers after every payment attempt.
+     *
+     * Must return plain text (NOT JSON):
+     *   "ACTION=POSTAUTH"  — payment accepted, debit the card automatically
+     *   "APPROVED"         — acknowledge without debiting (failed/rejected payment)
+     *   "FAILURE"          — hash mismatch or processing error (CMI will retry)
+     *
+     * This endpoint is listed in SecurityConfig as permitAll().
+     * Content-Type: application/x-www-form-urlencoded (CMI form-posts the params)
+     */
+    @PostMapping(
+        value = "/callback",
+        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+        produces = MediaType.TEXT_PLAIN_VALUE
+    )
+    @Operation(summary = "CMI server-to-server payment callback")
+    public ResponseEntity<String> handleCallback(
+            @RequestParam Map<String, String> params) {
+
+        log.info("CMI callback — oid={} ProcReturnCode={}",
+                params.get("oid"), params.get("ProcReturnCode"));
+
+        String result = cmiPaymentService.handleCmiCallback(params);
+        return ResponseEntity.ok(result);
+    }
+}

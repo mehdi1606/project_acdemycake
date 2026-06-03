@@ -46,6 +46,10 @@ public class CourseLesson extends BaseEntity {
     @Column(name = "video_thumbnail_url", length = 500)
     private String videoThumbnailUrl;
 
+    /** Path to a locally uploaded video file (relative to the upload root). */
+    @Column(name = "video_file_path", length = 500)
+    private String videoFilePath;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "content_type", nullable = false, length = 20)
     @Builder.Default
@@ -70,7 +74,8 @@ public class CourseLesson extends BaseEntity {
     private Integer orderIndex = 0;
 
     public boolean isVideoReady() {
-        return "ready".equals(videoStatus) && (muxPlaybackId != null || isLocalVideo());
+        return "ready".equals(videoStatus)
+                && (muxPlaybackId != null || isLocalVideo() || videoFilePath != null);
     }
 
     public boolean isLocalVideo() {

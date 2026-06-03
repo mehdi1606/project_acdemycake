@@ -6,6 +6,7 @@ import com.academy.dto.response.LessonResourceResponse;
 import com.academy.dto.response.LessonResponse;
 import com.academy.dto.response.VideoUrlResponse;
 import com.academy.entity.CourseLesson;
+import com.academy.entity.enums.UserRole;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -44,4 +45,18 @@ public interface LessonService {
     LessonResourceResponse uploadLessonResource(UUID lessonId, MultipartFile file, String name);
 
     void deleteLessonResource(UUID lessonId, Long resourceId);
+
+    /**
+     * Throws {@link com.academy.exception.ForbiddenException} if the given user
+     * is not ADMIN and does not own the course that contains this lesson.
+     */
+    void verifyInstructorCanModifyLesson(UUID lessonId, UUID userId, UserRole userRole);
+
+    /**
+     * Persist a freshly stored local video: creates/replaces the VideoAsset row
+     * and updates {@code course_lessons.video_file_path}.
+     * Runs in a single atomic transaction.
+     */
+    void registerLocalVideo(UUID lessonId, String filePath, String originalFilename,
+                            String contentType, long fileSize);
 }

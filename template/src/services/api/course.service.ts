@@ -194,8 +194,18 @@ class CourseService {
   }
 
   // Get signed video URL for lesson
-  async getLessonVideoUrl(lessonId: string): Promise<{ videoUrl: string; expiresAt: string }> {
-    const response = await api.get<{ videoUrl: string; expiresAt: string }>(`/lessons/${lessonId}/video-url`);
+  async getLessonVideoUrl(lessonId: string): Promise<{
+    playbackUrl: string;
+    expiresAt: string;
+    tokenId?: string;
+    durationSeconds?: number;
+  }> {
+    const response = await api.get<{
+      playbackUrl: string;
+      expiresAt: string;
+      tokenId?: string;
+      durationSeconds?: number;
+    }>(`/lessons/${lessonId}/video-url`);
     return response.data;
   }
 

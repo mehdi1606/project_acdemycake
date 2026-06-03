@@ -43,7 +43,22 @@
       "Bash(pip install *)",
       "Bash(python -c ' *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Plateform\\\\academy-backend\\\\src\" -Recurse -Filter \"*message*\" -ErrorAction SilentlyContinue)",
-      "Bash(xargs grep -l -i \"plan\\\\|pricing\\\\|subscription\\\\|payment\\\\|checkout\\\\|subscribe\")"
+      "Bash(xargs grep -l -i \"plan\\\\|pricing\\\\|subscription\\\\|payment\\\\|checkout\\\\|subscribe\")",
+      "Bash(xargs grep -l -i \"video\\\\|stream\\\\|player\\\\|mux\\\\|videojs\")",
+      "Bash(xargs grep -l -i \"lesson\\\\|chapter\\\\|video\\\\|course\")",
+      "Bash(mvn compile *)",
+      "Bash(curl -s -X POST http://localhost:8080/api/v1/auth/register -H 'Content-Type: application/json' -d '{\"fullName\":\"Test Student\",\"email\":\"student@test.com\",\"password\":\"Test@1234\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:8080/api/v1/auth/register -H 'Content-Type: application/json' -d '{\\\\\"fullName\\\\\":\\\\\"Test Student\\\\\",\\\\\"email\\\\\":\\\\\"student@test.com\\\\\",\\\\\"password\\\\\":\\\\\"Test@1234\\\\\"}')",
+      "Bash(echo \"RAW: $\\(curl -s -X POST http://localhost:8080/api/v1/auth/register -H 'Content-Type: application/json' -d '{\\\\\"fullName\\\\\":\\\\\"Test Student\\\\\",\\\\\"email\\\\\":\\\\\"student@test.com\\\\\",\\\\\"password\\\\\":\\\\\"Test@1234\\\\\"}'\\)\")",
+      "Bash(dir \"C:\\\\Users\\\\PC\\\\Plateform\\\\template\\\\src\" /s /b)",
+      "Bash(findstr /i \"pricePlanning\\\\|pricing\")",
+      "Bash(git -C \"/c/Users/PC/Plateform/template\" diff --stat)",
+      "Bash(git -C \"/c/Users/PC/Plateform/academy-backend\" diff --stat)",
+      "Bash(python3 -c \"import xlrd; wb=xlrd.open_workbook\\('CmiTestCards.xlsx'\\); print\\('xlrd ok'\\)\")",
+      "Bash(pip3 install *)",
+      "Bash(python3 -c ' *)",
+      "Bash(powershell.exe -Command ' *)"
     ]
   }
 }
