@@ -546,6 +546,26 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
             <PaymentBadges variant="light" />
           </div>
 
+          {/* ⚠️ CMI no-refresh warning */}
+          <div style={{
+            background: '#FFF8E6',
+            border: '1px solid #F5C842',
+            borderRadius: 10,
+            padding: '10px 14px',
+            marginBottom: 18,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 10,
+          }}>
+            <i className="isax isax-warning-2" style={{ fontSize: 18, color: '#C87A00', flexShrink: 0, marginTop: 1 }} />
+            <p style={{ fontSize: 12, color: '#7A5200', margin: 0, lineHeight: 1.5 }}>
+              {t(
+                'pricing.modal.cmiWarning',
+                "You will be redirected to the CMI Chaabi payment page. Do not refresh or close that page — your session will expire and you will need to restart. If that happens, simply come back here and try again."
+              )}
+            </p>
+          </div>
+
           {/* Actions */}
           <div style={{ display: 'flex', gap: 12 }}>
             <button

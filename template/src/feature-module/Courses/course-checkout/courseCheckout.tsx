@@ -410,6 +410,26 @@ const CourseCheckout = () => {
                       </p>
                     </div>
 
+                    {/* ⚠️ CMI no-refresh warning */}
+                    <div style={{
+                      background: '#FFF8E6',
+                      border: '1px solid #F5C842',
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      marginBottom: 16,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10,
+                    }}>
+                      <i className="isax isax-warning-2" style={{ fontSize: 17, color: '#C87A00', flexShrink: 0, marginTop: 1 }} />
+                      <p style={{ fontSize: 12, color: '#7A5200', margin: 0, lineHeight: 1.5 }}>
+                        {t(
+                          'checkout.cmiWarning',
+                          'You will be redirected to the CMI Chaabi payment page. Do not refresh or close that page — simply complete your payment and wait to be brought back here automatically.'
+                        )}
+                      </p>
+                    </div>
+
                     {/* Submit */}
                     <button
                       type="submit"
