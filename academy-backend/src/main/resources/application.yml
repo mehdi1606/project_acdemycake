@@ -123,12 +123,13 @@ payzone:
   return-url: ${PAYZONE_RETURN_URL:http://localhost:3000/payment/callback}
 
 # ── CMI Chaabi Payment ──────────────────────────────────────────────────────
-# Test environment default store key (from CMI official samples): TEST1234
-# Production: CMI will provide a different key — set CMI_STORE_KEY env var.
+# store-key MUST match the key set in CMI back office:
+#   https://test-chaabipayment.cmi.co.ma/chaabipayment/report
+#   Administration → Changer les clés du magasin
 # callbackUrl MUST be reachable from the internet (use ngrok in local dev)
 cmi:
   client-id:    ${CMI_CLIENT_ID:820010041}
-  store-key:    ${CMI_STORE_KEY:TEST1234}
+  store-key:    ${CMI_STORE_KEY:saralowe@CMI2026}
   gateway-url:  ${CMI_GATEWAY_URL:https://test-chaabipayment.cmi.co.ma/fim/est3dgate}
   currency:     "504"                   # ISO 4217 numeric – 504 = MAD
   # callbackUrl  = CMI server-to-server (must be public; use ngrok locally for real CMI tests)

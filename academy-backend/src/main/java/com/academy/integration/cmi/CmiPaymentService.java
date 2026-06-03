@@ -46,13 +46,19 @@ import java.util.UUID;
  *     → returns "ACTION=POSTAUTH", "APPROVED", or "FAILURE" as plain text
  *
  * Hash algorithm (ver3 / SHA-512):
+ *
+ *  OUTGOING (merchant → CMI, buildFormParams):
  *   - Collect all param names except "hash" and "encoding" (case-insensitive exclusion)
- *   - Sort case-insensitively (equivalent to PHP natcasesort)
+ *   - Sort case-insensitively
  *   - Escape each value: replace \ → \\ then | → \|
- *   - Build string: escaped_val1|escaped_val2|...|escaped_valN|escaped_storeKey
- *   - SHA-512 digest → raw bytes
- *   - Base64-encode the raw bytes
- *   (Equivalent to PHP: base64_encode(pack('H*', hash('sha512', $str))))
+ *   - Build string: escaped_val1|...|escaped_valN|escaped_storeKey
+ *   - SHA-512 digest → raw bytes → Base64
+ *
+ *  INCOMING / CALLBACK (CMI → merchant, handleCmiCallback):
+ *   - CMI includes HASHPARAMSVAL in the callback POST — the pre-concatenated escaped values
+ *   - Verify: HASH == Base64(SHA-512(HASHPARAMSVAL + "|" + storeKey))
+ *   - Falls back to sort-all-params if HASHPARAMSVAL is absent
+ *   (Equivalent to PHP: base64_encode(pack('H*', hash('sha512', $hashParamsVal . '|' . $storeKey))))
  */
 @Slf4j
 @Service
@@ -175,12 +181,11 @@ public class CmiPaymentService {
      */
     @Transactional
     public String handleCmiCallback(Map<String, String> params) {
-        log.info("CMI callback processing — oid={} ProcReturnCode={} paramCount={}",
-                params.get("oid"), params.get("ProcReturnCode"), params.size());
+        log.info("CMI callback received — oid={} ProcReturnCode={} paramKeys={}",
+                params.get("oid"), params.get("ProcReturnCode"), params.keySet());
 
         try {
-            // 1. Validate hash
-            // CMI may send the field as "HASH" or "hash" — find it case-insensitively
+            // 1. Find HASH (case-insensitive — CMI may send as "HASH" or "hash")
             String receivedHash = params.entrySet().stream()
                     .filter(e -> e.getKey().equalsIgnoreCase("hash"))
                     .map(Map.Entry::getValue)
@@ -188,21 +193,50 @@ public class CmiPaymentService {
                     .orElse(null);
 
             if (receivedHash == null) {
-                log.error("CMI callback missing HASH field — oid={} keys={}",
+                log.error("CMI callback missing HASH field — oid={} allKeys={}",
                         params.get("oid"), params.keySet());
                 return "FAILURE";
             }
 
-            String computedHash = computeHash(params);
+            // 2. Find HASHPARAMSVAL — CMI always includes this for ver3 callbacks.
+            //    The correct callback verification is:
+            //      SHA-512(HASHPARAMSVAL + "|" + storeKey) → Base64 == HASH
+            //    CMI uses HASHPARAMSVAL (not a re-sorted full-param hash) for callback integrity.
+            String hashParamsVal = params.entrySet().stream()
+                    .filter(e -> e.getKey().equalsIgnoreCase("hashparamsval"))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse(null);
+
+            log.debug("CMI callback hash fields — HASHPARAMSVAL_present={} HASH_prefix={}",
+                    hashParamsVal != null,
+                    receivedHash.length() > 8 ? receivedHash.substring(0, 8) + "…" : receivedHash);
+
+            String computedHash;
+            if (hashParamsVal != null) {
+                // Standard CMI ver3 callback verification using HASHPARAMSVAL
+                computedHash = computeCallbackHash(hashParamsVal);
+                log.debug("CMI callback using HASHPARAMSVAL path — computedHash_prefix={}",
+                        computedHash.length() > 8 ? computedHash.substring(0, 8) + "…" : computedHash);
+            } else {
+                // Fallback: no HASHPARAMSVAL — recompute from all sorted params
+                log.warn("CMI callback missing HASHPARAMSVAL — falling back to sort-all-params hash");
+                computedHash = computeHash(params);
+            }
 
             if (!computedHash.equals(receivedHash)) {
-                log.error("CMI callback HASH mismatch — oid={} storeKey_prefix={} receivedHash_prefix={} computedHash_prefix={}",
+                log.error("CMI callback HASH mismatch — oid={} storeKey_prefix={} received={} computed={} HASHPARAMSVAL_prefix={}",
                         params.get("oid"),
                         storeKey.length() > 4 ? storeKey.substring(0, 4) + "***" : "???",
-                        receivedHash.length() > 8 ? receivedHash.substring(0, 8) + "…" : receivedHash,
-                        computedHash.length() > 8 ? computedHash.substring(0, 8) + "…" : computedHash);
+                        receivedHash.length() > 12 ? receivedHash.substring(0, 12) + "…" : receivedHash,
+                        computedHash.length() > 12 ? computedHash.substring(0, 12) + "…" : computedHash,
+                        hashParamsVal != null
+                                ? (hashParamsVal.length() > 40 ? hashParamsVal.substring(0, 40) + "…" : hashParamsVal)
+                                : "N/A");
                 return "FAILURE";
             }
+
+            log.info("CMI callback HASH verified OK — oid={}", params.get("oid"));
 
             // 2. Check return code
             String procReturnCode = params.getOrDefault("ProcReturnCode", "");
@@ -301,6 +335,24 @@ public class CmiPaymentService {
 
         MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
         byte[] digest = sha512.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(digest);
+    }
+
+    /**
+     * Computes the CMI callback hash using HASHPARAMSVAL.
+     *
+     * CMI's callback integrity check (ver3):
+     *   HASH == Base64(SHA-512(HASHPARAMSVAL + "|" + storeKey))
+     *
+     * HASHPARAMSVAL is sent by CMI in the callback POST body — it is the
+     * pre-concatenated, escaped param-value string CMI used to build the hash.
+     * We just append our storeKey and verify.
+     */
+    private String computeCallbackHash(String hashParamsVal) throws NoSuchAlgorithmException {
+        // Append the store key (escaped, though our key contains no \ or |)
+        String hashInput = hashParamsVal + "|" + escapeValue(storeKey);
+        MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
+        byte[] digest = sha512.digest(hashInput.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(digest);
     }
 
