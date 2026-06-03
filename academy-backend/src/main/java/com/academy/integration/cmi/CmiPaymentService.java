@@ -175,16 +175,32 @@ public class CmiPaymentService {
      */
     @Transactional
     public String handleCmiCallback(Map<String, String> params) {
-        log.info("CMI callback received — oid={} ProcReturnCode={}",
-                params.get("oid"), params.get("ProcReturnCode"));
+        log.info("CMI callback processing — oid={} ProcReturnCode={} paramCount={}",
+                params.get("oid"), params.get("ProcReturnCode"), params.size());
 
         try {
             // 1. Validate hash
-            String receivedHash = params.get("HASH");
+            // CMI may send the field as "HASH" or "hash" — find it case-insensitively
+            String receivedHash = params.entrySet().stream()
+                    .filter(e -> e.getKey().equalsIgnoreCase("hash"))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse(null);
+
+            if (receivedHash == null) {
+                log.error("CMI callback missing HASH field — oid={} keys={}",
+                        params.get("oid"), params.keySet());
+                return "FAILURE";
+            }
+
             String computedHash = computeHash(params);
 
             if (!computedHash.equals(receivedHash)) {
-                log.error("CMI callback HASH mismatch — oid={}", params.get("oid"));
+                log.error("CMI callback HASH mismatch — oid={} storeKey_prefix={} receivedHash_prefix={} computedHash_prefix={}",
+                        params.get("oid"),
+                        storeKey.length() > 4 ? storeKey.substring(0, 4) + "***" : "???",
+                        receivedHash.length() > 8 ? receivedHash.substring(0, 8) + "…" : receivedHash,
+                        computedHash.length() > 8 ? computedHash.substring(0, 8) + "…" : computedHash);
                 return "FAILURE";
             }
 

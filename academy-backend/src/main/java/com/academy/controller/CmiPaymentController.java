@@ -101,21 +101,24 @@ public class CmiPaymentController {
      *   "FAILURE"          — hash mismatch or processing error (CMI will retry)
      *
      * This endpoint is listed in SecurityConfig as permitAll().
-     * Content-Type: application/x-www-form-urlencoded (CMI form-posts the params)
+     *
+     * NOTE: NO `consumes` restriction — CMI sometimes omits or varies the
+     * Content-Type header; Spring must accept the callback regardless.
      */
     @PostMapping(
         value = "/callback",
-        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
         produces = MediaType.TEXT_PLAIN_VALUE
     )
     @Operation(summary = "CMI server-to-server payment callback")
     public ResponseEntity<String> handleCallback(
             @RequestParam Map<String, String> params) {
 
-        log.info("CMI callback — oid={} ProcReturnCode={}",
-                params.get("oid"), params.get("ProcReturnCode"));
+        log.info("CMI callback received — oid={} ProcReturnCode={} params={}",
+                params.get("oid"), params.get("ProcReturnCode"), params.keySet());
 
         String result = cmiPaymentService.handleCmiCallback(params);
+
+        log.info("CMI callback response — oid={} result={}", params.get("oid"), result);
         return ResponseEntity.ok(result);
     }
 }
