@@ -154,16 +154,36 @@ public class PaymentServiceImpl implements PaymentService {
 
         switch (status.toUpperCase()) {
             case "SUCCESS", "COMPLETED" -> {
-                transaction.setStatus(PaymentStatus.COMPLETED);
-                transaction.setPayzoneTransactionId(transactionId);
-                transaction.setCompletedAt(LocalDateTime.now());
-                transactionRepository.save(transaction);
-
-                // Process based on transaction type
+                // ── SUBSCRIPTION ────────────────────────────────────────────────
+                // processSuccessfulPayment handles the full lifecycle internally:
+                //   1. Guards against duplicates (checks status itself)
+                //   2. Sets transaction COMPLETED + saves
+                //   3. Creates Subscription record
+                //   4. Updates User subscription fields
+                //   5. Sends confirmation email + enrolls in beginner courses
+                //
+                // DO NOT pre-save the transaction here — doing so causes
+                // processSuccessfulPayment to see status=COMPLETED and return early,
+                // which would silently skip subscription creation.
                 if ("SUBSCRIPTION".equals(transaction.getTransactionType())) {
                     subscriptionService.processSuccessfulPayment(orderId, transactionId);
+
                 } else if ("COURSE_PURCHASE".equals(transaction.getTransactionType())) {
+                    // For course purchases the lifecycle is managed here.
+                    // processCoursePaymentSuccess uses the in-memory entity for
+                    // transactionId, so set the fields before calling it.
+                    transaction.setStatus(PaymentStatus.COMPLETED);
+                    transaction.setPayzoneTransactionId(transactionId);
+                    transaction.setCompletedAt(LocalDateTime.now());
+                    transactionRepository.save(transaction);
                     processCoursePaymentSuccess(transaction);
+
+                } else {
+                    // Generic fallback for any other transaction types
+                    transaction.setStatus(PaymentStatus.COMPLETED);
+                    transaction.setPayzoneTransactionId(transactionId);
+                    transaction.setCompletedAt(LocalDateTime.now());
+                    transactionRepository.save(transaction);
                 }
 
                 log.info("Payment completed successfully: {}", orderId);
@@ -234,6 +254,30 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         return PaymentTransactionResponse.fromEntity(transaction, courseName);
+    }
+
+    @Override
+    @Transactional
+    public void adminForceReprocessPayment(String orderId) {
+        PaymentTransaction transaction = transactionRepository.findByPayzoneOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "orderId", orderId));
+
+        String savedTxnId = transaction.getPayzoneTransactionId();
+
+        // Reset to PENDING so the COMPLETED guards in processPaymentCallback and
+        // subscriptionService.processSuccessfulPayment won't block execution.
+        // This is safe here because the admin is explicitly requesting re-activation
+        // of a transaction whose payment was confirmed but whose DB side-effects
+        // (subscription creation, enrollment) were never applied.
+        transaction.setStatus(PaymentStatus.PENDING);
+        transactionRepository.save(transaction);
+
+        log.info("Admin force-reset orderId={} to PENDING for reprocessing", orderId);
+
+        // Run the normal success flow — now with the fix in place it will create
+        // the subscription / enroll in course correctly.
+        processPaymentCallback(orderId, "SUCCESS",
+                savedTxnId != null ? savedTxnId : "ADMIN_MANUAL_FIX");
     }
 
     @Override

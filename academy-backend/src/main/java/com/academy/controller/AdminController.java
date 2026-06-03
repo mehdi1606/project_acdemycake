@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class AdminController {
     private final UserService userService;
     private final CourseService courseService;
     private final SubscriptionService subscriptionService;
+    private final PaymentService paymentService;
 
     @GetMapping("/dashboard")
     @Operation(summary = "Get admin dashboard")
@@ -162,6 +165,24 @@ public class AdminController {
 
         PageResponse<PaymentTransaction> response = adminService.getTransactions(page, size);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * Manually reprocess a PENDING payment transaction (ADMIN only).
+     *
+     * Use this to fix transactions that were authorised by CMI but whose
+     * subscription / course-access was never activated due to a processing error.
+     *
+     * Example:  POST /api/v1/admin/payments/SUB-YEA-C8FC6BC0/reprocess
+     */
+    @PostMapping("/payments/{orderId}/reprocess")
+    @Operation(summary = "Manually reprocess a pending CMI/PayZone payment as SUCCESS (admin only)")
+    public ResponseEntity<ApiResponse<Void>> reprocessPayment(
+            @PathVariable String orderId) {
+
+        log.info("Admin manually reprocessing payment — orderId={}", orderId);
+        paymentService.adminForceReprocessPayment(orderId);
+        return ResponseEntity.ok(ApiResponse.success("Payment reprocessed — subscription/access should now be active"));
     }
 
     // Analytics
