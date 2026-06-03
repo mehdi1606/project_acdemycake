@@ -2,7 +2,6 @@ package com.academy.controller;
 
 import com.academy.dto.request.AdminCreateUserRequest;
 import com.academy.dto.response.*;
-import com.academy.entity.PaymentTransaction;
 import com.academy.service.*;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
@@ -159,11 +158,11 @@ public class AdminController {
     // Transactions
     @GetMapping("/transactions")
     @Operation(summary = "Get all transactions")
-    public ResponseEntity<ApiResponse<PageResponse<PaymentTransaction>>> getTransactions(
+    public ResponseEntity<ApiResponse<PageResponse<TransactionResponse>>> getTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PageResponse<PaymentTransaction> response = adminService.getTransactions(page, size);
+        PageResponse<TransactionResponse> response = adminService.getTransactions(page, size);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

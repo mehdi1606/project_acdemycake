@@ -3,6 +3,7 @@ package com.academy.service.impl;
 import com.academy.dto.response.CourseResponse;
 import com.academy.dto.response.DashboardResponse;
 import com.academy.dto.response.PageResponse;
+import com.academy.dto.response.TransactionResponse;
 import com.academy.dto.response.UserResponse;
 import com.academy.entity.Course;
 import com.academy.entity.PaymentTransaction;
@@ -72,13 +73,14 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public PageResponse<PaymentTransaction> getTransactions(int page, int size) {
+    public PageResponse<TransactionResponse> getTransactions(int page, int size) {
         verifyAdmin();
 
         Pageable pageable = PageRequest.of(page, size);
         Page<PaymentTransaction> transactionsPage = transactionRepository.findAllByOrderByCreatedAtDesc(pageable);
 
-        return PageResponse.from(transactionsPage);
+        // Map inside the transaction so the lazy User proxy is accessible
+        return PageResponse.from(transactionsPage, TransactionResponse::from);
     }
 
     @Override

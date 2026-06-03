@@ -50,11 +50,17 @@ const AdminTransactions = () => {
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).format(amount);
+  const formatCurrency = (amount: number, currency: string = 'MAD') => {
+    try {
+      return new Intl.NumberFormat('fr-MA', {
+        style: 'currency',
+        currency,
+        maximumFractionDigits: 2,
+      }).format(amount);
+    } catch {
+      // Fallback for unsupported currency codes
+      return `${amount.toFixed(2)} ${currency}`;
+    }
   };
 
   const filteredTransactions = (transactions || []).filter((tx: any) => {
@@ -152,7 +158,11 @@ const AdminTransactions = () => {
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-card" /></div>
               <h6>{t('admin.transactions.noTransactions', 'No Transactions Found')}</h6>
-              <p>{t('common.noResults', 'No transactions match the current filter criteria.')}</p>
+              <p>
+              {statusFilter || typeFilter
+                ? t('common.noResults', 'No transactions match the current filter criteria.')
+                : t('admin.transactions.noTransactionsYet', 'No payment transactions have been recorded yet.')}
+            </p>
             </div>
           ) : (
             <div className="table-responsive">
