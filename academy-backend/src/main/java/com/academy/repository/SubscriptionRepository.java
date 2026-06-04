@@ -21,6 +21,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
     Optional<Subscription> findByUserAndStatus(User user, SubscriptionStatus status);
 
+    /** Returns the most-recent subscription for a user with the given status. */
+    Optional<Subscription> findTopByUserAndStatusOrderByCreatedAtDesc(User user, SubscriptionStatus status);
+
     List<Subscription> findByUser(User user);
 
     Page<Subscription> findByUser(User user, Pageable pageable);

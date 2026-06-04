@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -164,9 +165,14 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public SubscriptionResponse getMySubscription() {
         User user = getCurrentUser();
 
-        return subscriptionRepository.findTopByUserOrderByCreatedAtDesc(user)
-                .map(SubscriptionResponse::fromEntity)
-                .orElse(null);
+        // Priority: ACTIVE → CANCELLED (still has access until period end) → most recent anything
+        // This ensures a broken/stale record created after a valid ACTIVE one is never shown.
+        Optional<Subscription> subscription =
+                subscriptionRepository.findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.ACTIVE)
+                .or(() -> subscriptionRepository.findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.CANCELLED))
+                .or(() -> subscriptionRepository.findTopByUserOrderByCreatedAtDesc(user));
+
+        return subscription.map(SubscriptionResponse::fromEntity).orElse(null);
     }
 
     @Override
