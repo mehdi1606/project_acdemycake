@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -70,6 +71,19 @@ public class CmiPaymentService {
     private final EnrollmentService           enrollmentService;
     private final PaymentService              paymentService;
     private final CouponService               couponService;
+
+    /**
+     * The exact parameter names we put into buildFormParams (case-insensitive).
+     * CMI's callback hash is computed over ONLY these original params —
+     * not the extra response params CMI appends (ProcReturnCode, AuthCode, etc.).
+     * Used when HASHPARAMSVAL is absent (CMI test env behaviour).
+     */
+    private static final Set<String> ORIGINAL_FORM_PARAM_NAMES = Set.of(
+            "clientid", "oid", "amount", "currency",
+            "okurl", "failurl", "callbackurl", "shopurl",
+            "storetype", "trantype", "hashalgorithm",
+            "lang", "rnd", "email", "billtoname", "tel", "refreshtime"
+    );
 
     // ── Config ───────────────────────────────────────────────────────────────
     @Value("${cmi.client-id}")   private String clientId;
@@ -219,9 +233,11 @@ public class CmiPaymentService {
                 log.debug("CMI callback using HASHPARAMSVAL path — computedHash_prefix={}",
                         computedHash.length() > 8 ? computedHash.substring(0, 8) + "…" : computedHash);
             } else {
-                // Fallback: no HASHPARAMSVAL — recompute from all sorted params
-                log.warn("CMI callback missing HASHPARAMSVAL — falling back to sort-all-params hash");
-                computedHash = computeHash(params);
+                // Fallback: CMI test env sends callback WITHOUT HASHPARAMSVAL.
+                // CMI computes the hash over ONLY the original form params we sent —
+                // not the extra response params it appends (ProcReturnCode, AuthCode, etc.).
+                log.warn("CMI callback missing HASHPARAMSVAL — falling back to original-params-only hash");
+                computedHash = computeCallbackHashFromOriginalParams(params);
             }
 
             if (!computedHash.equals(receivedHash)) {
@@ -354,6 +370,27 @@ public class CmiPaymentService {
         MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
         byte[] digest = sha512.digest(hashInput.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(digest);
+    }
+
+    /**
+     * Fallback hash for CMI callbacks that arrive without HASHPARAMSVAL.
+     *
+     * CMI computes the callback HASH using only the parameters that were in the
+     * original payment form — not the extra response params it appends
+     * (ProcReturnCode, AuthCode, HostRefNum, Response, TransId, etc.).
+     * We filter the callback params to the known original set before hashing.
+     */
+    private String computeCallbackHashFromOriginalParams(Map<String, String> params)
+            throws NoSuchAlgorithmException {
+        TreeMap<String, String> filtered = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (ORIGINAL_FORM_PARAM_NAMES.contains(entry.getKey().toLowerCase())) {
+                filtered.put(entry.getKey(), entry.getValue());
+            }
+        }
+        log.debug("CMI callback original-params hash — using {} params: {}",
+                filtered.size(), filtered.keySet());
+        return computeHash(filtered);
     }
 
     /** Escapes a CMI parameter value: \ → \\   |  → \| */
