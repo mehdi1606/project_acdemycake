@@ -55,6 +55,8 @@ public class CourseResponse {
     private Integer enrollmentProgress; // 0–100
 
     // ── Multilingual translation fields ──────────────────────────────────────
+    private String titleEn;
+    private String descriptionEn;
     private String titleAr;
     private String titleFr;
     private String descriptionAr;
@@ -123,6 +125,8 @@ public class CourseResponse {
                 .createdAt(course.getCreatedAt())
                 .hasCertificateTemplate(course.getCertificateTemplatePath() != null
                         && !course.getCertificateTemplatePath().isBlank())
+                .titleEn(course.getTitleEn())
+                .descriptionEn(course.getDescriptionEn())
                 .titleAr(course.getTitleAr())
                 .titleFr(course.getTitleFr())
                 .descriptionAr(course.getDescriptionAr())

@@ -169,6 +169,8 @@ export interface Course {
   isWishlisted?: boolean;
   enrollmentProgress?: number;
   // multilingual translation fields
+  titleEn?: string;
+  descriptionEn?: string;
   titleAr?: string;
   titleFr?: string;
   descriptionAr?: string;

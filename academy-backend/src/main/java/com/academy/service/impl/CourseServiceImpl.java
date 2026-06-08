@@ -222,6 +222,8 @@ public class CourseServiceImpl implements CourseService {
                 .requirements(request.getRequirements())
                 .targetAudience(request.getTargetAudience())
                 .tags(request.getTags())
+                .titleEn(request.getTitleEn())
+                .descriptionEn(request.getDescriptionEn())
                 .titleAr(request.getTitleAr())
                 .titleFr(request.getTitleFr())
                 .descriptionAr(request.getDescriptionAr())
@@ -302,6 +304,12 @@ public class CourseServiceImpl implements CourseService {
         }
         if (request.getTags() != null) {
             course.setTags(request.getTags());
+        }
+        if (request.getTitleEn() != null) {
+            course.setTitleEn(request.getTitleEn());
+        }
+        if (request.getDescriptionEn() != null) {
+            course.setDescriptionEn(request.getDescriptionEn());
         }
         if (request.getTitleAr() != null) {
             course.setTitleAr(request.getTitleAr());

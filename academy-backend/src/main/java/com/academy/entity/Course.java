@@ -130,6 +130,12 @@ public class Course extends BaseEntity {
     private String tags;
 
     // ── Multilingual translations (auto-filled from frontend translation API) ─
+    @Column(name = "title_en", columnDefinition = "TEXT")
+    private String titleEn;
+
+    @Column(name = "description_en", columnDefinition = "TEXT")
+    private String descriptionEn;
+
     @Column(name = "title_ar", columnDefinition = "TEXT")
     private String titleAr;
 

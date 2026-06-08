@@ -56,6 +56,7 @@ const AddNewCourse = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationDone, setTranslationDone] = useState(false);
   const [translations, setTranslations] = useState<{
+    titleEn?: string; descriptionEn?: string;
     titleAr?: string; titleFr?: string; descriptionAr?: string; descriptionFr?: string;
   }>({});
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
@@ -449,6 +450,9 @@ const AddNewCourse = () => {
         whatYouWillLearn: formData.learningObjectives.filter(o => o.trim() !== '').join('\n'),
         tags: Array.isArray(value1) ? value1.join(',') : (value1 || ''),
         // Translation fields — populated by "Auto-translate" button
+        // titleEn/descriptionEn are only sent when the course is authored in AR or FR
+        titleEn: translations.titleEn,
+        descriptionEn: translations.descriptionEn,
         titleAr: translations.titleAr,
         titleFr: translations.titleFr,
         descriptionAr: translations.descriptionAr,

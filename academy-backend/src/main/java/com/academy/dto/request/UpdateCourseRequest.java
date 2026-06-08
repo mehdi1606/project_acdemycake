@@ -55,6 +55,8 @@ public class UpdateCourseRequest {
     private String tags;
 
     // ── Multilingual translation fields ──────────────────────────────────────
+    private String titleEn;
+    private String descriptionEn;
     private String titleAr;
     private String titleFr;
     private String descriptionAr;

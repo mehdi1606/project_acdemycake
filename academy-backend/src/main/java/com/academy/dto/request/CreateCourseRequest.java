@@ -56,6 +56,8 @@ public class CreateCourseRequest {
     private String tags;
 
     // ── Multilingual translation fields (auto-populated by frontend translation API) ──
+    private String titleEn;
+    private String descriptionEn;
     private String titleAr;
     private String titleFr;
     private String descriptionAr;

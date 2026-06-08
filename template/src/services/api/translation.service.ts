@@ -37,6 +37,9 @@ export async function translateText(text: string, from: string, to: string): Pro
 export type LangCode = 'en' | 'fr' | 'ar';
 
 export interface CourseTranslations {
+  /** Stored when source language is AR or FR — so EN switcher has something to show */
+  titleEn?: string;
+  descriptionEn?: string;
   titleAr?: string;
   titleFr?: string;
   descriptionAr?: string;
@@ -44,9 +47,12 @@ export interface CourseTranslations {
 }
 
 /**
- * Translate course title + description from the source language into all
+ * Translate course title + description from the source language into ALL
  * other supported languages (EN / FR / AR).
- * Returns only the fields that differ from the source language.
+ *
+ * Key fix: when the course is authored in Arabic or French we also produce
+ * an English translation (titleEn / descriptionEn) so the EN language
+ * switcher always shows meaningful text instead of the raw Arabic/French.
  */
 export async function translateCourseContent(
   title: string,
@@ -64,51 +70,77 @@ export async function translateCourseContent(
         translateText(description, sourceLang, target),
       ]);
 
-      if (target === 'ar') {
+      if (target === 'en') {
+        // Only needed when source is AR or FR — stores the English translation
+        results.titleEn = t;
+        results.descriptionEn = d;
+      } else if (target === 'ar') {
         results.titleAr = t;
         results.descriptionAr = d;
       } else if (target === 'fr') {
         results.titleFr = t;
         results.descriptionFr = d;
       }
-      // EN is stored in the base title/description field — no extra column needed
     }),
   );
 
   return results;
 }
 
+/** Normalise language code from course.language value or i18n locale */
+function normaliseLang(raw: string | undefined): 'en' | 'fr' | 'ar' {
+  const s = (raw || 'en').toLowerCase().split('-')[0];
+  if (s === 'ar' || s === 'arabic')  return 'ar';
+  if (s === 'fr' || s === 'french')  return 'fr';
+  return 'en';
+}
+
 /**
  * Pick the localised title/description for a course based on the current UI language.
- * Falls back to the base title/description if no translation exists for that language.
+ *
+ * Resolution order for each UI language:
+ *  EN → titleEn (if course was authored in AR/FR) → title (if authored in EN)
+ *  AR → titleAr → title (fallback)
+ *  FR → titleFr → title (fallback)
  */
 export function getLocalizedCourseContent(
   course: {
     title: string;
     description?: string;
     shortDescription?: string;
+    language?: string;
+    titleEn?: string;
     titleAr?: string;
     titleFr?: string;
+    descriptionEn?: string;
     descriptionAr?: string;
     descriptionFr?: string;
   },
   lang: string,
 ): { title: string; description: string; shortDescription: string } {
-  const l = lang?.split('-')[0]?.toLowerCase();
+  const uiLang   = normaliseLang(lang);
+  const baseLang = normaliseLang(course.language);
 
-  const title =
-    l === 'ar' ? course.titleAr || course.title :
-    l === 'fr' ? course.titleFr || course.title :
-    course.title;
+  const pickTitle = (): string => {
+    if (uiLang === 'ar') return course.titleAr || course.title;
+    if (uiLang === 'fr') return course.titleFr || course.title;
+    // English UI:
+    // – if the course was authored in English, `title` already is English
+    // – if authored in AR/FR, use the stored English translation
+    if (baseLang === 'en') return course.title;
+    return course.titleEn || course.title;
+  };
 
-  const description =
-    l === 'ar' ? course.descriptionAr || course.description || '' :
-    l === 'fr' ? course.descriptionFr || course.description || '' :
-    course.description || '';
+  const pickDesc = (): string => {
+    if (uiLang === 'ar') return course.descriptionAr || course.description || '';
+    if (uiLang === 'fr') return course.descriptionFr || course.description || '';
+    if (baseLang === 'en') return course.description || '';
+    return course.descriptionEn || course.description || '';
+  };
 
   return {
-    title,
-    description,
+    title:            pickTitle(),
+    description:      pickDesc(),
     shortDescription: course.shortDescription || '',
   };
 }
