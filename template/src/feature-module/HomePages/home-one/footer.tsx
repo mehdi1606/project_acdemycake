@@ -52,14 +52,11 @@ const Footer = () => {
                         <div className="sl-footer__social">
                             <a href="#" aria-label="Instagram"><i className="fa-brands fa-instagram" /></a>
                             <a href="#" aria-label="Facebook"><i className="fa-brands fa-facebook-f" /></a>
-                            <a href="#" aria-label="Pinterest"><i className="fa-brands fa-pinterest-p" /></a>
-                            <a href="#" aria-label="YouTube"><i className="fa-brands fa-youtube" /></a>
-                            <a href="#" aria-label="TikTok"><i className="fa-brands fa-tiktok" /></a>
                         </div>
                     </div>
 
                     {/* ── Links columns ── */}
-                    <div className="col-lg-5">
+                    <div className="col-lg-8">
                         <div className="row row-gap-4">
                             <div className="col-6 col-md-4">
                                 <div className="sl-footer__heading">{t('footer.learn', 'Learn')}</div>
@@ -93,68 +90,6 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* ── Newsletter column ── */}
-                    <div className="col-lg-3">
-                        <div className="sl-footer__heading">{t('footer.newsletter', 'Studio Newsletter')}</div>
-                        <p style={{
-                            fontFamily: 'var(--sl-font-body)', fontSize: '0.8rem',
-                            color: 'rgba(245,218,223,0.42)', lineHeight: 1.7, marginBottom: '1.25rem',
-                        }}>
-                            {t('footer.newsletterDesc', 'Receive new course announcements, technique tips, and exclusive student offers.')}
-                        </p>
-                        <form onSubmit={e => e.preventDefault()}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <input
-                                    type="email"
-                                    placeholder={t('footer.emailPlaceholder', 'Your email address')}
-                                    style={{
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid rgba(245,218,223,0.12)',
-                                        color: 'rgba(245,218,223,0.8)',
-                                        fontFamily: 'var(--sl-font-body)',
-                                        fontSize: '0.8rem',
-                                        padding: '0.75rem 1rem',
-                                        outline: 'none',
-                                        width: '100%',
-                                    }}
-                                />
-                                <button
-                                    type="submit"
-                                    className="sl-btn-gold"
-                                    style={{ justifyContent: 'center', width: '100%' }}
-                                >
-                                    {t('footer.subscribe', 'Subscribe')}
-                                </button>
-                            </div>
-                        </form>
-
-                        {/* Trust badges */}
-                        <div style={{
-                            marginTop: '2rem',
-                            padding: '1rem',
-                            border: '1px solid rgba(197,145,44,0.15)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.75rem',
-                        }}>
-                            <img
-                                src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
-                                alt=""
-                                style={{ width: 32, height: 32, opacity: 0.7 }}
-                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                            />
-                            <div style={{
-                                fontFamily: 'var(--sl-font-body)',
-                                fontSize: '0.62rem',
-                                color: 'rgba(245,218,223,0.4)',
-                                letterSpacing: '0.08em',
-                                lineHeight: 1.6,
-                            }}>
-                                {t('footer.craftedByScience', 'Crafted by Science.')}<br />
-                                {t('footer.elevatedByArt', 'Elevated by Art.')}
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* ── Bottom bar ── */}
