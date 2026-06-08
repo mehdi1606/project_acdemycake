@@ -50,8 +50,8 @@ services:
       # JWT
       JWT_SECRET:      ${JWT_SECRET}
 
-      # CORS — frontend is served by Nginx on port 443
-      CORS_ALLOWED_ORIGINS: https://${SERVER_IP}
+      # CORS — allow both www and non-www so no-www visitors aren't blocked
+      CORS_ALLOWED_ORIGINS: https://${SERVER_IP},https://saralowe.ma
 
       # Frontend & file URLs (all traffic goes through Nginx on port 443)
       FRONTEND_URL:    https://${SERVER_IP}
