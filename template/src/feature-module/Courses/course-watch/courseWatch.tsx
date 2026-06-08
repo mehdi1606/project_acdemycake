@@ -11,7 +11,7 @@ import {
 import { all_routes } from '../../router/all_routes';
 import { getFileUrl } from '../../../environment';
 import { useAppSelector } from '../../../core/redux/hooks';
-import { getLocalizedCourseContent } from '../../../services/api/translation.service';
+import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDuration = (seconds?: number) => {
@@ -112,8 +112,8 @@ const CourseWatch: React.FC = () => {
   /** Timestamp (ms) of the last progress update sent to the backend. */
   const lastProgressRef  = useRef<number>(0);
 
-  // ── Localized course content (picks AR/FR translations when available) ──
-  const localCourse = course ? getLocalizedCourseContent(course, i18n.language) : null;
+  // ── Localized course content — auto-translates via API if no DB translation ──
+  const localCourse = useLocalizedCourse(course, i18n.language);
 
   // ── Load course ──────────────────────────────────────────────────────────
   useEffect(() => {

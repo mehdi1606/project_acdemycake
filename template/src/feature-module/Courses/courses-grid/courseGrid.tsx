@@ -11,7 +11,7 @@ import { Course, CourseCategory, CourseLevel } from '../../../services/api/types
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
-import { getLocalizedCourseContent } from '../../../services/api/translation.service';
+import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 
 const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
   { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
@@ -57,7 +57,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
   const { t, i18n } = useTranslation();
   const route  = all_routes;
   const cardRef = useRef<HTMLDivElement>(null);
-  const localCourse = getLocalizedCourseContent(course, i18n.language);
+  const localCourse = useLocalizedCourse(course, i18n.language);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = cardRef.current;
