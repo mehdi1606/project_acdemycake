@@ -29,7 +29,12 @@ const CommunityPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAppSelector((s) => s.auth);
-  const isInstructor = user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN';
+  // A student (or unauthenticated user) must NEVER see CHALLENGE in the create form.
+  // Use the role from Redux; if somehow null, fall back to localStorage.
+  const effectiveRole = user?.role ?? (() => {
+    try { return JSON.parse(localStorage.getItem('user') ?? '{}').role; } catch { return undefined; }
+  })();
+  const isInstructor = effectiveRole === 'INSTRUCTOR' || effectiveRole === 'ADMIN';
 
   const TYPE_LABELS: Record<PostType, string> = {
     DISCUSSION:   t('community.type.DISCUSSION',   'Discussion'),
@@ -151,10 +156,12 @@ const CommunityPage: React.FC = () => {
     setSubmitting(true);
     setFormError('');
     try {
+      // Guard: students cannot submit CHALLENGE posts
+      const safeType: PostType = (!isInstructor && formType === 'CHALLENGE') ? 'DISCUSSION' : formType;
       const req: CreatePostRequest = {
         title:     formTitle.trim(),
         content:   formContent.trim(),
-        postType:  formType,
+        postType:  safeType,
         ...(formImageUrl ? { imageUrls: [formImageUrl] } : {}),
       };
       const created = await communityService.createPost(req);

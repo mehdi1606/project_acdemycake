@@ -26,8 +26,9 @@ class CommunityService {
   async uploadPostImage(file: File): Promise<string> {
     const form = new FormData();
     form.append('file', file);
-    const response = await apiMultipart.post<{ data: string }>(`${this.base}/posts/upload-image`, form);
-    return (response.data as any).data as string;
+    // axios interceptor already unwraps ApiResponse<String> → response.data is the URL string
+    const response = await apiMultipart.post<string>(`${this.base}/posts/upload-image`, form);
+    return response.data as string;
   }
 
   async createPost(data: CreatePostRequest): Promise<CommunityPost> {
