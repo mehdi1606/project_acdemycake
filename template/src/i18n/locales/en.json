@@ -1317,7 +1317,9 @@
       "DISCUSSION": "Discussion",
       "QUESTION": "Question",
       "RESOURCE": "Resource",
-      "ANNOUNCEMENT": "Announcement"
+      "SHOWCASE": "Resource",
+      "ANNOUNCEMENT": "Announcement",
+      "CHALLENGE": "Challenge"
     },
     "heroScript": "Connect & Share",
     "heroSub": "A space for SARALÖWE students to share, question, and inspire one another",

@@ -9,6 +9,7 @@ import { getFileUrl } from '../../environment';
 import { all_routes } from '../router/all_routes';
 import BadgeAvatar from '../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../config/badges';
+import { useAppSelector } from '../../core/redux/hooks';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -66,6 +67,8 @@ export const AchievementBadge: React.FC<{ text: string; icon: string; size?: 'sm
 const CommunityPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAppSelector((s) => s.auth);
+  const isInstructor = user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN';
 
   const TYPE_LABELS: Record<PostType, string> = {
     DISCUSSION:   t('community.type.DISCUSSION',   'Discussion'),
@@ -402,7 +405,7 @@ const CommunityPage: React.FC = () => {
                 {t('community.typeLabel', 'Type')}
               </label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {(Object.keys(TYPE_LABELS) as PostType[]).map((ptype) => (
+                {(Object.keys(TYPE_LABELS) as PostType[]).filter((ptype) => isInstructor || ptype !== 'CHALLENGE').map((ptype) => (
                   <button key={ptype} type="button"
                     onClick={() => setFormType(ptype)}
                     style={{

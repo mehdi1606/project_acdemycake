@@ -7,7 +7,6 @@ import communityService from '../../services/api/community.service';
 import { CommunityComment, CommunityPost, PostType } from '../../services/api/types';
 import { getFileUrl } from '../../environment';
 import { all_routes } from '../router/all_routes';
-import { AchievementBadge } from './CommunityPage';
 import BadgeAvatar from '../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../config/badges';
 
@@ -257,11 +256,6 @@ const CommunityPostDetail: React.FC = () => {
             <div className="fs-15 lh-lg" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {post.content}
             </div>
-
-            {/* Achievement badge */}
-            {post.achievementText && post.achievementIcon && (
-              <AchievementBadge text={post.achievementText} icon={post.achievementIcon} size="md" />
-            )}
 
             {/* Images */}
             {post.images && post.images.length > 0 && (
