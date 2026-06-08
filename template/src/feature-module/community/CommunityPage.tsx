@@ -23,45 +23,6 @@ const TYPE_BADGE: Record<PostType, string> = {
   CHALLENGE:    'purple',
 };
 
-// Achievement icon options
-const ACHIEVEMENT_ICONS = [
-  { key: 'isax-trophy',        label: 'Trophy'      },
-  { key: 'isax-award',         label: 'Award'       },
-  { key: 'isax-crown',         label: 'Crown'       },
-  { key: 'isax-star',          label: 'Star'        },
-  { key: 'isax-medal',         label: 'Medal'       },
-  { key: 'isax-teacher',       label: 'Learned'     },
-  { key: 'isax-tick-circle',   label: 'Completed'   },
-  { key: 'isax-heart',         label: 'Love'        },
-];
-
-// Achievement badge display (reused in list + detail)
-export const AchievementBadge: React.FC<{ text: string; icon: string; size?: 'sm' | 'md' }> = ({
-  text, icon, size = 'sm',
-}) => (
-  <div style={{
-    display: 'inline-flex', alignItems: 'center', gap: size === 'md' ? 8 : 6,
-    background: 'linear-gradient(135deg, rgba(197,145,44,0.12) 0%, rgba(197,145,44,0.06) 100%)',
-    border: '1px solid rgba(197,145,44,0.35)',
-    borderRadius: 20,
-    padding: size === 'md' ? '7px 14px' : '5px 11px',
-    marginTop: 8,
-  }}>
-    <i className={`isax ${icon}`} style={{
-      fontSize: size === 'md' ? 16 : 13,
-      color: '#C5912C',
-    }} />
-    <span style={{
-      fontSize: size === 'md' ? 13 : 12,
-      fontWeight: 700,
-      color: '#9B7B50',
-      fontFamily: '"Montserrat", sans-serif',
-    }}>
-      {text}
-    </span>
-  </div>
-);
-
 // ─── component ────────────────────────────────────────────────────────────────
 
 const CommunityPage: React.FC = () => {
@@ -90,16 +51,15 @@ const CommunityPage: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
 
   // Create post modal
-  const [modalOpen,    setModalOpen]    = useState(false);
-  const [formTitle,    setFormTitle]    = useState('');
-  const [formContent,  setFormContent]  = useState('');
-  const [formType,     setFormType]     = useState<PostType>('DISCUSSION');
-  const [submitting,   setSubmitting]   = useState(false);
-  const [formError,    setFormError]    = useState('');
-
-  // Achievement
-  const [achievementText, setAchievementText] = useState('');
-  const [achievementIcon, setAchievementIcon] = useState('isax-trophy');
+  const [modalOpen,      setModalOpen]      = useState(false);
+  const [formTitle,      setFormTitle]      = useState('');
+  const [formContent,    setFormContent]    = useState('');
+  const [formType,       setFormType]       = useState<PostType>('DISCUSSION');
+  const [submitting,     setSubmitting]     = useState(false);
+  const [formError,      setFormError]      = useState('');
+  const [formImageUrl,   setFormImageUrl]   = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -158,9 +118,25 @@ const CommunityPage: React.FC = () => {
 
   // ── create post ───────────────────────────────────────────────────────────
   const openModal = () => {
-    setFormTitle(''); setFormContent(''); setFormType('DISCUSSION'); setFormError('');
-    setAchievementText(''); setAchievementIcon('isax-trophy');
+    setFormTitle(''); setFormContent(''); setFormType('DISCUSSION');
+    setFormError(''); setFormImageUrl(null);
     setModalOpen(true);
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageUploading(true);
+    setFormError('');
+    try {
+      const url = await communityService.uploadPostImage(file);
+      setFormImageUrl(url);
+    } catch {
+      setFormError(t('community.errorImageUpload', 'Failed to upload image. Please try again.'));
+    } finally {
+      setImageUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
   };
 
   const submitPost = async () => {
@@ -168,14 +144,18 @@ const CommunityPage: React.FC = () => {
       setFormError(t('community.errorRequired', 'Title and content are required.'));
       return;
     }
+    if (imageUploading) {
+      setFormError(t('community.waitForUpload', 'Please wait for the image to finish uploading.'));
+      return;
+    }
     setSubmitting(true);
     setFormError('');
     try {
       const req: CreatePostRequest = {
-        title:   formTitle.trim(),
-        content: formContent.trim(),
-        postType: formType,
-        ...(achievementText.trim() ? { achievementText: achievementText.trim(), achievementIcon } : {}),
+        title:     formTitle.trim(),
+        content:   formContent.trim(),
+        postType:  formType,
+        ...(formImageUrl ? { imageUrls: [formImageUrl] } : {}),
       };
       const created = await communityService.createPost(req);
       setPosts((prev) => [created, ...prev]);
@@ -316,9 +296,15 @@ const CommunityPage: React.FC = () => {
                       {post.content}
                     </p>
 
-                    {/* Achievement badge */}
-                    {post.achievementText && post.achievementIcon && (
-                      <AchievementBadge text={post.achievementText} icon={post.achievementIcon} />
+                    {/* Post image thumbnail */}
+                    {post.images && post.images.length > 0 && (
+                      <div style={{ marginTop: 10, marginBottom: 4 }}>
+                        <img
+                          src={getFileUrl(post.images[0]) ?? post.images[0]}
+                          alt="post"
+                          style={{ maxHeight: 180, width: '100%', objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(101,28,50,0.08)' }}
+                        />
+                      </div>
                     )}
 
                     <div className="d-flex align-items-center gap-3 mt-3">
@@ -466,51 +452,56 @@ const CommunityPage: React.FC = () => {
               />
             </div>
 
-            {/* ACHIEVEMENT */}
-            <div style={{
-              padding: '16px', borderRadius: 12,
-              border: '1.5px solid rgba(197,145,44,0.25)',
-              background: 'rgba(197,145,44,0.04)',
-            }}>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9B7B50', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <i className="isax isax-trophy" style={{ fontSize: 14, color: '#C5912C' }} />
-                {t('community.achievementLabel', 'Achievement (optional)')}
+            {/* IMAGE (optional) */}
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.attachImage', 'Image (optional)')}
               </label>
-
-              {/* Icon selector */}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-                {ACHIEVEMENT_ICONS.map((ic) => (
-                  <button key={ic.key} type="button"
-                    title={ic.label}
-                    onClick={() => setAchievementIcon(ic.key)}
-                    style={{
-                      width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: achievementIcon === ic.key
-                        ? 'linear-gradient(135deg, #C5912C, #DEBB6B)'
-                        : 'rgba(197,145,44,0.1)',
-                      transition: 'all 0.15s',
-                    }}>
-                    <i className={`isax ${ic.key}`} style={{ fontSize: 16, color: achievementIcon === ic.key ? '#4E1420' : '#C5912C' }} />
-                  </button>
-                ))}
-              </div>
-
-              {/* Achievement text */}
-              <input type="text"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid rgba(197,145,44,0.2)', fontSize: 13, outline: 'none', background: '#fff', color: '#2C1810' }}
-                placeholder={t('community.achievementPlaceholder', 'e.g. Completed Fondant Mastery Course')}
-                value={achievementText}
-                onChange={(e) => setAchievementText(e.target.value)}
-                maxLength={200}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                style={{ display: 'none' }}
+                onChange={handleImageSelect}
               />
-
-              {/* Preview */}
-              {achievementText.trim() && (
-                <div style={{ marginTop: 10 }}>
-                  <span style={{ fontSize: 11, color: '#9B7B50', marginRight: 8 }}>Preview:</span>
-                  <AchievementBadge text={achievementText.trim()} icon={achievementIcon} />
+              {formImageUrl ? (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img
+                    src={getFileUrl(formImageUrl) ?? formImageUrl}
+                    alt="preview"
+                    style={{ maxHeight: 160, maxWidth: '100%', borderRadius: 10, objectFit: 'cover', border: '1.5px solid rgba(101,28,50,0.15)' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormImageUrl(null)}
+                    style={{
+                      position: 'absolute', top: 6, right: 6,
+                      width: 24, height: 24, borderRadius: '50%', border: 'none',
+                      background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
+                    }}>
+                    ✕
+                  </button>
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={imageUploading}
+                  style={{
+                    padding: '9px 18px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                    border: '1.5px dashed rgba(101,28,50,0.3)', background: '#fff', color: '#651C32',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                  {imageUploading
+                    ? <><Spin size="small" /> {t('community.uploadingImage', 'Uploading…')}</>
+                    : <><i className="isax isax-image fs-16" /> {t('community.chooseImage', 'Choose Image (PNG / JPG / WebP)')}</>}
+                </button>
+              )}
+              {!formImageUrl && !imageUploading && (
+                <p style={{ fontSize: 11, color: '#9B9B9B', marginTop: 6, marginBottom: 0 }}>
+                  {t('community.imageTip', 'Max size 5 MB. PNG, JPG or WebP.')}
+                </p>
               )}
             </div>
 
