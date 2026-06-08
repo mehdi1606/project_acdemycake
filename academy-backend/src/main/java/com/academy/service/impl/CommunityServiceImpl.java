@@ -102,6 +102,8 @@ public class CommunityServiceImpl implements CommunityService {
                 .content(request.getContent())
                 .imagesJson(imagesJson)
                 .postType(request.getPostType() != null ? request.getPostType() : PostType.DISCUSSION)
+                .achievementText(request.getAchievementText())
+                .achievementIcon(request.getAchievementIcon())
                 .build();
 
         post = postRepository.save(post);

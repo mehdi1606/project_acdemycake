@@ -25,4 +25,11 @@ public class CreatePostRequest {
     private List<String> imageUrls;
 
     private PostType postType = PostType.DISCUSSION;
+
+    /** Optional achievement badge to attach to this post */
+    @Size(max = 200, message = "Achievement text must not exceed 200 characters")
+    private String achievementText;
+
+    @Size(max = 50, message = "Achievement icon must not exceed 50 characters")
+    private String achievementIcon;
 }

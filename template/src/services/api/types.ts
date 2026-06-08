@@ -339,7 +339,7 @@ export interface Certificate {
 // Community Types
 // ============================================
 
-export type PostType = 'DISCUSSION' | 'QUESTION' | 'ANNOUNCEMENT' | 'RESOURCE';
+export type PostType = 'DISCUSSION' | 'QUESTION' | 'ANNOUNCEMENT' | 'SHOWCASE' | 'CHALLENGE';
 
 export interface CommunityPost {
   id: string;
@@ -358,6 +358,8 @@ export interface CommunityPost {
   isLikedByCurrentUser: boolean;
   createdAt: string;
   updatedAt?: string;
+  achievementText?: string;
+  achievementIcon?: string;
 }
 
 export interface CommunityComment {
@@ -378,6 +380,9 @@ export interface CreatePostRequest {
   title: string;
   content: string;
   postType: PostType;
+  imageUrls?: string[];
+  achievementText?: string;
+  achievementIcon?: string;
 }
 
 // ============================================

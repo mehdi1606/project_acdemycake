@@ -7,6 +7,7 @@ import communityService from '../../services/api/community.service';
 import { CommunityComment, CommunityPost, PostType } from '../../services/api/types';
 import { getFileUrl } from '../../environment';
 import { all_routes } from '../router/all_routes';
+import { AchievementBadge } from './CommunityPage';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -15,15 +16,17 @@ const avatarUrl = (url?: string) => getFileUrl(url) ?? 'assets/img/user/user-02.
 const TYPE_LABELS: Record<PostType, string> = {
   DISCUSSION:   'Discussion',
   QUESTION:     'Question',
-  RESOURCE:     'Resource',
+  SHOWCASE:     'Resource',
   ANNOUNCEMENT: 'Announcement',
+  CHALLENGE:    'Challenge',
 };
 
 const TYPE_BADGE: Record<PostType, string> = {
   DISCUSSION:   'primary',
   QUESTION:     'warning',
-  RESOURCE:     'success',
+  SHOWCASE:     'success',
   ANNOUNCEMENT: 'danger',
+  CHALLENGE:    'purple',
 };
 
 const formatDate = (iso: string) =>
@@ -197,11 +200,36 @@ const CommunityPostDetail: React.FC = () => {
 
         {/* Post card */}
         <div className="card border-0 shadow-sm mb-4">
+          {/* Challenge header strip */}
+          {post.postType === 'CHALLENGE' && (
+            <div style={{
+              background: 'linear-gradient(90deg, #4E1420 0%, #7A2240 100%)',
+              padding: '10px 24px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              borderRadius: '8px 8px 0 0',
+            }}>
+              <i className="isax isax-crown" style={{ color: '#C5912C', fontSize: 16 }} />
+              <span style={{ color: '#DEBB6B', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                {t('community.challenge', 'Challenge')}
+              </span>
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginLeft: 4 }}>
+                — {t('community.respondInComments', 'Share your response in the comments')}
+              </span>
+            </div>
+          )}
+
           <div className="card-body p-4">
             <div className="mb-3 d-flex align-items-center gap-2">
-              <span className={`badge bg-${TYPE_BADGE[post.postType]}-subtle text-${TYPE_BADGE[post.postType]} rounded-pill px-3 fs-12`}>
-                {TYPE_LABELS[post.postType]}
-              </span>
+              {post.postType === 'CHALLENGE' ? (
+                <span className="badge rounded-pill px-3 fs-12 text-white" style={{ background: '#4E1420' }}>
+                  <i className="isax isax-crown me-1" style={{ fontSize: 10 }} />
+                  {TYPE_LABELS[post.postType]}
+                </span>
+              ) : (
+                <span className={`badge bg-${TYPE_BADGE[post.postType]}-subtle text-${TYPE_BADGE[post.postType]} rounded-pill px-3 fs-12`}>
+                  {TYPE_LABELS[post.postType]}
+                </span>
+              )}
               {post.isPinned && (
                 <span className="badge bg-warning-subtle text-warning rounded-pill px-3 fs-12">
                   <i className="fa-solid fa-thumbtack me-1" />Pinned
@@ -224,6 +252,11 @@ const CommunityPostDetail: React.FC = () => {
             <div className="fs-15 lh-lg" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {post.content}
             </div>
+
+            {/* Achievement badge */}
+            {post.achievementText && post.achievementIcon && (
+              <AchievementBadge text={post.achievementText} icon={post.achievementIcon} size="md" />
+            )}
 
             {/* Images */}
             {post.images && post.images.length > 0 && (
@@ -256,7 +289,26 @@ const CommunityPostDetail: React.FC = () => {
         {/* Add comment */}
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body p-4">
-            <h6 className="fw-bold mb-3">Add a Comment</h6>
+            {post.postType === 'CHALLENGE' ? (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16,
+                padding: '10px 14px', borderRadius: 10,
+                background: 'linear-gradient(135deg, rgba(78,20,32,0.06) 0%, rgba(78,20,32,0.03) 100%)',
+                border: '1px solid rgba(78,20,32,0.12)',
+              }}>
+                <i className="isax isax-crown" style={{ color: '#C5912C', fontSize: 18 }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: '#4E1420' }}>
+                    {t('community.yourChallengeResponse', 'Your Challenge Response')}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#9B7B50' }}>
+                    {t('community.challengeCommentHint', 'Share your work, result, or feedback below!')}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <h6 className="fw-bold mb-3">Add a Comment</h6>
+            )}
             {commentError && <div className="alert alert-danger py-2 mb-3">{commentError}</div>}
             <textarea ref={commentInputRef} className="form-control mb-2" rows={3}
               placeholder="Share your thoughts…" value={newComment}

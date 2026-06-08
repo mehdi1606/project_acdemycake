@@ -34,6 +34,8 @@ public class PostResponse {
     private Boolean isLikedByCurrentUser;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String achievementText;
+    private String achievementIcon;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,6 +70,8 @@ public class PostResponse {
                 .isLikedByCurrentUser(isLikedByCurrentUser)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
+                .achievementText(post.getAchievementText())
+                .achievementIcon(post.getAchievementIcon())
                 .build();
     }
 }

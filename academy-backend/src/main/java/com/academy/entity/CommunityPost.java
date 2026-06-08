@@ -72,6 +72,13 @@ public class CommunityPost extends BaseEntity {
     @Column(name = "flag_reason")
     private String flagReason;
 
+    /** Optional achievement badge attached to the post */
+    @Column(name = "achievement_text", length = 200)
+    private String achievementText;
+
+    @Column(name = "achievement_icon", length = 50)
+    private String achievementIcon;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt ASC")
     @Builder.Default

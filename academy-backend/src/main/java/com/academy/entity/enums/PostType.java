@@ -4,5 +4,6 @@ public enum PostType {
     DISCUSSION,
     SHOWCASE,
     QUESTION,
-    ANNOUNCEMENT
+    ANNOUNCEMENT,
+    CHALLENGE
 }
