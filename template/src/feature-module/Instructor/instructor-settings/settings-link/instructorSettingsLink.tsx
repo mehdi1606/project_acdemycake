@@ -20,9 +20,6 @@ const InstructorSettingsLink = () => {
           <Link to={route.instructorChangePassword} className={`${location.pathname === '/instructor/instructor-change-password' ? 'active' : ''}`}>Security</Link>
         </li>
         <li>
-          <Link to={route.instructorPlan} className={`${location.pathname === '/instructor/instructor-plans' ? 'active' : ''}`}>Plans</Link>
-        </li>
-        <li>
           <Link to={route.instructorSocialProfiles} className={`${location.pathname === '/instructor/instructor-social-profiles' ? 'active' : ''}`}>Social Profiles</Link>
         </li>
         <li>
@@ -33,9 +30,6 @@ const InstructorSettingsLink = () => {
         </li>
         <li>
           <Link to={route.instructorIntegrations} className={`${location.pathname === '/instructor/instructor-integrations' ? 'active' : ''}`}>Integrations</Link>
-        </li>
-        <li>
-          <Link to={route.instructorWithdraw} className={`${location.pathname === '/instructor/instructor-withdraw' ? 'active' : ''}`}>Withdraw</Link>
         </li>
       </ul>
     </>
