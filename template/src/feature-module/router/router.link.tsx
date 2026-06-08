@@ -112,6 +112,7 @@ const Login                         = lazy(() => import("../auth/login/login"));
 const Register                      = lazy(() => import("../auth/register/register"));
 const VerifyEmail                   = lazy(() => import("../auth/verify-email/verifyEmail"));
 const ForgortPassword               = lazy(() => import("../auth/forgot-password/forgortPassword"));
+const ResetPassword                 = lazy(() => import("../auth/reset-password/resetPassword"));
 const SetPassword                   = lazy(() => import("../auth/set-password/setPassword"));
 const Otp                           = lazy(() => import("../auth/otp/otp"));
 const LockScreen                    = lazy(() => import("../auth/lock-screen/lockScreen"));
@@ -660,6 +661,11 @@ export const authRoutes = [
   {
     path: routes.forgotpassword,
     element: <ForgortPassword />,
+    route: Route,
+  },
+  {
+    path: routes.resetPassword,
+    element: <ResetPassword />,
     route: Route,
   },
   {

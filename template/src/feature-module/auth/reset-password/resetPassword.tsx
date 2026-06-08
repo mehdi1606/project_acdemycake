@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
-import authService from "../../../services/api/auth.service";
+import { authService } from "../../../services/api/auth.service";
 import { extractApiError } from "../../../services/api/error.utils";
-import { Alert, Spin } from "antd";
+import { Spin, Alert } from "antd";
 import { useTranslation } from "react-i18next";
 
 const Particle: React.FC<{ style: React.CSSProperties }> = ({ style }) => (
@@ -21,42 +21,72 @@ const particles = [
   { top: "63%", left: "28%", width: 5,  height: 5,  animationDelay: "0.5s", animationDuration: "12s" },
 ];
 
-const ForgotPassword: React.FC = () => {
+const ResetPassword: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const route = all_routes;
 
-  const [email, setEmail]         = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [apiError, setApiError]   = useState("");
+  const token = searchParams.get("token") || "";
+
+  const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
+  const [showPassword, setShowPassword] = useState({ password: false, confirmPassword: false });
+  const [fieldErrors, setFieldErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess]     = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const validateEmail = (value: string): string => {
-    if (!value.trim()) return t("auth.forgotPassword.emailRequired", "Email is required.");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t("auth.forgotPassword.emailInvalid", "Please enter a valid email address.");
-    return "";
+  /* If no token in URL, redirect to forgot-password immediately */
+  useEffect(() => {
+    if (!token) {
+      navigate(route.forgotpassword, { replace: true });
+    }
+  }, [token, navigate, route.forgotpassword]);
+
+  const validateField = (name: string, value: string): string | undefined => {
+    if (name === "password") {
+      if (!value) return t("auth.resetPassword.passwordRequired", "Password is required.");
+      if (value.length < 8) return t("auth.resetPassword.passwordTooShort", "Password must be at least 8 characters.");
+    }
+    if (name === "confirmPassword") {
+      if (!value) return t("auth.resetPassword.confirmRequired", "Please confirm your password.");
+      if (value !== formData.password) return t("auth.resetPassword.passwordMismatch", "Passwords do not match.");
+    }
+    return undefined;
   };
-
-  const handleBlur = () => setEmailError(validateEmail(email));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    if (emailError) setEmailError("");
-    if (apiError)   setApiError("");
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name as keyof typeof fieldErrors]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+    if (apiError) setApiError("");
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const err = validateEmail(email);
-    if (err) { setEmailError(err); return; }
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors = {
+      password: validateField("password", formData.password),
+      confirmPassword: validateField("confirmPassword", formData.confirmPassword),
+    };
+    if (Object.values(errors).some(Boolean)) {
+      setFieldErrors(errors);
+      return;
+    }
 
     setIsLoading(true);
     setApiError("");
     try {
-      await authService.forgotPassword(email);
+      await authService.resetPassword(token, formData.password);
       setSuccess(true);
-    } catch (error: unknown) {
-      setApiError(extractApiError(error, t("auth.forgotPassword.failedError", "Failed to send reset email. Please try again.")));
+    } catch (err: unknown) {
+      setApiError(extractApiError(err, t("auth.resetPassword.failedError", "Failed to reset password. The link may have expired.")));
     } finally {
       setIsLoading(false);
     }
@@ -121,41 +151,34 @@ const ForgotPassword: React.FC = () => {
               <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
                 <div style={{
                   width: 64, height: 64, borderRadius: "50%",
-                  background: "rgba(197, 145, 44, 0.1)",
+                  background: "rgba(60, 140, 80, 0.1)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   margin: "0 auto 1rem",
                 }}>
-                  <i className="isax isax-sms" style={{ fontSize: 32, color: "var(--sl-gold, #C5912C)" }} />
+                  <i className="isax isax-tick-circle" style={{ fontSize: 32, color: "#3a7d44" }} />
                 </div>
                 <h1 className="sl-auth__form-title" style={{ textAlign: "center" }}>
-                  {t("auth.forgotPassword.checkEmail", "Check Your Email")}
+                  {t("auth.resetPassword.successTitle", "Password Reset!")}
                 </h1>
                 <p className="sl-auth__form-subtitle" style={{ textAlign: "center" }}>
-                  {t("auth.forgotPassword.linkSent", "We've sent a password reset link to")}{" "}
-                  <strong style={{ color: "var(--sl-burgundy, #651C32)" }}>{email}</strong>.{" "}
-                  {t("auth.forgotPassword.checkSpam", "Check your inbox and spam folder.")}
+                  {t("auth.resetPassword.successDesc", "Your password has been updated successfully. You can now sign in with your new password.")}
                 </p>
               </div>
-              <div className="sl-auth__switch">
-                {t("auth.forgotPassword.didntReceive", "Didn't receive it?")}{" "}
-                <button
-                  type="button"
-                  className="sl-auth__switch-link"
-                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-                  onClick={() => { setSuccess(false); setEmail(""); }}
-                >
-                  {t("common.tryAgain", "Try again")}
-                </button>
-              </div>
+              <button
+                className="sl-auth__submit"
+                onClick={() => navigate(route.login)}
+              >
+                {t("auth.login.signIn", "Sign In")} <i className="isax isax-arrow-right-3 ms-1" />
+              </button>
             </>
           ) : (
             /* ── Form state ── */
             <>
               <h1 className="sl-auth__form-title">
-                {t("auth.forgotPassword.title", "Forgot Password?")}
+                {t("auth.resetPassword.title", "New Password")}
               </h1>
               <p className="sl-auth__form-subtitle">
-                {t("auth.forgotPassword.subtitle", "Enter your email and we'll send you a link to reset your password.")}
+                {t("auth.resetPassword.subtitle", "Choose a strong password to secure your account.")}
               </p>
 
               {apiError && (
@@ -165,37 +188,78 @@ const ForgotPassword: React.FC = () => {
                   showIcon
                   closable
                   onClose={() => setApiError("")}
+                  className="mb-3"
                   style={{ borderRadius: 8, marginBottom: "1rem" }}
                 />
               )}
 
               <form onSubmit={handleSubmit} noValidate>
+                {/* New Password */}
                 <div className="sl-auth__field">
                   <label className="sl-auth__label">
-                    {t("auth.forgotPassword.email", "Email")}
+                    {t("auth.resetPassword.newPassword", "New Password")}
                     <span className="sl-auth__required"> *</span>
                   </label>
                   <div className="sl-auth__input-wrap">
                     <input
-                      type="email"
-                      name="email"
-                      value={email}
+                      type={showPassword.password ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      className={`sl-auth__input${emailError ? " sl-auth__input--error" : ""}`}
-                      placeholder={t("auth.forgotPassword.emailPlaceholder", "Enter your email address")}
+                      className={`sl-auth__input${fieldErrors.password ? " sl-auth__input--error" : ""}`}
+                      placeholder={t("auth.resetPassword.newPasswordPlaceholder", "Enter new password")}
                       disabled={isLoading}
-                      autoComplete="email"
+                      autoComplete="new-password"
                     />
-                    <i className="isax isax-sms sl-auth__input-icon" />
+                    <span
+                      className={`sl-auth__toggle-pw isax ${showPassword.password ? "isax-eye" : "isax-eye-slash"}`}
+                      onClick={() => setShowPassword((p) => ({ ...p, password: !p.password }))}
+                    />
                   </div>
-                  {emailError && (
+                  {fieldErrors.password && (
                     <div className="sl-auth__field-error">
                       <i className="isax isax-info-circle me-1" />
-                      {emailError}
+                      {fieldErrors.password}
                     </div>
                   )}
                 </div>
+
+                {/* Confirm Password */}
+                <div className="sl-auth__field">
+                  <label className="sl-auth__label">
+                    {t("auth.resetPassword.confirmPassword", "Confirm Password")}
+                    <span className="sl-auth__required"> *</span>
+                  </label>
+                  <div className="sl-auth__input-wrap">
+                    <input
+                      type={showPassword.confirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={`sl-auth__input${fieldErrors.confirmPassword ? " sl-auth__input--error" : ""}`}
+                      placeholder={t("auth.resetPassword.confirmPasswordPlaceholder", "Re-enter new password")}
+                      disabled={isLoading}
+                      autoComplete="new-password"
+                    />
+                    <span
+                      className={`sl-auth__toggle-pw isax ${showPassword.confirmPassword ? "isax-eye" : "isax-eye-slash"}`}
+                      onClick={() => setShowPassword((p) => ({ ...p, confirmPassword: !p.confirmPassword }))}
+                    />
+                  </div>
+                  {fieldErrors.confirmPassword && (
+                    <div className="sl-auth__field-error">
+                      <i className="isax isax-info-circle me-1" />
+                      {fieldErrors.confirmPassword}
+                    </div>
+                  )}
+                </div>
+
+                {/* Password hint */}
+                <p style={{ fontSize: "0.78rem", color: "#9A8888", marginBottom: "1.25rem", marginTop: "-0.25rem" }}>
+                  {t("auth.resetPassword.passwordHint", "Must be at least 8 characters.")}
+                </p>
 
                 <button
                   type="submit"
@@ -203,9 +267,9 @@ const ForgotPassword: React.FC = () => {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <><Spin size="small" className="me-2" />{t("auth.forgotPassword.sending", "Sending...")}</>
+                    <><Spin size="small" className="me-2" />{t("auth.resetPassword.resetting", "Resetting...")}</>
                   ) : (
-                    <>{t("auth.forgotPassword.sendLink", "Send Reset Link")} <i className="isax isax-arrow-right-3 ms-1" /></>
+                    <>{t("auth.resetPassword.resetButton", "Reset Password")} <i className="isax isax-arrow-right-3 ms-1" /></>
                   )}
                 </button>
               </form>
@@ -224,4 +288,4 @@ const ForgotPassword: React.FC = () => {
   );
 };
 
-export default ForgotPassword;
+export default ResetPassword;

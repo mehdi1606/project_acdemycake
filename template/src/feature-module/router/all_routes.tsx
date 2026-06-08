@@ -98,6 +98,7 @@ export const all_routes = {
     register: '/register',
     verifyEmail: '/verify-email',
     forgotpassword: '/forgot-password',
+    resetPassword: '/reset-password',
     setpassowrd: '/set-password',
     otp: '/otp',
     lockscreen: '/lock-screen',
