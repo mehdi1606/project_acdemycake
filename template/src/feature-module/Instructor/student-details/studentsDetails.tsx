@@ -9,6 +9,8 @@ import {
   StudentCourseEnrollment,
 } from '../../../services/api/instructor.service'
 import { getFileUrl } from '../../../environment'
+import BadgeAvatar from '../../../components/BadgeAvatar'
+import { getBadgeFromRole } from '../../../config/badges'
 
 const StudentsDetails = () => {
   const { t } = useTranslation();
@@ -94,21 +96,12 @@ const StudentsDetails = () => {
                   <div className="instructor-details">
                     {/* Avatar */}
                     <div className="instructor-img">
-                      {student.avatarUrl ? (
-                        <img
-                          src={getFileUrl(student.avatarUrl) ?? student.avatarUrl}
-                          alt={student.fullName}
-                          className="img-fluid rounded-3"
-                          style={{ width: 120, height: 120, objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div
-                          className="rounded-3 d-flex align-items-center justify-content-center bg-primary text-white fw-bold"
-                          style={{ width: 120, height: 120, fontSize: 40 }}
-                        >
-                          {getInitials(student.fullName)}
-                        </div>
-                      )}
+                      <BadgeAvatar
+                        avatarUrl={getFileUrl(student.avatarUrl) ?? undefined}
+                        name={student.fullName}
+                        badge={getBadgeFromRole('STUDENT')}
+                        size="lg"
+                      />
                     </div>
 
                     <div className="flex-fill">

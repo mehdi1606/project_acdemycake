@@ -6,6 +6,8 @@ import { useAppSelector, useAppDispatch } from '../../../core/redux/hooks';
 import { removeFromCart, clearCart } from '../../../core/redux/cartSlice';
 import { App } from 'antd';
 import { getFileUrl } from '../../../environment';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 /* ── Design tokens ── */
 const GOLD   = '#C5973E';
@@ -252,22 +254,12 @@ const CourseCart = () => {
                           {/* Instructor */}
                           {item.instructorName && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                              {avatar ? (
-                                <img
-                                  src={avatar}
-                                  alt={item.instructorName}
-                                  style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
-                                />
-                              ) : (
-                                <div style={{
-                                  width: 28, height: 28, borderRadius: '50%',
-                                  background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_L} 100%)`,
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 12, fontWeight: 700, color: '#fff',
-                                }}>
-                                  {item.instructorName.charAt(0).toUpperCase()}
-                                </div>
-                              )}
+                              <BadgeAvatar
+                                avatarUrl={avatar ?? undefined}
+                                name={item.instructorName}
+                                badge={getBadgeFromRole('INSTRUCTOR')}
+                                size="sm"
+                              />
                               {item.instructorId ? (
                                 <Link
                                   to={`${route.instructorDetails}/${item.instructorId}`}

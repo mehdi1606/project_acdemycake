@@ -10,6 +10,8 @@ import { useAppSelector } from '../../core/redux/hooks';
 import { messageService, ConversationInfo, ChatMessage } from '../../services/api/message.service';
 import { getFileUrl } from '../../environment';
 import wsService from '../../services/websocket/websocketService';
+import BadgeAvatar from '../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../config/badges';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -364,21 +366,17 @@ const ChatPage: React.FC<ChatPageProps> = ({
                       onClick={() => openConversation(conv)}
                     >
                       <div className="d-flex align-items-center overflow-hidden">
-                        <div className="avatar avatar-md avatar-rounded flex-shrink-0 me-2 position-relative">
-                          <img
-                            src={avatar(conv.participantAvatar)}
-                            alt={conv.participantName}
-                            className="rounded-circle"
-                            style={{ width: 42, height: 42, objectFit: 'cover' }}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                'assets/img/user/user-02.jpg';
-                            }}
+                        <div className="flex-shrink-0 me-2 position-relative">
+                          <BadgeAvatar
+                            avatarUrl={avatar(conv.participantAvatar)}
+                            name={conv.participantName}
+                            badge={getBadgeFromRole((conv as any).participantRole)}
+                            size="sm"
                           />
                           {conv.isOnline && (
                             <span
-                              className="position-absolute bottom-0 end-0 badge bg-success rounded-circle border border-white"
-                              style={{ width: 10, height: 10, padding: 0 }}
+                              className="position-absolute badge bg-success rounded-circle border border-white"
+                              style={{ width: 10, height: 10, padding: 0, bottom: 2, right: 2 }}
                             />
                           )}
                         </div>
@@ -416,16 +414,12 @@ const ChatPage: React.FC<ChatPageProps> = ({
                 <>
                   {/* Chat header */}
                   <div className="d-flex align-items-center px-3 py-2 border-bottom bg-light">
-                    <div className="avatar avatar-md avatar-rounded me-2">
-                      <img
-                        src={avatar(activeConv.participantAvatar)}
-                        alt={activeConv.participantName}
-                        className="rounded-circle"
-                        style={{ width: 40, height: 40, objectFit: 'cover' }}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            'assets/img/user/user-02.jpg';
-                        }}
+                    <div className="me-2">
+                      <BadgeAvatar
+                        avatarUrl={avatar(activeConv.participantAvatar)}
+                        name={activeConv.participantName}
+                        badge={getBadgeFromRole((activeConv as any).participantRole)}
+                        size="sm"
                       />
                     </div>
                     <div>
@@ -463,16 +457,14 @@ const ChatPage: React.FC<ChatPageProps> = ({
                             className={`d-flex mb-3${isMine ? ' flex-row-reverse' : ''}`}
                           >
                             {!isMine && (
-                              <img
-                                src={avatar(msg.senderAvatar)}
-                                alt={msg.senderName}
-                                className="rounded-circle flex-shrink-0 me-2 align-self-end"
-                                style={{ width: 32, height: 32, objectFit: 'cover' }}
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src =
-                                    'assets/img/user/user-02.jpg';
-                                }}
-                              />
+                              <div className="flex-shrink-0 me-2 align-self-end">
+                                <BadgeAvatar
+                                  avatarUrl={avatar(msg.senderAvatar)}
+                                  name={msg.senderName}
+                                  badge={getBadgeFromRole((msg as any).senderRole)}
+                                  size="sm"
+                                />
+                              </div>
                             )}
                             <div
                               className={`d-flex flex-column${isMine ? ' align-items-end me-2' : ' align-items-start'}`}

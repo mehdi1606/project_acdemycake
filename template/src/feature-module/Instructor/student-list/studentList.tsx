@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { instructorService, InstructorStudentInfo } from '../../../services/api/instructor.service';
 import { getFileUrl } from '../../../environment';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 const StudentList: React.FC = () => {
   const { t } = useTranslation();
@@ -186,21 +188,14 @@ const StudentList: React.FC = () => {
                   <tr key={student.id}>
                     <td>
                       <div className="d-flex align-items-center">
-                        {student.avatarUrl ? (
-                          <img
-                            src={getFileUrl(student.avatarUrl) ?? student.avatarUrl}
-                            alt={student.fullName}
-                            className="avatar avatar-md avatar-rounded flex-shrink-0 me-2"
-                            style={{ objectFit: 'cover' }}
+                        <div className="flex-shrink-0 me-2">
+                          <BadgeAvatar
+                            avatarUrl={getFileUrl(student.avatarUrl) ?? undefined}
+                            name={student.fullName}
+                            badge={getBadgeFromRole('STUDENT')}
+                            size="sm"
                           />
-                        ) : (
-                          <div
-                            className="avatar avatar-md avatar-rounded flex-shrink-0 me-2 d-flex align-items-center justify-content-center bg-primary text-white fw-bold"
-                            style={{ fontSize: 13 }}
-                          >
-                            {getInitials(student.fullName)}
-                          </div>
-                        )}
+                        </div>
                         <div>
                           <p className="fs-14 fw-medium mb-0">{student.fullName}</p>
                         </div>

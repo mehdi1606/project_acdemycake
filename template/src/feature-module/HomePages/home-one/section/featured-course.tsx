@@ -8,6 +8,8 @@ import { all_routes } from '../../../router/all_routes'
 import { courseService } from '../../../../services/api/course.service'
 import { Course } from '../../../../services/api/types'
 import { getFileUrl } from '../../../../environment'
+import BadgeAvatar from '../../../../components/BadgeAvatar'
+import { getBadgeFromRole } from '../../../../config/badges'
 import { useMouseTilt } from '../hooks/useMouseTilt'
 
 // ── Single card with 3D tilt ──────────────────────────────────────────────────
@@ -57,12 +59,11 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
             <div className="sl-course-card__body">
                 <div className="sl-course-card__meta">
                     <Link to={route.instructorDetails} className="sl-course-card__instructor">
-                        <img
-                            src={getAvatar()}
-                            alt={course.instructor?.fullName}
-                            onError={e => {
-                                (e.target as HTMLImageElement).src = 'assets/img/user/user-01.jpg'
-                            }}
+                        <BadgeAvatar
+                            avatarUrl={getAvatar()}
+                            name={course.instructor?.fullName}
+                            badge={getBadgeFromRole('INSTRUCTOR')}
+                            size="sm"
                         />
                         <span>{course.instructor?.fullName || t('common.instructor', 'Instructor')}</span>
                     </Link>

@@ -5,20 +5,12 @@ import { all_routes } from '../../router/all_routes'
 import ImageWithBasePath from '../../../core/common/imageWithBasePath'
 import { useAppSelector } from '../../../core/redux/hooks'
 import { getFileUrl } from '../../../environment'
+import BadgeAvatar from '../../../components/BadgeAvatar'
+import { getBadgeFromRole } from '../../../config/badges'
 
 const ProfileCard = () => {
   const { t } = useTranslation()
   const { user } = useAppSelector((state) => state.auth);
-
-  // Get user initials for avatar fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   return (
     <div className="instructor-profile">
@@ -32,32 +24,14 @@ const ProfileCard = () => {
     <div className="row align-items-center row-gap-3">
       <div className="col-md-6">
         <div className="d-flex align-items-center">
-          <span className="avatar flex-shrink-0 avatar-xxl avatar-rounded me-3 border border-white border-3 position-relative">
-            {user?.avatarUrl ? (
-              <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <span
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#6B1D2A',
-                  color: 'white',
-                  fontSize: '24px',
-                  fontWeight: 'bold'
-                }}
-              >
-                {user?.fullName ? getInitials(user.fullName) : 'IN'}
-              </span>
-            )}
-            {user?.isEmailVerified && (
-              <span className="verify-tick">
-                <i className="isax isax-verify5" />
-              </span>
-            )}
-          </span>
+          <div className="flex-shrink-0 me-3">
+            <BadgeAvatar
+              avatarUrl={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : undefined}
+              name={user?.fullName || 'IN'}
+              badge={getBadgeFromRole('INSTRUCTOR')}
+              size="lg"
+            />
+          </div>
           <div>
             <h5 className="mb-1 text-white d-inline-flex align-items-center">
               {user?.fullName || 'Instructor'}

@@ -11,6 +11,8 @@ import { getFileUrl } from '../../../environment';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { addToCart } from '../../../core/redux/cartSlice';
 import SubscriptionGate from '../../common/SubscriptionGate';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 // ── Stars ─────────────────────────────────────────────────────────────────────
 const Stars: React.FC<{ rating: number }> = ({ rating }) => (
@@ -85,8 +87,12 @@ const CourseCard: React.FC<{
       <div className="sl-course-card__body">
         <div className="sl-course-card__meta">
           <Link to={`${route.instructorDetails}/${course.instructor?.id}`} className="sl-course-card__instructor">
-            <img src={avatar} alt={course.instructor?.fullName}
-              onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`; }} />
+            <BadgeAvatar
+              avatarUrl={avatar}
+              name={course.instructor?.fullName}
+              badge={getBadgeFromRole('INSTRUCTOR')}
+              size="sm"
+            />
             <span>{course.instructor?.fullName || 'Instructor'}</span>
           </Link>
           <span className="sl-course-card__category">{course.level?.replace('_', ' ') || 'All Levels'}</span>

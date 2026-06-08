@@ -10,6 +10,8 @@ import { Course, CourseCategory, CourseLevel } from '../../../services/api/types
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
   { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
@@ -133,10 +135,11 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
             to={`${route.instructorDetails}/${course.instructor?.id}`}
             className="sl-cl-card__instructor"
           >
-            <img
-              src={avatar}
-              alt={course.instructor?.fullName}
-              onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`; }}
+            <BadgeAvatar
+              avatarUrl={avatar}
+              name={course.instructor?.fullName}
+              badge={getBadgeFromRole('INSTRUCTOR')}
+              size="sm"
             />
             <span>{course.instructor?.fullName || 'Master Instructor'}</span>
           </Link>

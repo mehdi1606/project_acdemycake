@@ -8,6 +8,8 @@ import { CommunityComment, CommunityPost, PostType } from '../../services/api/ty
 import { getFileUrl } from '../../environment';
 import { all_routes } from '../router/all_routes';
 import { AchievementBadge } from './CommunityPage';
+import BadgeAvatar from '../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../config/badges';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -240,9 +242,12 @@ const CommunityPostDetail: React.FC = () => {
             <h4 className="fw-bold mb-3">{post.title}</h4>
 
             <div className="d-flex align-items-center gap-2 mb-3">
-              <img src={avatarUrl(post.userAvatar)} alt={post.userName} className="rounded-circle"
-                style={{ width: 40, height: 40, objectFit: 'cover' }}
-                onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/user/user-02.jpg'; }} />
+              <BadgeAvatar
+                avatarUrl={avatarUrl(post.userAvatar)}
+                name={post.userName}
+                badge={getBadgeFromRole((post as any).userRole)}
+                size="sm"
+              />
               <div>
                 <p className="mb-0 fw-semibold fs-14">{post.userName}</p>
                 <p className="mb-0 text-muted fs-12">{formatDate(post.createdAt)}</p>
@@ -338,10 +343,12 @@ const CommunityPostDetail: React.FC = () => {
               <div key={comment.id} className="card border-0 shadow-sm">
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start gap-3">
-                    <img src={avatarUrl(comment.userAvatar)} alt={comment.userName}
-                      className="rounded-circle flex-shrink-0"
-                      style={{ width: 34, height: 34, objectFit: 'cover' }}
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/user/user-02.jpg'; }} />
+                    <BadgeAvatar
+                      avatarUrl={avatarUrl(comment.userAvatar)}
+                      name={comment.userName}
+                      badge={getBadgeFromRole((comment as any).userRole)}
+                      size="sm"
+                    />
                     <div className="flex-grow-1">
                       <div className="d-flex align-items-center gap-2 mb-1">
                         <span className="fw-semibold fs-14">{comment.userName}</span>

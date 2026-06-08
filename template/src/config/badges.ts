@@ -145,3 +145,16 @@ export function getNextBadge(current: BadgeDefinition): BadgeDefinition | null {
   if (current.id >= 7) return null;
   return BADGES[current.id] ?? null; // BADGES is 0-indexed; badge id 1 is BADGES[0]
 }
+
+/**
+ * Get the badge for a user when only their role is known (no completedCourses).
+ * Used for OTHER users' avatars (community posts, messages, instructor cards).
+ * - INSTRUCTOR → instructor badge (8)
+ * - ADMIN      → admin badge (9)
+ * - STUDENT / unknown → apprentice badge (1) as visual placeholder
+ */
+export function getBadgeFromRole(role?: string | null): BadgeDefinition {
+  if (role === 'ADMIN')      return BADGES[8]; // badge 9
+  if (role === 'INSTRUCTOR') return BADGES[7]; // badge 8
+  return BADGES[0];                            // badge 1 — Apprentice
+}

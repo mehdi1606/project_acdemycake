@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { instructorService, InstructorStudentInfo } from '../../../services/api/instructor.service';
 import { getFileUrl } from '../../../environment';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 import { useTranslation } from 'react-i18next';
 
 const StudentGrid: React.FC = () => {
@@ -172,22 +174,13 @@ const StudentGrid: React.FC = () => {
                 <div className="card h-100">
                   <div className="card-body">
                     {/* Avatar */}
-                    <div className="mb-3 text-center">
-                      {student.avatarUrl ? (
-                        <img
-                          src={getFileUrl(student.avatarUrl) ?? student.avatarUrl}
-                          className="rounded-3"
-                          alt={student.fullName}
-                          style={{ width: '100%', height: 140, objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div
-                          className="rounded-3 d-flex align-items-center justify-content-center bg-primary text-white fw-bold mx-auto"
-                          style={{ width: '100%', height: 140, fontSize: 40 }}
-                        >
-                          {getInitials(student.fullName)}
-                        </div>
-                      )}
+                    <div className="mb-3 d-flex justify-content-center">
+                      <BadgeAvatar
+                        avatarUrl={getFileUrl(student.avatarUrl) ?? undefined}
+                        name={student.fullName}
+                        badge={getBadgeFromRole('STUDENT')}
+                        size="md"
+                      />
                     </div>
 
                     {/* Name & actions */}

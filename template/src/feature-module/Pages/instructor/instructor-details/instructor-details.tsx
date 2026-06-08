@@ -8,6 +8,8 @@ import { PublicInstructorProfile, Course } from '../../../../services/api/types'
 import { Spin, Rate } from 'antd';
 import { getFileUrl } from '../../../../environment';
 import CourseCard from '../../../../components/CourseCard';
+import BadgeAvatar from '../../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../../config/badges';
 
 const InstructorDetails = () => {
   const { t } = useTranslation()
@@ -107,14 +109,11 @@ const InstructorDetails = () => {
               <div className="card bg-light mb-4">
                 <div className="card-body instructor-details">
                   <div className="instructor-img">
-                    <img
-                      src={avatarUrl}
-                      alt={instructor.fullName}
-                      className="img-fluid rounded-circle"
-                      style={{ width: '120px', height: '120px', objectFit: 'cover' }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'assets/img/user/user-61.jpg';
-                      }}
+                    <BadgeAvatar
+                      avatarUrl={avatarUrl}
+                      name={instructor.fullName}
+                      badge={getBadgeFromRole('INSTRUCTOR')}
+                      size="lg"
                     />
                   </div>
                   <div className="flex-fill">

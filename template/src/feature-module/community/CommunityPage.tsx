@@ -7,6 +7,8 @@ import communityService from '../../services/api/community.service';
 import { CommunityPost, CreatePostRequest, PostType } from '../../services/api/types';
 import { getFileUrl } from '../../environment';
 import { all_routes } from '../router/all_routes';
+import BadgeAvatar from '../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../config/badges';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -274,12 +276,11 @@ const CommunityPage: React.FC = () => {
                   <div className="card-body p-4">
                     <div className="d-flex align-items-start justify-content-between gap-2 mb-2">
                       <div className="d-flex align-items-center gap-2">
-                        <img
-                          src={avatarUrl(post.userAvatar)}
-                          alt={post.userName}
-                          className="rounded-circle"
-                          style={{ width: 36, height: 36, objectFit: 'cover' }}
-                          onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/user/user-02.jpg'; }}
+                        <BadgeAvatar
+                          avatarUrl={avatarUrl(post.userAvatar)}
+                          name={post.userName}
+                          badge={getBadgeFromRole((post as any).userRole)}
+                          size="sm"
                         />
                         <div>
                           <p className="mb-0 fw-semibold fs-14">{post.userName}</p>

@@ -8,6 +8,8 @@ import {
   PublicInstructorProfile, CreateReviewRequest,
 } from '../../../services/api/types';
 import { getFileUrl } from '../../../environment';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 import { Spin, App, Rate, Collapse } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { addToWishlist, removeFromWishlist } from '../../../core/redux/courseSlice';
@@ -333,19 +335,12 @@ const CourseDetails = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{
-                width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
-                border: '2px solid rgba(197,145,62,0.5)',
-                boxShadow: '0 0 0 3px rgba(197,145,62,0.12)',
-              }}>
-                {c.instructor?.avatarUrl ? (
-                  <img src={instrAvatar} alt={c.instructor.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', background: '#651C32', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DEBB6B', fontWeight: 800, fontSize: 18 }}>
-                    {c.instructor?.fullName?.charAt(0) ?? 'I'}
-                  </div>
-                )}
-              </div>
+              <BadgeAvatar
+                avatarUrl={instrAvatar}
+                name={c.instructor?.fullName}
+                badge={getBadgeFromRole('INSTRUCTOR')}
+                size="sm"
+              />
               <div>
                 <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 2 }}>Created by</div>
                 <button
@@ -613,19 +608,12 @@ const CourseDetails = () => {
                   border: '1px solid rgba(101,28,50,0.08)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, flexWrap: 'wrap' }}>
-                    <div style={{
-                      width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
-                      border: '3px solid rgba(197,145,62,0.25)',
-                      boxShadow: '0 0 0 6px rgba(197,145,62,0.08)',
-                    }}>
-                      {(instructor?.avatarUrl || c.instructor?.avatarUrl) ? (
-                        <img src={instrAvatar} alt={c.instructor?.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#651C32,#8B2335)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 800, color: '#DEBB6B' }}>
-                          {c.instructor?.fullName?.charAt(0) ?? 'I'}
-                        </div>
-                      )}
-                    </div>
+                    <BadgeAvatar
+                      avatarUrl={instrAvatar}
+                      name={c.instructor?.fullName}
+                      badge={getBadgeFromRole('INSTRUCTOR')}
+                      size="lg"
+                    />
 
                     <div style={{ flex: 1, minWidth: 200 }}>
                       <h4 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 800, color: '#2C1810', marginBottom: 4 }}>
@@ -754,15 +742,12 @@ const CourseDetails = () => {
                         display: 'flex', gap: 16, padding: '18px 0',
                         borderBottom: idx < reviews.length - 1 ? '1px solid rgba(197,145,44,0.08)' : 'none',
                       }}>
-                        <div style={{ width: 46, height: 46, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid rgba(197,145,62,0.15)' }}>
-                          {rev.user?.avatarUrl ? (
-                            <img src={getFileUrl(rev.user.avatarUrl) ?? rev.user.avatarUrl} alt={rev.user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,rgba(101,28,50,0.08),rgba(101,28,50,0.04))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#651C32', fontSize: 18 }}>
-                              {rev.user?.fullName?.charAt(0) ?? '?'}
-                            </div>
-                          )}
-                        </div>
+                        <BadgeAvatar
+                          avatarUrl={getFileUrl(rev.user?.avatarUrl) ?? undefined}
+                          name={rev.user?.fullName}
+                          badge={getBadgeFromRole('STUDENT')}
+                          size="sm"
+                        />
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                             <strong style={{ fontSize: 14, color: '#2C1810' }}>{rev.user?.fullName}</strong>

@@ -12,6 +12,8 @@ import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
 import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
   { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
@@ -197,11 +199,11 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
               textDecoration: 'none',
             }}
           >
-            <img
-              src={avatar}
-              alt={course.instructor?.fullName}
-              onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`; }}
-              style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(197,145,44,0.3)' }}
+            <BadgeAvatar
+              avatarUrl={avatar}
+              name={course.instructor?.fullName}
+              badge={getBadgeFromRole('INSTRUCTOR')}
+              size="sm"
             />
             <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(58,30,32,0.65)', fontFamily: 'var(--sl-font-body)' }}>
               {course.instructor?.fullName || 'Instructor'}

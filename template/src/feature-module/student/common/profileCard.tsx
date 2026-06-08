@@ -5,10 +5,14 @@ import { all_routes } from '../../router/all_routes';
 import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeForUser } from '../../../config/badges';
 
 const ProfileCard = () => {
   const { t } = useTranslation()
   const { user } = useAppSelector((state) => state.auth);
+  const { stats } = useAppSelector((state) => state.student);
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
 
   return (
     <div className="profile-card overflow-hidden bg-blue-gradient2 mb-5 p-5">
@@ -22,18 +26,14 @@ const ProfileCard = () => {
       <div className="row align-items-center row-gap-3">
         <div className="col-lg-6">
           <div className="d-flex align-items-center">
-            <span className="avatar avatar-xxl avatar-rounded me-3 border border-white border-2 position-relative">
-              {user?.avatarUrl ? (
-                <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} className="rounded-circle" />
-              ) : (
-                <ImageWithBasePath src="assets/img/user/user-02.jpg" alt="" />
-              )}
-              {user?.isEmailVerified && (
-                <span className="verify-tick">
-                  <i className="isax isax-verify5" />
-                </span>
-              )}
-            </span>
+            <div className="me-3">
+              <BadgeAvatar
+                avatarUrl={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : undefined}
+                name={user?.fullName || 'S'}
+                badge={userBadge}
+                size="lg"
+              />
+            </div>
             <div>
               <h5 className="mb-1 text-white d-inline-flex align-items-center">
                 <Link to={all_routes.studentProfile} className="text-white">

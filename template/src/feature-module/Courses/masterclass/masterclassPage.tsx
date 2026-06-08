@@ -10,6 +10,8 @@ import { getFileUrl } from '../../../environment';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { addToCart } from '../../../core/redux/cartSlice';
 import { all_routes } from '../../router/all_routes';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 const PAGE_SIZE = 9;
 
@@ -149,11 +151,11 @@ const MasterclassCard: React.FC<{
           to={`${route.instructorDetails}/${course.instructor?.id}`}
           style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: '0.6rem' }}
         >
-          <img
-            src={avatar}
-            alt={course.instructor?.fullName}
-            onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`; }}
-            style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(197,145,44,0.4)' }}
+          <BadgeAvatar
+            avatarUrl={avatar}
+            name={course.instructor?.fullName}
+            badge={getBadgeFromRole('INSTRUCTOR')}
+            size="sm"
           />
           <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(58,30,32,0.65)' }}>
             {course.instructor?.fullName || 'Instructor'}
