@@ -25,10 +25,11 @@ const TYPE_COLORS: Record<PostType, { bg: string; text: string }> = {
   DISCUSSION:   { bg: 'rgba(101,28,50,0.08)',   text: 'var(--sl-burgundy)' },
   QUESTION:     { bg: 'rgba(29,60,52,0.10)',     text: 'var(--sl-forest)'  },
   ANNOUNCEMENT: { bg: 'rgba(197,145,44,0.12)',   text: 'var(--sl-gold)'    },
-  RESOURCE:     { bg: 'rgba(101,28,50,0.06)',    text: 'var(--sl-crimson)' },
+  SHOWCASE:     { bg: 'rgba(101,28,50,0.06)',    text: 'var(--sl-crimson)' },
+  CHALLENGE:    { bg: 'rgba(78,20,32,0.10)',     text: 'var(--sl-burgundy)' },
 };
 
-const ALL_TYPES: PostType[] = ['DISCUSSION', 'QUESTION', 'ANNOUNCEMENT', 'RESOURCE'];
+const ALL_TYPES: PostType[] = ['DISCUSSION', 'QUESTION', 'ANNOUNCEMENT', 'SHOWCASE', 'CHALLENGE'];
 
 // ── Post detail modal ─────────────────────────────────────────────────────────
 const PostModal: React.FC<{
@@ -55,13 +56,15 @@ const PostModal: React.FC<{
     DISCUSSION:   { bg: 'rgba(101,28,50,0.08)', text: 'var(--sl-burgundy)' },
     QUESTION:     { bg: 'rgba(29,60,52,0.10)',  text: 'var(--sl-forest)'  },
     ANNOUNCEMENT: { bg: 'rgba(197,145,44,0.12)', text: 'var(--sl-gold)'   },
-    RESOURCE:     { bg: 'rgba(101,28,50,0.06)',  text: 'var(--sl-crimson)' },
+    SHOWCASE:     { bg: 'rgba(101,28,50,0.06)',  text: 'var(--sl-crimson)' },
+    CHALLENGE:    { bg: 'rgba(78,20,32,0.10)',   text: 'var(--sl-burgundy)' },
   };
   const TYPE_LABELS: Record<PostType, string> = {
-    DISCUSSION: t('community.type.DISCUSSION'),
-    QUESTION:   t('community.type.QUESTION'),
+    DISCUSSION:   t('community.type.DISCUSSION'),
+    QUESTION:     t('community.type.QUESTION'),
     ANNOUNCEMENT: t('community.type.ANNOUNCEMENT'),
-    RESOURCE:   t('community.type.RESOURCE'),
+    SHOWCASE:     t('community.type.SHOWCASE'),
+    CHALLENGE:    t('community.type.CHALLENGE'),
   };
 
   // fetch post + comments when postId changes
@@ -535,7 +538,8 @@ const PostCard: React.FC<{
     DISCUSSION:   t('community.type.DISCUSSION'),
     QUESTION:     t('community.type.QUESTION'),
     ANNOUNCEMENT: t('community.type.ANNOUNCEMENT'),
-    RESOURCE:     t('community.type.RESOURCE'),
+    SHOWCASE:     t('community.type.SHOWCASE'),
+    CHALLENGE:    t('community.type.CHALLENGE'),
   };
 
   return (
@@ -744,7 +748,8 @@ const BlogGrid = () => {
     DISCUSSION:   t('community.type.DISCUSSION'),
     QUESTION:     t('community.type.QUESTION'),
     ANNOUNCEMENT: t('community.type.ANNOUNCEMENT'),
-    RESOURCE:     t('community.type.RESOURCE'),
+    SHOWCASE:     t('community.type.SHOWCASE'),
+    CHALLENGE:    t('community.type.CHALLENGE'),
   };
 
   useEffect(() => {
