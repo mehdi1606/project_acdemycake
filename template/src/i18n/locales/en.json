@@ -2353,5 +2353,29 @@
       "name": "Admin",
       "desc": "You are a SARALÖWE administrator, managing and maintaining the academy platform."
     }
+  },
+  "badgeGuide": {
+    "intro": {
+      "title": "Your Culinary Badge Journey",
+      "body": "At SARALÖWE Academy, every course you complete earns you a higher chef rank. Discover all 7 student levels plus special badges for instructors and admins."
+    },
+    "badge": {
+      "level": "Level {{n}}",
+      "special": "Special Badge",
+      "yours": "YOURS",
+      "startBadge": "Starting badge — welcome!",
+      "criteria": "{{n}}+ courses completed"
+    },
+    "current": {
+      "subtitle": "Your Badge Right Now",
+      "title": "You are",
+      "elite": "You have reached the highest level!"
+    },
+    "nav": {
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip to my badge",
+      "done": "Got it!"
+    }
   }
 }

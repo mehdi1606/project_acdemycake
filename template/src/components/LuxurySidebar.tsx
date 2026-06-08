@@ -5,6 +5,8 @@ import { useAppDispatch, useAppSelector } from '../core/redux/hooks';
 import { logout } from '../core/redux/authSlice';
 import { all_routes } from '../feature-module/router/all_routes';
 import { getFileUrl } from '../environment';
+import BadgeAvatar from './BadgeAvatar';
+import { getBadgeForUser } from '../config/badges';
 
 interface SidebarItem {
   title: string;
@@ -164,6 +166,8 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
   };
 
   const roleColor = getRoleColor();
+  const { stats } = useAppSelector((s) => s.student);
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
 
   return (
     <aside className={`luxury-sidebar${collapsed ? ' collapsed' : ''}`}>
@@ -174,21 +178,14 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
 
       {/* ── User profile area ── */}
       <div className="sidebar-profile">
-        <div
+        <BadgeAvatar
+          avatarUrl={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+          name={user?.fullName}
+          badge={userBadge}
+          size="lg"
+          roleColor={roleColor}
           className="sidebar-avatar"
-          style={{
-            background: `linear-gradient(135deg, ${roleColor}28 0%, ${roleColor}12 100%)`,
-            border: `2px solid ${roleColor}38`,
-          }}
-        >
-          {user?.avatarUrl ? (
-            <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} />
-          ) : (
-            <span style={{ color: roleColor }}>
-              {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-            </span>
-          )}
-        </div>
+        />
 
         {!collapsed && (
           <div className="sidebar-user-info">

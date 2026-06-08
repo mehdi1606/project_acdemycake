@@ -10,6 +10,9 @@ import { all_routes } from '../feature-module/router/all_routes';
 import { getFileUrl } from '../environment';
 import { notificationService } from '../services/api/notification.service';
 import { Notification } from '../services/api/types';
+import BadgeAvatar from './BadgeAvatar';
+import BadgeGuide from './BadgeGuide';
+import { getBadgeForUser } from '../config/badges';
 
 interface LuxuryTopbarProps {
   onSidebarToggle: () => void;
@@ -63,6 +66,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const [notifOpen,      setNotifOpen]      = useState(false);
   const [searchFocused,  setSearchFocused]  = useState(false);
   const [searchQuery,    setSearchQuery]    = useState('');
+  const [guideOpen,      setGuideOpen]      = useState(false);
 
   /* notifications state */
   const [notifications,  setNotifications]  = useState<Notification[]>([]);
@@ -76,6 +80,8 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const navigate     = useNavigate();
   const location     = useLocation();
   const { user }     = useAppSelector((s) => s.auth);
+  const { stats }    = useAppSelector((s) => s.student);
+  const userBadge    = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
 
   /* ── fetch unread count silently (poll every 60s) ── */
   const fetchUnreadCount = useCallback(async () => {
@@ -292,6 +298,17 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const roleColor = getRoleColor();
 
   return (
+    <>
+    {/* Badge Guide – auto-open once + openable via icon */}
+    {user && (
+      <BadgeGuide
+        userId={user.id}
+        currentBadge={userBadge}
+        completedCourses={stats?.completedCourses ?? 0}
+        forceOpen={guideOpen}
+        onClose={() => setGuideOpen(false)}
+      />
+    )}
     <header className="luxury-topbar">
       {/* ── Left: sidebar toggle + logo ── */}
       <div className="topbar-left">
@@ -540,6 +557,26 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
           )}
         </div>
 
+        {/* ── Badge guide trigger icon ── */}
+        {user && (
+          <button
+            className="topbar-action-btn"
+            onClick={() => setGuideOpen(true)}
+            title={t('badgeGuide.intro.title', 'Badge Guide')}
+            style={{ position: 'relative' }}
+          >
+            <img
+              src={userBadge.image}
+              alt=""
+              style={{
+                width: 22, height: 22,
+                objectFit: 'contain',
+                filter: `drop-shadow(0 0 4px ${userBadge.color}88)`,
+              }}
+            />
+          </button>
+        )}
+
         {/* Premium badge / upgrade button (students only) */}
         {user?.role === 'STUDENT' && (
           user?.subscriptionStatus === 'ACTIVE' ? (
@@ -561,22 +598,15 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
             className="profile-trigger"
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
-            {/* Avatar */}
-            <div
+            {/* Avatar with badge ring */}
+            <BadgeAvatar
+              avatarUrl={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+              name={user?.fullName}
+              badge={userBadge}
+              size="sm"
+              roleColor={roleColor}
               className="topbar-avatar"
-              style={{
-                background: `linear-gradient(135deg, ${roleColor}28 0%, ${roleColor}12 100%)`,
-                border: `2px solid ${roleColor}40`,
-              }}
-            >
-              {user?.avatarUrl ? (
-                <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} />
-              ) : (
-                <span style={{ color: roleColor }}>
-                  {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              )}
-            </div>
+            />
 
             {/* Name + role */}
             <div className="profile-info">
@@ -594,21 +624,14 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
             <div className="profile-dropdown">
               {/* Header */}
               <div className="dropdown-header">
-                <div
+                <BadgeAvatar
+                  avatarUrl={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                  name={user?.fullName}
+                  badge={userBadge}
+                  size="md"
+                  roleColor={roleColor}
                   className="dropdown-avatar"
-                  style={{
-                    background: `linear-gradient(135deg, ${roleColor}35 0%, ${roleColor}18 100%)`,
-                    border: `2px solid ${roleColor}30`,
-                  }}
-                >
-                  {user?.avatarUrl ? (
-                    <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} />
-                  ) : (
-                    <span style={{ color: roleColor }}>
-                      {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-                    </span>
-                  )}
-                </div>
+                />
                 <div>
                   <p className="dropdown-name">{user?.fullName || 'User'}</p>
                   <p className="dropdown-email">{user?.email}</p>
@@ -685,6 +708,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
       </div>
 
     </header>
+    </>
   );
 };
 
