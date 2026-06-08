@@ -11,6 +11,7 @@ import {
 import { all_routes } from '../../router/all_routes';
 import { getFileUrl } from '../../../environment';
 import { useAppSelector } from '../../../core/redux/hooks';
+import { getLocalizedCourseContent } from '../../../services/api/translation.service';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDuration = (seconds?: number) => {
@@ -52,7 +53,7 @@ const panelTitle: React.CSSProperties = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const CourseWatch: React.FC = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { courseSlug } = useParams<{ courseSlug: string }>();
   const navigate       = useNavigate();
   const routes         = all_routes;
@@ -110,6 +111,9 @@ const CourseWatch: React.FC = () => {
   const quizPhaseRef     = useRef<QuizPhase>('loading');
   /** Timestamp (ms) of the last progress update sent to the backend. */
   const lastProgressRef  = useRef<number>(0);
+
+  // ── Localized course content (picks AR/FR translations when available) ──
+  const localCourse = course ? getLocalizedCourseContent(course, i18n.language) : null;
 
   // ── Load course ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -481,7 +485,7 @@ const CourseWatch: React.FC = () => {
             fontFamily:"'Playfair Display',serif", color:WHITE, fontWeight:800,
             fontSize:14, lineHeight:1.5, marginBottom:14,
             display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden',
-          }}>{course?.title}</h6>
+          }}>{localCourse?.title ?? course?.title}</h6>
 
           {/* Progress */}
           <div style={{ marginBottom:16 }}>
@@ -626,7 +630,7 @@ const CourseWatch: React.FC = () => {
             <Link to={routes.studentCourses} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, transition:'color 0.2s' }}>{t('nav.myCourses', 'My Courses')}</Link>
             <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
             <span style={{ color:GOLD, fontSize:12, fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:260 }}>
-              {selectedLesson?.title ?? course?.title ?? ''}
+              {selectedLesson?.title ?? localCourse?.title ?? course?.title ?? ''}
             </span>
           </div>
 
@@ -825,7 +829,7 @@ const CourseWatch: React.FC = () => {
                     {course?.shortDescription && (
                       <div style={panelStyle}>
                         <h6 style={panelTitle}>About this course</h6>
-                        <p style={{ color:'#4b5563', lineHeight:1.8, margin:0, fontSize:14 }}>{course.shortDescription}</p>
+                        <p style={{ color:'#4b5563', lineHeight:1.8, margin:0, fontSize:14 }}>{localCourse?.shortDescription || course.shortDescription}</p>
                       </div>
                     )}
                     {course?.whatYouWillLearn && (

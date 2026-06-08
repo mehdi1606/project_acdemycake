@@ -13,6 +13,7 @@ import { message, Modal, Spin } from 'antd';
 import { courseService } from '../../../services/api/course.service';
 import { instructorService } from '../../../services/api/instructor.service';
 import { CourseCategory as CourseCategoryType, CourseLevel as CourseLevelType } from '../../../services/api/types';
+import { translateCourseContent, LangCode } from '../../../services/api/translation.service';
 
 interface Lesson { id: string; name: string; isPreview: boolean; }
 interface Topic { id: string; title: string; lessons: Lesson[]; }
@@ -52,6 +53,11 @@ const AddNewCourse = () => {
   const route = all_routes
   const [value1, setValue1] = useState<any>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translationDone, setTranslationDone] = useState(false);
+  const [translations, setTranslations] = useState<{
+    titleAr?: string; titleFr?: string; descriptionAr?: string; descriptionFr?: string;
+  }>({});
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const customChip = (item: string) => {
@@ -442,6 +448,11 @@ const AddNewCourse = () => {
         requirements: formData.requirements.filter(r => r.trim() !== '').join('\n'),
         whatYouWillLearn: formData.learningObjectives.filter(o => o.trim() !== '').join('\n'),
         tags: Array.isArray(value1) ? value1.join(',') : (value1 || ''),
+        // Translation fields — populated by "Auto-translate" button
+        titleAr: translations.titleAr,
+        titleFr: translations.titleFr,
+        descriptionAr: translations.descriptionAr,
+        descriptionFr: translations.descriptionFr,
       };
 
 
@@ -467,6 +478,32 @@ const AddNewCourse = () => {
       message.error(error.response?.data?.message || 'Failed to create course. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // ── Auto-translate title + description ───────────────────────────────────────
+  const handleAutoTranslate = async () => {
+    const rawDesc = formData.description.replace(/<[^>]*>/g, '').trim();
+    if (!formData.title.trim() || rawDesc.length < 5) {
+      message.warning('Please fill in the title and description before translating.');
+      return;
+    }
+    const sourceLang = (formData.language?.toLowerCase() === 'arabic' ? 'ar'
+      : formData.language?.toLowerCase() === 'french' ? 'fr'
+      : formData.language?.toLowerCase() === 'ar' ? 'ar'
+      : formData.language?.toLowerCase() === 'fr' ? 'fr'
+      : 'fr') as LangCode;
+
+    setIsTranslating(true);
+    try {
+      const result = await translateCourseContent(formData.title, rawDesc, sourceLang);
+      setTranslations(result);
+      setTranslationDone(true);
+      message.success('Content translated successfully! ✓');
+    } catch {
+      message.error('Translation failed. Please try again.');
+    } finally {
+      setIsTranslating(false);
     }
   };
 
@@ -823,6 +860,70 @@ const AddNewCourse = () => {
                               </small>
                             </div>
                           </div>
+
+                          {/* ── Auto-translate banner ─────────────────────── */}
+                          <div className="col-md-12">
+                            <div style={{
+                              background: translationDone
+                                ? 'linear-gradient(135deg,rgba(29,60,52,0.07) 0%,rgba(29,60,52,0.03) 100%)'
+                                : 'linear-gradient(135deg,rgba(197,145,44,0.1) 0%,rgba(197,145,44,0.05) 100%)',
+                              border: `1px solid ${translationDone ? 'rgba(29,60,52,0.25)' : 'rgba(197,145,44,0.35)'}`,
+                              borderRadius: 12,
+                              padding: '16px 20px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 16,
+                              flexWrap: 'wrap',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <i className={`isax ${translationDone ? 'isax-tick-circle' : 'isax-translate'}`}
+                                  style={{ fontSize: 22, color: translationDone ? '#1D3C34' : '#C5912C', flexShrink: 0 }} />
+                                <div>
+                                  <div style={{ fontWeight: 700, fontSize: 14, color: translationDone ? '#1D3C34' : '#9B7B50' }}>
+                                    {translationDone
+                                      ? 'Content translated ✓ — Arabic & French translations ready'
+                                      : 'Auto-translate your course content'}
+                                  </div>
+                                  <div style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', marginTop: 2 }}>
+                                    {translationDone
+                                      ? 'Translations will be saved with the course. Students see their language automatically.'
+                                      : 'Click to translate title & description into Arabic and French using AI.'}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleAutoTranslate}
+                                disabled={isTranslating || !formData.title.trim()}
+                                style={{
+                                  padding: '9px 22px',
+                                  borderRadius: 10,
+                                  border: 'none',
+                                  background: translationDone
+                                    ? 'rgba(29,60,52,0.12)'
+                                    : 'linear-gradient(135deg,#C5912C 0%,#DEBB6B 50%,#C5912C 100%)',
+                                  color: translationDone ? '#1D3C34' : '#4E1420',
+                                  fontWeight: 700,
+                                  fontSize: 13,
+                                  cursor: isTranslating || !formData.title.trim() ? 'not-allowed' : 'pointer',
+                                  opacity: !formData.title.trim() ? 0.5 : 1,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 7,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {isTranslating
+                                  ? <><Spin size="small" /> Translating…</>
+                                  : translationDone
+                                    ? <><i className="isax isax-refresh" /> Re-translate</>
+                                    : <><i className="isax isax-translate" /> Translate (AR + FR)</>
+                                }
+                              </button>
+                            </div>
+                          </div>
+
                           <div className="col-md-6">
                             <div className="bg-light border p-4 rounded-3">
                               <h6 className="mb-2">

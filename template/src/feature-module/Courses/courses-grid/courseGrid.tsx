@@ -11,6 +11,7 @@ import { Course, CourseCategory, CourseLevel } from '../../../services/api/types
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
+import { getLocalizedCourseContent } from '../../../services/api/translation.service';
 
 const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
   { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
@@ -53,9 +54,10 @@ interface CourseGridCardProps {
 const CourseGridCard: React.FC<CourseGridCardProps> = ({
   course, inWishlist, isLoadingWishlist, onWishlist, getLevelDisplay, index,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const route  = all_routes;
   const cardRef = useRef<HTMLDivElement>(null);
+  const localCourse = getLocalizedCourseContent(course, i18n.language);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = cardRef.current;
@@ -110,7 +112,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
       >
         <img
           src={thumb}
-          alt={course.title}
+          alt={localCourse.title}
           onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }}
           style={{
             width: '100%', height: 190, objectFit: 'cover',
@@ -225,7 +227,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
           flex: 1,
         }}>
           <Link to={`${route.courseDetails}/${course.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-            {course.title}
+            {localCourse.title}
           </Link>
         </h3>
 

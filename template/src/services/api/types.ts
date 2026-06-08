@@ -168,6 +168,11 @@ export interface Course {
   isEnrolled?: boolean;
   isWishlisted?: boolean;
   enrollmentProgress?: number;
+  // multilingual translation fields
+  titleAr?: string;
+  titleFr?: string;
+  descriptionAr?: string;
+  descriptionFr?: string;
 }
 
 export interface CourseModule {

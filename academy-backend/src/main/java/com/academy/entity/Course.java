@@ -129,6 +129,19 @@ public class Course extends BaseEntity {
     @Column(name = "tags", length = 500)
     private String tags;
 
+    // ── Multilingual translations (auto-filled from frontend translation API) ─
+    @Column(name = "title_ar", columnDefinition = "TEXT")
+    private String titleAr;
+
+    @Column(name = "title_fr", columnDefinition = "TEXT")
+    private String titleFr;
+
+    @Column(name = "description_ar", columnDefinition = "TEXT")
+    private String descriptionAr;
+
+    @Column(name = "description_fr", columnDefinition = "TEXT")
+    private String descriptionFr;
+
     @Column(name = "certificate_template_path", length = 500)
     private String certificateTemplatePath;
 

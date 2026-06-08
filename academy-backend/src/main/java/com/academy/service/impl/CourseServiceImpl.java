@@ -196,6 +196,10 @@ public class CourseServiceImpl implements CourseService {
         }
 
         String baseSlug = slugify.slugify(request.getTitle());
+        // Fallback for non-Latin titles (Arabic, Chinese, etc.) that produce an empty slug
+        if (baseSlug == null || baseSlug.isBlank()) {
+            baseSlug = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        }
         String slug = generateUniqueSlug(baseSlug);
 
         Course course = Course.builder()
@@ -218,6 +222,10 @@ public class CourseServiceImpl implements CourseService {
                 .requirements(request.getRequirements())
                 .targetAudience(request.getTargetAudience())
                 .tags(request.getTags())
+                .titleAr(request.getTitleAr())
+                .titleFr(request.getTitleFr())
+                .descriptionAr(request.getDescriptionAr())
+                .descriptionFr(request.getDescriptionFr())
                 .build();
 
         if (request.getCategoryId() != null) {
@@ -240,8 +248,12 @@ public class CourseServiceImpl implements CourseService {
 
         if (request.getTitle() != null) {
             course.setTitle(request.getTitle());
-            if (!course.getSlug().startsWith(slugify.slugify(request.getTitle()))) {
-                course.setSlug(generateUniqueSlug(slugify.slugify(request.getTitle())));
+            String newBase = slugify.slugify(request.getTitle());
+            if (newBase == null || newBase.isBlank()) {
+                newBase = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+            }
+            if (!course.getSlug().startsWith(newBase)) {
+                course.setSlug(generateUniqueSlug(newBase));
             }
         }
         if (request.getDescription() != null) {
@@ -290,6 +302,18 @@ public class CourseServiceImpl implements CourseService {
         }
         if (request.getTags() != null) {
             course.setTags(request.getTags());
+        }
+        if (request.getTitleAr() != null) {
+            course.setTitleAr(request.getTitleAr());
+        }
+        if (request.getTitleFr() != null) {
+            course.setTitleFr(request.getTitleFr());
+        }
+        if (request.getDescriptionAr() != null) {
+            course.setDescriptionAr(request.getDescriptionAr());
+        }
+        if (request.getDescriptionFr() != null) {
+            course.setDescriptionFr(request.getDescriptionFr());
         }
 
         course = courseRepository.save(course);
@@ -501,6 +525,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private String generateUniqueSlug(String baseSlug) {
+        if (baseSlug == null || baseSlug.isBlank()) {
+            baseSlug = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        }
         String slug = baseSlug;
         int counter = 1;
         while (courseRepository.existsBySlug(slug)) {
