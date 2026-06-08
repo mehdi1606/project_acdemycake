@@ -511,7 +511,7 @@ const AddNewCourse = () => {
     <LuxuryDashboardLayout>
       {/* Page title */}
       <div className="lx-section-header mb-4">
-        <h5 className="section-title">Add New Course</h5>
+        <h5 className="section-title">{t('addCourse.pageTitle')}</h5>
       </div>
 
       {/* Course add */}
@@ -537,7 +537,7 @@ const AddNewCourse = () => {
                             </span>
                           </span>
                           <div className="step-section">
-                            <p>Course Information</p>
+                            <p>{t('addCourse.steps.courseInfo')}</p>
                           </div>
                         </div>
                       </li>
@@ -556,7 +556,7 @@ const AddNewCourse = () => {
                             </span>
                           </span>
                           <div className="step-section">
-                            <p>Course Media</p>
+                            <p>{t('addCourse.steps.courseMedia')}</p>
                           </div>
                         </div>
                       </li>
@@ -575,7 +575,7 @@ const AddNewCourse = () => {
                             </span>
                           </span>
                           <div className="step-section">
-                            <p>Curriculam</p>
+                            <p>{t('addCourse.steps.curriculum')}</p>
                           </div>
                         </div>
                       </li>
@@ -594,7 +594,7 @@ const AddNewCourse = () => {
                             </span>
                           </span>
                           <div className="step-section">
-                            <p>Additional information</p>
+                            <p>{t('addCourse.steps.additional')}</p>
                           </div>
                         </div>
                       </li>
@@ -613,7 +613,7 @@ const AddNewCourse = () => {
                             </span>
                           </span>
                           <div className="step-section">
-                            <p>Pricing</p>
+                            <p>{t('addCourse.steps.pricing')}</p>
                           </div>
                         </div>
                       </li>
@@ -623,20 +623,20 @@ const AddNewCourse = () => {
                     {currentStep === 1 && (
                       <fieldset className="form-inner wizard-form-card" id="first">
                         <div className="title">
-                          <h5>Basic Information</h5>
+                          <h5>{t('addCourse.step1.title')}</h5>
                         </div>
                         <div className="row">
                           <div className="col-md-12">
                             <div className="input-block">
                               <label className="form-label">
-                                Course Title<span className="text-danger ms-1">*</span>
+                                {t('addCourse.step1.courseTitle')}<span className="text-danger ms-1">*</span>
                               </label>
                               <input
                                 type="text"
                                 className={`form-control ${errors.title && touched.title ? 'is-invalid' : ''}`}
                                 value={formData.title}
                                 onChange={(e) => handleInputChange('title', e.target.value)}
-                                placeholder="Enter course title (min 5 characters)"
+                                placeholder={t('addCourse.step1.courseTitlePlaceholder')}
                               />
                               {errors.title && touched.title && (
                                 <div className="invalid-feedback d-block">{errors.title}</div>
@@ -646,18 +646,18 @@ const AddNewCourse = () => {
                           <div className="col-md-4">
                             <div className="input-block">
                               <label className="form-label">
-                                Course Category
+                                {t('addCourse.step1.courseCategory')}
                                 <span className="text-danger ms-1">*</span>
                               </label>
                               {loadingCategories ? (
                                 <div className="form-control d-flex align-items-center justify-content-center">
-                                  <Spin size="small" /> <span className="ms-2">Loading...</span>
+                                  <Spin size="small" /> <span className="ms-2">{t('addCourse.step1.loadingCategories')}</span>
                                 </div>
                               ) : categoryOptions.length === 0 ? (
                                 <div className="alert alert-warning mb-0 py-2">
                                   <small>
                                     <i className="isax isax-warning-2 me-1" />
-                                    No categories available. Admin must create categories first.
+                                    {t('addCourse.step1.noCategoriesWarning')}
                                   </small>
                                 </div>
                               ) : (
@@ -666,7 +666,7 @@ const AddNewCourse = () => {
                                   value={formData.category}
                                   onChange={(e) => handleInputChange('category', e.target.value)}
                                 >
-                                  <option value="">Select category</option>
+                                  <option value="">{t('addCourse.step1.selectCategory')}</option>
                                   {categoryOptions.map((opt) => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                                   ))}
@@ -680,14 +680,14 @@ const AddNewCourse = () => {
                           <div className="col-md-4">
                             <div className="input-block">
                               <label className="form-label">
-                                Course Level<span className="text-danger ms-1">*</span>
+                                {t('addCourse.step1.courseLevel')}<span className="text-danger ms-1">*</span>
                               </label>
                               <select
                                 className={`form-select ${errors.level ? 'is-invalid' : ''}`}
                                 value={formData.level}
                                 onChange={(e) => handleInputChange('level', e.target.value)}
                               >
-                                <option value="">Select level</option>
+                                <option value="">{t('addCourse.step1.selectLevel')}</option>
                                 {CourseLevel.map((opt) => (
                                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                                 ))}
@@ -700,14 +700,14 @@ const AddNewCourse = () => {
                           <div className="col-md-4">
                             <div className="input-block">
                               <label className="form-label">
-                                Language<span className="text-danger ms-1">*</span>
+                                {t('addCourse.step1.language')}<span className="text-danger ms-1">*</span>
                               </label>
                               <select
                                 className={`form-select ${errors.language ? 'is-invalid' : ''}`}
                                 value={formData.language}
                                 onChange={(e) => handleInputChange('language', e.target.value)}
                               >
-                                <option value="">Select language</option>
+                                <option value="">{t('addCourse.step1.selectLanguage')}</option>
                                 {Language.map((opt) => (
                                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                                 ))}
@@ -720,10 +720,10 @@ const AddNewCourse = () => {
                           <div className="col-md-12">
                             <div className="input-block">
                               <label className="form-label">
-                                Course Type<span className="text-danger ms-1">*</span>
+                                {t('addCourse.step1.courseType')}<span className="text-danger ms-1">*</span>
                               </label>
                               <p className="text-muted small mb-3">
-                                Choose how students will access this course. This cannot be changed after publishing.
+                                {t('addCourse.step1.courseTypeHelp')}
                               </p>
                               <div className="row g-3">
                                 {/* Plan card */}
@@ -759,14 +759,14 @@ const AddNewCourse = () => {
                                         <i className="isax isax-book-1" style={{ fontSize: 22, color: '#651C32' }} />
                                       </span>
                                       <div>
-                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#651C32', fontSize: 15 }}>Plan Course</h6>
-                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>Included in subscription</span>
+                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#651C32', fontSize: 15 }}>{t('addCourse.step1.planCourseTitle')}</h6>
+                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>{t('addCourse.step1.planCourseSubtitle')}</span>
                                       </div>
                                     </div>
                                     <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
-                                      <li>Accessible to all active subscribers</li>
-                                      <li>No additional payment required</li>
-                                      <li>Part of the SARALÖWE catalogue</li>
+                                      <li>{t('addCourse.step1.planBullet1')}</li>
+                                      <li>{t('addCourse.step1.planBullet2')}</li>
+                                      <li>{t('addCourse.step1.planBullet3')}</li>
                                     </ul>
                                   </div>
                                 </div>
@@ -803,21 +803,21 @@ const AddNewCourse = () => {
                                         <i className="isax isax-crown" style={{ fontSize: 22, color: '#C5912C' }} />
                                       </span>
                                       <div>
-                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#9A6F1A', fontSize: 15 }}>Masterclass</h6>
-                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>One-time purchase</span>
+                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#9A6F1A', fontSize: 15 }}>{t('addCourse.step1.masterclassTitle')}</h6>
+                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>{t('addCourse.step1.masterclassSubtitle')}</span>
                                       </div>
                                     </div>
                                     <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
-                                      <li>Students pay individually per course</li>
-                                      <li>Premium exclusive content</li>
-                                      <li>Set your own price in Step 5</li>
+                                      <li>{t('addCourse.step1.masterclassBullet1')}</li>
+                                      <li>{t('addCourse.step1.masterclassBullet2')}</li>
+                                      <li>{t('addCourse.step1.masterclassBullet3')}</li>
                                     </ul>
                                   </div>
                                 </div>
                               </div>
                               {!formData.courseType && errors.courseType && (
                                 <div className="text-danger small mt-2">
-                                  <i className="isax isax-warning-2 me-1" /> Please select a course type
+                                  <i className="isax isax-warning-2 me-1" /> {t('addCourse.step1.selectCourseTypeError')}
                                 </div>
                               )}
                             </div>
@@ -825,7 +825,7 @@ const AddNewCourse = () => {
                           <div className="col-md-12">
                             <div className="input-block">
                               <label className="form-label">
-                                Short Description
+                                {t('addCourse.step1.shortDescription')}
                                 <span className="text-danger ms-1">*</span>
                               </label>
                               <input
@@ -833,20 +833,20 @@ const AddNewCourse = () => {
                                 className={`form-control ${errors.shortDescription && touched.shortDescription ? 'is-invalid' : ''}`}
                                 value={formData.shortDescription}
                                 onChange={(e) => handleInputChange('shortDescription', e.target.value)}
-                                placeholder="Brief overview of your course (min 20 characters)"
+                                placeholder={t('addCourse.step1.shortDescPlaceholder')}
                               />
                               {errors.shortDescription && touched.shortDescription && (
                                 <div className="invalid-feedback d-block">{errors.shortDescription}</div>
                               )}
                               <small className="text-muted">
-                                {formData.shortDescription.length}/20 characters minimum
+                                {t('addCourse.step1.shortDescMin', { count: formData.shortDescription.length })}
                               </small>
                             </div>
                           </div>
                           <div className="col-md-12">
                             <div className="input-block">
                               <label className="form-label">
-                                Course Description
+                                {t('addCourse.step1.courseDescription')}
                                 <span className="text-danger ms-1">*</span>
                               </label>
                               <div className={`summernote ${errors.description ? 'border border-danger rounded' : ''}`}>
@@ -856,7 +856,7 @@ const AddNewCourse = () => {
                                 <div className="invalid-feedback d-block">{errors.description}</div>
                               )}
                               <small className="text-muted">
-                                Detailed description (min 50 characters)
+                                {t('addCourse.step1.descMin')}
                               </small>
                             </div>
                           </div>
@@ -882,13 +882,13 @@ const AddNewCourse = () => {
                                 <div>
                                   <div style={{ fontWeight: 700, fontSize: 14, color: translationDone ? '#1D3C34' : '#9B7B50' }}>
                                     {translationDone
-                                      ? 'Content translated ✓ — Arabic & French translations ready'
-                                      : 'Auto-translate your course content'}
+                                      ? t('addCourse.step1.translateDoneTitle')
+                                      : t('addCourse.step1.translateTitle')}
                                   </div>
                                   <div style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', marginTop: 2 }}>
                                     {translationDone
-                                      ? 'Translations will be saved with the course. Students see their language automatically.'
-                                      : 'Click to translate title & description into Arabic and French using AI.'}
+                                      ? t('addCourse.step1.translateDoneSubtitle')
+                                      : t('addCourse.step1.translateSubtitle')}
                                   </div>
                                 </div>
                               </div>
@@ -915,10 +915,10 @@ const AddNewCourse = () => {
                                 }}
                               >
                                 {isTranslating
-                                  ? <><Spin size="small" /> Translating…</>
+                                  ? <><Spin size="small" /> {t('addCourse.step1.translating')}</>
                                   : translationDone
-                                    ? <><i className="isax isax-refresh" /> Re-translate</>
-                                    : <><i className="isax isax-translate" /> Translate (AR + FR)</>
+                                    ? <><i className="isax isax-refresh" /> {t('addCourse.step1.retranslate')}</>
+                                    : <><i className="isax isax-translate" /> {t('addCourse.step1.translateBtn')}</>
                                 }
                               </button>
                             </div>
@@ -927,7 +927,7 @@ const AddNewCourse = () => {
                           <div className="col-md-6">
                             <div className="bg-light border p-4 rounded-3">
                               <h6 className="mb-2">
-                                What will students learn in your course?
+                                {t('addCourse.step1.whatLearn')}
                               </h6>
                               <div className="input-block">
                                 {formData.learningObjectives.map((obj, index) => (
@@ -935,7 +935,7 @@ const AddNewCourse = () => {
                                     <input
                                       type="text"
                                       className="form-control"
-                                      placeholder="e.g. Build a complete web application"
+                                      placeholder={t('addCourse.step1.learningPlaceholder')}
                                       value={obj}
                                       onChange={(e) => {
                                         const updated = [...formData.learningObjectives];
@@ -967,7 +967,7 @@ const AddNewCourse = () => {
                                     handleInputChange('learningObjectives', [...formData.learningObjectives, '']);
                                   }}
                                 >
-                                  <i className="isax isax-add me-1" /> Add New Item
+                                  <i className="isax isax-add me-1" /> {t('addCourse.step1.addNewItem')}
                                 </Link>
                               </div>
 
@@ -975,14 +975,14 @@ const AddNewCourse = () => {
                           </div>
                           <div className="col-md-6">
                             <div className="bg-light border	 p-4 rounded-3">
-                              <h6 className="mb-2">Requirements</h6>
+                              <h6 className="mb-2">{t('addCourse.step1.requirements')}</h6>
                                 <div className="input-block">
                                 {formData.requirements.map((req, index) => (
                                   <div key={index} className="d-flex align-items-center add-new-input">
                                     <input
                                       type="text"
                                       className="form-control"
-                                      placeholder="e.g. Basic knowledge of HTML"
+                                      placeholder={t('addCourse.step1.requirementsPlaceholder')}
                                       value={req}
                                       onChange={(e) => {
                                         const updated = [...formData.requirements];
@@ -1014,7 +1014,7 @@ const AddNewCourse = () => {
                                     handleInputChange('requirements', [...formData.requirements, '']);
                                   }}
                                 >
-                                  <i className="isax isax-add me-1" /> Add New Item
+                                  <i className="isax isax-add me-1" /> {t('addCourse.step1.addNewItem')}
                                 </Link>
                               </div>
                             </div>
@@ -1031,7 +1031,7 @@ const AddNewCourse = () => {
                                 className="form-check-label"
                                 htmlFor="checkFeature"
                               >
-                                Check this for featured course
+                                {t('addCourse.step1.featuredCourse')}
                               </label>
                             </div>
                           </div>
@@ -1040,9 +1040,9 @@ const AddNewCourse = () => {
                           <div className="btn-left">
                             <small className={`${isStepValid ? 'text-success' : 'text-muted'}`}>
                               {isStepValid ? (
-                                <><i className="isax isax-tick-circle me-1" /> All required fields completed</>
+                                <><i className="isax isax-tick-circle me-1" /> {t('addCourse.step1.allFieldsCompleted')}</>
                               ) : (
-                                <><i className="isax isax-info-circle me-1" /> Please fill all required fields</>
+                                <><i className="isax isax-info-circle me-1" /> {t('addCourse.step1.fillRequiredFields')}</>
                               )}
                             </small>
                           </div>
@@ -1053,7 +1053,7 @@ const AddNewCourse = () => {
                               onClick={handleNext}
                               style={{ cursor: 'pointer' }}
                             >
-                              Next <i className="isax isax-arrow-right-3 ms-1" />
+                              {t('addCourse.nav.next')} <i className="isax isax-arrow-right-3 ms-1" />
                             </button>
                           </div>
                         </div>
@@ -1064,9 +1064,9 @@ const AddNewCourse = () => {
                     {currentStep === 2 && (
                       <fieldset className="form-inner wizard-form-card" style={{ display: 'block' }}>
                         <div className="title">
-                          <h5>Course Media</h5>
+                          <h5>{t('addCourse.step2.title')}</h5>
                           <p>
-                            Upload course thumbnail and promotional video
+                            {t('addCourse.step2.subtitle')}
                           </p>
                         </div>
                         <div className="row">
@@ -1074,8 +1074,8 @@ const AddNewCourse = () => {
                           <div className="col-md-12 mb-4">
                             <div className="input-block">
                               <label className="form-label">
-                                Course Thumbnail
-                                <span className="text-muted ms-2">(Recommended: 1280x720px)</span>
+                                {t('addCourse.step2.courseThumbnail')}
+                                <span className="text-muted ms-2">{t('addCourse.step2.thumbnailRecommended')}</span>
                               </label>
                               <div className="row">
                                 <div className="col-md-6">
@@ -1139,10 +1139,10 @@ const AddNewCourse = () => {
                                           <i className="isax isax-image5 text-secondary" style={{ fontSize: '48px' }} />
                                         </span>
                                         <p className="fw-medium mb-1">
-                                          Click to upload thumbnail
+                                          {t('addCourse.step2.clickUploadThumbnail')}
                                         </p>
                                         <span className="text-muted small">
-                                          JPEG, PNG, GIF, WebP - Max 2MB
+                                          {t('addCourse.step2.thumbnailFormats')}
                                         </span>
                                       </div>
                                     )}
@@ -1150,12 +1150,12 @@ const AddNewCourse = () => {
                                 </div>
                                 <div className="col-md-6">
                                   <div className="p-3 bg-light rounded h-100">
-                                    <h6 className="mb-3">Thumbnail Tips</h6>
+                                    <h6 className="mb-3">{t('addCourse.step2.thumbnailTips')}</h6>
                                     <ul className="small text-muted mb-0">
-                                      <li className="mb-2">Use high-quality images (1280x720px recommended)</li>
-                                      <li className="mb-2">Make it visually appealing and relevant</li>
-                                      <li className="mb-2">Avoid too much text in the image</li>
-                                      <li>Use bright, contrasting colors</li>
+                                      <li className="mb-2">{t('addCourse.step2.tip1')}</li>
+                                      <li className="mb-2">{t('addCourse.step2.tip2')}</li>
+                                      <li className="mb-2">{t('addCourse.step2.tip3')}</li>
+                                      <li>{t('addCourse.step2.tip4')}</li>
                                     </ul>
                                   </div>
                                 </div>
@@ -1169,23 +1169,23 @@ const AddNewCourse = () => {
                           <div className="col-md-12">
                             <div className="input-block">
                               <label className="form-label">
-                                Promotional Video <span className="text-muted">(Optional)</span>
+                                {t('addCourse.step2.promoVideo')} <span className="text-muted">{t('addCourse.step2.optional')}</span>
                               </label>
                               <p className="text-muted small mb-3">
-                                Add a short promotional video to attract students. Provide a YouTube or Vimeo URL.
+                                {t('addCourse.step2.promoVideoHelp')}
                               </p>
                               <div className="row">
                                 <div className="col-md-4">
-                                  <label className="form-label small">Video Source</label>
+                                  <label className="form-label small">{t('addCourse.step2.videoSource')}</label>
                                   <select
                                     className="form-select"
                                     value={formData.videoType}
                                     onChange={(e) => handleInputChange('videoType', e.target.value)}
                                   >
-                                    <option value="">No promo video</option>
-                                    <option value="youtube">YouTube URL</option>
-                                    <option value="vimeo">Vimeo URL</option>
-                                    <option value="external">External URL</option>
+                                    <option value="">{t('addCourse.step2.noPromoVideo')}</option>
+                                    <option value="youtube">{t('addCourse.step2.youtubeUrl')}</option>
+                                    <option value="vimeo">{t('addCourse.step2.vimeoUrl')}</option>
+                                    <option value="external">{t('addCourse.step2.externalUrl')}</option>
                                   </select>
                                 </div>
                                 <div className="col-md-8">
@@ -1214,7 +1214,7 @@ const AddNewCourse = () => {
                                     <div className="d-flex align-items-center h-100">
                                       <p className="text-muted mb-0">
                                         <i className="isax isax-info-circle me-2" />
-                                        Select a video source to add a promotional video
+                                        {t('addCourse.step2.selectVideoSource')}
                                       </p>
                                     </div>
                                   )}
@@ -1233,7 +1233,7 @@ const AddNewCourse = () => {
                                   onClick={handleOpenModal}
                                 >
                                   <i className="fa-solid fa-play text-white fs-1" />
-                                  <p className="text-white mt-2 mb-0">Click to preview video</p>
+                                  <p className="text-white mt-2 mb-0">{t('addCourse.step2.clickPreviewVideo')}</p>
                                 </div>
                               </div>
                               <VideoModal show={showModal} handleClose={handleCloseModal} videoUrl={formData.videoUrl} />
@@ -1245,12 +1245,12 @@ const AddNewCourse = () => {
                             <div className="alert alert-info d-flex align-items-start">
                               <i className="isax isax-video-play fs-4 me-3 mt-1" />
                               <div>
-                                <h6 className="mb-1">How Video Upload Works</h6>
+                                <h6 className="mb-1">{t('addCourse.step2.howVideoWorks')}</h6>
                                 <p className="mb-0 small">
-                                  <strong>Step 1:</strong> Create and submit the course (complete all 5 steps).<br/>
-                                  <strong>Step 2:</strong> Add modules and lessons from the course management page.<br/>
-                                  <strong>Step 3:</strong> For each video lesson, click "Upload Video" to upload directly to Mux.<br/>
-                                  Videos are automatically transcoded for optimal streaming quality.
+                                  <strong>Step 1:</strong> {t('addCourse.step2.videoStep1')}<br/>
+                                  <strong>Step 2:</strong> {t('addCourse.step2.videoStep2')}<br/>
+                                  <strong>Step 3:</strong> {t('addCourse.step2.videoStep3')}<br/>
+                                  {t('addCourse.step2.videoTranscode')}
                                 </p>
                               </div>
                             </div>
@@ -1264,7 +1264,7 @@ const AddNewCourse = () => {
                               onClick={handlePrev}
                             >
                               <i className="isax isax-arrow-left-2 me-1" />
-                              Prev
+                              {t('addCourse.nav.prev')}
                             </button>
                           </div>
                           <div className="btn-left">
@@ -1273,7 +1273,7 @@ const AddNewCourse = () => {
                               className="btn btn-secondary main-btn next_btns d-flex align-items-center"
                               onClick={handleNext}
                             >
-                              Next <i className="isax isax-arrow-right-3 ms-1" />
+                              {t('addCourse.nav.next')} <i className="isax isax-arrow-right-3 ms-1" />
                             </button>
                           </div>
                         </div>
@@ -1285,7 +1285,7 @@ const AddNewCourse = () => {
                         <div className="title">
                           <div className="row align-items-center row-gap-2">
                             <div className="col-md-6">
-                              <h5 className="mb-0">Curriculum</h5>
+                              <h5 className="mb-0">{t('addCourse.step3.title')}</h5>
                             </div>
                             <div className="col-md-6 text-md-end">
                               <Link
@@ -1294,8 +1294,7 @@ const AddNewCourse = () => {
                                 data-bs-toggle="modal"
                                 data-bs-target="#add-topic"
                               >
-                                <i className="isax isax-add-circle5 me-1" /> Add New
-                                Topic
+                                <i className="isax isax-add-circle5 me-1" /> {t('addCourse.step3.addNewTopic')}
                               </Link>
                             </div>
                           </div>
@@ -1304,7 +1303,7 @@ const AddNewCourse = () => {
                           {curriculum.length === 0 && (
                             <div className="text-center text-muted py-5 border rounded-3">
                               <i className="isax isax-book fs-1 mb-2 d-block" />
-                              <p className="mb-0">No topics yet. Click "Add New Topic" to get started.</p>
+                              <p className="mb-0">{t('addCourse.step3.noTopics')}</p>
                             </div>
                           )}
                           <div className="accordions-items-seperate">
@@ -1319,7 +1318,7 @@ const AddNewCourse = () => {
                                     <span className="d-flex align-items-center mb-0">
                                       <i className="isax isax-menu-15 me-2" />
                                       {topic.title}
-                                      <span className="badge bg-secondary ms-2 small">{topic.lessons.length} lesson{topic.lessons.length !== 1 ? 's' : ''}</span>
+                                      <span className="badge bg-secondary ms-2 small">{topic.lessons.length} {topic.lessons.length !== 1 ? t('addCourse.step3.lessons') : t('addCourse.step3.lesson')}</span>
                                     </span>
                                     <div className="d-flex align-items-center gap-2 ms-auto" onClick={(e) => e.stopPropagation()}>
                                       <Link
@@ -1336,7 +1335,7 @@ const AddNewCourse = () => {
                                   <div className="accordion-collapse">
                                     <div className="accordion-body">
                                       {topic.lessons.length === 0 && (
-                                        <p className="text-muted small text-center py-2">No lessons yet.</p>
+                                        <p className="text-muted small text-center py-2">{t('addCourse.step3.noLessons')}</p>
                                       )}
                                       {topic.lessons.map((lesson) => (
                                         <div key={lesson.id} className="d-flex align-items-center justify-content-between bg-white p-2 border rounded-3 mb-3">
@@ -1346,7 +1345,7 @@ const AddNewCourse = () => {
                                             </span>
                                             <p className="fw-medium text-gray-5 mb-0">{lesson.name}</p>
                                             {lesson.isPreview && (
-                                              <span className="badge bg-success ms-2 small">Preview</span>
+                                              <span className="badge bg-success ms-2 small">{t('addCourse.step3.preview')}</span>
                                             )}
                                           </div>
                                           <div className="d-flex align-items-center">
@@ -1369,7 +1368,7 @@ const AddNewCourse = () => {
                                           onClick={() => setActiveLessonTopicId(topic.id)}
                                         >
                                           <i className="isax isax-add-circle5 me-2" />
-                                          Add Lesson
+                                          {t('addCourse.step3.addLesson')}
                                         </button>
                                       </div>
                                     </div>
@@ -1387,7 +1386,7 @@ const AddNewCourse = () => {
                               onClick={handlePrev}
                             >
                               <i className="isax isax-arrow-left-2 me-1" />
-                              Prev
+                              {t('addCourse.nav.prev')}
                             </button>
                           </div>
                           <div className="btn-left">
@@ -1396,7 +1395,7 @@ const AddNewCourse = () => {
                               className="btn btn-secondary main-btn next_btns"
                               onClick={handleNext}
                             >
-                              Next <i className="isax isax-arrow-right-3 ms-1" />
+                              {t('addCourse.nav.next')} <i className="isax isax-arrow-right-3 ms-1" />
                             </button>
                           </div>
                         </div>
@@ -1408,7 +1407,7 @@ const AddNewCourse = () => {
                         <div className="title">
                           <div className="row align-items-center row-gap-3">
                             <div className="col-md-9">
-                              <h5 className="mb-0">FAQ’s</h5>
+                              <h5 className="mb-0">{t(‘addCourse.step4.faqs’)}</h5>
                             </div>
                             <div className="col-md-3 text-end">
                               <Link
@@ -1417,7 +1416,7 @@ const AddNewCourse = () => {
                                 data-bs-toggle="modal"
                                 data-bs-target="#add-faq"
                               >
-                                <i className="isax isax-add-circle5 me-1" /> Add New
+                                <i className="isax isax-add-circle5 me-1" /> {t(‘addCourse.step4.addNew’)}
                               </Link>
                             </div>
                           </div>
@@ -1426,7 +1425,7 @@ const AddNewCourse = () => {
                           {faqs.length === 0 && (
                             <div className="text-center text-muted py-4 border rounded-3">
                               <i className="isax isax-message-question fs-1 mb-2 d-block" />
-                              <p className="mb-0">No FAQs yet. Click "Add New" to add your first FAQ.</p>
+                              <p className="mb-0">{t('addCourse.step4.noFaqs')}</p>
                             </div>
                           )}
                           {faqs.map((faq) => (
@@ -1451,16 +1450,15 @@ const AddNewCourse = () => {
                         </div>
                         <div className="pb-3 border-bottom mb-3">
                           <div className="input-block mb-0">
-                            <label className="form-label">Tags</label>
+                            <label className="form-label">{t('addCourse.step4.tags')}</label>
                             <Chips value={value1} className="input-tags form-control h-100 w-100" onChange={(e: ChipsChangeEvent) => setValue1(e.value)} itemTemplate={customChip} />
                             <span className="fs-13 text-gray-6 mt-1 d-block">
-                              Maximum of 14 keywords. Keywords should all be in
-                              lowercase. e.g. javascript, react, marketing
+                              {t('addCourse.step4.tagsHelp')}
                             </span>
                           </div>
                         </div>
                         <div className="input-block">
-                          <label className="form-label">Message to a reviewer</label>
+                          <label className="form-label">{t('addCourse.step4.messageReviewer')}</label>
                           <textarea className="form-control" defaultValue={""} />
                         </div>
                         <div className="d-flex align-items-center">
@@ -1476,10 +1474,7 @@ const AddNewCourse = () => {
                               className="form-check-label ms-2"
                               htmlFor="flexCheckChecked"
                             >
-                              Any images, sounds, or other assets that are not my own
-                              work, have been appropriately licensed for use in the file
-                              preview or main course. Other than these items, this work
-                              is entirely my own and I have full rights to sell it here.
+                              {t('addCourse.step4.licenseCheck')}
                             </label>
                           </div>
                         </div>
@@ -1491,7 +1486,7 @@ const AddNewCourse = () => {
                               onClick={handlePrev}
                             >
                               <i className="isax isax-arrow-left-2 me-1" />
-                              Prev
+                              {t('addCourse.nav.prev')}
                             </button>
                           </div>
                           <div className="btn-left">
@@ -1500,7 +1495,7 @@ const AddNewCourse = () => {
                               className="btn btn-secondary main-btn next_btns"
                               onClick={handleNext}
                             >
-                              Next <i className="isax isax-arrow-right-3 ms-1" />
+                              {t('addCourse.nav.next')} <i className="isax isax-arrow-right-3 ms-1" />
                             </button>
                           </div>
                         </div>
@@ -1510,14 +1505,14 @@ const AddNewCourse = () => {
                     {currentStep === 5 && (
                       <fieldset className="form-inner wizard-form-card" style={{ display: 'block' }}>
                         <div className="title mb-4">
-                          <h5>Pricing Information</h5>
+                          <h5>{t('addCourse.step5.title')}</h5>
                           {/* Course type context banner */}
                           {formData.courseType === 'MASTERCLASS' ? (
                             <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
                               style={{ background: 'rgba(197,145,44,0.07)', border: '1px solid rgba(197,145,44,0.2)' }}>
                               <i className="isax isax-crown" style={{ fontSize: 18, color: '#C5912C' }} />
                               <span style={{ fontSize: 13, color: '#7A5A0A', fontWeight: 500 }}>
-                                <strong>Masterclass</strong> — Students pay individually to access this course. Set your price below.
+                                {t('addCourse.step5.masterclassBanner')}
                               </span>
                             </div>
                           ) : formData.courseType === 'PLAN' ? (
@@ -1525,7 +1520,7 @@ const AddNewCourse = () => {
                               style={{ background: 'rgba(45,95,63,0.06)', border: '1px solid rgba(45,95,63,0.18)' }}>
                               <i className="isax isax-tick-circle" style={{ fontSize: 18, color: '#2D5F3F' }} />
                               <span style={{ fontSize: 13, color: '#2D5F3F', fontWeight: 500 }}>
-                                <strong>Plan Course</strong> — Subscribers get access automatically. No individual price required.
+                                {t('addCourse.step5.planBanner')}
                               </span>
                             </div>
                           ) : null}
@@ -1536,14 +1531,14 @@ const AddNewCourse = () => {
                             <>
                               <div className="input-block mb-2">
                                 <label className="form-label">
-                                  Course Price (MAD)<span className="text-danger ms-1">*</span>
+                                  {t('addCourse.step5.coursePrice')}<span className="text-danger ms-1">*</span>
                                 </label>
                                 <input
                                   type="number"
                                   className={`form-control ${errors.price ? 'is-invalid' : ''}`}
                                   value={formData.price}
                                   onChange={(e) => handleInputChange('price', e.target.value)}
-                                  placeholder="Enter course price"
+                                  placeholder={t('addCourse.step5.enterPrice')}
                                   min="0"
                                   step="0.01"
                                 />
@@ -1564,21 +1559,21 @@ const AddNewCourse = () => {
                                     className="form-check-label ms-2"
                                     htmlFor="flexCheckChecked2"
                                   >
-                                    Check if this course has discount
+                                    {t('addCourse.step5.hasDiscount')}
                                   </label>
                                 </div>
                               </div>
                               {formData.hasDiscount && (
                                 <div className="input-block mb-3">
                                   <label className="form-label">
-                                    Discount Price (MAD)<span className="text-danger ms-1">*</span>
+                                    {t('addCourse.step5.discountPrice')}<span className="text-danger ms-1">*</span>
                                   </label>
                                   <input
                                     type="number"
                                     className={`form-control mb-1 ${errors.discountPrice ? 'is-invalid' : ''}`}
                                     value={formData.discountPrice}
                                     onChange={(e) => handleInputChange('discountPrice', e.target.value)}
-                                    placeholder="Enter discount price"
+                                    placeholder={t('addCourse.step5.enterDiscountPrice')}
                                     min="0"
                                     step="0.01"
                                   />
@@ -1587,7 +1582,7 @@ const AddNewCourse = () => {
                                   )}
                                   {formData.price && formData.discountPrice && Number(formData.discountPrice) < Number(formData.price) && (
                                     <span className="text-success">
-                                      This course has {Math.round((1 - Number(formData.discountPrice) / Number(formData.price)) * 100)}% Discount
+                                      {t('addCourse.step5.discountPercent', { pct: Math.round((1 - Number(formData.discountPrice) / Number(formData.price)) * 100) })}
                                     </span>
                                   )}
                                 </div>
@@ -1595,7 +1590,7 @@ const AddNewCourse = () => {
                             </>
                           )}
                           <div className="mb-4">
-                            <label className="form-label mb-1">Expiry Period</label>
+                            <label className="form-label mb-1">{t('addCourse.step5.expiryPeriod')}</label>
                             <div className="d-flex align-items-center ">
                               <div className="form-check me-3">
                                 <input
@@ -1610,7 +1605,7 @@ const AddNewCourse = () => {
                                   className="form-check-label"
                                   htmlFor="flexRadioDefault2"
                                 >
-                                  Lifetime
+                                  {t('addCourse.step5.lifetime')}
                                 </label>
                               </div>
                               <div className="form-check me-3">
@@ -1626,7 +1621,7 @@ const AddNewCourse = () => {
                                   className="form-check-label"
                                   htmlFor="flexRadioDefault3"
                                 >
-                                  Limited Time
+                                  {t('addCourse.step5.limitedTime')}
                                 </label>
                               </div>
                             </div>
@@ -1634,21 +1629,21 @@ const AddNewCourse = () => {
                           {formData.expiryType === 'limited' && (
                             <div className="input-block">
                               <label className="form-label">
-                                Number of months<span className="text-danger ms-1">*</span>
+                                {t('addCourse.step5.numberOfMonths')}<span className="text-danger ms-1">*</span>
                               </label>
                               <input
                                 type="number"
                                 className={`form-control mb-1 ${errors.expiryMonths ? 'is-invalid' : ''}`}
                                 value={formData.expiryMonths}
                                 onChange={(e) => handleInputChange('expiryMonths', e.target.value)}
-                                placeholder="Enter number of months"
+                                placeholder={t('addCourse.step5.enterMonths')}
                                 min="1"
                               />
                               {errors.expiryMonths && (
                                 <div className="invalid-feedback d-block">{errors.expiryMonths}</div>
                               )}
                               <span>
-                                After purchase, students can access the course for {formData.expiryMonths || '...'} months.
+                                {t('addCourse.step5.expiryAccessFor', { months: formData.expiryMonths || '...' })}
                               </span>
                             </div>
                           )}
@@ -1661,15 +1656,15 @@ const AddNewCourse = () => {
                               onClick={handlePrev}
                             >
                               <i className="isax isax-arrow-left-2 me-1" />
-                              Prev
+                              {t('addCourse.nav.prev')}
                             </button>
                           </div>
                           <div className="d-flex align-items-center gap-3">
                             <small className={`${isStepValid ? 'text-success' : 'text-muted'}`}>
                               {isStepValid ? (
-                                <><i className="isax isax-tick-circle me-1" /> Ready to submit</>
+                                <><i className="isax isax-tick-circle me-1" /> {t('addCourse.step5.readyToSubmit')}</>
                               ) : (
-                                <><i className="isax isax-info-circle me-1" /> Complete all required fields</>
+                                <><i className="isax isax-info-circle me-1" /> {t('addCourse.step5.completeAllFields')}</>
                               )}
                             </small>
                             <button
@@ -1682,10 +1677,10 @@ const AddNewCourse = () => {
                               {isSubmitting ? (
                                 <>
                                   <Spin size="small" className="me-2" />
-                                  Creating Course...
+                                  {t('addCourse.step5.creatingCourse')}
                                 </>
                               ) : (
-                                'Submit Course'
+                                t('addCourse.step5.submitCourse')
                               )}
                             </button>
                           </div>
@@ -1708,7 +1703,7 @@ const AddNewCourse = () => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
-              <h5>Topic Name</h5>
+              <h5>{t('addCourse.modals.topic.title')}</h5>
               <button
                 type="button"
                 className="btn-close custom-btn-close"
@@ -1723,12 +1718,12 @@ const AddNewCourse = () => {
               <div className="modal-body">
                 <div className="input-block">
                   <label className="form-label">
-                    Topic Title<span className="text-danger ms-1">*</span>
+                    {t('addCourse.modals.topic.topicTitle')}<span className="text-danger ms-1">*</span>
                   </label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="e.g. Introduction to JavaScript"
+                    placeholder={t('addCourse.modals.topic.placeholder')}
                     value={newTopicTitle}
                     onChange={(e) => setNewTopicTitle(e.target.value)}
                   />
@@ -1741,7 +1736,7 @@ const AddNewCourse = () => {
                   data-bs-dismiss="modal"
                   onClick={() => setNewTopicTitle('')}
                 >
-                  Cancel
+                  {t('addCourse.modals.topic.cancel')}
                 </button>
                 <button
                   type="button"
@@ -1750,7 +1745,7 @@ const AddNewCourse = () => {
                   onClick={handleAddTopic}
                   disabled={!newTopicTitle.trim()}
                 >
-                  Add Topic
+                  {t('addCourse.modals.topic.addTopic')}
                 </button>
               </div>
             </form>
@@ -1763,7 +1758,7 @@ const AddNewCourse = () => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
-              <h5>New Lesson</h5>
+              <h5>{t('addCourse.modals.lesson.title')}</h5>
               <button
                 type="button"
                 className="btn-close custom-btn-close"
@@ -1778,12 +1773,12 @@ const AddNewCourse = () => {
               <div className="modal-body">
                 <div className="input-block mb-4">
                   <label className="form-label">
-                    Lesson Title<span className="text-danger ms-1">*</span>
+                    {t('addCourse.modals.lesson.lessonTitle')}<span className="text-danger ms-1">*</span>
                   </label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="e.g. Variables and Data Types"
+                    placeholder={t('addCourse.modals.lesson.placeholder')}
                     value={newLessonName}
                     onChange={(e) => setNewLessonName(e.target.value)}
                   />
@@ -1799,7 +1794,7 @@ const AddNewCourse = () => {
                       onChange={() => setNewLessonIsPreview(false)}
                     />
                     <label className="form-check-label" htmlFor="lessonPreviewNo">
-                      Premium
+                      {t('addCourse.modals.lesson.premium')}
                     </label>
                   </div>
                   <div className="form-check">
@@ -1812,7 +1807,7 @@ const AddNewCourse = () => {
                       onChange={() => setNewLessonIsPreview(true)}
                     />
                     <label className="form-check-label" htmlFor="lessonPreviewYes">
-                      Free Preview
+                      {t('addCourse.modals.lesson.freePreview')}
                     </label>
                   </div>
                 </div>
@@ -1824,7 +1819,7 @@ const AddNewCourse = () => {
                   data-bs-dismiss="modal"
                   onClick={() => { setNewLessonName(''); setNewLessonIsPreview(false); }}
                 >
-                  Cancel
+                  {t('addCourse.modals.lesson.cancel')}
                 </button>
                 <button
                   type="button"
@@ -1833,7 +1828,7 @@ const AddNewCourse = () => {
                   onClick={handleAddLesson}
                   disabled={!newLessonName.trim()}
                 >
-                  Add Lesson
+                  {t('addCourse.modals.lesson.addLesson')}
                 </button>
               </div>
             </form>
@@ -1846,7 +1841,7 @@ const AddNewCourse = () => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
-              <h5>New FAQ</h5>
+              <h5>{t('addCourse.modals.faq.title')}</h5>
               <button
                 type="button"
                 className="btn-close custom-btn-close"
@@ -1861,23 +1856,23 @@ const AddNewCourse = () => {
               <div className="modal-body">
                 <div className="input-block mb-4">
                   <label className="form-label">
-                    Question<span className="text-danger ms-1">*</span>
+                    {t('addCourse.modals.faq.question')}<span className="text-danger ms-1">*</span>
                   </label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="e.g. What are the prerequisites?"
+                    placeholder={t('addCourse.modals.faq.questionPlaceholder')}
                     value={newFaqQuestion}
                     onChange={(e) => setNewFaqQuestion(e.target.value)}
                   />
                 </div>
                 <div className="input-block mb-4">
                   <label className="form-label">
-                    Answer<span className="text-danger ms-1">*</span>
+                    {t('addCourse.modals.faq.answer')}<span className="text-danger ms-1">*</span>
                   </label>
                   <textarea
                     className="form-control"
-                    placeholder="e.g. No prior experience needed."
+                    placeholder={t('addCourse.modals.faq.answerPlaceholder')}
                     value={newFaqAnswer}
                     onChange={(e) => setNewFaqAnswer(e.target.value)}
                   />
@@ -1890,7 +1885,7 @@ const AddNewCourse = () => {
                   data-bs-dismiss="modal"
                   onClick={() => { setNewFaqQuestion(''); setNewFaqAnswer(''); }}
                 >
-                  Cancel
+                  {t('addCourse.modals.faq.cancel')}
                 </button>
                 <button
                   type="button"
@@ -1899,7 +1894,7 @@ const AddNewCourse = () => {
                   onClick={handleAddFaq}
                   disabled={!newFaqQuestion.trim()}
                 >
-                  Add FAQ
+                  {t('addCourse.modals.faq.addFaq')}
                 </button>
               </div>
             </form>
@@ -1921,10 +1916,10 @@ const AddNewCourse = () => {
           <div className="text-success mb-3" style={{ fontSize: '48px' }}>
             <i className="fa-solid fa-circle-check" />
           </div>
-          <h4 className="mb-2">Congratulations!</h4>
-          <h5 className="mb-3">Course Created Successfully</h5>
+          <h4 className="mb-2">{t('addCourse.success.congratulations')}</h4>
+          <h5 className="mb-3">{t('addCourse.success.courseCreated')}</h5>
           <p className="text-muted mb-4">
-            Your course has been created. You can now add modules and lessons to it.
+            {t('addCourse.success.courseCreatedDesc')}
           </p>
           <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
             <button
@@ -1935,7 +1930,7 @@ const AddNewCourse = () => {
               }}
             >
               <i className="fa-solid fa-arrow-left me-1" />
-              Back to Dashboard
+              {t('addCourse.success.backToDashboard')}
             </button>
             {createdCourseId && (
               <button
@@ -1945,7 +1940,7 @@ const AddNewCourse = () => {
                   navigate(`/instructor/course-manage/${createdCourseId}`);
                 }}
               >
-                Add Modules & Lessons
+                {t('addCourse.success.addModules')}
                 <i className="fa-solid fa-arrow-right ms-1" />
               </button>
             )}
