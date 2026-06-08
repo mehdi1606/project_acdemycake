@@ -9,6 +9,8 @@ import { all_routes } from '../../router/all_routes';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { instructorService } from '../../../services/api/instructor.service';
 import { InstructorDashboard as InstructorDashboardType, Course } from '../../../services/api/types';
+import BadgePopup from '../../../components/BadgePopup';
+import { getBadgeForUser } from '../../../config/badges';
 
 const InstructorDashboard = () => {
   const { t } = useTranslation();
@@ -79,8 +81,18 @@ const InstructorDashboard = () => {
     { label: t('instructor.dashboard.recentEnrollments', 'Recent Enrollments'), value: dashboardData?.recentEnrollments?.length ?? 0,            icon: 'isax isax-user-add', color: 'slate' },
   ];
 
+  const instructorBadge = getBadgeForUser(user?.role || 'INSTRUCTOR', 0);
+
   return (
     <LuxuryDashboardLayout>
+      {/* ── Badge Popup (shown once per session) ── */}
+      {user && (
+        <BadgePopup
+          badge={instructorBadge}
+          userId={user.id}
+          completedCourses={0}
+        />
+      )}
       {/* ── Welcome Banner ── */}
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">

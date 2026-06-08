@@ -2307,5 +2307,51 @@
       "next": "Next",
       "prev": "Prev"
     }
+  },
+  "badges": {
+    "popup": {
+      "yourBadge": "Your Badge",
+      "congratulations": "Congratulations!",
+      "nextLevel": "Next Level",
+      "coursesNeeded": "{{completed}} / {{needed}} courses completed",
+      "allBadges": "Badge Collection",
+      "continue": "Continue Learning"
+    },
+    "apprentice": {
+      "name": "Apprentice",
+      "desc": "Welcome to SARALÖWE Academy! Your culinary journey begins here. Complete your first course to earn your Commis Chef badge."
+    },
+    "commisChef": {
+      "name": "Commis Chef",
+      "desc": "Excellent start! You have completed your first course. Keep learning and refining your culinary skills to advance further."
+    },
+    "sousChef": {
+      "name": "Sous Chef",
+      "desc": "Impressive dedication! You have completed 3 courses. Your culinary knowledge is growing — continue to reach Chef de Partie."
+    },
+    "chefDePartie": {
+      "name": "Chef de Partie",
+      "desc": "Outstanding commitment! With 6 courses completed, you are mastering your station. Keep pushing to reach Executive Chef."
+    },
+    "executiveChef": {
+      "name": "Executive Chef",
+      "desc": "Remarkable achievement! You have completed 12 courses and demonstrated true culinary mastery. The Master Chef title awaits."
+    },
+    "masterChef": {
+      "name": "Master Chef",
+      "desc": "Extraordinary skill! With 20 courses completed, you stand among the finest culinary students. Only the Elite level remains."
+    },
+    "elite": {
+      "name": "Elite",
+      "desc": "The pinnacle of excellence. You have completed 35+ courses and earned the highest honor at SARALÖWE Academy. You are truly Elite."
+    },
+    "instructor": {
+      "name": "Instructor",
+      "desc": "You are a certified SARALÖWE instructor, empowering students to master the art of culinary excellence."
+    },
+    "admin": {
+      "name": "Admin",
+      "desc": "You are a SARALÖWE administrator, managing and maintaining the academy platform."
+    }
   }
 }

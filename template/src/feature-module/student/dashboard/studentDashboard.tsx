@@ -12,6 +12,8 @@ import {
   fetchStudentStats,
 } from '../../../core/redux/studentSlice';
 import { getFileUrl } from '../../../environment';
+import BadgePopup from '../../../components/BadgePopup';
+import { getBadgeForUser } from '../../../config/badges';
 
 const StudentDashboard = () => {
   const { t } = useTranslation();
@@ -38,9 +40,18 @@ const StudentDashboard = () => {
   };
 
   const firstName = user?.fullName?.split(' ')[0] || 'Student';
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats.completedCourses ?? 0);
 
   return (
     <LuxuryDashboardLayout>
+      {/* ── Badge Popup (shown once per badge level) ── */}
+      {user && (
+        <BadgePopup
+          badge={userBadge}
+          userId={user.id}
+          completedCourses={stats.completedCourses ?? 0}
+        />
+      )}
       {/* ── Welcome Banner ── */}
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">

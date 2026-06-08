@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom'
 import { useAppSelector } from '../../../core/redux/hooks'
 import { all_routes } from '../../router/all_routes'
 import { useTranslation } from 'react-i18next'
+import UserBadge from '../../../components/UserBadge';
+import { getBadgeForUser } from '../../../config/badges';
 
 const InstructorProfile = () => {
   const { t } = useTranslation();
   const { user } = useAppSelector((state) => state.auth);
+  const instructorBadge = getBadgeForUser(user?.role || 'INSTRUCTOR', 0);
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
@@ -68,6 +71,48 @@ const InstructorProfile = () => {
           <i className="isax isax-edit-2" />
           Edit Profile
         </Link>
+      </div>
+
+      {/* ── Badge Card ── */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #1a0a0e 0%, #2d1218 60%, #1a0a0e 100%)',
+          border: `1px solid ${instructorBadge.color}44`,
+          borderRadius: 16,
+          padding: '24px 28px',
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 24,
+          boxShadow: `0 4px 24px ${instructorBadge.color}18`,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: -40,
+            right: -40,
+            width: 180,
+            height: 180,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${instructorBadge.color}18, transparent 70%)`,
+            pointerEvents: 'none',
+          }}
+        />
+        <UserBadge badge={instructorBadge} size="lg" showLabel={false} showTooltip={false} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: instructorBadge.color, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
+            {t('badges.popup.yourBadge', 'Your Badge')}
+          </p>
+          <h5 style={{ fontWeight: 800, color: '#fff', fontSize: 20, marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+            {t(instructorBadge.nameKey, 'Instructor')}
+          </h5>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+            {t(instructorBadge.descKey)}
+          </p>
+        </div>
       </div>
 
       {/* Basic Information Card */}

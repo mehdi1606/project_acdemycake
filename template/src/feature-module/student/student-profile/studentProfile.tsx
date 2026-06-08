@@ -5,16 +5,25 @@ import { useTranslation } from "react-i18next";
 
 import LuxuryDashboardLayout from "../../../components/LuxuryDashboardLayout";
 import { all_routes } from "../../router/all_routes";
-import { useAppSelector } from "../../../core/redux/hooks";
+import { useAppSelector, useAppDispatch } from "../../../core/redux/hooks";
 import profileService from "../../../services/api/profile.service";
 import { User } from "../../../services/api/types";
+import UserBadge from "../../../components/UserBadge";
+import { getBadgeForUser } from "../../../config/badges";
+import { fetchStudentStats } from "../../../core/redux/studentSlice";
 
 const StudentProfile = () => {
   const { t } = useTranslation();
   const route = all_routes;
+  const dispatch = useAppDispatch();
   const { user: reduxUser } = useAppSelector((state) => state.auth);
+  const { stats } = useAppSelector((state) => state.student);
   const [user, setUser] = useState<User | null>(reduxUser);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchStudentStats());
+  }, [dispatch]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -55,6 +64,8 @@ const StudentProfile = () => {
 
   const socialLinks = parseSocialLinks(user?.socialLinks);
 
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
+
   if (loading) {
     return (
       <LuxuryDashboardLayout>
@@ -77,6 +88,84 @@ const StudentProfile = () => {
           <i className="isax isax-edit-2" />
           {t('student.profile.editProfile', 'Edit Profile')}
         </Link>
+      </div>
+
+      {/* ── Badge Card ── */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #1a0a0e 0%, #2d1218 60%, #1a0a0e 100%)',
+          border: `1px solid ${userBadge.color}44`,
+          borderRadius: 16,
+          padding: '24px 28px',
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 24,
+          boxShadow: `0 4px 24px ${userBadge.color}18`,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Background glow */}
+        <div
+          style={{
+            position: 'absolute',
+            top: -40,
+            right: -40,
+            width: 180,
+            height: 180,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${userBadge.color}18, transparent 70%)`,
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Badge */}
+        <UserBadge badge={userBadge} size="lg" showLabel={false} showTooltip={false} />
+        {/* Text */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: userBadge.color,
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+              marginBottom: 4,
+            }}
+          >
+            {t('badges.popup.yourBadge')}
+          </p>
+          <h5
+            style={{
+              fontWeight: 800,
+              color: '#fff',
+              fontSize: 20,
+              marginBottom: 6,
+              letterSpacing: 0.5,
+              textTransform: 'uppercase',
+            }}
+          >
+            {t(userBadge.nameKey)}
+          </h5>
+          <p
+            style={{
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: 13,
+              lineHeight: 1.6,
+              margin: 0,
+            }}
+          >
+            {t(userBadge.descKey)}
+          </p>
+        </div>
+        {/* Stars */}
+        {userBadge.stars > 0 && (
+          <div style={{ display: 'flex', gap: 4 }}>
+            {Array.from({ length: userBadge.stars }).map((_, i) => (
+              <span key={i} style={{ color: userBadge.color, fontSize: 18 }}>★</span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Profile Card */}
