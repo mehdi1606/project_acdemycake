@@ -66,6 +66,30 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
       overflow: 'visible',
     }}>
 
+      {/* First 100 members — trilingual urgent banner */}
+      {isAnnual && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          background: 'linear-gradient(135deg, rgba(197,145,44,0.18) 0%, rgba(197,145,44,0.08) 100%)',
+          border: '1px solid rgba(197,145,44,0.4)',
+          borderRadius: 12, padding: '9px 14px',
+          marginBottom: 16, textAlign: 'center', flexWrap: 'wrap',
+        }}>
+          <i className="isax isax-timer-1" style={{ fontSize: 14, color: '#C5912C', flexShrink: 0 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: 11.5, fontWeight: 800, color: '#DEBB6B', letterSpacing: '0.04em' }}>
+              First 100 members only
+            </span>
+            <span style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(222,187,107,0.75)', letterSpacing: '0.02em' }}>
+              Premiers 100 membres seulement
+            </span>
+            <span style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(222,187,107,0.75)', direction: 'rtl' }}>
+              أول ١٠٠ عضو فقط
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Best Value badge */}
       {isAnnual && (
         <div style={{
@@ -128,12 +152,13 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
           {isAnnual ? (
             <>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{t('pricing.approxPerMonth', '≈ 325 MAD/month')}</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{t('pricing.approxPerMonth', '≈ 74 MAD/month')}</span>
               <span style={{
-                background: 'rgba(26,127,75,0.2)', color: '#4FD68E',
+                background: 'rgba(197,145,44,0.18)', color: '#C5912C',
                 borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700,
+                border: '1px solid rgba(197,145,44,0.3)',
               }}>
-                {t('pricing.save780', 'Save 780 MAD')}
+                {t('pricing.limitedOffer', 'Limited offer')}
               </span>
             </>
           ) : (
@@ -393,12 +418,13 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
               <div style={{ fontSize: 12, color: '#B89060', marginTop: 2 }}>
                 {plan.id === 'monthly'
                   ? t('pricing.billedMonthly', 'Billed monthly')
-                  : t('pricing.billedAnnually', 'Billed annually · ≈ 325 MAD/month')}
+                  : t('pricing.billedAnnually', 'Billed annually · ≈ 74 MAD/month')}
               </div>
             </div>
             {plan.savings && !couponValidation?.valid && (
               <div style={{
-                background: '#1A7F4B', color: '#fff',
+                background: 'rgba(197,145,44,0.15)', color: '#9B7B50',
+                border: '1px solid rgba(197,145,44,0.3)',
                 borderRadius: 20, padding: '6px 14px',
                 fontSize: 12, fontWeight: 700,
               }}>
@@ -632,8 +658,8 @@ const PricePlanning: React.FC = () => {
       id: "yearly",
       period: "yearly",
       periodLabel: t('pricing.perYear', '/ year'),
-      price: 3900,
-      savings: t('pricing.save780', 'Save 780 MAD'),
+      price: 890,
+      savings: t('pricing.limitedOffer', 'Limited offer'),
       badge: t('pricing.bestValue', 'Best Value'),
       recommended: true,
       couponEligible: true,
