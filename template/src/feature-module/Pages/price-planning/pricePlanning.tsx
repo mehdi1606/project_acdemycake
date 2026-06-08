@@ -66,7 +66,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
       overflow: 'visible',
     }}>
 
-      {/* First 100 members — trilingual urgent banner */}
+      {/* First 100 members — urgent banner (single language) */}
       {isAnnual && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -76,17 +76,9 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
           marginBottom: 16, textAlign: 'center', flexWrap: 'wrap',
         }}>
           <i className="isax isax-timer-1" style={{ fontSize: 14, color: '#C5912C', flexShrink: 0 }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 800, color: '#DEBB6B', letterSpacing: '0.04em' }}>
-              First 100 members only
-            </span>
-            <span style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(222,187,107,0.75)', letterSpacing: '0.02em' }}>
-              Premiers 100 membres seulement
-            </span>
-            <span style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(222,187,107,0.75)', direction: 'rtl' }}>
-              أول ١٠٠ عضو فقط
-            </span>
-          </div>
+          <span style={{ fontSize: 11.5, fontWeight: 800, color: '#DEBB6B', letterSpacing: '0.04em' }}>
+            {t('pricing.first100')}
+          </span>
         </div>
       )}
 

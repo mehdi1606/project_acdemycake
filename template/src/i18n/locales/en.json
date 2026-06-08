@@ -970,6 +970,7 @@
     }
   },
   "pricing": {
+    "first100": "First 100 members only",
     "bestValue": "Best Value",
     "annual": "Annual",
     "monthly": "Monthly",
