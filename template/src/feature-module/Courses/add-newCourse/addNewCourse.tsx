@@ -1411,7 +1411,7 @@ const AddNewCourse = () => {
                         <div className="title">
                           <div className="row align-items-center row-gap-3">
                             <div className="col-md-9">
-                              <h5 className="mb-0">{t(‘addCourse.step4.faqs’)}</h5>
+                              <h5 className="mb-0">{t('addCourse.step4.faqs')}</h5>
                             </div>
                             <div className="col-md-3 text-end">
                               <Link
@@ -1420,7 +1420,7 @@ const AddNewCourse = () => {
                                 data-bs-toggle="modal"
                                 data-bs-target="#add-faq"
                               >
-                                <i className="isax isax-add-circle5 me-1" /> {t(‘addCourse.step4.addNew’)}
+                                <i className="isax isax-add-circle5 me-1" /> {t('addCourse.step4.addNew')}
                               </Link>
                             </div>
                           </div>
