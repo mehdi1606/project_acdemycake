@@ -560,18 +560,32 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         {/* ── Badge guide trigger icon ── */}
         {user && (
           <button
-            className="topbar-action-btn"
             onClick={() => setGuideOpen(true)}
             title={t('badgeGuide.intro.title', 'Badge Guide')}
-            style={{ position: 'relative' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              transition: 'transform 0.2s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
           >
             <img
               src={userBadge.image}
               alt=""
               style={{
-                width: 22, height: 22,
+                width: 30,
+                height: 30,
                 objectFit: 'contain',
-                filter: `drop-shadow(0 0 4px ${userBadge.color}88)`,
+                filter: `drop-shadow(0 1px 4px ${userBadge.color}99)`,
               }}
             />
           </button>
