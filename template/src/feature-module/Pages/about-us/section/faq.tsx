@@ -154,7 +154,7 @@ const Faq = () => {
                         aria-expanded="false"
                         aria-controls="collapsecustomicon1One"
                       >
-                        Do you have a monthly plan?{" "}
+                        What is included in the Annual plan?{" "}
                         <i className="isax isax-add fs-20 fw-semibold ms-1" />
                       </Link>
                     </h2>
@@ -166,9 +166,9 @@ const Faq = () => {
                     >
                       <div className="accordion-body pt-0">
                         <p>
-                          DreamLMS aims to provide you with a comprehensive and
-                          intuitive learning platform that enhances your
-                          educational experience.
+                          The Annual plan gives you full access to all courses, all Masterclasses,
+                          certificates, community forum, instructor messaging, progress tracking,
+                          and priority support — everything included in one yearly subscription.
                         </p>
                       </div>
                     </div>

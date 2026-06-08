@@ -129,7 +129,7 @@ const InstructorPlanSettings = () => {
   const [showAddCard, setShowAddCard] = useState(false);
   const [showEditCard, setShowEditCard] = useState(false);
   const [showDeleteCard, setShowDeleteCard] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(false);
+  const isAnnual = true; // Annual billing only
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
@@ -456,30 +456,10 @@ const InstructorPlanSettings = () => {
           </button>
         </div>
         <div style={{ padding: '24px 28px 28px' }}>
-          {/* Monthly / Annual Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 28 }}>
-            <span style={{ fontSize: 14, fontWeight: isAnnual ? 400 : 600, color: isAnnual ? 'var(--lx-text-muted)' : 'var(--lx-text)' }}>
-              Monthly
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsAnnual(!isAnnual)}
-              style={{
-                width: 44, height: 24, borderRadius: 12, padding: 2,
-                border: 'none', cursor: 'pointer', flexShrink: 0,
-                background: isAnnual ? 'var(--lx-primary)' : 'rgba(107, 29, 42, 0.12)',
-                transition: 'background 0.2s ease',
-                display: 'flex', alignItems: 'center',
-                justifyContent: isAnnual ? 'flex-end' : 'flex-start',
-              }}
-            >
-              <div style={{
-                width: 20, height: 20, borderRadius: '50%', background: '#fff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)', transition: 'all 0.2s ease',
-              }} />
-            </button>
-            <span style={{ fontSize: 14, fontWeight: isAnnual ? 600 : 400, color: isAnnual ? 'var(--lx-text)' : 'var(--lx-text-muted)' }}>
-              Annually
+          {/* Annual plan only */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 28 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Annual Billing
             </span>
           </div>
 

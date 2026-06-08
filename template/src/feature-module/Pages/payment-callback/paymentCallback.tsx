@@ -65,9 +65,9 @@ const PaymentCallbackPage: React.FC = () => {
     'your';
 
   const planLabel: Record<string, string> = {
-    monthly:   'Monthly',
-    trimester: 'Trimester',
     yearly:    'Annual',
+    trimester: 'Trimester',
+    monthly:   'Monthly', // kept for backward-compat with old subscriptions
   };
 
   const cleanup = () => {

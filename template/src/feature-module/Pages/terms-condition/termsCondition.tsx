@@ -89,7 +89,7 @@ const sections = [
     content: (
       <>
         <ul style={listStyle}>
-          {['Access to the Academy is based on paid subscription (monthly or yearly)', 'Payments are processed securely via third-party providers', 'By subscribing, you agree to automatic renewal unless canceled'].map((item, i) => (
+          {['Access to the Academy is based on a paid annual subscription', 'Payments are processed securely via third-party providers', 'By subscribing, you agree to automatic renewal unless canceled'].map((item, i) => (
             <li key={i} style={listItem}><span style={dot} />{item}</li>
           ))}
         </ul>

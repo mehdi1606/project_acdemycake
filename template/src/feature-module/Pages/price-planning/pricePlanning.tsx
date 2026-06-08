@@ -629,28 +629,6 @@ const PricePlanning: React.FC = () => {
   // ── Plans (inside component so t() works) ──────────────────────────────────
   const PLANS: Plan[] = [
     {
-      id: "monthly",
-      period: "monthly",
-      periodLabel: t('pricing.perMonth', '/ month'),
-      price: 390,
-      savings: null,
-      badge: null,
-      recommended: false,
-      couponEligible: false,
-      features: [
-        t('pricing.feature.allCourses', 'Access to all courses'),
-        t('pricing.feature.studentDashboard', 'Student dashboard'),
-        t('pricing.feature.certificates', 'Course completion certificates'),
-        t('pricing.feature.communityAccess', 'Community forum access'),
-        t('pricing.feature.messaging', 'Messaging with instructors'),
-        t('pricing.feature.progressTracking', 'Progress tracking'),
-      ],
-      premiumExtras: [
-        t('pricing.feature.individualMasterclass', 'Individual masterclass purchase'),
-        t('pricing.feature.standardSupport', 'Standard support'),
-      ],
-    },
-    {
       id: "yearly",
       period: "yearly",
       periodLabel: t('pricing.perYear', '/ year'),
@@ -679,12 +657,11 @@ const PricePlanning: React.FC = () => {
 
   // ── FAQs (inside component so t() works) ──────────────────────────────────
   const FAQS = [
-    { q: t('pricing.faq.q1', 'What is the difference between Courses and Masterclasses?'), a: t('pricing.faq.a1', 'Courses are part of our standard curriculum available to all subscribers. Masterclasses are exclusive premium sessions led by world-renowned pastry chefs — available to purchase individually on Monthly, or fully included in the Annual plan.') },
-    { q: t('pricing.faq.q2', 'Can I switch plans later?'), a: t('pricing.faq.a2', 'Yes. You can upgrade or change your plan at any time. Your new plan takes effect immediately and remaining credit is applied.') },
+    { q: t('pricing.faq.q1', 'What is included in the Annual plan?'), a: t('pricing.faq.a1', 'The Annual plan gives you full access to all courses, all Masterclasses, your student dashboard, certificates, community forum, instructor messaging, progress tracking, and priority support — everything included in one subscription.') },
     { q: t('pricing.faq.q3', 'Is there a free trial?'), a: t('pricing.faq.a3', 'We do not offer a free tier, but you can browse the course catalog and instructor profiles without a subscription before committing.') },
     { q: t('pricing.faq.q4', 'What payment methods are accepted?'), a: t('pricing.faq.a4', 'We accept all major credit and debit cards via our secure payment gateway.') },
     { q: t('pricing.faq.q5', 'Can I cancel my subscription?'), a: t('pricing.faq.a5', 'Yes. You can cancel anytime. Access continues until the end of the current billing period.') },
-    { q: t('pricing.faq.q6', 'How do I use a coupon code?'), a: t('pricing.faq.a6', "Coupon codes are only applicable to the Annual plan. When you click Subscribe on the Annual plan, you'll see an optional coupon field in the confirmation screen. Enter your code there to apply the discount before paying.") },
+    { q: t('pricing.faq.q6', 'How do I use a coupon code?'), a: t('pricing.faq.a6', "When you click Subscribe, you'll see an optional coupon field in the confirmation screen. Enter your code there to apply the discount before paying.") },
   ];
 
   // ── Why cards (inside component so t() works) ─────────────────────────────
@@ -694,7 +671,7 @@ const PricePlanning: React.FC = () => {
     { icon: "isax-people",       color: "forest", title: t('pricing.why.card3.title', 'Community Access'),     desc: t('pricing.why.card3.desc', 'Join our private community of cake artists worldwide.') },
     { icon: "isax-message-text", color: "gold",   title: t('pricing.why.card4.title', 'Instructor Messaging'), desc: t('pricing.why.card4.desc', 'Ask questions directly to your instructors inside the platform.') },
     { icon: "isax-chart-2",      color: "burg",   title: t('pricing.why.card5.title', 'Progress Dashboard'),   desc: t('pricing.why.card5.desc', 'Track your learning journey with a beautiful student dashboard.') },
-    { icon: "isax-crown",        color: "gold",   title: t('pricing.why.card6.title', 'Masterclasses*'),       desc: t('pricing.why.card6.desc', 'Annual plan includes all masterclasses. Monthly plan: buy individually.') },
+    { icon: "isax-crown",        color: "gold",   title: t('pricing.why.card6.title', 'All Masterclasses'),     desc: t('pricing.why.card6.desc', 'Every masterclass by world-renowned pastry chefs is fully included.') },
   ];
 
   const isSubscribed =
@@ -796,7 +773,7 @@ const PricePlanning: React.FC = () => {
           <div className="sl-cl-hero__script">{t('pricing.hero.script', 'Unlock Your Full Potential')}</div>
           <h1 className="sl-cl-hero__title">{t('pricing.hero.title', 'Choose Your Plan')}</h1>
           <p className="sl-cl-hero__desc">
-            {t('pricing.hero.desc', 'Every plan gives you unlimited access to courses, your student dashboard, certificates and the community. The Annual plan also unlocks all Masterclasses.')}
+            {t('pricing.hero.desc', 'One plan. Full access. Unlimited courses, your student dashboard, certificates, community, and all Masterclasses — included.')}
           </p>
 
           {isSubscribed && (
@@ -818,7 +795,7 @@ const PricePlanning: React.FC = () => {
       {/* ══ PLAN CARDS ══ */}
       <section className="sl-pricing__section">
         <div className="container">
-          <div className="sl-pricing__grid" style={{ maxWidth: 820, margin: '0 auto' }}>
+          <div className="sl-pricing__grid" style={{ maxWidth: 480, margin: '0 auto', gridTemplateColumns: '1fr' }}>
             {PLANS.map((plan) => (
               <PlanCard
                 key={plan.id}
@@ -857,11 +834,10 @@ const PricePlanning: React.FC = () => {
             <div>
               <h4 className="sl-pricing__info-title">{t('pricing.masterclass.title', 'About Masterclasses')}</h4>
               <p className="sl-pricing__info-desc">
-                {t('pricing.masterclass.desc1', 'Masterclasses are exclusive live or recorded sessions led by world-renowned pastry chefs. They are')}{" "}
-                <strong>{t('pricing.masterclass.includedInAnnual', 'fully included in the Annual plan')}</strong>{" "}
-                {t('pricing.masterclass.desc2', 'and can also be purchased')}{" "}
-                <strong>{t('pricing.masterclass.individually', 'individually')}</strong>{" "}
-                {t('pricing.masterclass.desc3', 'on the Monthly plan.')}
+                {t('pricing.masterclass.desc1', 'Masterclasses are exclusive live or recorded sessions led by world-renowned pastry chefs.')}{" "}
+                {t('pricing.masterclass.desc2', 'They are')}{" "}
+                <strong>{t('pricing.masterclass.includedInAnnual', 'fully included in your Annual subscription')}</strong>{" "}
+                {t('pricing.masterclass.desc3', '— no extra purchase required.')}
               </p>
             </div>
           </div>
