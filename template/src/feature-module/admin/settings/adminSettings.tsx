@@ -40,8 +40,7 @@ const AdminSettings = () => {
   const { t } = useTranslation();
   const { user } = useAppSelector((state) => state.auth);
 
-  // ── Dynamic subscription pricing ──────────────────────────────────────────
-  const [monthlyPrice, setMonthlyPrice] = useState<string>('');
+  // ── Dynamic subscription pricing (annual plan) ────────────────────────────
   const [yearlyPrice,  setYearlyPrice]  = useState<string>('');
   const [currency,     setCurrency]     = useState<string>('MAD');
   const [pricingLoading, setPricingLoading] = useState<boolean>(true);
@@ -52,7 +51,6 @@ const AdminSettings = () => {
     adminService.getPricingSettings()
       .then((p) => {
         if (!active) return;
-        setMonthlyPrice(String(p.monthlyPrice ?? ''));
         setYearlyPrice(String(p.yearlyPrice ?? ''));
         setCurrency(p.currency || 'MAD');
       })
@@ -62,16 +60,14 @@ const AdminSettings = () => {
   }, []);
 
   const handleSavePricing = async () => {
-    const m = parseFloat(monthlyPrice);
     const y = parseFloat(yearlyPrice);
-    if (!(m > 0) || !(y > 0)) {
-      message.warning(t('admin.settings.pricingInvalid', 'Please enter valid prices greater than 0.'));
+    if (!(y > 0)) {
+      message.warning(t('admin.settings.pricingInvalid', 'Please enter a valid price greater than 0.'));
       return;
     }
     setPricingSaving(true);
     try {
-      const updated = await adminService.updatePricingSettings(m, y);
-      setMonthlyPrice(String(updated.monthlyPrice));
+      const updated = await adminService.updatePricingSettings(y);
       setYearlyPrice(String(updated.yearlyPrice));
       message.success(t('admin.settings.pricingSaved', 'Subscription pricing updated.'));
     } catch (err: any) {
@@ -167,25 +163,14 @@ const AdminSettings = () => {
             <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><Spin /></div>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-                <div>
-                  <label style={labelStyle}>{t('admin.settings.monthlyPrice', 'Monthly Price')} ({currency})</label>
-                  <input
-                    type="number" min={0} step="0.01"
-                    style={editableInputStyle}
-                    value={monthlyPrice}
-                    onChange={(e) => setMonthlyPrice(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label style={labelStyle}>{t('admin.settings.yearlyPrice', 'Annual Price')} ({currency})</label>
-                  <input
-                    type="number" min={0} step="0.01"
-                    style={editableInputStyle}
-                    value={yearlyPrice}
-                    onChange={(e) => setYearlyPrice(e.target.value)}
-                  />
-                </div>
+              <div style={{ marginBottom: 16, maxWidth: 360 }}>
+                <label style={labelStyle}>{t('admin.settings.yearlyPrice', 'Annual Price')} ({currency})</label>
+                <input
+                  type="number" min={0} step="0.01"
+                  style={editableInputStyle}
+                  value={yearlyPrice}
+                  onChange={(e) => setYearlyPrice(e.target.value)}
+                />
               </div>
               <button
                 className="lx-btn lx-btn-gold"

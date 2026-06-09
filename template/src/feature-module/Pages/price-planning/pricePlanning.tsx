@@ -144,7 +144,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
           {isAnnual ? (
             <>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{t('pricing.approxPerMonth', '≈ 74 MAD/month')}</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{t('pricing.approxPerMonth', '≈ {{n}} MAD/month', { n: Math.round(plan.price / 12).toLocaleString() })}</span>
               <span style={{
                 background: 'rgba(197,145,44,0.18)', color: '#C5912C',
                 borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700,
@@ -410,7 +410,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
               <div style={{ fontSize: 12, color: '#B89060', marginTop: 2 }}>
                 {plan.id === 'monthly'
                   ? t('pricing.billedMonthly', 'Billed monthly')
-                  : t('pricing.billedAnnually', 'Billed annually · ≈ 74 MAD/month')}
+                  : t('pricing.billedAnnually', 'Billed annually · ≈ {{n}} MAD/month', { n: Math.round(plan.price / 12).toLocaleString() })}
               </div>
             </div>
             {plan.savings && !couponValidation?.valid && (
@@ -641,6 +641,8 @@ const PricePlanning: React.FC = () => {
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
+  // Live annual price from the backend (admin-editable). Null until loaded.
+  const [annualPrice, setAnnualPrice] = useState<number | null>(null);
 
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
 
@@ -650,7 +652,7 @@ const PricePlanning: React.FC = () => {
       id: "yearly",
       period: "yearly",
       periodLabel: t('pricing.perYear', '/ year'),
-      price: 890,
+      price: annualPrice ?? 0,
       savings: t('pricing.limitedOffer', 'Limited offer'),
       badge: t('pricing.bestValue', 'Best Value'),
       recommended: true,
@@ -702,6 +704,11 @@ const PricePlanning: React.FC = () => {
     const load = async () => {
       setLoading(true);
       try {
+        // Live annual price (works for guests too) — keeps the page in sync with admin pricing.
+        const plans = await subscriptionService.getPlans();
+        const yearly = plans.find((p) => p.planId === 'yearly');
+        if (yearly?.price != null) setAnnualPrice(yearly.price);
+
         if (isAuthenticated) {
           const sub = await subscriptionService.getMySubscription();
           setCurrentSubscription(sub);

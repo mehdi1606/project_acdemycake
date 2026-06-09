@@ -208,8 +208,10 @@ class AdminService {
     return response.data;
   }
 
-  async updatePricingSettings(monthlyPrice: number, yearlyPrice: number): Promise<PricingSettings> {
-    const response = await api.put<PricingSettings>('/admin/settings/pricing', { monthlyPrice, yearlyPrice });
+  async updatePricingSettings(yearlyPrice: number, monthlyPrice?: number): Promise<PricingSettings> {
+    const body: Record<string, number> = { yearlyPrice };
+    if (monthlyPrice != null) body.monthlyPrice = monthlyPrice;
+    const response = await api.put<PricingSettings>('/admin/settings/pricing', body);
     return response.data;
   }
 

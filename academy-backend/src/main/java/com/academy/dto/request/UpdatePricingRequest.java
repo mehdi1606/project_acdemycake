@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class UpdatePricingRequest {
 
-    @NotNull(message = "Monthly price is required")
+    /** Optional — only updated when provided (the platform currently sells the annual plan). */
     @DecimalMin(value = "0.0", inclusive = false, message = "Monthly price must be greater than 0")
     private BigDecimal monthlyPrice;
 

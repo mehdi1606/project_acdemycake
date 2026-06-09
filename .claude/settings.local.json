@@ -91,7 +91,8 @@
       "Bash(grep -n \"const fmt\\\\|fmt =\\\\|\\\\\\\\$\\\\|USD\\\\|MAD\\\\|Intl.NumberFormat\\\\|currency\" feature-module/admin/dashboard/adminDashboard.tsx)",
       "Bash(grep -n \"/community/\\\\|all_routes.community\\\\|to={\\\\`/community\" template/src/feature-module/blog/blog-layouts/blogGrid.tsx)",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "Bash(grep -iv \"import\\\\|//\")"
+      "Bash(grep -iv \"import\\\\|//\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/en.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/ar.json','utf8'\\)\\); console.log\\('JSON OK'\\);\")"
     ]
   }
 }
