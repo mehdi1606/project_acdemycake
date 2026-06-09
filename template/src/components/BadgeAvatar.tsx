@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import { BadgeDefinition } from '../config/badges';
+import { BadgeDefinition, badgeSrcSet } from '../config/badges';
 
 interface Props {
   avatarUrl?: string | null;
@@ -91,6 +91,8 @@ const BadgeAvatar: React.FC<Props> = ({
           <img
             src={avatarUrl}
             alt={name}
+            loading="lazy"
+            decoding="async"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
@@ -130,11 +132,16 @@ const BadgeAvatar: React.FC<Props> = ({
         >
           <img
             src={badge.image}
+            srcSet={badgeSrcSet(badge.image)}
+            sizes={`${d.cornerBadge}px`}
             alt=""
+            loading="lazy"
+            decoding="async"
             style={{
-              width: '92%',
-              height: '92%',
-              objectFit: 'contain',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: 'scale(1.35)',   // zoom into the centred shield (crops transparent padding)
             }}
           />
         </div>

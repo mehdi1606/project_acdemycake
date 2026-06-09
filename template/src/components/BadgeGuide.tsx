@@ -15,7 +15,8 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BADGES, BadgeDefinition } from '../config/badges';
+import { BADGES, BadgeDefinition, preloadBadge } from '../config/badges';
+import BadgeImage from './BadgeImage';
 
 const LS_KEY = 'slw_badge_guide_seen_';
 
@@ -73,6 +74,24 @@ const BadgeGuide: React.FC<Props> = ({
     }
   }, [forceOpen]);
 
+  /* Prefetch the first badges + the user's own badge the moment the modal opens
+     so the first slide and early Next clicks are instant. */
+  useEffect(() => {
+    if (!visible) return;
+    preloadBadge(currentBadge.image);
+    BADGES.slice(0, 2).forEach((b) => preloadBadge(b.image));
+  }, [visible, currentBadge.image]);
+
+  /* As the user navigates, warm the cache for the NEXT slide's badge so clicking
+     Next never shows a loading delay. (Badge slides are steps 1..9; the final
+     "current" slide reuses the user's badge, already preloaded above.) */
+  useEffect(() => {
+    const nextStep = step + 1;
+    if (nextStep >= 1 && nextStep <= BADGES.length) {
+      preloadBadge(BADGES[nextStep - 1].image);
+    }
+  }, [step]);
+
   const dismiss = useCallback(() => {
     localStorage.setItem(`${LS_KEY}${userId}`, '1');
     setVisible(false);
@@ -110,17 +129,13 @@ const BadgeGuide: React.FC<Props> = ({
           {/* Mini preview strip */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
             {BADGES.slice(0, 7).map((b) => (
-              <img
+              <BadgeImage
                 key={b.id}
                 src={b.image}
-                alt=""
-                style={{
-                  width: 38, height: 38,
-                  borderRadius: '50%',
-                  border: `2px solid ${b.color}55`,
-                  objectFit: 'contain',
-                  background: 'rgba(255,255,255,0.04)',
-                }}
+                size={38}
+                color={b.color}
+                scale={1.35}
+                style={{ border: `2px solid ${b.color}55` }}
               />
             ))}
           </div>
@@ -156,19 +171,20 @@ const BadgeGuide: React.FC<Props> = ({
             {isCurrent && (
               <div style={{
                 position: 'absolute', inset: -10,
-                borderRadius: '50%',
+                borderRadius: 28,
                 border: `2px solid ${badge.color}`,
                 animation: 'badgeGuidePulse 1.8s ease-in-out infinite',
               }} />
             )}
-            <img
+            <BadgeImage
               src={badge.image}
               alt={t(badge.nameKey)}
-              style={{
-                width: 130, height: 'auto',
-                filter: `drop-shadow(0 0 16px ${badge.color}66)`,
-                position: 'relative', zIndex: 1,
-              }}
+              size={150}
+              color={badge.color}
+              scale={1.4}
+              radius={20}
+              priority
+              style={{ position: 'relative', zIndex: 1, boxShadow: `0 0 22px ${badge.color}55` }}
             />
             {/* "YOURS" label */}
             {isCurrent && (
@@ -246,14 +262,15 @@ const BadgeGuide: React.FC<Props> = ({
               background: `radial-gradient(circle, ${badge.color}22, transparent 70%)`,
               animation: 'badgeGuidePulse 2s ease-in-out infinite',
             }} />
-            <img
+            <BadgeImage
               src={badge.image}
               alt={t(badge.nameKey)}
-              style={{
-                width: 150, height: 'auto',
-                filter: `drop-shadow(0 0 20px ${badge.color}88)`,
-                position: 'relative', zIndex: 1,
-              }}
+              size={168}
+              color={badge.color}
+              scale={1.4}
+              radius={22}
+              priority
+              style={{ position: 'relative', zIndex: 1, boxShadow: `0 0 26px ${badge.color}88` }}
             />
           </div>
 

@@ -4,6 +4,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Spin, message, Pagination, Select } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchTransactions } from '../../../core/redux/adminSlice';
+import adminService, { TransactionStats } from '../../../services/api/admin.service';
 
 
 const AdminTransactions = () => {
@@ -16,9 +17,23 @@ const AdminTransactions = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('');
 
+  // Aggregate revenue stats — computed on the backend over the WHOLE dataset
+  // (every CMI payment), so the cards are correct regardless of which page is open.
+  const [stats, setStats] = useState<TransactionStats | null>(null);
+
   useEffect(() => {
     dispatch(fetchTransactions({ page: currentPage, size: 20 }));
   }, [dispatch, currentPage]);
+
+  // Refresh aggregate stats whenever the visible page changes (so a freshly
+  // completed payment is reflected without a full reload).
+  useEffect(() => {
+    let active = true;
+    adminService.getTransactionStats()
+      .then((s) => { if (active) setStats(s); })
+      .catch(() => { /* non-fatal: cards fall back to 0 */ });
+    return () => { active = false; };
+  }, [currentPage]);
 
   useEffect(() => {
     if (error) {
@@ -69,17 +84,12 @@ const AdminTransactions = () => {
     return true;
   });
 
-  const totalRevenue = (transactions || [])
-    .filter((tx: any) => tx.status === 'COMPLETED')
-    .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
-
-  const subscriptionRevenue = (transactions || [])
-    .filter((tx: any) => tx.status === 'COMPLETED' && tx.transactionType === 'SUBSCRIPTION')
-    .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
-
-  const courseRevenue = (transactions || [])
-    .filter((tx: any) => tx.status === 'COMPLETED' && tx.transactionType === 'COURSE_PURCHASE')
-    .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
+  // Revenue figures come from the backend aggregate (all CMI payments), not the
+  // current page. Realised revenue = COMPLETED payments only.
+  const totalRevenue        = stats?.totalRevenue        ?? 0;
+  const subscriptionRevenue = stats?.subscriptionRevenue ?? 0;
+  const courseRevenue       = stats?.courseRevenue       ?? 0;
+  const pendingAmount       = stats?.pendingAmount       ?? 0;
 
   return (
     <LuxuryDashboardLayout>
@@ -91,18 +101,24 @@ const AdminTransactions = () => {
             value: formatCurrency(totalRevenue),
             icon: 'isax isax-dollar-circle',
             color: 'gold',
+            // Show in-flight (pending) volume only on the total card.
+            sub: pendingAmount > 0
+              ? `${formatCurrency(pendingAmount)} ${t('admin.transactions.pending', 'pending')}`
+              : null,
           },
           {
             label: t('admin.sidebar.subscriptions', 'Subscriptions'),
             value: formatCurrency(subscriptionRevenue),
             icon: 'isax isax-crown',
             color: 'sage',
+            sub: null,
           },
           {
             label: t('admin.transactions.courseSales', 'Course Sales'),
             value: formatCurrency(courseRevenue),
             icon: 'isax isax-book',
             color: 'slate',
+            sub: null,
           },
         ].map((s, i) => (
           <div key={i} className="col-md-4">
@@ -113,6 +129,11 @@ const AdminTransactions = () => {
               <div className="stat-info">
                 <p className="stat-label">{s.label}</p>
                 <h3 className="stat-value" style={{ fontSize: 20 }}>{s.value}</h3>
+                {s.sub && (
+                  <p className="stat-label" style={{ fontSize: 11, opacity: 0.7, margin: 0 }}>
+                    <i className="isax isax-clock me-1" />{s.sub}
+                  </p>
+                )}
               </div>
             </div>
           </div>

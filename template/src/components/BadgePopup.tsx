@@ -8,7 +8,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BadgeDefinition, BADGES, getNextBadge } from '../config/badges';
+import { BadgeDefinition, BADGES, getNextBadge, badgeSrcSet } from '../config/badges';
 
 interface Props {
   badge: BadgeDefinition;
@@ -168,17 +168,29 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
                     animation: 'badgePulse 2.5s ease-in-out infinite',
                   }}
                 />
-                <img
-                  src={badge.image}
-                  alt={t(badge.nameKey)}
+                <div
                   style={{
-                    width: 150,
-                    height: 'auto',
-                    filter: `drop-shadow(0 0 16px ${badge.color}66)`,
+                    width: 160,
+                    height: 160,
+                    borderRadius: 22,
+                    overflow: 'hidden',
                     position: 'relative',
                     zIndex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: `0 0 22px ${badge.color}66`,
                   }}
-                />
+                >
+                  <img
+                    src={badge.image}
+                    srcSet={badgeSrcSet(badge.image)}
+                    sizes="160px"
+                    alt={t(badge.nameKey)}
+                    decoding="async"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.4)' }}
+                  />
+                </div>
               </div>
             </div>
 

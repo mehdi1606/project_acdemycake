@@ -166,6 +166,13 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/transactions/stats")
+    @Operation(summary = "Aggregate revenue stats from CMI payments (whole dataset, not one page)")
+    public ResponseEntity<ApiResponse<TransactionStatsResponse>> getTransactionStats() {
+        TransactionStatsResponse response = adminService.getTransactionStats();
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     /**
      * Manually reprocess a PENDING payment transaction (ADMIN only).
      *

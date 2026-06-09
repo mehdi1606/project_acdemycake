@@ -39,7 +39,7 @@ export const BADGES: BadgeDefinition[] = [
     nameKey: 'badges.apprentice.name',
     descKey: 'badges.apprentice.desc',
     minCourses: 0,
-    image: '/images/badges/badge-1.png',
+    image: '/assets/img/badge/badge-1.webp',
     color: '#e8a4b8',
     stars: 1,
   },
@@ -48,7 +48,7 @@ export const BADGES: BadgeDefinition[] = [
     nameKey: 'badges.commisChef.name',
     descKey: 'badges.commisChef.desc',
     minCourses: 1,
-    image: '/images/badges/badge-2.png',
+    image: '/assets/img/badge/badge-2.webp',
     color: '#c8a96e',
     stars: 1,
   },
@@ -57,7 +57,7 @@ export const BADGES: BadgeDefinition[] = [
     nameKey: 'badges.sousChef.name',
     descKey: 'badges.sousChef.desc',
     minCourses: 3,
-    image: '/images/badges/badge-3.png',
+    image: '/assets/img/badge/badge-3.webp',
     color: '#b8973e',
     stars: 2,
   },
@@ -66,7 +66,7 @@ export const BADGES: BadgeDefinition[] = [
     nameKey: 'badges.chefDePartie.name',
     descKey: 'badges.chefDePartie.desc',
     minCourses: 6,
-    image: '/images/badges/badge-4.png',
+    image: '/assets/img/badge/badge-4.webp',
     color: '#c0392b',
     stars: 2,
   },
@@ -75,7 +75,7 @@ export const BADGES: BadgeDefinition[] = [
     nameKey: 'badges.executiveChef.name',
     descKey: 'badges.executiveChef.desc',
     minCourses: 12,
-    image: '/images/badges/badge-5.png',
+    image: '/assets/img/badge/badge-5.webp',
     color: '#2e7d52',
     stars: 3,
   },
@@ -84,7 +84,7 @@ export const BADGES: BadgeDefinition[] = [
     nameKey: 'badges.masterChef.name',
     descKey: 'badges.masterChef.desc',
     minCourses: 20,
-    image: '/images/badges/badge-6.png',
+    image: '/assets/img/badge/badge-6.webp',
     color: '#c8a030',
     stars: 4,
   },
@@ -93,7 +93,7 @@ export const BADGES: BadgeDefinition[] = [
     nameKey: 'badges.elite.name',
     descKey: 'badges.elite.desc',
     minCourses: 35,
-    image: '/images/badges/badge-7.png',
+    image: '/assets/img/badge/badge-7.webp',
     color: '#d4a017',
     stars: 5,
   },
@@ -103,7 +103,7 @@ export const BADGES: BadgeDefinition[] = [
     descKey: 'badges.instructor.desc',
     minCourses: 0,
     role: 'INSTRUCTOR',
-    image: '/images/badges/badge-8.png',
+    image: '/assets/img/badge/badge-8.webp',
     color: '#2e7d52',
     stars: 0,
   },
@@ -113,7 +113,7 @@ export const BADGES: BadgeDefinition[] = [
     descKey: 'badges.admin.desc',
     minCourses: 0,
     role: 'ADMIN',
-    image: '/images/badges/badge-9.png',
+    image: '/assets/img/badge/badge-9.webp',
     color: '#1565c0',
     stars: 0,
   },
@@ -157,4 +157,45 @@ export function getBadgeFromRole(role?: string | null): BadgeDefinition {
   if (role === 'ADMIN')      return BADGES[8]; // badge 9
   if (role === 'INSTRUCTOR') return BADGES[7]; // badge 8
   return BADGES[0];                            // badge 1 — Apprentice
+}
+
+// ── Responsive image helpers ─────────────────────────────────────────────────
+//
+// Each badge ships in three downscaled WebP sizes (see scripts/optimize-badges.js):
+//   badge-N-128.webp (128px) · badge-N.webp (256px) · badge-N-512.webp (512px)
+// All are well under 50 KB. `badgeSrcSet` lets the browser pick the right one for
+// the rendered size + device DPR, so a 24px corner avatar never downloads the 512px
+// file and a 168px showcase slide stays crisp on retina.
+
+/** Build a srcset string ("…-128.webp 128w, ….webp 256w, …-512.webp 512w") from a badge image path. */
+export function badgeSrcSet(image: string): string {
+  const base = image.replace(/\.webp$/i, '');
+  return `${base}-128.webp 128w, ${image} 256w, ${base}-512.webp 512w`;
+}
+
+// In-memory record of badge URLs whose <img> has finished loading at least once.
+// Lets components skip the skeleton/placeholder on subsequent renders (no flicker,
+// no duplicate work) — the browser HTTP cache handles the bytes, this handles the UI.
+const loadedBadges = new Set<string>();
+
+export function markBadgeLoaded(image: string): void {
+  loadedBadges.add(image);
+}
+
+export function isBadgeLoaded(image: string): boolean {
+  return loadedBadges.has(image);
+}
+
+/**
+ * Warm the browser cache for a badge (current + next) before it is shown.
+ * Uses a detached Image() so the fetch is async and non-blocking; resolves the
+ * 256px default which is what the showcase renders at 1x.
+ */
+export function preloadBadge(image?: string | null): void {
+  if (!image || loadedBadges.has(image) || typeof window === 'undefined') return;
+  const img = new Image();
+  img.decoding = 'async';
+  img.onload = () => loadedBadges.add(image);
+  img.srcset = badgeSrcSet(image);
+  img.src = image;
 }

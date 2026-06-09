@@ -4,10 +4,12 @@ import com.academy.dto.response.CourseResponse;
 import com.academy.dto.response.DashboardResponse;
 import com.academy.dto.response.PageResponse;
 import com.academy.dto.response.TransactionResponse;
+import com.academy.dto.response.TransactionStatsResponse;
 import com.academy.dto.response.UserResponse;
 import com.academy.entity.Course;
 import com.academy.entity.PaymentTransaction;
 import com.academy.entity.User;
+import com.academy.entity.enums.PaymentStatus;
 import com.academy.entity.enums.UserRole;
 import com.academy.exception.ForbiddenException;
 import com.academy.repository.*;
@@ -52,8 +54,10 @@ public class AdminServiceImpl implements AdminService {
         long totalEnrollments = enrollmentRepository.count();
         long activeSubscriptions = subscriptionRepository.countActiveSubscriptions();
 
-        BigDecimal totalRevenue = subscriptionRepository.sumTotalSubscriptionRevenue();
-        BigDecimal monthlyRevenue = subscriptionRepository.sumRevenueFromSubscriptionsSince(startOfMonth);
+        // Revenue is now sourced from realised CMI payments (COMPLETED transactions),
+        // so the dashboard and the Transactions page always agree on one number.
+        BigDecimal totalRevenue = transactionRepository.sumAmountByStatus(PaymentStatus.COMPLETED);
+        BigDecimal monthlyRevenue = transactionRepository.sumAmountByStatusSince(PaymentStatus.COMPLETED, startOfMonth);
 
         List<DashboardResponse.CourseStats> topCourses = getTopCourses(5);
         List<DashboardResponse.UserStats> topInstructors = getTopInstructors(5);
@@ -81,6 +85,28 @@ public class AdminServiceImpl implements AdminService {
 
         // Map inside the transaction so the lazy User proxy is accessible
         return PageResponse.from(transactionsPage, TransactionResponse::from);
+    }
+
+    @Override
+    public TransactionStatsResponse getTransactionStats() {
+        verifyAdmin();
+
+        // Realised revenue = COMPLETED CMI payments, aggregated across ALL rows in SQL
+        // (not just the current page) so the figures are correct under pagination.
+        BigDecimal totalRevenue        = transactionRepository.sumAmountByStatus(PaymentStatus.COMPLETED);
+        BigDecimal subscriptionRevenue = transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "SUBSCRIPTION");
+        BigDecimal courseRevenue       = transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "COURSE_PURCHASE");
+        BigDecimal pendingAmount       = transactionRepository.sumAmountByStatus(PaymentStatus.PENDING);
+
+        return TransactionStatsResponse.builder()
+                .totalRevenue(totalRevenue)
+                .subscriptionRevenue(subscriptionRevenue)
+                .courseRevenue(courseRevenue)
+                .pendingAmount(pendingAmount)
+                .completedCount(transactionRepository.countByStatus(PaymentStatus.COMPLETED))
+                .pendingCount(transactionRepository.countByStatus(PaymentStatus.PENDING))
+                .currency("MAD")
+                .build();
     }
 
     @Override
@@ -173,8 +199,9 @@ public class AdminServiceImpl implements AdminService {
             LocalDateTime monthStart = now.minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
             LocalDateTime monthEnd = monthStart.plusMonths(1);
 
-            // This is a simplified version - in production you'd want a more efficient query
-            BigDecimal revenue = subscriptionRepository.sumRevenueFromSubscriptionsSince(monthStart);
+            // Per-month realised revenue from CMI payments (COMPLETED only, within the window)
+            BigDecimal revenue = transactionRepository.sumAmountByStatusBetween(
+                    PaymentStatus.COMPLETED, monthStart, monthEnd);
             long enrollments = enrollmentRepository.countEnrollmentsSince(monthStart);
 
             history.add(DashboardResponse.MonthlyRevenue.builder()

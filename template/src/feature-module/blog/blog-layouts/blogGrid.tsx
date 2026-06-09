@@ -9,6 +9,8 @@ import { communityService } from '../../../services/api/community.service';
 import { CommunityPost as Post, CommunityComment, PostType } from '../../../services/api/types';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function timeAgo(dateStr: string, lang: string): string {
@@ -144,7 +146,6 @@ const PostModal: React.FC<{
 
   const images = post?.images?.filter(Boolean) ?? [];
   const avatar = getFileUrl(post?.userAvatar);
-  const initials = post?.userName?.slice(0, 2).toUpperCase() ?? '??';
   const typeColor = post ? TYPE_COLORS[post.postType] : TYPE_COLORS.DISCUSSION;
 
   const formatDate = (iso: string) =>
@@ -247,22 +248,12 @@ const PostModal: React.FC<{
 
             {/* Author row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
-              {avatar ? (
-                <img src={avatar} alt={post.userName} style={{
-                  width: 40, height: 40, borderRadius: '50%', objectFit: 'cover',
-                  border: '2px solid rgba(197,145,44,0.3)',
-                }} />
-              ) : (
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'var(--sl-burgundy)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.7rem', fontWeight: 700, color: 'var(--sl-gold)',
-                  border: '2px solid rgba(197,145,44,0.3)',
-                }}>
-                  {initials}
-                </div>
-              )}
+              <BadgeAvatar
+                avatarUrl={avatar ?? undefined}
+                name={post.userName}
+                badge={getBadgeFromRole((post as any).userRole)}
+                size="md"
+              />
               <div>
                 <p style={{ margin: 0, fontFamily: 'var(--sl-font-body)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--sl-burgundy)' }}>
                   {post.userName}
@@ -392,13 +383,12 @@ const PostModal: React.FC<{
                   {t('community.addComment')}
                 </p>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  {user?.avatarUrl ? (
-                    <img src={getFileUrl(user.avatarUrl)} alt="me" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(197,145,44,0.25)', flexShrink: 0 }} />
-                  ) : (
-                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--sl-burgundy)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, color: 'var(--sl-gold)', flexShrink: 0 }}>
-                      {user?.fullName?.slice(0, 2).toUpperCase() ?? 'ME'}
-                    </div>
-                  )}
+                  <BadgeAvatar
+                    avatarUrl={getFileUrl(user?.avatarUrl) ?? undefined}
+                    name={user?.fullName}
+                    badge={getBadgeFromRole(user?.role)}
+                    size="sm"
+                  />
                   <div style={{ flex: 1 }}>
                     <textarea
                       ref={textRef}
@@ -445,20 +435,18 @@ const PostModal: React.FC<{
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {comments.map(c => {
                     const cAvatar = getFileUrl(c.userAvatar);
-                    const cInitials = c.userName?.slice(0, 2).toUpperCase() ?? '??';
                     return (
                       <div key={c.id} style={{
                         display: 'flex', gap: 10,
                         padding: '1rem',
                         background: '#fff', border: '1px solid rgba(197,145,44,0.1)',
                       }}>
-                        {cAvatar ? (
-                          <img src={cAvatar} alt={c.userName} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(197,145,44,0.2)', flexShrink: 0 }} />
-                        ) : (
-                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--sl-burgundy)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700, color: 'var(--sl-gold)', flexShrink: 0 }}>
-                            {cInitials}
-                          </div>
-                        )}
+                        <BadgeAvatar
+                          avatarUrl={cAvatar ?? undefined}
+                          name={c.userName}
+                          badge={getBadgeFromRole((c as any).userRole)}
+                          size="sm"
+                        />
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                             <span style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.78rem', fontWeight: 600, color: 'var(--sl-burgundy)' }}>
@@ -532,7 +520,6 @@ const PostCard: React.FC<{
   const avatar = getFileUrl(post.userAvatar);
   const { bg, text: textColor } = TYPE_COLORS[post.postType] ?? TYPE_COLORS.DISCUSSION;
   const images = post.images?.filter(Boolean) ?? [];
-  const initials = post.userName?.slice(0, 2).toUpperCase() ?? '??';
 
   const TYPE_LABELS: Record<PostType, string> = {
     DISCUSSION:   t('community.type.DISCUSSION'),
@@ -629,22 +616,12 @@ const PostCard: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           {/* Author */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {avatar ? (
-              <img src={avatar} alt={post.userName} style={{
-                width: 30, height: 30, borderRadius: '50%', objectFit: 'cover',
-                border: '1.5px solid rgba(197,145,44,0.3)',
-              }} />
-            ) : (
-              <div style={{
-                width: 30, height: 30, borderRadius: '50%',
-                background: 'var(--sl-burgundy)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.62rem', fontWeight: 700, color: 'var(--sl-gold)',
-                border: '1.5px solid rgba(197,145,44,0.3)',
-              }}>
-                {initials}
-              </div>
-            )}
+            <BadgeAvatar
+              avatarUrl={avatar ?? undefined}
+              name={post.userName}
+              badge={getBadgeFromRole((post as any).userRole)}
+              size="sm"
+            />
             <span style={{
               fontFamily: 'var(--sl-font-body)',
               fontSize: '0.72rem', fontWeight: 600,

@@ -19,9 +19,16 @@ const AdminDashboard = () => {
   useEffect(() => { dispatch(fetchAdminDashboard()); }, [dispatch]);
   useEffect(() => { if (error) message.error(error); }, [error]);
 
-  const fmt = (n?: number) =>
-    n == null ? '$0' :
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(n);
+  // Platform currency is MAD (CMI payments). Keep this consistent with the
+  // Transactions page so revenue never shows mismatched symbols/values.
+  const fmt = (n?: number) => {
+    const v = n ?? 0;
+    try {
+      return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 2 }).format(v);
+    } catch {
+      return `${v.toFixed(2)} MAD`;
+    }
+  };
 
   /* Revenue chart */
   const revenueOptions: ApexOptions = {

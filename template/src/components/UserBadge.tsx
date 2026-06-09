@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BadgeDefinition } from '../config/badges';
+import { BadgeDefinition, badgeSrcSet } from '../config/badges';
 
 interface Props {
   badge: BadgeDefinition;
@@ -57,12 +57,16 @@ const UserBadge: React.FC<Props> = ({
       >
         <img
           src={badge.image}
+          srcSet={badgeSrcSet(badge.image)}
+          sizes={`${dim.img}px`}
           alt={t(badge.nameKey)}
+          loading="lazy"
+          decoding="async"
           style={{
-            width: '88%',
-            height: '88%',
-            objectFit: 'contain',
-            filter: `drop-shadow(0 2px 6px ${badge.color}55)`,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transform: 'scale(1.35)',   // zoom into the centred shield (crops transparent padding)
           }}
         />
       </div>

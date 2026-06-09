@@ -12,6 +12,17 @@ interface AnalyticsPeriod {
   period: 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
 }
 
+// Aggregate revenue stats from CMI payments (server-computed over the whole dataset)
+export interface TransactionStats {
+  totalRevenue: number;        // realised: COMPLETED payments
+  subscriptionRevenue: number; // COMPLETED + SUBSCRIPTION
+  courseRevenue: number;       // COMPLETED + COURSE_PURCHASE
+  pendingAmount: number;       // SUM of PENDING payments (in-flight)
+  completedCount: number;
+  pendingCount: number;
+  currency: string;            // "MAD"
+}
+
 interface Analytics {
   totalRevenue: number;
   totalUsers: number;
@@ -175,6 +186,12 @@ class AdminService {
     const response = await api.get<PaginatedResponse<PaymentTransaction>>('/admin/transactions', {
       params: { page, size },
     });
+    return response.data;
+  }
+
+  // Aggregate revenue stats from CMI payments (whole dataset, not just one page)
+  async getTransactionStats(): Promise<TransactionStats> {
+    const response = await api.get<TransactionStats>('/admin/transactions/stats');
     return response.data;
   }
 
