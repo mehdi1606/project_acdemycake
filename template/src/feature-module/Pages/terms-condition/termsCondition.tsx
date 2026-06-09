@@ -85,22 +85,67 @@ const sections = [
   {
     num: '04',
     icon: 'fa-credit-card',
-    title: 'Subscription & Payments',
+    title: 'Subscription & Bank Card Payment',
     content: (
       <>
         <ul style={listStyle}>
-          {['Access to the Academy is based on a paid annual subscription', 'Payments are processed securely via third-party providers', 'By subscribing, you agree to automatic renewal unless canceled'].map((item, i) => (
+          {[
+            'Access to the Academy is based on a paid subscription (annual or quarterly).',
+            'All prices are displayed in Moroccan Dirham (MAD), taxes included.',
+            'By subscribing, you agree to automatic renewal unless canceled before the renewal date.',
+          ].map((item, i) => (
             <li key={i} style={listItem}><span style={dot} />{item}</li>
           ))}
         </ul>
+
+        {/* Bank card payment clauses */}
+        <div style={{ ...alertBox, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <i className="fa-solid fa-credit-card" style={{ color: GOLD, fontSize: 18, marginTop: 2, flexShrink: 0 }} />
+            <div>
+              <p style={{ fontWeight: 800, color: BURG, fontSize: 14, marginBottom: 8 }}>Payment by bank card</p>
+              <ul style={{ ...listStyle, marginBottom: 0 }}>
+                {[
+                  'We accept payment by bank card: Visa, Mastercard and Moroccan national cards.',
+                  'Card payments are processed through the secure CMI (Centre Monétique Interbancaire) payment gateway.',
+                  'All transactions are secured by SSL encryption and 3-D Secure authentication (verification by your issuing bank).',
+                  'Your card details are entered directly on the CMI secure payment page; they are never collected, processed or stored on our servers.',
+                  'Your card is debited only after the payment has been authorised by your bank, and your access is activated immediately afterwards.',
+                ].map((item, i) => (
+                  <li key={i} style={listItem}><span style={dot} />{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Refused / failed card payment */}
+        <div style={{ ...alertBox, marginBottom: 16, background: 'rgba(139,35,53,0.04)', borderColor: 'rgba(139,35,53,0.16)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <i className="fa-solid fa-circle-xmark" style={{ color: BURG_D, fontSize: 18, marginTop: 2, flexShrink: 0 }} />
+            <div>
+              <p style={{ fontWeight: 800, color: BURG_D, fontSize: 14, marginBottom: 8 }}>Refused or failed payment</p>
+              <ul style={{ ...listStyle, marginBottom: 0 }}>
+                {[
+                  'If the payment is refused or fails, no amount is debited from your card and no access is granted.',
+                  'You are redirected back to our site showing the order details and the status of the transaction, and you may retry the payment.',
+                ].map((item, i) => (
+                  <li key={i} style={listItem}><span style={{ ...dot, background: BURG_D }} />{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div style={alertBox}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <i className="fa-solid fa-triangle-exclamation" style={{ color: GOLD, fontSize: 18, marginTop: 2, flexShrink: 0 }} />
             <div>
               <p style={{ fontWeight: 800, color: BURG, fontSize: 14, marginBottom: 8 }}>Important:</p>
               <ul style={{ ...listStyle, marginBottom: 0 }}>
-                <li style={listItem}><span style={{ ...dot, background: BURG }} />All payments are non-refundable, except in exceptional cases</li>
-                <li style={{ ...listItem, marginBottom: 0 }}><span style={{ ...dot, background: BURG }} />You can cancel anytime, but access remains until the end of the billing period</li>
+                <li style={listItem}><span style={{ ...dot, background: BURG }} />A payment confirmation is sent by email once the transaction is successful.</li>
+                <li style={listItem}><span style={{ ...dot, background: BURG }} />All payments are non-refundable, except in exceptional cases or where required by applicable law.</li>
+                <li style={{ ...listItem, marginBottom: 0 }}><span style={{ ...dot, background: BURG }} />You can cancel anytime, but access remains until the end of the billing period.</li>
               </ul>
             </div>
           </div>

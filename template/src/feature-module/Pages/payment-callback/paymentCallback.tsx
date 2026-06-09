@@ -88,9 +88,32 @@ const PaymentCallbackPage: React.FC = () => {
   };
 
   useEffect(() => {
-    // Seed the order reference from the URL so it shows even before the first poll.
+    // Seed the order reference from the URL so it shows even before any fetch.
     if (orderRefFromUrl) {
       setOrderInfo((prev) => ({ ...prev, orderId: orderRefFromUrl }));
+    }
+
+    // ── FAILED: CMI redirected to failUrl (result=failed). The payment failed for
+    // this attempt, so show the FAILED status + order details immediately instead of
+    // sitting on the "Confirming your payment…" spinner. No polling — nothing to await.
+    if (resultHint === 'failed') {
+      setStage('failed');
+      setMessage('Your payment was not completed. No charge has been made to your card.');
+      if (transactionId) {
+        // One-shot fetch purely to enrich the order summary (amount / item / reason).
+        paymentService.getTransactionStatus(transactionId)
+          .then((txn) => {
+            setOrderInfo({
+              orderId:  txn.orderId || orderRefFromUrl || undefined,
+              amount:   txn.amount || undefined,
+              currency: txn.currency || undefined,
+              type:     txn.transactionType || undefined,
+            });
+            if (txn.errorMessage) setMessage(txn.errorMessage);
+          })
+          .catch(() => { /* keep the generic failure message */ });
+      }
+      return;
     }
 
     if (!transactionId) {

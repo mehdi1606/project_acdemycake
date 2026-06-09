@@ -90,7 +90,8 @@
       "Bash(awk '{print $1}')",
       "Bash(grep -n \"const fmt\\\\|fmt =\\\\|\\\\\\\\$\\\\|USD\\\\|MAD\\\\|Intl.NumberFormat\\\\|currency\" feature-module/admin/dashboard/adminDashboard.tsx)",
       "Bash(grep -n \"/community/\\\\|all_routes.community\\\\|to={\\\\`/community\" template/src/feature-module/blog/blog-layouts/blogGrid.tsx)",
-      "Bash(node_modules/.bin/tsc --noEmit)"
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(grep -iv \"import\\\\|//\")"
     ]
   }
 }
