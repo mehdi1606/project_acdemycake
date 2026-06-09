@@ -139,5 +139,8 @@ export const all_routes = {
     // Community
     community: '/community',
     communityPost: '/community/:postId',
+    // Canonical post-detail URL (used by notifications + shared links). Kept as an
+    // alias alongside communityPost so both /community/:id and /community/posts/:id resolve.
+    communityPostDetail: '/community/posts/:postId',
 
 };

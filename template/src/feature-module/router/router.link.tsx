@@ -640,6 +640,12 @@ export const publicRoutes = [
     element: <CommunityPostDetail />,
     route: Route,
   },
+  {
+    // Alias: notifications + shared links use /community/posts/:postId
+    path: routes.communityPostDetail,
+    element: <CommunityPostDetail />,
+    route: Route,
+  },
 ];
 
 export const authRoutes = [

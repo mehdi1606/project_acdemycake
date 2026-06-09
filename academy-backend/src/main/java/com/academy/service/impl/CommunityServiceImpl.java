@@ -87,6 +87,14 @@ public class CommunityServiceImpl implements CommunityService {
         User currentUser = getCurrentUser();
         verifySubscriptionAccess(currentUser);
 
+        // Only instructors/admins may create CHALLENGE posts; students can only reply.
+        // Enforced here too so the rule holds even if the request bypasses the UI.
+        if (request.getPostType() == PostType.CHALLENGE
+                && currentUser.getRole() != UserRole.INSTRUCTOR
+                && currentUser.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("Only instructors can create challenge posts");
+        }
+
         String imagesJson = null;
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
             try {
@@ -133,6 +141,12 @@ public class CommunityServiceImpl implements CommunityService {
             }
         }
         if (request.getPostType() != null) {
+            // Students cannot promote a post to CHALLENGE via update either.
+            if (request.getPostType() == PostType.CHALLENGE
+                    && currentUser.getRole() != UserRole.INSTRUCTOR
+                    && currentUser.getRole() != UserRole.ADMIN) {
+                throw new ForbiddenException("Only instructors can create challenge posts");
+            }
             post.setPostType(request.getPostType());
         }
         post.setIsEdited(true);

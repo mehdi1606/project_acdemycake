@@ -589,7 +589,7 @@ const PostCard: React.FC<{
           marginBottom: '0.65rem',
         }}>
           <Link
-            to={`/community/${post.id}`}
+            to={`/community/posts/${post.id}`}
             style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.3s ease' }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--sl-crimson)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--sl-burgundy)'; }}
@@ -687,6 +687,14 @@ const BlogGrid = () => {
   const route = all_routes;
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+
+  // Only instructors/admins may CREATE a CHALLENGE post; students can only reply.
+  // localStorage fallback guards against a race where the Redux user isn't hydrated yet.
+  const effectiveRole = user?.role ?? (() => {
+    try { return JSON.parse(localStorage.getItem('user') ?? '{}').role; } catch { return undefined; }
+  })();
+  const isInstructor = effectiveRole === 'INSTRUCTOR' || effectiveRole === 'ADMIN';
+
   const canPost = isAuthenticated && (
     user?.subscriptionStatus === 'ACTIVE' ||
     user?.role === 'ADMIN' ||
@@ -797,12 +805,14 @@ const BlogGrid = () => {
     if (!newTitle.trim()) { message.warning(t('community.errorRequired')); return; }
     if (!newContent.trim()) { message.warning(t('community.errorRequired')); return; }
     if (uploadingImage) { message.warning(t('community.waitForUpload')); return; }
+    // Guard: a student must never submit a CHALLENGE post (they can only reply).
+    const safeType: PostType = (!isInstructor && newType === 'CHALLENGE') ? 'DISCUSSION' : newType;
     try {
       setCreating(true);
       const created = await communityService.createPost({
         title: newTitle.trim(),
         content: newContent.trim(),
-        postType: newType,
+        postType: safeType,
         ...(uploadedUrl ? { imageUrls: [uploadedUrl] } : {}),
       });
       setPosts(p => [created, ...p]);
@@ -1182,7 +1192,7 @@ const BlogGrid = () => {
                 {t('community.typeLabel')}
               </label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {ALL_TYPES.map(btype => {
+                {ALL_TYPES.filter(btype => isInstructor || btype !== 'CHALLENGE').map(btype => {
                   const { bg, text: tc } = TYPE_COLORS[btype];
                   return (
                     <button

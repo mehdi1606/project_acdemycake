@@ -251,7 +251,7 @@ const CommunityPostDetail: React.FC = () => {
       <LuxuryDashboardLayout>
         <div className="container-fluid py-4">
           <div className="alert alert-danger">{postError || 'Post not found.'}</div>
-          <button className="btn btn-outline-secondary" onClick={() => navigate(all_routes.community)}>
+          <button className="btn btn-outline-secondary" onClick={() => navigate(all_routes.blogGrid)}>
             <i className="isax isax-arrow-left-2 me-2" /> Back to Community
           </button>
         </div>
@@ -269,7 +269,7 @@ const CommunityPostDetail: React.FC = () => {
           <ol className="breadcrumb">
             <li className="breadcrumb-item">
               <button type="button" className="btn btn-link p-0 text-decoration-none text-muted fs-14"
-                onClick={() => navigate(all_routes.community)}>
+                onClick={() => navigate(all_routes.blogGrid)}>
                 Community
               </button>
             </li>
