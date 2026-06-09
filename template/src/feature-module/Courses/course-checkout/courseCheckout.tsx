@@ -473,9 +473,9 @@ const CourseCheckout = () => {
                     {/* Terms note */}
                     <p style={{ margin: '12px 0 0', fontSize: 11, color: '#aaa', textAlign: 'center', lineHeight: 1.5 }}>
                       {t('courseCheckout.byCompleting', 'By completing your purchase, you agree to our')}{' '}
-                      <Link to="/terms" style={{ color: GOLD }}>{t('courseCheckout.termsOfService', 'Terms of Service')}</Link>{' '}
+                      <Link to={route.termsConditions} style={{ color: GOLD }}>{t('courseCheckout.termsOfService', 'Terms of Service')}</Link>{' '}
                       {t('courseCheckout.and', 'and')}{' '}
-                      <Link to="/privacy" style={{ color: GOLD }}>{t('courseCheckout.privacyPolicy', 'Privacy Policy')}</Link>.
+                      <Link to={route.privacyPolicy} style={{ color: GOLD }}>{t('courseCheckout.privacyPolicy', 'Privacy Policy')}</Link>.
                     </p>
                   </div>
                 </div>

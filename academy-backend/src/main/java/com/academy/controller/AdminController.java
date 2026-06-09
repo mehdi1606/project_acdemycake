@@ -1,6 +1,7 @@
 package com.academy.controller;
 
 import com.academy.dto.request.AdminCreateUserRequest;
+import com.academy.dto.request.UpdatePricingRequest;
 import com.academy.dto.response.*;
 import com.academy.service.*;
 import jakarta.validation.Valid;
@@ -28,6 +29,7 @@ public class AdminController {
     private final CourseService courseService;
     private final SubscriptionService subscriptionService;
     private final PaymentService paymentService;
+    private final SettingsService settingsService;
 
     @GetMapping("/dashboard")
     @Operation(summary = "Get admin dashboard")
@@ -171,6 +173,32 @@ public class AdminController {
     public ResponseEntity<ApiResponse<TransactionStatsResponse>> getTransactionStats() {
         TransactionStatsResponse response = adminService.getTransactionStats();
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // ── Subscription pricing (admin-editable, dynamic) ─────────────────────────
+
+    @GetMapping("/settings/pricing")
+    @Operation(summary = "Get current subscription pricing")
+    public ResponseEntity<ApiResponse<PricingSettingsResponse>> getPricing() {
+        PricingSettingsResponse response = PricingSettingsResponse.builder()
+                .monthlyPrice(settingsService.getMonthlyPrice())
+                .yearlyPrice(settingsService.getYearlyPrice())
+                .currency(settingsService.getCurrency())
+                .build();
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PutMapping("/settings/pricing")
+    @Operation(summary = "Update subscription pricing — takes effect immediately for new payments")
+    public ResponseEntity<ApiResponse<PricingSettingsResponse>> updatePricing(
+            @Valid @RequestBody UpdatePricingRequest request) {
+        settingsService.updateSubscriptionPricing(request.getMonthlyPrice(), request.getYearlyPrice());
+        PricingSettingsResponse response = PricingSettingsResponse.builder()
+                .monthlyPrice(settingsService.getMonthlyPrice())
+                .yearlyPrice(settingsService.getYearlyPrice())
+                .currency(settingsService.getCurrency())
+                .build();
+        return ResponseEntity.ok(ApiResponse.success("Subscription pricing updated", response));
     }
 
     /**

@@ -1,10 +1,13 @@
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Spin, message } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector } from '../../../core/redux/hooks';
 import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import { getFileUrl } from '../../../environment';
+import adminService from '../../../services/api/admin.service';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -26,9 +29,57 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 6,
 };
 
+// Editable variant (the shared inputStyle is for read-only fields).
+const editableInputStyle: React.CSSProperties = {
+  ...inputStyle,
+  cursor: 'text',
+  background: '#fff',
+};
+
 const AdminSettings = () => {
   const { t } = useTranslation();
   const { user } = useAppSelector((state) => state.auth);
+
+  // ── Dynamic subscription pricing ──────────────────────────────────────────
+  const [monthlyPrice, setMonthlyPrice] = useState<string>('');
+  const [yearlyPrice,  setYearlyPrice]  = useState<string>('');
+  const [currency,     setCurrency]     = useState<string>('MAD');
+  const [pricingLoading, setPricingLoading] = useState<boolean>(true);
+  const [pricingSaving,  setPricingSaving]  = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    adminService.getPricingSettings()
+      .then((p) => {
+        if (!active) return;
+        setMonthlyPrice(String(p.monthlyPrice ?? ''));
+        setYearlyPrice(String(p.yearlyPrice ?? ''));
+        setCurrency(p.currency || 'MAD');
+      })
+      .catch(() => { /* leave fields empty on failure */ })
+      .finally(() => { if (active) setPricingLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  const handleSavePricing = async () => {
+    const m = parseFloat(monthlyPrice);
+    const y = parseFloat(yearlyPrice);
+    if (!(m > 0) || !(y > 0)) {
+      message.warning(t('admin.settings.pricingInvalid', 'Please enter valid prices greater than 0.'));
+      return;
+    }
+    setPricingSaving(true);
+    try {
+      const updated = await adminService.updatePricingSettings(m, y);
+      setMonthlyPrice(String(updated.monthlyPrice));
+      setYearlyPrice(String(updated.yearlyPrice));
+      message.success(t('admin.settings.pricingSaved', 'Subscription pricing updated.'));
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || t('admin.settings.pricingError', 'Failed to update pricing.'));
+    } finally {
+      setPricingSaving(false);
+    }
+  };
 
   return (
     <LuxuryDashboardLayout>
@@ -97,6 +148,56 @@ const AdminSettings = () => {
               <input type="text" style={inputStyle} value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : ''} disabled />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Subscription Pricing Card (dynamic) */}
+      <div className="lx-card" style={{ marginBottom: 24 }}>
+        <div className="lx-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
+            {t('admin.settings.subscriptionPricing', 'Subscription Pricing')}
+          </h5>
+          <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>
+            <i className="isax isax-flash-1 me-1" />
+            {t('admin.settings.pricingHint', 'Applies instantly to new payments')}
+          </span>
+        </div>
+        <div className="lx-card-body">
+          {pricingLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><Spin /></div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <label style={labelStyle}>{t('admin.settings.monthlyPrice', 'Monthly Price')} ({currency})</label>
+                  <input
+                    type="number" min={0} step="0.01"
+                    style={editableInputStyle}
+                    value={monthlyPrice}
+                    onChange={(e) => setMonthlyPrice(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('admin.settings.yearlyPrice', 'Annual Price')} ({currency})</label>
+                  <input
+                    type="number" min={0} step="0.01"
+                    style={editableInputStyle}
+                    value={yearlyPrice}
+                    onChange={(e) => setYearlyPrice(e.target.value)}
+                  />
+                </div>
+              </div>
+              <button
+                className="lx-btn lx-btn-gold"
+                onClick={handleSavePricing}
+                disabled={pricingSaving}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+              >
+                {pricingSaving ? <Spin size="small" /> : <i className="isax isax-save-2" />}
+                {t('admin.settings.savePricing', 'Save Pricing')}
+              </button>
+            </>
+          )}
         </div>
       </div>
 

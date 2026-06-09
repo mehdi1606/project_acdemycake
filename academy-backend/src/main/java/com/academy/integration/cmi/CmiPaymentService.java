@@ -12,6 +12,7 @@ import com.academy.repository.PaymentTransactionRepository;
 import com.academy.service.CouponService;
 import com.academy.service.EnrollmentService;
 import com.academy.service.PaymentService;
+import com.academy.service.SettingsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +72,7 @@ public class CmiPaymentService {
     private final EnrollmentService           enrollmentService;
     private final PaymentService              paymentService;
     private final CouponService               couponService;
+    private final SettingsService             settingsService;
 
     /**
      * The exact parameter names we put into buildFormParams (case-insensitive).
@@ -95,8 +97,6 @@ public class CmiPaymentService {
     @Value("${cmi.fail-url}")     private String failUrl;
     @Value("${cmi.shop-url}")     private String shopUrl;
 
-    @Value("${app.subscription.monthly-price}") private BigDecimal monthlyPrice;
-    @Value("${app.subscription.yearly-price}")  private BigDecimal yearlyPrice;
     @Value("${app.subscription.currency}")      private String     subscriptionCurrency; // MAD
 
     // ── Subscription initiation ───────────────────────────────────────────────
@@ -112,10 +112,10 @@ public class CmiPaymentService {
         BigDecimal price;
         if ("monthly".equalsIgnoreCase(planId)) {
             planPrefix = "SUB-MON";
-            price      = monthlyPrice;
+            price      = settingsService.getMonthlyPrice();
         } else {
             planPrefix = "SUB-YEA";
-            price      = yearlyPrice;
+            price      = settingsService.getYearlyPrice();
         }
 
         // Apply coupon (yearly only)

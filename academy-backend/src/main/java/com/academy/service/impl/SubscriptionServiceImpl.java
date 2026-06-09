@@ -19,6 +19,7 @@ import com.academy.security.UserPrincipal;
 import com.academy.service.CouponService;
 import com.academy.service.EmailService;
 import com.academy.service.EnrollmentService;
+import com.academy.service.SettingsService;
 import com.academy.service.SubscriptionService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -51,12 +52,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final EmailService emailService;
     private final PayZoneService payZoneService;
     private final CouponService couponService;
-
-    @Value("${app.subscription.monthly-price}")
-    private BigDecimal monthlyPrice;
-
-    @Value("${app.subscription.yearly-price}")
-    private BigDecimal yearlyPrice;
+    private final SettingsService settingsService;
 
     @Value("${app.subscription.currency}")
     private String currency;
@@ -76,7 +72,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                         .planId("monthly")
                         .name("Monthly")
                         .description("Full access billed month to month")
-                        .price(monthlyPrice)
+                        .price(settingsService.getMonthlyPrice())
                         .currency(currency)
                         .billingPeriod("monthly")
                         .features(baseFeatures)
@@ -86,7 +82,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                         .planId("yearly")
                         .name("Annual")
                         .description("Best value — includes all Masterclasses + coupon eligible")
-                        .price(yearlyPrice)
+                        .price(settingsService.getYearlyPrice())
                         .currency(currency)
                         .billingPeriod("yearly")
                         .features(baseFeatures)
@@ -105,8 +101,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     private PlanMeta resolvePlan(String planId) {
         return switch (planId.toLowerCase()) {
-            case "monthly" -> new PlanMeta("SUB-MON", monthlyPrice, "Monthly Subscription — SARALÖWE Academy");
-            default        -> new PlanMeta("SUB-YEA", yearlyPrice,  "Annual Subscription — SARALÖWE Academy");
+            case "monthly" -> new PlanMeta("SUB-MON", settingsService.getMonthlyPrice(), "Monthly Subscription — SARALÖWE Academy");
+            default        -> new PlanMeta("SUB-YEA", settingsService.getYearlyPrice(),  "Annual Subscription — SARALÖWE Academy");
         };
     }
 

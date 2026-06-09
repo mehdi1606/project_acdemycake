@@ -5,16 +5,14 @@ import com.academy.dto.response.ValidateCouponResponse;
 import com.academy.entity.User;
 import com.academy.security.UserPrincipal;
 import com.academy.service.CouponService;
+import com.academy.service.SettingsService;
 import com.academy.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/v1/coupons")
@@ -24,9 +22,7 @@ public class CouponController {
 
     private final CouponService couponService;
     private final UserService userService;
-
-    @Value("${app.subscription.yearly-price}")
-    private BigDecimal yearlyPrice;
+    private final SettingsService settingsService;
 
     @GetMapping("/validate")
     @Operation(summary = "Validate a coupon code for the annual plan")
@@ -42,7 +38,8 @@ public class CouponController {
             // Not authenticated — still validate but skip user-specific checks
         }
 
-        ValidateCouponResponse result = couponService.validateCoupon(code, user, yearlyPrice);
+        // Use the live (admin-editable) yearly price so the coupon preview matches the charge.
+        ValidateCouponResponse result = couponService.validateCoupon(code, user, settingsService.getYearlyPrice());
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 }

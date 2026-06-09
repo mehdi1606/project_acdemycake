@@ -12,6 +12,13 @@ interface AnalyticsPeriod {
   period: 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
 }
 
+// Admin-editable subscription pricing (dynamic, DB-backed)
+export interface PricingSettings {
+  monthlyPrice: number;
+  yearlyPrice: number;
+  currency: string;
+}
+
 // Aggregate revenue stats from CMI payments (server-computed over the whole dataset)
 export interface TransactionStats {
   totalRevenue: number;        // realised: COMPLETED payments
@@ -192,6 +199,17 @@ class AdminService {
   // Aggregate revenue stats from CMI payments (whole dataset, not just one page)
   async getTransactionStats(): Promise<TransactionStats> {
     const response = await api.get<TransactionStats>('/admin/transactions/stats');
+    return response.data;
+  }
+
+  // ── Subscription pricing (dynamic) ──────────────────────────────────────────
+  async getPricingSettings(): Promise<PricingSettings> {
+    const response = await api.get<PricingSettings>('/admin/settings/pricing');
+    return response.data;
+  }
+
+  async updatePricingSettings(monthlyPrice: number, yearlyPrice: number): Promise<PricingSettings> {
+    const response = await api.put<PricingSettings>('/admin/settings/pricing', { monthlyPrice, yearlyPrice });
     return response.data;
   }
 
