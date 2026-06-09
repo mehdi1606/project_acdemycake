@@ -139,11 +139,12 @@ cmi:
   gateway-url:  ${CMI_GATEWAY_URL:https://test-chaabipayment.cmi.co.ma/fim/est3dgate}
   currency:     "504"                   # ISO 4217 numeric – 504 = MAD
   # callbackUrl  = CMI server-to-server (must be public; use ngrok locally for real CMI tests)
-  # okUrl/failUrl = CMI POSTs browser here → /cmi/return redirects to React /payment/callback
-  #                 Works on localhost AND production without any nginx/dev-server changes.
+  # okUrl/failUrl = CMI POSTs browser here → /cmi/return/{success|failed} redirects to
+  #                 React /payment/callback?txn=…&oid=…&result=… (distinct URLs so the
+  #                 outcome is unambiguous). Works on localhost AND production.
   callback-url: ${CMI_CALLBACK_URL:http://localhost:8080/api/v1/payments/cmi/callback}
-  ok-url:       ${CMI_OK_URL:http://localhost:8080/api/v1/payments/cmi/return}
-  fail-url:     ${CMI_FAIL_URL:http://localhost:8080/api/v1/payments/cmi/return}
+  ok-url:       ${CMI_OK_URL:http://localhost:8080/api/v1/payments/cmi/return/success}
+  fail-url:     ${CMI_FAIL_URL:http://localhost:8080/api/v1/payments/cmi/return/failed}
   shop-url:     ${CMI_SHOP_URL:https://www.saralowe.ma}
 
 # Swagger/OpenAPI
@@ -212,6 +213,6 @@ springdoc:
 # CMI URL overrides for production — /cmi/return handles POST→GET for both envs
 cmi:
   callback-url: ${CMI_CALLBACK_URL:https://www.saralowe.ma/api/v1/payments/cmi/callback}
-  ok-url:       ${CMI_OK_URL:https://www.saralowe.ma/api/v1/payments/cmi/return}
-  fail-url:     ${CMI_FAIL_URL:https://www.saralowe.ma/api/v1/payments/cmi/return}
+  ok-url:       ${CMI_OK_URL:https://www.saralowe.ma/api/v1/payments/cmi/return/success}
+  fail-url:     ${CMI_FAIL_URL:https://www.saralowe.ma/api/v1/payments/cmi/return/failed}
   shop-url:     ${CMI_SHOP_URL:https://www.saralowe.ma}

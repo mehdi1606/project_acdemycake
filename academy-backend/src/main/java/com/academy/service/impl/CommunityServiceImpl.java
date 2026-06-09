@@ -272,11 +272,32 @@ public class CommunityServiceImpl implements CommunityService {
             }
         }
 
+        // Validate achievement: only on CHALLENGE posts, one per user
+        String achievementText    = request.getAchievementText();
+        String achievementIcon    = request.getAchievementIcon();
+        String achievementFileUrl = request.getAchievementFileUrl();
+        boolean hasAchievement = (achievementText != null && !achievementText.isBlank())
+                               || (achievementFileUrl != null && !achievementFileUrl.isBlank());
+
+        if (hasAchievement) {
+            if (post.getPostType() != PostType.CHALLENGE) {
+                throw new BadRequestException("Achievement can only be attached to CHALLENGE post responses");
+            }
+            boolean alreadyHasAchievement = commentRepository
+                    .existsAchievementByPostAndUser(postId, currentUser.getId());
+            if (alreadyHasAchievement) {
+                throw new BadRequestException("You have already submitted an achievement for this challenge");
+            }
+        }
+
         CommunityComment comment = CommunityComment.builder()
                 .post(post)
                 .user(currentUser)
                 .parentComment(parentComment)
                 .content(request.getContent())
+                .achievementText(hasAchievement && achievementText != null && !achievementText.isBlank() ? achievementText : null)
+                .achievementIcon(hasAchievement ? achievementIcon : null)
+                .achievementFileUrl(hasAchievement && achievementFileUrl != null && !achievementFileUrl.isBlank() ? achievementFileUrl : null)
                 .build();
 
         comment = commentRepository.save(comment);

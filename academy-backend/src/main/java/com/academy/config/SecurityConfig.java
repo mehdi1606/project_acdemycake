@@ -87,8 +87,9 @@ public class SecurityConfig {
         cmiConfig.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/v1/payments/cmi/callback", cmiConfig);
-        source.registerCorsConfiguration("/api/v1/payments/cmi/return",   cmiConfig);
+        source.registerCorsConfiguration("/api/v1/payments/cmi/callback",  cmiConfig);
+        source.registerCorsConfiguration("/api/v1/payments/cmi/return",    cmiConfig);
+        source.registerCorsConfiguration("/api/v1/payments/cmi/return/**", cmiConfig);
         source.registerCorsConfiguration("/**", config);
         return source;
     }
@@ -121,8 +122,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/payments/webhook").permitAll()
                         .requestMatchers("/api/v1/subscriptions/webhook").permitAll()
                         .requestMatchers("/api/v1/mux/webhook").permitAll()
-                        // CMI browser return after payment — POST from CMI, no JWT
-                        .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/return").permitAll()
+                        // CMI browser return after payment — GET/POST from CMI, no JWT.
+                        // okUrl → /return/success, failUrl → /return/failed (distinct URLs).
+                        .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/return", "/api/v1/payments/cmi/return/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/payments/cmi/return", "/api/v1/payments/cmi/return/**").permitAll()
                         // CMI Chaabi server-to-server callback — no JWT (CMI posts without auth header)
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/callback").permitAll()
                         // Public transaction status polling — used by payment callback page even if JWT expired

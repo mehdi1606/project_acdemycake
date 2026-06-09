@@ -72,17 +72,46 @@ class CommunityService {
     return this.getPostComments(postId, page, size);
   }
 
-  async addComment(postId: string, content: string): Promise<CommunityComment> {
+  async uploadAchievementFile(file: File): Promise<string> {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await apiMultipart.post<string>(
+      `${this.base}/comments/upload-achievement-file`,
+      form
+    );
+    return response.data as string;
+  }
+
+  async addComment(
+    postId: string,
+    content: string,
+    achievementText?: string,
+    achievementIcon?: string,
+    achievementFileUrl?: string
+  ): Promise<CommunityComment> {
+    const body: Record<string, unknown> = { content };
+    const hasAchievement = (achievementText && achievementText.trim()) || achievementFileUrl;
+    if (hasAchievement) {
+      body.achievementText    = achievementText?.trim() || null;
+      body.achievementIcon    = achievementIcon ?? null;
+      body.achievementFileUrl = achievementFileUrl ?? null;
+    }
     const response = await api.post<CommunityComment>(
       `${this.base}/posts/${postId}/comments`,
-      { content }
+      body
     );
     return response.data;
   }
 
   // Alias for addComment
-  async createComment(postId: string, content: string): Promise<CommunityComment> {
-    return this.addComment(postId, content);
+  async createComment(
+    postId: string,
+    content: string,
+    achievementText?: string,
+    achievementIcon?: string,
+    achievementFileUrl?: string
+  ): Promise<CommunityComment> {
+    return this.addComment(postId, content, achievementText, achievementIcon, achievementFileUrl);
   }
 
   async deleteComment(id: string): Promise<void> {

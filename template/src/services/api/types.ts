@@ -381,6 +381,9 @@ export interface CommunityComment {
   isLikedByCurrentUser: boolean;
   replies?: CommunityComment[];
   createdAt: string;
+  achievementText?: string;
+  achievementIcon?: string;
+  achievementFileUrl?: string;
 }
 
 export interface CreatePostRequest {

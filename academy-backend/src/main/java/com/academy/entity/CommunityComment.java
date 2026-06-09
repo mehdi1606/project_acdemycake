@@ -49,6 +49,15 @@ public class CommunityComment extends BaseEntity {
     @Builder.Default
     private Boolean isDeleted = false;
 
+    @Column(name = "achievement_text", length = 200)
+    private String achievementText;
+
+    @Column(name = "achievement_icon", length = 50)
+    private String achievementIcon;
+
+    @Column(name = "achievement_file_url", columnDefinition = "TEXT")
+    private String achievementFileUrl;
+
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
     @OrderBy("createdAt ASC")
     @Builder.Default

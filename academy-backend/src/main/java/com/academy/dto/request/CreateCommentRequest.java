@@ -18,4 +18,13 @@ public class CreateCommentRequest {
     private String content;
 
     private UUID parentCommentId;
+
+    /** Optional achievement to attach — only allowed for CHALLENGE posts, one per user. */
+    private String achievementText;
+
+    /** Icon identifier for the achievement (e.g. emoji or icon key). */
+    private String achievementIcon;
+
+    /** URL of an uploaded image or PDF file attached to the achievement. */
+    private String achievementFileUrl;
 }

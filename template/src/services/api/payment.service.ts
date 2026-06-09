@@ -12,6 +12,16 @@ export interface CmiInitiateResponse {
   formParams: Record<string, string>; // all CMI params including pre-computed HASH
 }
 
+// ── Public transaction status poll (no JWT) ──────────────────────────────────
+export interface TransactionStatusInfo {
+  status: string;          // PENDING | COMPLETED | FAILED | CANCELLED | NOT_FOUND
+  transactionType: string; // SUBSCRIPTION | COURSE_PURCHASE
+  errorMessage: string;
+  orderId: string;         // CMI order reference, e.g. "SUB-YEA-XXXXXXXX"
+  amount: string;          // decimal string, e.g. "299.00"
+  currency: string;        // e.g. "MAD"
+}
+
 class PaymentService {
   // ── Legacy (PayZone) ────────────────────────────────────────────────────────
 
@@ -37,16 +47,15 @@ class PaymentService {
 
   /**
    * Public status poll — no JWT required.
-   * Returns { status, transactionType, errorMessage }.
+   * Returns { status, transactionType, errorMessage, orderId, amount, currency }.
    * Used by the payment callback page so polling keeps working even if the
    * 15-minute access token expired while the user was on the CMI page.
    */
-  async getTransactionStatus(transactionId: string): Promise<PaymentTransaction> {
-    const response = await api.get<{ status: string; transactionType: string; errorMessage: string }>(
+  async getTransactionStatus(transactionId: string): Promise<TransactionStatusInfo> {
+    const response = await api.get<TransactionStatusInfo>(
       `/payments/cmi/status/${transactionId}`
     );
-    // Adapt minimal status response to the PaymentTransaction shape the caller expects
-    return response.data as unknown as PaymentTransaction;
+    return response.data;
   }
 
   // ── CMI Chaabi Payment ──────────────────────────────────────────────────────

@@ -24,9 +24,9 @@ interface Props {
 }
 
 const DIMS = {
-  sm: { outer: 40, inner: 32, cornerBadge: 20, fontSize: 14, ring: 2 },
-  md: { outer: 52, inner: 42, cornerBadge: 24, fontSize: 17, ring: 2 },
-  lg: { outer: 62, inner: 50, cornerBadge: 26, fontSize: 20, ring: 3 },
+  sm: { outer: 40, inner: 32, cornerBadge: 24, fontSize: 14, ring: 2 },
+  md: { outer: 52, inner: 42, cornerBadge: 30, fontSize: 17, ring: 2 },
+  lg: { outer: 62, inner: 50, cornerBadge: 36, fontSize: 20, ring: 3 },
 };
 
 const BadgeAvatar: React.FC<Props> = ({
@@ -132,8 +132,8 @@ const BadgeAvatar: React.FC<Props> = ({
             src={badge.image}
             alt=""
             style={{
-              width: '90%',
-              height: '90%',
+              width: '92%',
+              height: '92%',
               objectFit: 'contain',
             }}
           />

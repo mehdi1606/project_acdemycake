@@ -48,16 +48,24 @@ const PaymentCallbackPage: React.FC = () => {
 
   const [stage, setStage]     = useState<Stage>('polling');
   const [message, setMessage] = useState('');
+  const [orderInfo, setOrderInfo] = useState<{ orderId?: string; amount?: string; currency?: string; type?: string }>({});
   const pollCount             = useRef(0);
   const timerRef              = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Resolve transactionId: sessionStorage → localStorage fallback → URL query param
-  // localStorage survives /login redirects (happens when access token expires mid-payment)
+  // Resolve transactionId. The backend now redirects here with ?txn=…&oid=…&result=…
+  // so the page no longer depends on sessionStorage (that dependency caused the
+  // "No payment reference found" screen). Priority:
+  //   URL ?txn  →  sessionStorage  →  localStorage fallback  →  legacy query params
   const transactionId =
+    params.get('txn')                            ||
     sessionStorage.getItem('sl_pending_txn_id')  ||
     localStorage.getItem('sl_pending_txn_id_fb') ||
     params.get('transactionId')                  ||
     params.get('orderId');
+
+  // Outcome hint + order reference straight from the CMI return URL.
+  const resultHint     = (params.get('result') || '').toLowerCase(); // success | failed | pending
+  const orderRefFromUrl = params.get('oid') || '';
 
   const planId =
     sessionStorage.getItem('sl_pending_plan_id') ||
@@ -80,10 +88,24 @@ const PaymentCallbackPage: React.FC = () => {
   };
 
   useEffect(() => {
+    // Seed the order reference from the URL so it shows even before the first poll.
+    if (orderRefFromUrl) {
+      setOrderInfo((prev) => ({ ...prev, orderId: orderRefFromUrl }));
+    }
+
     if (!transactionId) {
-      // No transaction to poll — likely a direct visit; show a neutral state
-      setStage('timeout');
-      setMessage('No payment reference found. If you just completed a payment, please check your student dashboard.');
+      // No transaction id to poll. Use the result hint from the CMI return URL so we
+      // still show a meaningful success/failure screen instead of a dead-end.
+      if (resultHint === 'failed') {
+        setStage('failed');
+        setMessage('Your payment was not completed. No charge has been made to your card.');
+      } else if (resultHint === 'success') {
+        setStage('timeout');
+        setMessage('Your payment was received. Your access will activate automatically once the provider confirms it.');
+      } else {
+        setStage('timeout');
+        setMessage('No payment reference found. If you just completed a payment, please check your student dashboard.');
+      }
       return;
     }
 
@@ -92,6 +114,14 @@ const PaymentCallbackPage: React.FC = () => {
 
       try {
         const txn = await paymentService.getTransactionStatus(transactionId);
+
+        // Capture order details for display (order ref, amount, type).
+        setOrderInfo({
+          orderId:  txn.orderId || orderRefFromUrl || undefined,
+          amount:   txn.amount || undefined,
+          currency: txn.currency || undefined,
+          type:     txn.transactionType || undefined,
+        });
 
         if (txn.status === 'COMPLETED') {
           // Refresh Redux user so subscriptionStatus / enrollments are up to date
@@ -135,6 +165,38 @@ const PaymentCallbackPage: React.FC = () => {
   }, [transactionId]);
 
   // ── render helpers ──────────────────────────────────────────────────────────
+  const typeLabel: Record<string, string> = {
+    SUBSCRIPTION:    'Subscription',
+    COURSE_PURCHASE: 'Course purchase',
+  };
+
+  const renderOrderSummary = () => {
+    if (!orderInfo.orderId && !orderInfo.amount) return null;
+    return (
+      <div className="sl-pcb__order">
+        <div className="sl-pcb__order-title">Order details</div>
+        {orderInfo.orderId && (
+          <div className="sl-pcb__order-row">
+            <span>Reference</span>
+            <strong>{orderInfo.orderId}</strong>
+          </div>
+        )}
+        {orderInfo.type && (
+          <div className="sl-pcb__order-row">
+            <span>Item</span>
+            <strong>{typeLabel[orderInfo.type] ?? orderInfo.type}</strong>
+          </div>
+        )}
+        {orderInfo.amount && (
+          <div className="sl-pcb__order-row">
+            <span>Amount</span>
+            <strong>{orderInfo.amount} {orderInfo.currency || 'MAD'}</strong>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderPolling = () => (
     <div className="sl-pcb__card">
       <div className="sl-pcb__spinner-wrap">
@@ -185,6 +247,8 @@ const PaymentCallbackPage: React.FC = () => {
         ))}
       </div>
 
+      {renderOrderSummary()}
+
       <div className="sl-pcb__actions">
         <Link to={route.courseList} className="sl-pcb__btn sl-pcb__btn--gold">
           Start Learning <i className="isax isax-arrow-right-3 ms-2" />
@@ -203,6 +267,7 @@ const PaymentCallbackPage: React.FC = () => {
       </div>
       <h2 className="sl-pcb__title">Payment Not Completed</h2>
       <p className="sl-pcb__desc">{message}</p>
+      {renderOrderSummary()}
       <div className="sl-pcb__actions">
         <Link to={route.pricingPlan} className="sl-pcb__btn sl-pcb__btn--primary">
           Try Again <i className="isax isax-arrow-right-3 ms-2" />
@@ -221,6 +286,7 @@ const PaymentCallbackPage: React.FC = () => {
       </div>
       <h2 className="sl-pcb__title">Payment Pending</h2>
       <p className="sl-pcb__desc">{message}</p>
+      {renderOrderSummary()}
       <div className="sl-pcb__actions">
         <Link to={route.studentSubscription} className="sl-pcb__btn sl-pcb__btn--gold">
           Check My Subscription

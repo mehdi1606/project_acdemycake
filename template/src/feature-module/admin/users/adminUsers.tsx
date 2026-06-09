@@ -15,6 +15,8 @@ import { fetchUsers, banUser, unbanUser, deleteUser } from '../../../core/redux/
 import adminService from '../../../services/api/admin.service';
 import { extractApiError } from '../../../services/api/error.utils';
 import { getFileUrl } from '../../../environment';
+import BadgeAvatar from '../../../components/BadgeAvatar';
+import { getBadgeFromRole } from '../../../config/badges';
 
 const { Search } = Input;
 
@@ -270,17 +272,11 @@ const AdminUsers: React.FC = () => {
                     <tr key={user.id}>
                       <td>
                         <div className="d-flex align-items-center gap-2">
-                          <img
-                            src={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : '/assets/img/user/user-01.jpg'}
-                            alt=""
-                            style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: '50%',
-                              objectFit: 'cover',
-                              flexShrink: 0,
-                              border: '2px solid rgba(107, 29, 42, 0.08)',
-                            }}
+                          <BadgeAvatar
+                            avatarUrl={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : undefined}
+                            name={user.fullName}
+                            badge={getBadgeFromRole(user.role)}
+                            size="sm"
                           />
                           <div>
                             <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--lx-text)', margin: '0 0 1px' }}>

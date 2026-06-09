@@ -33,6 +33,11 @@ public class CommunityController {
         "image/png", "image/jpeg", "image/jpg", "image/webp"
     );
 
+    private static final Set<String> ALLOWED_ACHIEVEMENT_TYPES = Set.of(
+        "image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif",
+        "application/pdf"
+    );
+
     @GetMapping("/posts")
     @Operation(summary = "Get community posts with pagination")
     public ResponseEntity<ApiResponse<PageResponse<PostResponse>>> getPosts(
@@ -62,6 +67,18 @@ public class CommunityController {
         String relativePath = fileStorageService.storeFile(file, "community");
         String url = fileStorageService.getFileUrl(relativePath);
         return ResponseEntity.ok(ApiResponse.success("Image uploaded", url));
+    }
+
+    @PostMapping("/comments/upload-achievement-file")
+    @Operation(summary = "Upload an image or PDF to attach to a challenge comment achievement")
+    public ResponseEntity<ApiResponse<String>> uploadAchievementFile(@RequestParam("file") MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_ACHIEVEMENT_TYPES.contains(contentType)) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Only images (PNG, JPG, WebP, GIF) and PDF files are allowed"));
+        }
+        String relativePath = fileStorageService.storeFile(file, "community/achievements");
+        String url = fileStorageService.getFileUrl(relativePath);
+        return ResponseEntity.ok(ApiResponse.success("Achievement file uploaded", url));
     }
 
     @PostMapping("/posts")

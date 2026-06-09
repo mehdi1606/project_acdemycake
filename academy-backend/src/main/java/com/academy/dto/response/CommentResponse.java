@@ -29,6 +29,9 @@ public class CommentResponse {
     private List<CommentResponse> replies;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String achievementText;
+    private String achievementIcon;
+    private String achievementFileUrl;
 
     public static CommentResponse fromEntity(CommunityComment comment) {
         return fromEntity(comment, false, false);
@@ -47,7 +50,10 @@ public class CommentResponse {
                 .isEdited(comment.getIsEdited())
                 .isLikedByCurrentUser(isLikedByCurrentUser)
                 .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt());
+                .updatedAt(comment.getUpdatedAt())
+                .achievementText(comment.getAchievementText())
+                .achievementIcon(comment.getAchievementIcon())
+                .achievementFileUrl(comment.getAchievementFileUrl());
 
         if (includeReplies && comment.getReplies() != null && !comment.getReplies().isEmpty()) {
             builder.replies(comment.getReplies().stream()

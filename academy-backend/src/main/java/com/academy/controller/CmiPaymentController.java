@@ -19,8 +19,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -76,22 +79,76 @@ public class CmiPaymentController {
 
     /**
      * CMI POSTs the browser to okUrl / failUrl after every payment attempt.
-     * Neither the React dev server nor nginx can serve index.html for a POST.
-     * This endpoint accepts the POST and converts it to a GET redirect to the
-     * React frontend — works identically on localhost and on production.
      *
-     * The POST body from CMI is intentionally ignored: the React callback page
-     * reads sessionStorage (sl_pending_txn_id) and polls the DB for status.
+     * okUrl  → .../cmi/return/success   (configured separately from failUrl)
+     * failUrl → .../cmi/return/failed   (distinct URL → result is unambiguous)
+     *
+     * This endpoint converts CMI's POST into a GET redirect to the React SPA,
+     * carrying the order reference and outcome so the callback page can show the
+     * correct status + order details WITHOUT depending on sessionStorage
+     * (which is what produced the "No payment reference found" screen).
+     *
+     * The outcome is derived from, in priority order:
+     *   1. the URL path (/success vs /failed) — driven by okUrl/failUrl
+     *   2. CMI's ProcReturnCode in the POST body ("00" = success)
+     *
+     * Mapped to GET + POST so it works whether CMI POSTs the form or (on some
+     * cancel flows) issues a GET.
      */
-    @PostMapping(
-        value = "/return",
-        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
+    @RequestMapping(
+        value  = { "/return", "/return/success", "/return/failed" },
+        method = { RequestMethod.GET, RequestMethod.POST }
     )
-    @Operation(summary = "CMI browser return URL — converts POST to GET redirect")
-    public ResponseEntity<Void> handleReturn() {
-        URI target = URI.create(frontendUrl + "/payment/callback");
-        log.info("CMI browser return → redirecting to {}", target);
+    @Operation(summary = "CMI browser return URL — converts POST to GET redirect with order ref + result")
+    public ResponseEntity<Void> handleReturn(HttpServletRequest request,
+                                             @RequestParam Map<String, String> params) {
+        String path = request.getRequestURI();
+        String oid  = firstNonBlank(params.get("oid"), params.get("orderId"));
+        String procReturnCode = params.getOrDefault("ProcReturnCode", "");
+
+        // Resolve outcome: explicit path wins, then ProcReturnCode, then any "result" hint
+        String outcome;
+        if (path.endsWith("/success")) {
+            outcome = "success";
+        } else if (path.endsWith("/failed")) {
+            outcome = "failed";
+        } else if ("00".equals(procReturnCode)) {
+            outcome = "success";
+        } else if (!procReturnCode.isBlank()) {
+            outcome = "failed";
+        } else {
+            outcome = firstNonBlank(params.get("result"), "pending");
+        }
+
+        // Map the CMI order id (oid) → our transaction UUID so the SPA can poll the
+        // authoritative status set by the server-to-server callback.
+        String txnId = "";
+        if (!oid.isBlank()) {
+            txnId = transactionRepository.findByPayzoneOrderId(oid)
+                    .map(t -> t.getId().toString())
+                    .orElse("");
+        }
+
+        URI target = UriComponentsBuilder.fromUriString(frontendUrl + "/payment/callback")
+                .queryParam("txn", txnId)
+                .queryParam("oid", oid)
+                .queryParam("result", outcome)
+                .build()
+                .encode()
+                .toUri();
+
+        log.info("CMI browser return [{}] → oid={} txn={} outcome={} redirect={}",
+                path, oid, txnId, outcome, target);
         return ResponseEntity.status(HttpStatus.FOUND).location(target).build();
+    }
+
+    private static String firstNonBlank(String... values) {
+        if (values != null) {
+            for (String v : values) {
+                if (v != null && !v.isBlank()) return v;
+            }
+        }
+        return "";
     }
 
     // ── Public transaction status (NO JWT required) ───────────────────────────
@@ -112,15 +169,25 @@ public class CmiPaymentController {
 
         return transactionRepository.findById(transactionId)
                 .map(tx -> {
-                    Map<String, String> body = Map.of(
-                            "status",          tx.getStatus() != null ? tx.getStatus().name() : PaymentStatus.PENDING.name(),
-                            "transactionType", tx.getTransactionType() != null ? tx.getTransactionType() : "",
-                            "errorMessage",    tx.getErrorMessage() != null ? tx.getErrorMessage() : ""
-                    );
+                    Map<String, String> body = new HashMap<>();
+                    body.put("status",          tx.getStatus() != null ? tx.getStatus().name() : PaymentStatus.PENDING.name());
+                    body.put("transactionType", tx.getTransactionType() != null ? tx.getTransactionType() : "");
+                    body.put("errorMessage",    tx.getErrorMessage() != null ? tx.getErrorMessage() : "");
+                    body.put("orderId",         tx.getPayzoneOrderId() != null ? tx.getPayzoneOrderId() : "");
+                    body.put("amount",          tx.getAmount() != null ? tx.getAmount().toPlainString() : "");
+                    body.put("currency",        tx.getCurrency() != null ? tx.getCurrency() : "");
                     return ResponseEntity.ok(ApiResponse.success(body));
                 })
-                .orElseGet(() -> ResponseEntity.ok(ApiResponse.success(
-                        Map.of("status", "NOT_FOUND", "transactionType", "", "errorMessage", ""))));
+                .orElseGet(() -> {
+                    Map<String, String> body = new HashMap<>();
+                    body.put("status", "NOT_FOUND");
+                    body.put("transactionType", "");
+                    body.put("errorMessage", "");
+                    body.put("orderId", "");
+                    body.put("amount", "");
+                    body.put("currency", "");
+                    return ResponseEntity.ok(ApiResponse.success(body));
+                });
     }
 
     // ── Server-to-server callback (NO JWT — excluded from Spring Security) ────

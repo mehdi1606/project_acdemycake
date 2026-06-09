@@ -27,4 +27,8 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
     Page<CommunityComment> findByUserAndIsDeletedFalse(User user, Pageable pageable);
 
     long countByPostAndIsDeletedFalse(CommunityPost post);
+
+    /** Returns true if the given user already submitted an achievement (text or file) on the given post. */
+    @Query("SELECT COUNT(c) > 0 FROM CommunityComment c WHERE c.post.id = :postId AND c.user.id = :userId AND c.isDeleted = false AND (c.achievementText IS NOT NULL OR c.achievementFileUrl IS NOT NULL)")
+    boolean existsAchievementByPostAndUser(@Param("postId") UUID postId, @Param("userId") UUID userId);
 }

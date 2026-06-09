@@ -297,7 +297,7 @@ public class CmiPaymentService {
         params.put("lang",          "fr");
         params.put("rnd",           UUID.randomUUID().toString().replace("-", "").substring(0, 20));
         params.put("email",         user.getEmail());
-        params.put("BillToName",    sanitizeName(user.getFullName()));
+        params.put("BillToName",    resolveBillToName(user));
         params.put("tel",           sanitizeTel(user.getPhone()));
         params.put("refreshtime",   "5");
         // encoding is included in form but EXCLUDED from hash
@@ -396,11 +396,38 @@ public class CmiPaymentService {
     }
 
     /**
+     * Resolves a non-empty BillToName for the CMI payment page.
+     *
+     * BillToName is a mandatory field on the CMI hosted page. The raw full name
+     * may be empty, or may be written entirely in a non-Latin script (e.g. Arabic)
+     * that {@link #sanitizeName} strips down to an empty string. In those cases we
+     * fall back to the email local-part, then to a generic label — so the attribute
+     * is NEVER sent empty.
+     */
+    private String resolveBillToName(User user) {
+        String cleaned = sanitizeName(user.getFullName());
+        if (!cleaned.isBlank()) {
+            return cleaned;
+        }
+        // Full name missing or stripped to nothing → derive from the email local-part
+        String email = user.getEmail();
+        if (email != null && email.contains("@")) {
+            String local = sanitizeName(email.substring(0, email.indexOf('@')));
+            if (!local.isBlank()) {
+                return local;
+            }
+        }
+        return "Customer";
+    }
+
+    /**
      * Strips diacritics and non-ASCII characters from a name.
      * CMI billing fields must not contain accents or special characters.
+     * May return an empty string (e.g. for a fully non-Latin name) — callers
+     * must handle that via {@link #resolveBillToName}.
      */
     private String sanitizeName(String name) {
-        if (name == null || name.isBlank()) return "Customer";
+        if (name == null || name.isBlank()) return "";
         String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
         return normalized.replaceAll("[^\\x00-\\x7F]", "")
                          .replaceAll("[^a-zA-Z0-9 \\-]", "")
