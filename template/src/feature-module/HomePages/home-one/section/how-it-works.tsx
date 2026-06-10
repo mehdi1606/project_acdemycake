@@ -183,19 +183,19 @@ const Howitworks = () => {
                                 zIndex: 2,
                             }} />
 
-                            {/* Primary: storefront */}
+                            {/* Primary: a couture cake — ties this section to the cake
+                                showcase ("A World of Couture Identity") that follows. */}
                             <img
-                                src={`${process.env.PUBLIC_URL}/assets/img/Mockups/003.jpg`}
+                                src={`${process.env.PUBLIC_URL}/assets/img/cake/11.png`}
                                 alt={t('home.howItWorks.imageAlt', 'SARALÖWE Academy — Couture Pastry')}
                                 style={{
                                     width: '100%',
                                     display: 'block',
-                                    filter: 'brightness(0.92) contrast(1.05)',
+                                    filter: 'brightness(0.96) contrast(1.04)',
                                 }}
                                 onError={(e) => {
-                                    // Fallback to another mockup
                                     (e.target as HTMLImageElement).src =
-                                        `${process.env.PUBLIC_URL}/assets/img/Mockups/004.jpg`
+                                        `${process.env.PUBLIC_URL}/assets/img/cake/12.png`
                                 }}
                             />
 
@@ -218,7 +218,7 @@ const Howitworks = () => {
                                 data-aos-duration="600"
                             >
                                 <img
-                                    src={`${process.env.PUBLIC_URL}/assets/img/Mockups/007.jpg`}
+                                    src={`${process.env.PUBLIC_URL}/assets/img/cake/13.png`}
                                     alt=""
                                     style={{ width: '100%', display: 'block' }}
                                     onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none' }}

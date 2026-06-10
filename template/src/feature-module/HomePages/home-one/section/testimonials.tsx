@@ -69,7 +69,7 @@ const Testimonials = () => {
             style={{
                 position: 'relative',
                 overflow: 'hidden',
-                backgroundColor: 'var(--sl-blush)',
+                backgroundColor: 'var(--sl-ivory)',
             }}
         >
             {/* ── Atmospheric background image — luxury satin ribbon ── */}

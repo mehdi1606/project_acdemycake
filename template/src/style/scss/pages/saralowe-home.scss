@@ -633,7 +633,15 @@
 
   &--ivory  { background-color: var(--sl-ivory); }
   &--blush  { background-color: var(--sl-blush); }
-  &--burg   { background-color: var(--sl-burgundy); }
+  // Unified luxurious dark-burgundy surface (shared by every dark section so the
+  // page reads as one cohesive palette). Centre-glow radial → the top & bottom
+  // edges are the SAME dark tone (#4A1425), so consecutive dark sections stack
+  // seamlessly and transitions blend cleanly into the light sections.
+  &--burg {
+    background:
+      radial-gradient(120% 85% at 50% 50%, #6E1E36 0%, #5A1A2E 55%, #4A1425 100%);
+    color: var(--sl-ivory);
+  }
   &--forest { background-color: var(--sl-forest); }
   &--white  { background-color: #fff; }
 
@@ -1017,7 +1025,10 @@
 // 08. PROCESS / HOW IT WORKS
 // ─────────────────────────────────────────────────────────────────────────────
 .sl-process {
-  background: var(--sl-forest);
+  // Unified with the other dark sections (was forest green — off-palette).
+  background:
+    radial-gradient(120% 85% at 50% 50%, #6E1E36 0%, #5A1A2E 55%, #4A1425 100%);
+  color: var(--sl-ivory);
   position: relative;
   overflow: hidden;
 

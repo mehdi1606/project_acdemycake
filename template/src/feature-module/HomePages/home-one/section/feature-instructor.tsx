@@ -65,10 +65,13 @@ const Featureinstructor = () => {
       <style>{`
         /* ── Instructor section responsive ─────────────────────── */
         .sl-instr-section {
-          background: #5C1228;
-          background-image: ${PATTERN_URL};
-          background-repeat: repeat;
-          background-size: 340px 340px;
+          /* Unified burgundy (was #5C1228) so all dark sections share one palette.
+             Pattern layered ON TOP of the gradient via two background-image layers. */
+          background-color: #5A1A2E;
+          background-image: ${PATTERN_URL},
+            radial-gradient(120% 85% at 50% 50%, #6E1E36 0%, #5A1A2E 55%, #4A1425 100%);
+          background-repeat: repeat, no-repeat;
+          background-size: 340px 340px, cover;
           position: relative;
           overflow: hidden;
           padding: 100px 0 90px;

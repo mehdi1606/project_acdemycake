@@ -56,7 +56,7 @@ const Faq: React.FC = () => {
           }
         `}</style>
         <section
-            className="sl-section sl-section--white"
+            className="sl-section sl-section--ivory"
             style={{ paddingTop: '5rem', paddingBottom: '5rem' }}
         >
             <div className="container">
