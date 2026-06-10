@@ -74,11 +74,13 @@ public class CourseResponse {
     }
 
     public static CourseResponse fromEntity(Course course) {
+        // Instructor may be a soft-deleted user (hidden by @SQLRestriction) → null.
+        var instr = course.getInstructor();
         InstructorSummary instructor = InstructorSummary.builder()
-                .id(course.getInstructor().getId())
-                .fullName(course.getInstructor().getFullName())
-                .avatarUrl(course.getInstructor().getAvatarUrl())
-                .bio(course.getInstructor().getBio())
+                .id(instr != null ? instr.getId() : null)
+                .fullName(instr != null ? instr.getFullName() : "Deleted User")
+                .avatarUrl(instr != null ? instr.getAvatarUrl() : null)
+                .bio(instr != null ? instr.getBio() : null)
                 .build();
 
         CategoryResponse category = null;

@@ -134,9 +134,9 @@ payzone:
 #   Administration → Changer les clés du magasin
 # callbackUrl MUST be reachable from the internet (use ngrok in local dev)
 cmi:
-  client-id:    ${CMI_CLIENT_ID:820010041}
+  client-id:    ${CMI_CLIENT_ID:820010043}
   store-key:    ${CMI_STORE_KEY:saralowe@CMI2026}
-  gateway-url:  ${CMI_GATEWAY_URL:https://test-chaabipayment.cmi.co.ma/fim/est3dgate}
+  gateway-url:  ${CMI_GATEWAY_URL:https://chaabipayment.cmi.co.ma/fim/est3dgate}
   currency:     "504"                   # ISO 4217 numeric – 504 = MAD
   # callbackUrl  = CMI server-to-server (must be public; use ngrok locally for real CMI tests)
   # okUrl/failUrl = CMI POSTs browser here → /cmi/return/{success|failed} redirects to

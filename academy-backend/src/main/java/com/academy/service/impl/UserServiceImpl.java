@@ -222,9 +222,21 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUser(UUID userId) {
         User user = findById(userId);
-        userRepository.delete(user);
 
-        log.info("User deleted: {}", user.getEmail());
+        // Soft delete: keep the row (preserves financial/audit data and avoids FK
+        // conflicts) but hide it everywhere via @SQLRestriction. Anonymise the email
+        // so it can be reused for a future sign-up, ban the account, and drop refresh
+        // tokens to force an immediate logout.
+        String originalEmail = user.getEmail();
+        user.setEmail("deleted+" + user.getId() + "@deleted.local");
+        user.setIsBanned(true);
+        user.setIsDeleted(true);
+        if (user.getRefreshTokens() != null) {
+            user.getRefreshTokens().clear(); // orphanRemoval removes the tokens
+        }
+        userRepository.save(user);
+
+        log.info("User soft-deleted: {} (id={})", originalEmail, userId);
     }
 
     private User getCurrentUser() {

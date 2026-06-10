@@ -4,6 +4,8 @@ import com.academy.entity.enums.SubscriptionStatus;
 import com.academy.entity.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -15,6 +17,10 @@ import java.util.Set;
         @Index(name = "idx_users_role", columnList = "role"),
         @Index(name = "idx_users_subscription_status", columnList = "subscription_status")
 })
+// Soft delete: a delete() becomes an UPDATE, and every query/association load is
+// automatically restricted to non-deleted users.
+@SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -74,6 +80,10 @@ public class User extends BaseEntity {
 
     @Column(name = "payzone_customer_id", length = 100)
     private String payzoneCustomerId;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
 
     @Column(name = "is_banned", nullable = false)
     @Builder.Default

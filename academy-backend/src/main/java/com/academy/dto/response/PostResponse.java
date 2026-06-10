@@ -53,11 +53,13 @@ public class PostResponse {
             }
         }
 
+        // The author may be a soft-deleted user (filtered out by @SQLRestriction) → null.
+        var author = post.getUser();
         return PostResponse.builder()
                 .id(post.getId())
-                .userId(post.getUser().getId())
-                .userName(post.getUser().getFullName())
-                .userAvatar(post.getUser().getAvatarUrl())
+                .userId(author != null ? author.getId() : null)
+                .userName(author != null ? author.getFullName() : "Deleted User")
+                .userAvatar(author != null ? author.getAvatarUrl() : null)
                 .title(post.getTitle())
                 .content(post.getContent())
                 .images(images)
