@@ -118,7 +118,7 @@ public class TranslationService {
 
     private String translateViaApi(String text, String source, String target) throws Exception {
         Map<String, Object> body = new java.util.LinkedHashMap<>();
-        body.put("q", text);
+        body.put("q", normalizeCase(text, source));
         body.put("source", source);
         body.put("target", target);
         body.put("format", "text");
@@ -138,6 +138,31 @@ public class TranslationService {
         if (node.isMissingNode() || node.asText().isBlank())
             throw new RuntimeException("LibreTranslate empty response: " + resp.body());
         return node.asText();
+    }
+
+    /**
+     * LibreTranslate's argos models leave ALL-CAPS short phrases untranslated
+     * (treating them as proper nouns/acronyms) — e.g. "CAKE DESIGN" stays as-is.
+     * Title-case all-caps English input so it translates correctly. Arabic has no
+     * letter case, so the translated output is unaffected.
+     */
+    private static String normalizeCase(String text, String source) {
+        if (!"en".equals(source) || text == null) return text;
+        String letters = text.replaceAll("[^A-Za-z]", "");
+        if (letters.isEmpty() || !letters.equals(letters.toUpperCase(Locale.ROOT))) return text;
+        StringBuilder sb = new StringBuilder(text.length());
+        boolean startOfWord = true;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (Character.isLetter(c)) {
+                sb.append(startOfWord ? Character.toUpperCase(c) : Character.toLowerCase(c));
+                startOfWord = false;
+            } else {
+                sb.append(c);
+                startOfWord = true;
+            }
+        }
+        return sb.toString();
     }
 
     private static boolean containsArabic(String text) {

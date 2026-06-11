@@ -34,6 +34,9 @@ services:
     image: libretranslate/libretranslate:latest
     container_name: academy-translate
     restart: unless-stopped
+    # Run as root so it can write the downloaded models into the named volume
+    # (a fresh Docker volume is root-owned; the default non-root user can't write to it).
+    user: root
     environment:
       LT_LOAD_ONLY: "en,ar"        # only load English + Arabic models (faster start)
       LT_UPDATE_MODELS: "false"
