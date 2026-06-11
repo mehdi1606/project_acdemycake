@@ -1609,6 +1609,11 @@
     "tags": "الوسوم"
   },
   "courseList": {
+    "browseByCategory": "تصفّح حسب الفئة",
+    "browseByCategorySub": "اختر الفئة التي تلهمك، واستكشف جميع البرامج بداخلها.",
+    "discover": "اكتشف",
+    "allCategories": "كل الفئات",
+    "exploreCategory": "استكشف",
     "title": "جميع الدورات",
     "subtitle": "استكشف كتالوج الدورات الكامل",
     "searchPlaceholder": "البحث في الدورات...",

@@ -13,6 +13,18 @@ import SubscriptionGate from '../../common/SubscriptionGate';
 import BadgeAvatar from '../../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../../config/badges';
 
+// ── Representative image for a category (its own image, else an on-brand cake) ──
+const CAKE_POOL = Array.from({ length: 15 }, (_, i) => `cake/${i + 1}.png`);
+const hashStr = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+const categoryImage = (cat: CourseCategory): string =>
+  cat.imageUrl
+    ? (getFileUrl(cat.imageUrl) ?? cat.imageUrl)
+    : `${process.env.PUBLIC_URL}/assets/img/${CAKE_POOL[hashStr(cat.slug || cat.id) % CAKE_POOL.length]}`;
+
 const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
   { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
   { label: t('courseList.mostPopular', 'Most Popular'),          value: 'popular' },
@@ -315,17 +327,143 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
   );
 };
 
+// ── Category landing (browse-by-category grid) ────────────────────────────────
+interface CategoryLandingProps {
+  categories: CourseCategory[];
+  loading: boolean;
+  onSelect: (id: string) => void;
+}
+
+const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, onSelect }) => {
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
+
+  return (
+    <div className="sl-cat-landing">
+      <style>{`
+        .sl-cat-landing__head { text-align: center; max-width: 680px; margin: 0 auto 44px; }
+        .sl-cat-landing__title {
+          font-family: var(--sl-font-display); color: var(--sl-burgundy);
+          font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin: .4rem 0 .7rem; line-height: 1.2;
+        }
+        .sl-cat-landing__sub { color: rgba(101,28,50,.62); font-size: 1.02rem; line-height: 1.7; margin: 0; }
+
+        .sl-cat-card {
+          width: 100%; height: 100%; text-align: ${isRtl ? 'right' : 'left'};
+          background: #fff; border: 1px solid rgba(197,145,44,.18); border-radius: 18px;
+          overflow: hidden; cursor: pointer; display: flex; flex-direction: column;
+          box-shadow: 0 12px 34px rgba(101,28,50,.07);
+          transition: transform .4s cubic-bezier(.25,.46,.45,.94), box-shadow .4s, border-color .4s;
+        }
+        .sl-cat-card:hover { transform: translateY(-8px); box-shadow: 0 26px 60px rgba(101,28,50,.16); border-color: var(--sl-gold); }
+        .sl-cat-card:focus-visible { outline: 2px solid var(--sl-gold); outline-offset: 3px; }
+        .sl-cat-card__media { position: relative; aspect-ratio: 16 / 11; overflow: hidden; }
+        .sl-cat-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .9s cubic-bezier(.25,.46,.45,.94); }
+        .sl-cat-card:hover .sl-cat-card__media img { transform: scale(1.08); }
+        .sl-cat-card__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(58,12,24,.58), rgba(58,12,24,.06) 55%, transparent); }
+        .sl-cat-card__corner {
+          position: absolute; top: .8rem; ${isRtl ? 'left' : 'right'}: .8rem; width: 1.5rem; height: 1.5rem;
+          border-top: 1px solid var(--sl-gold); border-${isRtl ? 'left' : 'right'}: 1px solid var(--sl-gold); opacity: .85;
+        }
+        .sl-cat-card__count {
+          position: absolute; bottom: .85rem; ${isRtl ? 'right' : 'left'}: .85rem;
+          display: inline-flex; align-items: center; gap: 6px;
+          background: rgba(255,255,255,.93); color: var(--sl-burgundy);
+          font-family: var(--sl-font-body); font-size: .7rem; font-weight: 700; letter-spacing: .03em;
+          padding: .32rem .72rem; border-radius: 999px;
+        }
+        .sl-cat-card__count i { color: var(--sl-gold); font-size: .82rem; }
+        .sl-cat-card__body { padding: 1.2rem 1.3rem 1.35rem; display: flex; flex-direction: column; flex: 1; }
+        .sl-cat-card__name { font-family: var(--sl-font-display); font-weight: 700; color: var(--sl-burgundy); font-size: 1.2rem; margin: 0 0 .45rem; }
+        .sl-cat-card__desc {
+          color: rgba(101,28,50,.6); font-size: .85rem; line-height: 1.6; margin: 0 0 1rem; flex: 1;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .sl-cat-card__cta { display: inline-flex; align-items: center; gap: 7px; color: var(--sl-gold); font-weight: 700; font-size: .82rem; letter-spacing: .03em; margin-top: auto; transition: gap .25s ease; }
+        .sl-cat-card:hover .sl-cat-card__cta { gap: 11px; }
+        .sl-cat-skeleton { height: 318px; border-radius: 18px; background: linear-gradient(110deg, #efe9e0 30%, #f7f3ec 50%, #efe9e0 70%); background-size: 200% 100%; animation: sl-cat-shim 1.4s linear infinite; }
+        @keyframes sl-cat-shim { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+      `}</style>
+
+      <div className="sl-cat-landing__head" data-aos="fade-up" data-aos-duration="700">
+        <div className="sl-ornament justify-content-center">
+          <span className="sl-script" style={{ fontSize: '1.7rem' }}>{t('courseList.discover', 'Discover')}</span>
+        </div>
+        <h2 className="sl-cat-landing__title">{t('courseList.browseByCategory', 'Browse by Category')}</h2>
+        <p className="sl-cat-landing__sub">{t('courseList.browseByCategorySub', 'Choose the category that inspires you, and explore every programme inside it.')}</p>
+      </div>
+
+      {loading && categories.length === 0 ? (
+        <div className="row g-4">
+          {[...Array(6)].map((_, i) => (
+            <div className="col-lg-4 col-md-6" key={i}><div className="sl-cat-skeleton" style={{ animationDelay: `${i * 0.08}s` }} /></div>
+          ))}
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="sl-cl-empty" data-aos="fade-up">
+          <i className="isax isax-category sl-cl-empty__icon" />
+          <h4 className="sl-cl-empty__title">{t('courseList.noCategoriesAvailable', 'No categories available')}</h4>
+        </div>
+      ) : (
+        <div className="row g-4">
+          {categories.map((cat, i) => (
+            <div className="col-lg-4 col-md-6" key={cat.id}>
+              <div
+                className="sl-cat-card"
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelect(cat.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(cat.id); } }}
+                aria-label={cat.name}
+                data-aos="fade-up"
+                data-aos-delay={String((i % 3) * 70)}
+                data-aos-duration="700"
+              >
+                <div className="sl-cat-card__media">
+                  <img
+                    src={categoryImage(cat)}
+                    alt={cat.name}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/cake/1.png`; }}
+                  />
+                  <span className="sl-cat-card__overlay" />
+                  <span className="sl-cat-card__corner" aria-hidden="true" />
+                  <span className="sl-cat-card__count">
+                    <i className="isax isax-book-1" /> {cat.coursesCount ?? 0} {t('courseList.programmes', 'programmes')}
+                  </span>
+                </div>
+                <div className="sl-cat-card__body">
+                  <h3 className="sl-cat-card__name">{cat.name}</h3>
+                  {cat.description && <p className="sl-cat-card__desc">{cat.description}</p>}
+                  <span className="sl-cat-card__cta">
+                    {t('courseList.exploreCategory', 'Explore')}
+                    <i className={`isax ${isRtl ? 'isax-arrow-left-2' : 'isax-arrow-right-1'}`} />
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 const CourseList: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
   const [searchParams] = useSearchParams();
   const route = all_routes;
+  const pageRef = useRef<HTMLElement>(null);
   const { message } = App.useApp();
 
   /* server data */
   const [courses,       setCourses]       = useState<Course[]>([]);
   const [categories,    setCategories]    = useState<CourseCategory[]>([]);
   const [loading,       setLoading]       = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages,    setTotalPages]    = useState(0);
 
@@ -375,6 +513,7 @@ const CourseList: React.FC = () => {
       const res = await courseService.getCategories();
       setCategories(Array.isArray(res) ? res : ((res as any).content || (res as any).data || []));
     } catch {}
+    finally { setCategoriesLoading(false); }
   };
 
   const fetchCourses = async () => {
@@ -419,6 +558,13 @@ const CourseList: React.FC = () => {
     setCurrentPage(1);
   };
 
+  // From the category landing → open that category's programmes.
+  const handleSelectCategory = (id: string) => {
+    setSelectedCategory(id);
+    setCurrentPage(1);
+    requestAnimationFrame(() => pageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+
   const handleLevelChange = (level: CourseLevel) => {
     setSelectedLevel(p => p === level ? null : level);
     setCurrentPage(1);
@@ -440,6 +586,9 @@ const CourseList: React.FC = () => {
   const hasActiveFilters = Boolean(
     searchQuery || selectedCategory || selectedLevel || sortBy !== 'newest'
   );
+
+  // Show the browse-by-category grid until the visitor picks a category or searches.
+  const showCategoryLanding = !selectedCategory && !selectedLevel && !searchQuery;
 
   const start = displayedCourses.length > 0 ? (currentPage - 1) * 9 + 1 : 0;
   const end   = (currentPage - 1) * 9 + displayedCourses.length;
@@ -525,9 +674,36 @@ const CourseList: React.FC = () => {
         <div className="sl-cinematic-divider" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }} />
       </div>
 
+      {/* ── Back-to-categories button ── */}
+      <style>{`
+        .sl-cat-back {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: #fff; border: 1px solid rgba(197,145,44,.35); color: var(--sl-burgundy);
+          font-family: var(--sl-font-body); font-weight: 600; font-size: .8rem; letter-spacing: .04em;
+          padding: .55rem 1.1rem; border-radius: 999px; cursor: pointer;
+          margin-bottom: 1.6rem; transition: background .25s ease, border-color .25s ease, gap .25s ease;
+        }
+        .sl-cat-back:hover { background: var(--sl-gold); border-color: var(--sl-gold); color: #2A0E18; gap: 12px; }
+        .sl-cat-back i { font-size: .95rem; }
+      `}</style>
+
       {/* ── Main content ── */}
-      <section className="sl-cl-page">
+      <section className="sl-cl-page" ref={pageRef}>
         <div className="container">
+
+          {showCategoryLanding ? (
+            <CategoryLanding
+              categories={categories}
+              loading={categoriesLoading}
+              onSelect={handleSelectCategory}
+            />
+          ) : (
+          <>
+          {/* Back to all categories */}
+          <button type="button" className="sl-cat-back" onClick={clearFilters}>
+            <i className={`isax ${isRtl ? 'isax-arrow-right-1' : 'isax-arrow-left-2'}`} />
+            {t('courseList.allCategories', 'All Categories')}
+          </button>
 
           {/* Gate for guests or students without an active subscription.
               Admin and Instructor always bypass — they can see all courses. */}
@@ -687,6 +863,8 @@ const CourseList: React.FC = () => {
             </div>
           </div>
           )} {/* end isAuthenticated gate */}
+          </>
+          )} {/* end category landing */}
         </div>
       </section>
     </>

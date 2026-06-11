@@ -1486,6 +1486,11 @@
     "tags": "Tags"
   },
   "courseList": {
+    "browseByCategory": "Browse by Category",
+    "browseByCategorySub": "Choose the category that inspires you, and explore every programme inside it.",
+    "discover": "Discover",
+    "allCategories": "All Categories",
+    "exploreCategory": "Explore",
     "title": "All Courses",
     "subtitle": "Explore our complete course catalog",
     "searchPlaceholder": "Search courses...",
