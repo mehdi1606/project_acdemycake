@@ -31,6 +31,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Page<User> findByRole(UserRole role, Pageable pageable);
 
+    // ── Admin user-management listings: exclude soft-deleted users ─────────────
+    Page<User> findByIsDeletedFalse(Pageable pageable);
+
+    Page<User> findByRoleAndIsDeletedFalse(UserRole role, Pageable pageable);
+
+    long countByIsDeletedFalse();
+
     @Query("SELECT u FROM User u WHERE u.subscriptionStatus = :status AND u.subscriptionEndDate < :date")
     List<User> findExpiredSubscriptions(
             @Param("status") SubscriptionStatus status,
@@ -47,22 +54,22 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("UPDATE User u SET u.subscriptionStatus = :status WHERE u.id = :userId")
     void updateSubscriptionStatus(@Param("userId") UUID userId, @Param("status") SubscriptionStatus status);
 
-    @Query("SELECT u FROM User u WHERE " +
+    @Query("SELECT u FROM User u WHERE u.isDeleted = false AND " +
             "(LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> searchUsers(@Param("search") String search, Pageable pageable);
 
-    @Query("SELECT u FROM User u WHERE u.role = :role AND " +
+    @Query("SELECT u FROM User u WHERE u.role = :role AND u.isDeleted = false AND " +
             "(LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> searchUsersByRole(@Param("role") UserRole role, @Param("search") String search, Pageable pageable);
 
-    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND u.isDeleted = false")
     long countByRole(@Param("role") UserRole role);
 
-    @Query("SELECT COUNT(u) FROM User u WHERE u.subscriptionStatus = 'ACTIVE'")
+    @Query("SELECT COUNT(u) FROM User u WHERE u.subscriptionStatus = 'ACTIVE' AND u.isDeleted = false")
     long countActiveSubscriptions();
 
-    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :since")
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :since AND u.isDeleted = false")
     long countNewUsersSince(@Param("since") LocalDateTime since);
 }

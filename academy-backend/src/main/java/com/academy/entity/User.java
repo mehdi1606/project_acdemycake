@@ -5,7 +5,6 @@ import com.academy.entity.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -17,10 +16,13 @@ import java.util.Set;
         @Index(name = "idx_users_role", columnList = "role"),
         @Index(name = "idx_users_subscription_status", columnList = "subscription_status")
 })
-// Soft delete: a delete() becomes an UPDATE, and every query/association load is
-// automatically restricted to non-deleted users.
+// Soft delete: a delete() becomes an UPDATE (no hard delete → no FK conflicts).
+// NOTE: we deliberately do NOT use @SQLRestriction here. A global restriction makes
+// lazy User proxies referenced by other rows (e.g. a payment whose buyer was deleted)
+// throw EntityNotFoundException on access, which crashed the admin transactions list.
+// Instead, deleted users are filtered explicitly only where they are *listed*
+// (admin user management + counts); everywhere else their records still resolve.
 @SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor

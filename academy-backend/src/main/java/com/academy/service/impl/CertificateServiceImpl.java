@@ -13,12 +13,18 @@ import com.academy.security.UserPrincipal;
 import com.academy.service.CertificateService;
 import com.academy.service.UserService;
 
+import com.academy.entity.enums.CourseLevel;
+import com.academy.entity.enums.CourseType;
+
 import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfPage;
+import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Canvas;
@@ -27,6 +33,7 @@ import com.itextpdf.layout.properties.TextAlignment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,8 +44,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.UUID;
 
 @Slf4j
@@ -49,6 +59,19 @@ public class CertificateServiceImpl implements CertificateService {
 
     private final CertificateRepository certificateRepository;
     private final UserService userService;
+
+    @Value("${app.file.upload-dir:./uploads}")
+    private String uploadDir;
+
+    // ── Certificate template files (blank designs) ────────────────────────────
+    // Live in {upload-dir}/certificate-templates/. The course level / type selects
+    // which design is used; only the student name, course title and date are stamped.
+    private static final String TEMPLATE_DIR = "certificate-templates";
+    private static final String TPL_MASTER       = "Certificate SARALÖWE - MASTER ONLINE (empty).pdf";
+    private static final String TPL_ACADEMY      = "Certificate SARALÖWE - Online ACADEMY (empty).pdf";
+    private static final String TPL_BEGINNER     = "Certificate SARALÖWE - BEGINNER (empty).pdf";
+    private static final String TPL_INTERMEDIATE = "Certificate SARALÖWE - INTERMEDIATE (empty).pdf";
+    private static final String TPL_ADVANCED     = "Certificate SARALÖWE - ADVANCED (empty).pdf";
 
     // ── Saralöwe brand colours (matching the pink certificate PDF) ────────────
     /** Blush pink background — matches PDF background */
@@ -161,9 +184,102 @@ public class CertificateServiceImpl implements CertificateService {
         }
     }
 
-    // ── PDF generation — Saralöwe pink certificate style ──────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    //  PDF generation — overlay the student's data onto the designed PDF template
+    // ══════════════════════════════════════════════════════════════════════════
 
     private byte[] generatePdf(Certificate certificate) throws Exception {
+        Path tpl = templatePathFor(certificate);
+        if (tpl == null || !Files.isRegularFile(tpl)) {
+            log.warn("Certificate template not found ({}); falling back to the drawn design.", tpl);
+            return generatePdfFromScratch(certificate);
+        }
+
+        boolean isMaster = certificate.getCourse() != null
+                && certificate.getCourse().getCourseType() == CourseType.MASTERCLASS;
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
+        String dateStr = certificate.getCompletionDate() != null
+                ? certificate.getCompletionDate().format(fmt).toUpperCase(Locale.ENGLISH) : "";
+        String name    = certificate.getStudentName() != null ? certificate.getStudentName() : "";
+        String course  = certificate.getCourseTitle() != null
+                ? certificate.getCourseTitle().toUpperCase(Locale.ENGLISH) : "";
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (PdfReader reader = new PdfReader(tpl.toFile());
+             PdfDocument pdfDoc = new PdfDocument(reader, new PdfWriter(baos))) {
+
+            PdfPage   firstPage = pdfDoc.getFirstPage();
+            Rectangle mb        = firstPage.getMediaBox();
+            PdfCanvas canvas    = new PdfCanvas(firstPage);   // draws on top of the design
+
+            float cx  = mb.getX() + mb.getWidth() / 2f;       // horizontal centre
+            float top = mb.getY() + mb.getHeight();           // top edge in PDF coords
+
+            PdfFont script = loadFont("/fonts/GreatVibes-Regular.ttf");  // elegant name
+            PdfFont body   = loadFont("/fonts/Lato-Regular.ttf");        // course + date
+
+            float maxW = mb.getWidth() * 0.82f;   // keep text within the design margins
+            if (isMaster) {
+                // Portrait 595.5 × 842.2 — anchored to the template's labels.
+                drawCentered(canvas, name,    script, 40f, CRIMSON, cx, top - 392f, maxW);
+                drawCentered(canvas, course,  body,   15f, CRIMSON, cx, top - 500f, maxW);
+                drawCentered(canvas, dateStr, body,   13f, CRIMSON, cx, top - 562f, maxW);
+            } else {
+                // Landscape 842.25 × 595.5 — academy / level certificates.
+                drawCentered(canvas, name,    script, 40f, CRIMSON, cx, top - 352f, maxW);
+                drawCentered(canvas, course,  body,   14f, CRIMSON, cx, top - 432f, maxW);
+                drawCentered(canvas, dateStr, body,   12f, CRIMSON, cx, top - 486f, maxW);
+            }
+        }
+        return baos.toByteArray();
+    }
+
+    /** Resolve the blank-template file for a certificate (by course type / level). */
+    private Path templatePathFor(Certificate certificate) {
+        var course = certificate.getCourse();
+        String file;
+        if (course != null && course.getCourseType() == CourseType.MASTERCLASS) {
+            file = TPL_MASTER;
+        } else {
+            CourseLevel level = course != null && course.getLevel() != null
+                    ? course.getLevel() : CourseLevel.BEGINNER;
+            String byLevel = switch (level) {
+                case BEGINNER     -> TPL_BEGINNER;
+                case INTERMEDIATE -> TPL_INTERMEDIATE;
+                case ADVANCED     -> TPL_ADVANCED;
+            };
+            // Use the level-specific design if present, otherwise the generic academy one.
+            Path levelPath = templateFile(byLevel);
+            file = Files.isRegularFile(levelPath) ? byLevel : TPL_ACADEMY;
+        }
+        return templateFile(file);
+    }
+
+    private Path templateFile(String name) {
+        return Path.of(uploadDir, TEMPLATE_DIR, name);
+    }
+
+    /** Draws a single centred line at the given baseline, shrinking to fit maxWidth. */
+    private void drawCentered(PdfCanvas canvas, String text, PdfFont font, float size,
+                              DeviceRgb color, float centreX, float baselineY, float maxWidth) {
+        if (text == null || text.isBlank()) return;
+        float width = font.getWidth(text, size);
+        if (width > maxWidth && width > 0f) {        // auto-shrink long names / titles
+            size  = size * (maxWidth / width);
+            width = font.getWidth(text, size);
+        }
+        canvas.beginText()
+                .setFontAndSize(font, size)
+                .setFillColor(color)
+                .moveText(centreX - width / 2f, baselineY)
+                .showText(text)
+                .endText();
+    }
+
+    // ── Fallback: Saralöwe pink certificate drawn entirely in code ────────────
+
+    private byte[] generatePdfFromScratch(Certificate certificate) throws Exception {
 
         ByteArrayOutputStream baos    = new ByteArrayOutputStream();
         PdfDocument           pdfDoc  = new PdfDocument(new PdfWriter(baos));

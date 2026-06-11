@@ -29,11 +29,31 @@ const content = {
     heroTitle:     'SARALÖWE Academy',
     heroSubtitle:  'Where world-class pastry education meets Arabic-speaking learners worldwide — born from passion, shaped by championship.',
 
-    founderScript: 'Meet the Founder',
-    founderTitle:  'Chef Sara Alawi',
-    founderBadge:  'World Championship Finalist · Morocco',
-    founderText:   "I'm Chef Sara Alawi — a cake designer, educator, and founder of SARALÖWE Academy. What started as passion became a mission: to bring world-class pastry education to Arabic-speaking learners worldwide.",
-    founderQuote:  '"Cake design is not decoration. It is storytelling in sugar."',
+    whoWeScript: 'Who We Are',
+    whoWeTitle:  'About the Academy',
+    whoWeParagraphs: [
+      'SARALÖWE Academy is an educational platform and Arabic-speaking community specialised in the arts of pastry and cake design, founded by Chef Sara Alaoui — cake-design artist, international trainer, and Vice World Champion in pastry 2025.',
+      'This academy was born from a dream that began in Morocco and grew over years of teaching, training, and building private communities that brought together thousands of enthusiasts from across the world. Over time, that community evolved into a greater vision: to create a professional Arabic space that unites knowledge, creativity, and expertise in one place.',
+      'We believe that Arab talent deserves to reach the highest global levels, and that quality education can open new doors to success and creativity. That is why we strive to offer a modern learning experience that blends the artistic with the scientific, helping every student develop their skills to international standards.',
+      'Our mission is to empower Arab talents to learn, grow, and build a successful professional future in the world of pastry.',
+      'We believe the Arab world is rich with talent, and that the time has come to see more of our names, projects, and achievements present strongly on the international stage.',
+      'Welcome to SARALÖWE Academy — a community built on passion, growing through knowledge, and dreaming of the world.',
+    ],
+
+    founderScript: 'About Me',
+    founderTitle:  'Chef Sara Alaoui',
+    founderBadge:  'Vice World Champion 2025 · Morocco',
+    founderParagraphs: [
+      "Hello, I'm Chef Sara Alaoui.",
+      "If I had to describe my journey in a few words, I'd say it began with curiosity, grew with passion, and continues to this day.",
+      "For many years I found myself drawn to the world of pastry and cake design — but I saw it a little differently. Perhaps because I come from a scientific background, I was always searching for the reasons behind everything. It wasn't enough to know how a recipe works; I wanted to understand why it works. I wasn't only after the final result, but the science and the details behind it.",
+      "Over time, I realised this is how I love to learn — and to teach. So when I share knowledge with my students, I don't focus only on the 'how'; I always try to explain the 'why', because I believe true understanding is what gives the confidence and the ability to create and grow.",
+      "Throughout my journey I've had the honour of working with thousands of students from around the world — watching people who began with hesitant steps become professionals, business owners, and trainers in their own right. And I won't hide it: those moments have always been more precious to me than any title or award.",
+      'And although I had the opportunity to represent Morocco internationally and earn the title of Vice World Champion in pastry 2025, what makes me happiest to this day is seeing the impact of knowledge as it passes from one person to another, and being part of a new success story.',
+      'I believe learning is a journey that never ends, and that the most beautiful part of it is that we never walk it alone. That is why SARALÖWE Academy was born — a space that brings together people who share the same passion, learning together, growing together, and dreaming together.',
+      "I'm delighted to share with you what I've learned over these years, and I look forward to being part of your journey, just as you've become part of mine.",
+    ],
+    founderQuote:  '"Welcome — and I hope you find here not only knowledge, but inspiration too."',
 
     blogScript:    'Special Edition',
     blogTitle:     'Under the Tangerine Sun',
@@ -116,11 +136,31 @@ const content = {
     heroTitle:     'أكاديمية SARALÖWE',
     heroSubtitle:  'حيث يلتقي التعليم الراقي في فن الحلويات مع المتعلمين الناطقين بالعربية في جميع أنحاء العالم — وُلد من شغف، ونُحت بالبطولة.',
 
-    founderScript: 'تعرف على المؤسِّسة',
-    founderTitle:  'الشيف سارة علوي',
-    founderBadge:  'متأهلة لبطولة العالم · المغرب',
-    founderText:   'أنا الشيف سارة علوي — مصممة كعك، ومعلمة، ومؤسسة أكاديمية SARALÖWE. ما بدأ كشغف أصبح رسالة: تقديم تعليم الحلويات على مستوى عالمي للمتعلمين الناطقين بالعربية في جميع أنحاء العالم.',
-    founderQuote:  '"تصميم الكعك ليس مجرد زينة. إنه رواية قصة بالسكر."',
+    whoWeScript: 'من نحن؟',
+    whoWeTitle:  'عن الأكاديمية',
+    whoWeParagraphs: [
+      'أكاديمية SARALÖWE هي منصة تعليمية ومجتمع عربي متخصص في فنون الحلويات والكيك ديزاين، أسستها الشيف سارة العلوي، فنانة الكيك ديزاين، مدربة دولية، ونائبة بطلة العالم في الحلويات لعام 2025.',
+      'وُلدت هذه الأكاديمية من حلم بدأ في المغرب ونما على مدار سنوات من التعليم، التدريب، وبناء مجتمعات خاصة جمعت آلاف الشغوفين بهذا المجال من مختلف أنحاء العالم. ومع مرور الوقت، تحول ذلك المجتمع إلى رؤية أكبر تهدف إلى إنشاء فضاء عربي احترافي يجمع المعرفة، الإبداع، والخبرة في مكان واحد.',
+      'نؤمن بأن الموهبة العربية تستحق الوصول إلى أعلى المستويات العالمية، وأن التعليم الجيد قادر على فتح أبواب جديدة للنجاح والإبداع. لذلك نسعى إلى تقديم تجربة تعليمية حديثة تجمع بين الجانب الفني والجانب العلمي، وتساعد كل طالب على تطوير مهاراته وفق المعايير الدولية.',
+      'رسالتنا هي تمكين المواهب العربية من التعلم، التطور، وبناء مستقبل مهني ناجح في عالم الحلويات.',
+      'نؤمن أن العالم العربي يزخر بالمواهب، وأنه حان الوقت لنرى المزيد من أسمائنا ومشاريعنا وإنجازاتنا حاضرة بقوة على الساحة الدولية.',
+      'مرحبًا بكم في SARALÖWE Academy… مجتمع بُني بالشغف، وينمو بالمعرفة، ويحلم بالعالمية.',
+    ],
+
+    founderScript: 'نبذة عني',
+    founderTitle:  'الشيف سارة العلوي',
+    founderBadge:  'نائبة بطلة العالم 2025 · المغرب',
+    founderParagraphs: [
+      'مرحبًا، أنا الشيف سارة العلوي.',
+      'لو كان عليّ أن أصف رحلتي في كلمات قليلة، فسأقول إنها رحلة بدأت بالفضول، وكبرت بالشغف، وما زالت مستمرة حتى اليوم.',
+      'منذ سنوات طويلة، وجدت نفسي منجذبة إلى عالم الحلويات والكيك ديزاين، لكنني كنت أنظر إليه بطريقة مختلفة قليلًا. ربما لأنني أتيت من خلفية علمية، كنت دائمًا أبحث عن الأسباب وراء كل شيء. لم يكن يكفيني أن أعرف كيف تنجح الوصفة، بل كنت أريد أن أفهم لماذا تنجح. لم أكن أبحث فقط عن النتيجة النهائية، بل عن العلم والتفاصيل التي تقف خلفها.',
+      'ومع مرور الوقت، أدركت أن هذا هو الأسلوب الذي أحب أن أتعلم به، وأن أعلّم به أيضًا. لذلك، عندما أشارك المعرفة مع طلابي، لا أركز على «كيف» فقط، بل أحاول دائمًا أن أشرح «لماذا»، لأنني أؤمن أن الفهم الحقيقي هو ما يمنح الثقة والقدرة على الإبداع والتطور.',
+      'على مدار رحلتي، كان لي شرف العمل مع آلاف الطلاب من مختلف أنحاء العالم، ورؤية أشخاص بدأوا بخطوات مترددة ثم تحولوا إلى محترفين وأصحاب مشاريع ومدربين بدورهم. ولا أخفيكم أن هذه اللحظات كانت دائمًا أغلى عندي من أي لقب أو جائزة.',
+      'ورغم أنني حظيت بفرصة تمثيل المغرب دوليًا والحصول على لقب نائبة بطلة العالم في الحلويات لعام 2025، إلا أن أكثر ما يسعدني حتى اليوم هو أن أرى أثر المعرفة عندما تنتقل من شخص إلى آخر، وأن أكون جزءًا من قصة نجاح جديدة.',
+      'أؤمن أن التعلم رحلة لا تنتهي، وأن أجمل ما في هذه الرحلة أننا لا نسير فيها وحدنا. لهذا السبب وُلدت SARALÖWE Academy؛ لتكون مساحة تجمع أشخاصًا يشاركون نفس الشغف، ويتعلمون معًا، ويتطورون معًا، ويحلمون معًا.',
+      'يسعدني أن أشارككم ما تعلمته خلال هذه السنوات، وأتطلع لأن أكون جزءًا من رحلتكم كما أصبحتُم جزءًا من رحلتي.',
+    ],
+    founderQuote:  '«أهلًا بكم، وأتمنى أن تجدوا هنا ليس فقط المعرفة، بل الإلهام أيضًا!»',
 
     blogScript:    'إصدار خاص',
     blogTitle:     'تحت شمس اليوسفي',
@@ -511,7 +551,67 @@ const AboutUs: React.FC = () => {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════════
-          2. FOUNDER SECTION
+          2. WHO WE ARE — about the academy
+      ════════════════════════════════════════════════════════════════════════ */}
+      <section style={{
+        background: '#FFFDF9',
+        padding: '84px 24px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <GoldOrb size={360} opacity={0.05} style={{ top: -120, right: -90 }} />
+        <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <ScriptLabel>{c.whoWeScript}</ScriptLabel>
+            <h2 style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+              fontWeight: 700,
+              color: BURGUNDY,
+              margin: '0 0 6px',
+              lineHeight: 1.15,
+            }}>
+              {c.whoWeTitle}
+            </h2>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
+              <div style={{ width: 40, height: 2, background: GOLD, borderRadius: 2 }} />
+            </div>
+          </div>
+
+          <div style={{ textAlign: isRtl ? 'right' : 'left' }}>
+            {c.whoWeParagraphs.map((para, i) => {
+              const isLast = i === c.whoWeParagraphs.length - 1
+              return isLast ? (
+                <p key={i} style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontStyle: 'italic',
+                  fontSize: '1.2rem',
+                  color: BURGUNDY,
+                  lineHeight: 1.6,
+                  textAlign: 'center',
+                  marginTop: 30,
+                  marginBottom: 0,
+                }}>
+                  {para}
+                </p>
+              ) : (
+                <p key={i} style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '1.02rem',
+                  color: DARK,
+                  lineHeight: 1.95,
+                  marginBottom: 18,
+                }}>
+                  {para}
+                </p>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          3. FOUNDER SECTION — "About Me"
       ════════════════════════════════════════════════════════════════════════ */}
       <section style={{
         background: CREAM,
@@ -531,7 +631,7 @@ const AboutUs: React.FC = () => {
           <div style={{
             display: 'flex',
             gap: 60,
-            alignItems: 'center',
+            alignItems: 'flex-start',
             flexWrap: 'wrap',
           }}>
 
@@ -668,15 +768,18 @@ const AboutUs: React.FC = () => {
                   <div style={{ width: 28, height: 2, background: GOLD, borderRadius: 2 }} />
                 </div>
 
-                <p style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '1.05rem',
-                  color: DARK,
-                  lineHeight: 1.85,
-                  marginBottom: 28,
-                }}>
-                  {c.founderText}
-                </p>
+                {c.founderParagraphs.map((para, i) => (
+                  <p key={i} style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: i === 0 ? '1.12rem' : '1.0rem',
+                    fontWeight: i === 0 ? 600 : 400,
+                    color: i === 0 ? BURGUNDY : DARK,
+                    lineHeight: 1.9,
+                    marginBottom: i === c.founderParagraphs.length - 1 ? 28 : 16,
+                  }}>
+                    {para}
+                  </p>
+                ))}
 
                 {/* Pull quote */}
                 <blockquote style={{

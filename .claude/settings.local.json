@@ -93,7 +93,10 @@
       "Bash(node_modules/.bin/tsc --noEmit)",
       "Bash(grep -iv \"import\\\\|//\")",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/en.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/ar.json','utf8'\\)\\); console.log\\('JSON OK'\\);\")",
-      "Bash(npx sass *)"
+      "Bash(npx sass *)",
+      "Bash(grep -n \"yaxis\\\\|\\\\\\\\$\\\\|formatter\\\\|labels:\\\\|tooltip\" feature-module/admin/dashboard/adminDashboard.tsx)",
+      "Bash(python -c \"import reportlab, pypdf; print\\('reportlab+pypdf OK'\\)\")",
+      "Bash(python -c \"import fitz; print\\('pymupdf OK'\\)\")"
     ]
   }
 }

@@ -48,7 +48,7 @@ public class AdminServiceImpl implements AdminService {
     public DashboardResponse.AdminDashboard getDashboard() {
         verifyAdmin();
 
-        long totalUsers = userRepository.count();
+        long totalUsers = userRepository.countByIsDeletedFalse();
         long totalCourses = courseRepository.countPublishedCourses();
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         long totalEnrollments = enrollmentRepository.count();
@@ -227,7 +227,7 @@ public class AdminServiceImpl implements AdminService {
 
     private Map<String, Object> generateUserReport() {
         Map<String, Object> report = new HashMap<>();
-        report.put("totalUsers", userRepository.count());
+        report.put("totalUsers", userRepository.countByIsDeletedFalse());
         report.put("students", userRepository.countByRole(UserRole.STUDENT));
         report.put("instructors", userRepository.countByRole(UserRole.INSTRUCTOR));
         report.put("admins", userRepository.countByRole(UserRole.ADMIN));

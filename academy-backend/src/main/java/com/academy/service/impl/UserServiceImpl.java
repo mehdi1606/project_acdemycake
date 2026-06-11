@@ -174,7 +174,7 @@ public class UserServiceImpl implements UserService {
         if (search != null && !search.isBlank()) {
             users = userRepository.searchUsers(search, pageRequest);
         } else {
-            users = userRepository.findAll(pageRequest);
+            users = userRepository.findByIsDeletedFalse(pageRequest);
         }
 
         return PageResponse.from(users, UserResponse::fromEntity);
@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserService {
         if (search != null && !search.isBlank()) {
             users = userRepository.searchUsersByRole(UserRole.INSTRUCTOR, search, pageRequest);
         } else {
-            users = userRepository.findByRole(UserRole.INSTRUCTOR, pageRequest);
+            users = userRepository.findByRoleAndIsDeletedFalse(UserRole.INSTRUCTOR, pageRequest);
         }
 
         return PageResponse.from(users, UserResponse::fromEntity);
