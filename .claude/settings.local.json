@@ -126,7 +126,9 @@
       "Bash(grep -q 'clean if no courseWatch' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bc05y9h21.output)",
       "Bash(echo \"=== RESULT ===\")",
       "Bash(grep -iE 'courseWatch\\\\.tsx|clean if no courseWatch' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bc05y9h21.output)",
-      "Bash(echo \"[[done]]\")"
+      "Bash(echo \"[[done]]\")",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget"
     ]
   }
 }

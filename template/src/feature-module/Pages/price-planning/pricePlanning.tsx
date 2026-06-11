@@ -128,7 +128,29 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
         border: isAnnual ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(101,28,50,0.07)',
         borderRadius: 16, padding: '20px 20px 16px', marginBottom: 24,
       }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+        {isAnnual && (
+          <div style={{ textAlign: 'center', marginBottom: 12 }}>
+            <span style={{
+              display: 'block', fontSize: 10, fontWeight: 700,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+              color: '#DEBB6B', opacity: 0.85, marginBottom: 4,
+            }}>
+              {t('pricing.originalPrice', 'Original Price')}
+            </span>
+            <span style={{
+              display: 'inline-block',
+              fontFamily: '"Playfair Display", serif',
+              fontSize: 24, fontWeight: 800,
+              color: 'rgba(255,255,255,0.6)',
+              textDecoration: 'line-through',
+              textDecorationColor: '#E5484D',
+              textDecorationThickness: '2.5px',
+            }}>
+              {(3900).toLocaleString()} MAD
+            </span>
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4, justifyContent: isAnnual ? 'center' : 'flex-start' }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: isAnnual ? 'rgba(255,255,255,0.5)' : '#9A8080', alignSelf: 'flex-start', paddingTop: 10 }}>MAD</span>
           <span style={{
             fontFamily: '"Playfair Display", serif',
