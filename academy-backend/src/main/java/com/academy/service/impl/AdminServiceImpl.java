@@ -15,6 +15,7 @@ import com.academy.exception.ForbiddenException;
 import com.academy.repository.*;
 import com.academy.security.UserPrincipal;
 import com.academy.service.AdminService;
+import com.academy.service.TranslationService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,43 @@ public class AdminServiceImpl implements AdminService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final PaymentTransactionRepository transactionRepository;
+    private final CourseCategoryRepository categoryRepository;
+    private final TranslationService translationService;
     private final UserService userService;
+
+    /**
+     * One-time proactive translation of ALL existing courses & categories.
+     * Each unique text is translated once (LibreTranslate) and cached, so this is
+     * safe to run repeatedly. Translation happens in the background; this returns
+     * immediately with the counts queued.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Object prewarmAllTranslations() {
+        verifyAdmin();
+
+        var courses = courseRepository.findAll();
+        for (var c : courses) {
+            translationService.prewarm(c.getTitle());
+            translationService.prewarm(c.getShortDescription());
+            translationService.prewarm(c.getDescription());
+        }
+
+        var categories = categoryRepository.findAll();
+        for (var cat : categories) {
+            translationService.prewarm(cat.getName());
+            translationService.prewarm(cat.getDescription());
+        }
+
+        log.info("Prewarm-all: queued translations for {} courses and {} categories",
+                courses.size(), categories.size());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("courses", courses.size());
+        result.put("categories", categories.size());
+        result.put("message", "Translation prewarm started in the background");
+        return result;
+    }
 
     @Override
     public DashboardResponse.AdminDashboard getDashboard() {

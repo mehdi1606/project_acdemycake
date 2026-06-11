@@ -29,6 +29,22 @@ services:
       timeout: 5s
       retries: 10
 
+  # ── LibreTranslate (self-hosted AR↔EN translation) ──────────────
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: academy-translate
+    restart: unless-stopped
+    environment:
+      LT_LOAD_ONLY: "en,ar"        # only load English + Arabic models (faster start)
+      LT_UPDATE_MODELS: "false"
+    volumes:
+      - libretranslate_models:/home/libretranslate/.local/share/argos-translate
+    networks:
+      - academy-net
+    # Not published to the host — only the backend (same network) talks to it
+    expose:
+      - "5000"
+
   # ── Spring Boot Backend ─────────────────────────────────────────
   backend:
     build:
@@ -39,6 +55,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      libretranslate:
+        condition: service_started
     environment:
       # Database
       DB_HOST:         db
@@ -99,6 +117,9 @@ services:
       # Spring profile
       SPRING_PROFILES_ACTIVE: prod
 
+      # Translation — self-hosted LibreTranslate on the internal network
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+
     volumes:
       - uploads_data:/app/uploads   # Persistent file storage
     networks:
@@ -135,6 +156,8 @@ volumes:
   postgres_data:
     driver: local
   uploads_data:
+    driver: local
+  libretranslate_models:
     driver: local
 
 # ── Internal Network ────────────────────────────────────────────

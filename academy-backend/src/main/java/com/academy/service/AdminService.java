@@ -16,4 +16,7 @@ public interface AdminService {
     Object getAnalytics(String period);
 
     Object getReports(String type);
+
+    /** One-time proactive translation of all existing courses & categories. */
+    Object prewarmAllTranslations();
 }

@@ -11,15 +11,12 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,9 +24,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Translates dynamic DB content between Arabic and English using the free MyMemory
- * API, with a two-level cache (in-memory + DB) so each unique text is translated
- * only once — keeping us comfortably inside the free daily quota.
+ * Translates dynamic DB content between Arabic and English using a self-hosted
+ * LibreTranslate instance, with a two-level cache (in-memory + DB) so each unique
+ * text is translated only once. Being self-hosted, there is no per-day quota.
  *
  * Reads are NON-BLOCKING: a cache hit returns instantly; a miss returns the original
  * text immediately and schedules the translation in the background, so the next view
@@ -42,12 +39,13 @@ public class TranslationService {
 
     private final ContentTranslationRepository repository;
 
-    /** Optional — your email raises MyMemory's free limit from ~5k to ~50k words/day. */
-    @Value("${app.translation.email:}")
-    private String contactEmail;
+    /** Base URL of the self-hosted LibreTranslate service (trailing slash optional). */
+    @Value("${app.translation.libretranslate-url:http://localhost:5000}")
+    private String libreUrl;
 
-    private static final String MYMEMORY = "https://api.mymemory.translated.net/get";
-    private static final int    MAX_CHUNK = 480;   // MyMemory free q limit (~500 bytes)
+    /** Optional LibreTranslate API key — only if your instance enforces one. */
+    @Value("${app.translation.api-key:}")
+    private String apiKey;
 
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(6)).build();
@@ -119,39 +117,27 @@ public class TranslationService {
     }
 
     private String translateViaApi(String text, String source, String target) throws Exception {
-        StringBuilder out = new StringBuilder();
-        for (String chunk : splitChunks(text)) {
-            String url = MYMEMORY + "?q=" + URLEncoder.encode(chunk, StandardCharsets.UTF_8)
-                    + "&langpair=" + source + "|" + target
-                    + (contactEmail != null && !contactEmail.isBlank()
-                       ? "&de=" + URLEncoder.encode(contactEmail, StandardCharsets.UTF_8) : "");
-            HttpRequest req = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(Duration.ofSeconds(8)).GET().build();
-            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-            if (resp.statusCode() != 200) throw new RuntimeException("HTTP " + resp.statusCode());
-            JsonNode node = json.readTree(resp.body()).path("responseData").path("translatedText");
-            if (node.isMissingNode() || node.asText().isBlank()) throw new RuntimeException("empty response");
-            if (out.length() > 0) out.append(' ');
-            out.append(node.asText());
-        }
-        return out.toString();
-    }
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("q", text);
+        body.put("source", source);
+        body.put("target", target);
+        body.put("format", "text");
+        if (apiKey != null && !apiKey.isBlank()) body.put("api_key", apiKey);
 
-    /** Split long text into ≤MAX_CHUNK pieces on sentence/word boundaries. */
-    private List<String> splitChunks(String text) {
-        List<String> chunks = new ArrayList<>();
-        if (text.length() <= MAX_CHUNK) { chunks.add(text); return chunks; }
-        String[] words = text.split(" ");
-        StringBuilder cur = new StringBuilder();
-        for (String w : words) {
-            if (cur.length() + w.length() + 1 > MAX_CHUNK && cur.length() > 0) {
-                chunks.add(cur.toString()); cur.setLength(0);
-            }
-            if (cur.length() > 0) cur.append(' ');
-            cur.append(w);
-        }
-        if (cur.length() > 0) chunks.add(cur.toString());
-        return chunks;
+        String endpoint = libreUrl.replaceAll("/+$", "") + "/translate";
+        HttpRequest req = HttpRequest.newBuilder(URI.create(endpoint))
+                .timeout(Duration.ofSeconds(20))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body), StandardCharsets.UTF_8))
+                .build();
+        HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+        if (resp.statusCode() != 200)
+            throw new RuntimeException("LibreTranslate HTTP " + resp.statusCode() + ": " + resp.body());
+        JsonNode node = json.readTree(resp.body()).path("translatedText");
+        if (node.isMissingNode() || node.asText().isBlank())
+            throw new RuntimeException("LibreTranslate empty response: " + resp.body());
+        return node.asText();
     }
 
     private static boolean containsArabic(String text) {

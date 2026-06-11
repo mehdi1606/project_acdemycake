@@ -12,6 +12,7 @@ import com.academy.repository.CourseCategoryRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.CategoryService;
 import com.academy.service.FileStorageService;
+import com.academy.service.TranslationService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CourseCategoryRepository categoryRepository;
     private final FileStorageService fileStorageService;
     private final UserService userService;
+    private final TranslationService translationService;
 
     @Override
     public CourseCategory findById(UUID id) {
@@ -103,6 +105,10 @@ public class CategoryServiceImpl implements CategoryService {
         category = categoryRepository.save(category);
         log.info("Category created: {} with slug: {}", request.getName(), slug);
 
+        // Pre-translate so the category shows in both languages from the first view.
+        translationService.prewarm(category.getName());
+        translationService.prewarm(category.getDescription());
+
         return CategoryResponse.fromEntity(category);
     }
 
@@ -132,6 +138,9 @@ public class CategoryServiceImpl implements CategoryService {
 
         category = categoryRepository.save(category);
         log.info("Category updated: {}", id);
+
+        translationService.prewarm(category.getName());
+        translationService.prewarm(category.getDescription());
 
         return CategoryResponse.fromEntity(category);
     }

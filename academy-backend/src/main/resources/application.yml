@@ -111,6 +111,12 @@ app:
     currency: MAD
     platform-fee-percentage: 20
 
+  # Dynamic AR↔EN translation via self-hosted LibreTranslate (Docker).
+  # Local dev: http://localhost:5000  ·  In docker-compose: http://libretranslate:5000
+  translation:
+    libretranslate-url: ${LIBRETRANSLATE_URL:http://localhost:5000}
+    api-key: ${LIBRETRANSLATE_API_KEY:}
+
 # MUX Configuration
 mux:
   token-id: ${MUX_TOKEN_ID:}

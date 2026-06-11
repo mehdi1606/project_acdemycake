@@ -111,7 +111,17 @@
       "Bash(grep -q 'clean if no courseList' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bo3vjdyvh.output)",
       "Bash(break)",
       "Bash(sleep 2)",
-      "Bash(echo \"=== FINAL ===\")"
+      "Bash(echo \"=== FINAL ===\")",
+      "Bash(docker --version)",
+      "Bash(docker info *)",
+      "Bash(docker rm *)",
+      "Bash(docker run *)",
+      "Bash(echo \"RUN_EXIT=$?\")",
+      "Bash(docker compose *)",
+      "Bash(echo \"CONFIG_EXIT=$?\")",
+      "Bash(cd /c/Users/PC/Plateform)",
+      "Bash(docker rename *)",
+      "Bash(docker update *)"
     ]
   }
 }

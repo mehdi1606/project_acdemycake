@@ -38,6 +38,13 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PostMapping("/translations/prewarm-all")
+    @Operation(summary = "Translate all existing courses & categories in the background (LibreTranslate)")
+    public ResponseEntity<ApiResponse<Object>> prewarmTranslations() {
+        Object result = adminService.prewarmAllTranslations();
+        return ResponseEntity.ok(ApiResponse.success("Translation prewarm started", result));
+    }
+
     // User Management
     @PostMapping("/users")
     @Operation(summary = "Create a new user account and send credentials via email")
