@@ -52,6 +52,7 @@ public class CourseServiceImpl implements CourseService {
     private final UserService userService;
     private final CategoryService categoryService;
     private final FileStorageService fileStorageService;
+    private final com.academy.service.TranslationService translationService;
     private final Slugify slugify = Slugify.builder().build();
 
     @Override
@@ -236,6 +237,10 @@ public class CourseServiceImpl implements CourseService {
         }
 
         course = courseRepository.saveAndFlush(course);
+        // Proactively translate so the catalogue is ready in both languages immediately.
+        translationService.prewarm(course.getTitle());
+        translationService.prewarm(course.getShortDescription());
+        translationService.prewarm(course.getDescription());
         log.info("Course created: {} (id: {}) by instructor: {}", course.getTitle(), course.getId(), instructor.getEmail());
 
         return buildResponse(course);
@@ -325,6 +330,9 @@ public class CourseServiceImpl implements CourseService {
         }
 
         course = courseRepository.save(course);
+        translationService.prewarm(course.getTitle());
+        translationService.prewarm(course.getShortDescription());
+        translationService.prewarm(course.getDescription());
         log.info("Course updated: {}", course.getTitle());
 
         return buildResponse(course);

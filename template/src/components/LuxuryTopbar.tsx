@@ -292,7 +292,9 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
 
   const toggleLanguage = () => {
     const next = i18n.language === 'ar' ? 'en' : 'ar';
-    i18n.changeLanguage(next);
+    // Reload so all dynamic DB content is re-fetched in the new language
+    // (the backend localises responses by the Accept-Language header).
+    i18n.changeLanguage(next).then(() => window.location.reload());
   };
 
   const roleColor = getRoleColor();

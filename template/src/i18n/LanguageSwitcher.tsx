@@ -35,8 +35,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'dark' })
   const currentLang = languages.find(l => l.code === i18n.language) ?? languages[0];
 
   const handleChange = (code: string) => {
-    i18n.changeLanguage(code);
     setOpen(false);
+    // Reload so dynamic DB content re-fetches in the new language (backend localises by Accept-Language).
+    i18n.changeLanguage(code).then(() => window.location.reload());
   };
 
   // Close on outside click

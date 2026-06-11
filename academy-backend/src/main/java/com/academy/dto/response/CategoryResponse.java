@@ -24,9 +24,9 @@ public class CategoryResponse {
     public static CategoryResponse fromEntity(CourseCategory category) {
         return CategoryResponse.builder()
                 .id(category.getId())
-                .name(category.getName())
+                .name(com.academy.service.TranslationSupport.localize(category.getName()))
                 .slug(category.getSlug())
-                .description(category.getDescription())
+                .description(com.academy.service.TranslationSupport.localize(category.getDescription()))
                 .imageUrl(category.getImageUrl())
                 .displayOrder(category.getDisplayOrder())
                 .coursesCount(0) // Will be set separately if needed
@@ -36,9 +36,9 @@ public class CategoryResponse {
     public static CategoryResponse fromEntityWithCount(CourseCategory category, int coursesCount) {
         return CategoryResponse.builder()
                 .id(category.getId())
-                .name(category.getName())
+                .name(com.academy.service.TranslationSupport.localize(category.getName()))
                 .slug(category.getSlug())
-                .description(category.getDescription())
+                .description(com.academy.service.TranslationSupport.localize(category.getDescription()))
                 .imageUrl(category.getImageUrl())
                 .displayOrder(category.getDisplayOrder())
                 .coursesCount(coursesCount)

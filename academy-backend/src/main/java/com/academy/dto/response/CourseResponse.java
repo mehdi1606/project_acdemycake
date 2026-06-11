@@ -96,10 +96,10 @@ public class CourseResponse {
 
         return CourseResponse.builder()
                 .id(course.getId())
-                .title(course.getTitle())
+                .title(com.academy.service.TranslationSupport.localize(course.getTitle()))
                 .slug(course.getSlug())
-                .description(course.getDescription())
-                .shortDescription(course.getShortDescription())
+                .description(com.academy.service.TranslationSupport.localize(course.getDescription()))
+                .shortDescription(com.academy.service.TranslationSupport.localize(course.getShortDescription()))
                 .thumbnailUrl(course.getThumbnailUrl())
                 .previewVideoUrl(course.getPreviewVideoUrl())
                 .instructor(instructor)

@@ -51,10 +51,6 @@ const Howitworks = () => {
             border-right: none !important;
             border-left: 2px solid var(--sl-gold) !important;
           }
-          [dir="rtl"] .sl-hiw-ribbon {
-            left: auto !important;
-            right: -20px !important;
-          }
           @media (max-width: 576px) {
             .sl-process .sl-section__header h2 { font-size: clamp(1.6rem, 7vw, 2.4rem) !important; }
           }
@@ -198,32 +194,6 @@ const Howitworks = () => {
                                         `${process.env.PUBLIC_URL}/assets/img/cake/12.png`
                                 }}
                             />
-
-                            {/* Floating ribbon detail */}
-                            <div
-                                className="sl-hiw-ribbon"
-                                style={{
-                                    position: 'absolute',
-                                    bottom: -20,
-                                    left: -20,
-                                    width: 130,
-                                    borderRadius: '50%',
-                                    overflow: 'hidden',
-                                    border: '3px solid rgba(197,145,44,0.35)',
-                                    boxShadow: '0 8px 28px rgba(74,20,37,0.5)',
-                                    zIndex: 3,
-                                }}
-                                data-aos="zoom-in"
-                                data-aos-delay="600"
-                                data-aos-duration="600"
-                            >
-                                <img
-                                    src={`${process.env.PUBLIC_URL}/assets/img/cake/13.png`}
-                                    alt=""
-                                    style={{ width: '100%', display: 'block' }}
-                                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none' }}
-                                />
-                            </div>
                         </div>
                     </div>
 
