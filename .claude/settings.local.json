@@ -121,7 +121,12 @@
       "Bash(echo \"CONFIG_EXIT=$?\")",
       "Bash(cd /c/Users/PC/Plateform)",
       "Bash(docker rename *)",
-      "Bash(docker update *)"
+      "Bash(docker update *)",
+      "Bash(grep -nE \">[A-Za-z][A-Za-z' ]{3,}<|title=['\\\\\"][A-Z]|placeholder=['\\\\\"][A-Z]\" src/feature-module/Courses/course-watch/courseWatch.tsx)",
+      "Bash(grep -q 'clean if no courseWatch' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bc05y9h21.output)",
+      "Bash(echo \"=== RESULT ===\")",
+      "Bash(grep -iE 'courseWatch\\\\.tsx|clean if no courseWatch' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bc05y9h21.output)",
+      "Bash(echo \"[[done]]\")"
     ]
   }
 }

@@ -504,7 +504,7 @@ const CourseWatch: React.FC = () => {
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', marginTop:4 }}>
               <span style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{pct}% {t('courseWatch.complete', 'complete')}</span>
-              {pct===100 && <span style={{ fontSize:10, color:'#4ADE80', fontWeight:700 }}>🎉 Done!</span>}
+              {pct===100 && <span style={{ fontSize:10, color:'#4ADE80', fontWeight:700 }}>🎉 {t('courseWatch.done', 'Done!')}</span>}
             </div>
           </div>
 
@@ -576,7 +576,7 @@ const CourseWatch: React.FC = () => {
                           key={lesson.id}
                           role="button"
                           onClick={() => { if (!locked) doSelectLesson(lesson); }}
-                          title={locked ? 'Complete the previous lesson first' : lesson.title}
+                          title={locked ? t('courseWatch.completePrevFirst', 'Complete the previous lesson first') : lesson.title}
                           style={{
                             display:'flex', alignItems:'center', gap:10,
                             padding:'8px 12px', borderRadius:8,
@@ -767,25 +767,25 @@ const CourseWatch: React.FC = () => {
                     {selectedLesson.title}
                   </h5>
                   <span style={{ fontSize:12, color:'#9A8080', fontWeight:600 }}>
-                    Lesson {lessonIdx+1} of {totalLessons}
+                    {t('courseWatch.lessonProgress', { current: lessonIdx+1, total: totalLessons, defaultValue: 'Lesson {{current}} of {{total}}' })}
                   </span>
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                   <button onClick={() => goTo(-1)} disabled={!hasPrev} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 16px', borderRadius:8, border:`1.5px solid rgba(197,151,62,0.2)`, background:'transparent', color:hasPrev?BURG:'#c4b5b5', fontWeight:700, fontSize:13, cursor:hasPrev?'pointer':'not-allowed', transition:'all 0.2s' }}>
-                    <i className="fa-solid fa-chevron-left" style={{ fontSize:10 }} />Prev
+                    <i className="fa-solid fa-chevron-left" style={{ fontSize:10 }} />{t('courseWatch.prev', 'Prev')}
                   </button>
                   <button onClick={() => goTo(1)} disabled={!hasNext} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 16px', borderRadius:8, border:`1.5px solid rgba(197,151,62,0.2)`, background:'transparent', color:hasNext?BURG:'#c4b5b5', fontWeight:700, fontSize:13, cursor:hasNext?'pointer':'not-allowed', transition:'all 0.2s' }}>
-                    Next <i className="fa-solid fa-chevron-right" style={{ fontSize:10 }} />
+                    {t('courseWatch.next', 'Next')} <i className="fa-solid fa-chevron-right" style={{ fontSize:10 }} />
                   </button>
                   {!isDone && selectedLesson.contentType !== 'QUIZ' && (
                     <button onClick={markComplete} disabled={markingDone} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:8, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', color:WHITE, fontWeight:700, fontSize:13, boxShadow:'0 4px 12px rgba(45,95,63,0.28)', opacity:markingDone?0.7:1, transition:'all 0.2s' }}>
                       {markingDone ? <div style={{ width:13, height:13, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.4)', borderTopColor:WHITE, animation:'spin 0.8s linear infinite' }} /> : <i className="fa-solid fa-circle-check" />}
-                      Mark Complete
+                      {t('courseWatch.markComplete', 'Mark Complete')}
                     </button>
                   )}
                   {isDone && (
                     <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background:'rgba(74,222,128,0.09)', border:'1px solid rgba(74,222,128,0.22)', color:'#15803D', fontSize:13, fontWeight:700 }}>
-                      <i className="fa-solid fa-circle-check" />Completed
+                      <i className="fa-solid fa-circle-check" />{t('courseWatch.completed', 'Completed')}
                     </div>
                   )}
                 </div>
@@ -803,7 +803,7 @@ const CourseWatch: React.FC = () => {
                       boxShadow: activeTab===tab ? '0 4px 14px rgba(101,28,50,0.25)' : 'none',
                       transition:'all 0.2s', position:'relative',
                     }}>
-                      {tab}
+                      {t('courseWatch.' + tab, tab)}
                       {tab==='resources' && (lessonDetail?.resources?.length??0)>0 && (
                         <span style={{ position:'absolute', top:-6, right:-4, background:GOLD, color:WHITE, fontSize:9, fontWeight:800, borderRadius:20, padding:'1px 5px', lineHeight:1.4 }}>
                           {lessonDetail!.resources.length}
@@ -822,19 +822,19 @@ const CourseWatch: React.FC = () => {
                   <div style={{ maxWidth:780, display:'flex', flexDirection:'column', gap:18 }}>
                     {lessonDetail?.description && (
                       <div style={panelStyle}>
-                        <h6 style={panelTitle}>About this lesson</h6>
+                        <h6 style={panelTitle}>{t('courseWatch.aboutThisLesson', 'About this lesson')}</h6>
                         <p style={{ color:'#4b5563', lineHeight:1.8, margin:0, fontSize:14 }}>{lessonDetail.description}</p>
                       </div>
                     )}
                     {course?.shortDescription && (
                       <div style={panelStyle}>
-                        <h6 style={panelTitle}>About this course</h6>
+                        <h6 style={panelTitle}>{t('courseWatch.aboutThisCourse', 'About this course')}</h6>
                         <p style={{ color:'#4b5563', lineHeight:1.8, margin:0, fontSize:14 }}>{localCourse?.shortDescription || course.shortDescription}</p>
                       </div>
                     )}
                     {course?.whatYouWillLearn && (
                       <div style={{ ...panelStyle, background:`linear-gradient(135deg,rgba(197,151,62,0.03),${WHITE})`, border:`1px solid rgba(197,151,62,0.1)` }}>
-                        <h6 style={panelTitle}>What You'll Learn</h6>
+                        <h6 style={panelTitle}>{t('courseWatch.whatYouWillLearn', "What You'll Learn")}</h6>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:'8px 16px' }}>
                           {course.whatYouWillLearn.split('\n').filter(Boolean).map((item, i) => (
                             <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
@@ -849,7 +849,7 @@ const CourseWatch: React.FC = () => {
                     )}
                     {course?.requirements && (
                       <div style={panelStyle}>
-                        <h6 style={panelTitle}>Requirements</h6>
+                        <h6 style={panelTitle}>{t('courseWatch.requirements', 'Requirements')}</h6>
                         <ul style={{ listStyle:'none', padding:0, margin:0, display:'flex', flexDirection:'column', gap:8 }}>
                           {course.requirements.split('\n').filter(Boolean).map((item, i) => (
                             <li key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, color:'#4b5563', fontSize:13 }}>
@@ -863,7 +863,7 @@ const CourseWatch: React.FC = () => {
                     {!lessonDetail?.description && !course?.shortDescription && !course?.whatYouWillLearn && !course?.requirements && (
                       <div style={{ ...panelStyle, textAlign:'center', padding:'52px 24px', color:'#9A8080' }}>
                         <i className="fa-regular fa-file-lines" style={{ fontSize:44, display:'block', marginBottom:12, opacity:0.25 }} />
-                        <p style={{ margin:0, fontWeight:600 }}>No overview content for this lesson.</p>
+                        <p style={{ margin:0, fontWeight:600 }}>{t('courseWatch.noOverview', 'No overview content for this lesson.')}</p>
                       </div>
                     )}
                   </div>
@@ -875,8 +875,8 @@ const CourseWatch: React.FC = () => {
                     {(lessonDetail?.resources?.length??0) === 0 ? (
                       <div style={{ ...panelStyle, textAlign:'center', padding:'56px 24px', color:'#9A8080' }}>
                         <i className="fa-regular fa-folder-open" style={{ fontSize:52, display:'block', marginBottom:14, opacity:0.25 }} />
-                        <p style={{ margin:0, fontWeight:700, fontSize:15 }}>No resources for this lesson</p>
-                        <p style={{ margin:'6px 0 0', fontSize:13, opacity:0.6 }}>The instructor hasn't uploaded any files yet</p>
+                        <p style={{ margin:0, fontWeight:700, fontSize:15 }}>{t('courseWatch.noResources', 'No resources for this lesson')}</p>
+                        <p style={{ margin:'6px 0 0', fontSize:13, opacity:0.6 }}>{t('courseWatch.noResourcesSub', "The instructor hasn't uploaded any files yet")}</p>
                       </div>
                     ) : (
                       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -928,7 +928,7 @@ const CourseWatch: React.FC = () => {
                                   </div>
                                 </div>
                                 <div style={{ display:'flex', gap:8, flexShrink:0 }}>
-                                  <button onClick={e => { e.stopPropagation(); setActiveRes(isSel?null:res); }} style={{ width:36, height:36, borderRadius:8, border:`1px solid ${isSel?'rgba(101,28,50,0.2)':'rgba(197,151,62,0.2)'}`, background:isSel?'rgba(101,28,50,0.06)':'rgba(197,151,62,0.06)', color:isSel?BURG:GOLD, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:14 }} title={isSel?'Close preview':'Preview'}>
+                                  <button onClick={e => { e.stopPropagation(); setActiveRes(isSel?null:res); }} style={{ width:36, height:36, borderRadius:8, border:`1px solid ${isSel?'rgba(101,28,50,0.2)':'rgba(197,151,62,0.2)'}`, background:isSel?'rgba(101,28,50,0.06)':'rgba(197,151,62,0.06)', color:isSel?BURG:GOLD, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:14 }} title={isSel?t('courseWatch.closePreview','Close preview'):t('courseWatch.preview','Preview')}>
                                     <i className={`fa-solid ${isSel?'fa-chevron-up':'fa-eye'}`} />
                                   </button>
                                 </div>
@@ -1001,7 +1001,7 @@ const CourseWatch: React.FC = () => {
                                     {v.type==='none' && (
                                       <div style={{ padding:'48px 24px', textAlign:'center', color:'#9A8080' }}>
                                         <i className={`fa-solid ${fc.icon}`} style={{ fontSize:52, color:fc.color, display:'block', marginBottom:16, opacity:0.5 }} />
-                                        <p style={{ fontWeight:700, fontSize:15, color:'#2C1810', marginBottom:8 }}>Preview not available for this file type</p>
+                                        <p style={{ fontWeight:700, fontSize:15, color:'#2C1810', marginBottom:8 }}>{t('courseWatch.previewNotAvailable', 'Preview not available for this file type')}</p>
                                         <p style={{ fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
                                           <i className="fa-solid fa-lock" style={{ color:GOLD }} />
                                           This resource is available for reading on the platform only
@@ -1025,7 +1025,7 @@ const CourseWatch: React.FC = () => {
               <div style={{ width:72, height:72, borderRadius:'50%', background:'rgba(197,151,62,0.06)', border:`2px solid rgba(197,151,62,0.12)`, display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <i className="fa-solid fa-circle-play" style={{ fontSize:30, color:'rgba(197,151,62,0.4)' }} />
               </div>
-              <p style={{ margin:0, fontSize:14, fontWeight:600 }}>Select a lesson to begin</p>
+              <p style={{ margin:0, fontSize:14, fontWeight:600 }}>{t('courseWatch.selectLessonToBegin', 'Select a lesson to begin')}</p>
             </div>
           )}
         </div>
