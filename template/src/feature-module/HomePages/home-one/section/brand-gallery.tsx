@@ -5,15 +5,30 @@
  * piece is presented like a gallery wall, flowing on from the "How It Works"
  * journey that precedes it (same dark burgundy world).
  */
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { all_routes } from '../../../router/all_routes'
 import { useTranslation } from 'react-i18next'
 
 const BrandGallery = () => {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const route = all_routes
+    const isRtl = i18n.language === 'ar'
     const scrollerRef = useRef<HTMLDivElement>(null)
+    const pausedRef = useRef(false)   // pause auto-scroll while hovering
+
+    // Bilingual header (AR / EN)
+    const header = isRtl
+        ? {
+            ornament: 'الأتيليه',
+            title: 'عالم من الكوتور والباتيسري الراقية',
+            description: 'من الإبداعات الفنية الحائزة على الجوائز إلى الدورات والماستر كلاس الاحترافية، اكتشف عالم SARALÖWE حيث يلتقي الفن، العلم، والتعليم في تجربة استثنائية واحدة.',
+        }
+        : {
+            ornament: 'The Atelier',
+            title: 'A World of Couture & Fine Patisserie',
+            description: 'From award-winning artistic creations to professional courses and masterclasses, discover the world of SARALÖWE — where art, science, and education meet in one extraordinary experience.',
+        }
 
     // Couture cake showcase — scrolls horizontally.
     const cakeItems = [
@@ -36,6 +51,30 @@ const BrandGallery = () => {
         el.scrollBy({ left: dir * Math.min(el.clientWidth * 0.8, 520), behavior: 'smooth' })
     }
 
+    // Continuous auto-scroll. The cards are rendered twice, so when we pass the end
+    // of the first set we jump back by exactly one set width → a seamless loop.
+    useEffect(() => {
+        const el = scrollerRef.current
+        if (!el) return
+        let raf = 0
+        let wrap = 0   // exact width of one card set (left offset of the first duplicate)
+        const SPEED = 0.5 // px per frame (~30px/s) — slow, elegant drift
+        const tick = () => {
+            if (wrap === 0) {
+                const firstDup = el.children[cakeItems.length] as HTMLElement | undefined
+                wrap = firstDup ? firstDup.offsetLeft : el.scrollWidth / 2
+            }
+            if (!pausedRef.current && wrap > 0) {
+                el.scrollLeft += SPEED
+                if (el.scrollLeft >= wrap) el.scrollLeft -= wrap
+            }
+            raf = requestAnimationFrame(tick)
+        }
+        raf = requestAnimationFrame(tick)
+        return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     return (
         <section className="sl-section sl-section--burg" style={{ position: 'relative', overflow: 'hidden' }}>
             <style>{`
@@ -43,7 +82,6 @@ const BrandGallery = () => {
                 display: flex;
                 gap: 1.25rem;
                 overflow-x: auto;
-                scroll-snap-type: x mandatory;
                 padding: 0.5rem 0 1.25rem;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;          /* Firefox */
@@ -102,12 +140,12 @@ const BrandGallery = () => {
                 <div className="sl-section__header center" data-aos="fade-up" data-aos-duration="800">
                     <div className="sl-ornament justify-content-center">
                         <span className="sl-script" style={{ fontSize: '1.8rem', color: 'var(--sl-gold)' }}>
-                            {t('brandGallery.ornament', 'The Atelier')}
+                            {header.ornament}
                         </span>
                     </div>
-                    <h2 className="light" style={{ marginTop: '0.5rem' }}>{t('brandGallery.title', 'A World of Couture Identity')}</h2>
-                    <p className="light" style={{ maxWidth: 560, margin: '0 auto' }}>
-                        {t('brandGallery.description', "Every creation reflects SARALÖWE's commitment to luxury, artistry, and timeless elegance — explore the world you'll learn to craft.")}
+                    <h2 className="light" style={{ marginTop: '0.5rem' }}>{header.title}</h2>
+                    <p className="light" style={{ maxWidth: 620, margin: '0 auto' }}>
+                        {header.description}
                     </p>
                 </div>
 
@@ -131,13 +169,19 @@ const BrandGallery = () => {
                     </div>
                 </div>
 
-                {/* Horizontal scroller */}
-                <div className="sl-hscroll" ref={scrollerRef} data-aos="fade-up" data-aos-duration="800">
-                    {cakeItems.map((item, i) => (
+                {/* Horizontal scroller — cards rendered twice for a seamless auto-scroll loop */}
+                <div
+                    className="sl-hscroll"
+                    ref={scrollerRef}
+                    data-aos="fade-up"
+                    data-aos-duration="800"
+                    onMouseEnter={() => { pausedRef.current = true }}
+                    onMouseLeave={() => { pausedRef.current = false }}
+                >
+                    {[...cakeItems, ...cakeItems].map((item, i) => (
                         <div className="sl-hscroll__card" key={i}>
                             <img
                                 src={`${process.env.PUBLIC_URL}/assets/img/${item.src}`}
-                                srcSet={`${process.env.PUBLIC_URL}/assets/img/${item.src} 1x`}
                                 alt={item.caption}
                                 loading="lazy"
                                 decoding="async"

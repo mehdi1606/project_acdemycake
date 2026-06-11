@@ -177,9 +177,9 @@ const BannerSection: React.FC = () => {
                             >
                                 <span
                                     className="sl-banner__tagline"
-                                    style={{ display: 'block' }}
+                                    style={{ display: 'block', fontSize: 'clamp(1rem, 2.2vw, 1.5rem)', lineHeight: 1.5, maxWidth: 580 }}
                                 >
-                                    {t('banner.theArtOfCake', 'The Art of Cake')}
+                                    {t('banner.theArtOfCake', 'The first Arabic academy & community specialised in patisserie and cake design')}
                                 </span>
                             </div>
 
@@ -191,20 +191,11 @@ const BannerSection: React.FC = () => {
                             >
                                 <h1
                                     className="sl-banner__title sl-shimmer-text"
-                                    style={{ marginBottom: '0.2rem' }}
+                                    style={{ marginBottom: '1.25rem', fontSize: 'clamp(2rem, 4.6vw, 3.5rem)', letterSpacing: '0.01em', lineHeight: 1.14 }}
                                 >
-                                    SARALÖWE
+                                    {t('banner.academyHeadline', 'Build Your Future in the World of Patisserie')}
                                 </h1>
                             </div>
-
-                            <p
-                                className="sl-banner__sub"
-                                data-aos="fade-up"
-                                data-aos-delay="220"
-                                data-aos-duration="700"
-                            >
-                                {t('banner.academySubtitle', 'Academy of Couture Pastry Design')}
-                            </p>
 
                             <p
                                 className="sl-banner__description"

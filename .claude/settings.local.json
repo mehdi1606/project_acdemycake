@@ -96,7 +96,15 @@
       "Bash(npx sass *)",
       "Bash(grep -n \"yaxis\\\\|\\\\\\\\$\\\\|formatter\\\\|labels:\\\\|tooltip\" feature-module/admin/dashboard/adminDashboard.tsx)",
       "Bash(python -c \"import reportlab, pypdf; print\\('reportlab+pypdf OK'\\)\")",
-      "Bash(python -c \"import fitz; print\\('pymupdf OK'\\)\")"
+      "Bash(python -c \"import fitz; print\\('pymupdf OK'\\)\")",
+      "Bash(python -c \"from PIL import Image; im=Image.open\\(r'template/public/assets/img/cover/back pattern.png'\\); print\\('dims:', im.size\\)\")",
+      "Bash(grep -o 'How It Works[^\"]\\\\{0,1800\\\\}' 98b8774a-a07e-411f-9b38-b19025679a9e.jsonl)",
+      "Bash(echo \"EXIT=$?\")",
+      "Read(//tmp/**)",
+      "Bash(rm -f \"C:/Users/PC/.claude/projects/C--Users-PC-Plateform/_hiw_extract.txt\" && echo \"cleaned\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/en.json','utf8'\\)\\); console.log\\('en.json OK'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/ar.json','utf8'\\)\\); console.log\\('ar.json OK'\\)\")",
+      "Bash(awk '/interface CourseCategory/,/^}/' src/services/api/types.ts)"
     ]
   }
 }

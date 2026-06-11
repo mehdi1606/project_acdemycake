@@ -1,54 +1,6 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-const CAKE_PATTERN_SVG = `
-<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
-  <g fill='none' stroke='rgba(222,140,160,0.18)' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'>
-    <g transform='translate(28,24)'>
-      <path d='M10,44 L18,62 L42,62 L50,44 Z'/>
-      <path d='M8,44 C8,24 18,12 30,12 C42,12 52,24 52,44 Z'/>
-      <path d='M26,12 Q30,2 34,12'/><circle cx='30' cy='8' r='4'/>
-    </g>
-    <g transform='translate(260,18)'>
-      <rect x='0' y='20' width='60' height='36' rx='3'/>
-      <line x1='0' y1='36' x2='60' y2='36'/>
-      <path d='M10,20 Q20,8 30,20'/><path d='M30,20 Q40,8 50,20'/>
-      <circle cx='20' cy='14' r='3'/><circle cx='40' cy='14' r='3'/>
-    </g>
-    <g transform='translate(14,148)'>
-      <ellipse cx='28' cy='14' rx='28' ry='14'/>
-      <ellipse cx='28' cy='44' rx='28' ry='14'/>
-      <rect x='4' y='14' width='48' height='30' rx='2'/>
-    </g>
-    <g transform='translate(276,140)'>
-      <path d='M6,40 L14,58 L46,58 L54,40 Z'/>
-      <path d='M4,40 C4,22 14,10 30,10 C46,10 56,22 56,40 Z'/>
-      <path d='M22,10 Q30,0 38,10'/><circle cx='30' cy='6' r='4'/>
-    </g>
-    <g transform='translate(20,252)'>
-      <rect x='4'  y='44' width='72' height='22' rx='3'/>
-      <rect x='10' y='24' width='60' height='22' rx='3'/>
-      <rect x='16' y='8'  width='48' height='18' rx='3'/>
-      <path d='M28,8 Q40,-4 52,8'/><circle cx='40' cy='4' r='4'/>
-    </g>
-    <g transform='translate(268,254)'>
-      <line x1='10' y1='0' x2='10' y2='70'/>
-      <path d='M4,0 L4,28 Q10,32 16,28 L16,0'/>
-      <line x1='4'  y1='0' x2='4'  y2='22'/>
-      <line x1='10' y1='0' x2='10' y2='22'/>
-      <line x1='16' y1='0' x2='16' y2='22'/>
-    </g>
-    <g stroke='rgba(222,140,160,0.22)'>
-      <path d='M168,40 L171,48 L179,48 L173,54 L175,62 L168,57 L161,62 L163,54 L157,48 L165,48 Z'/>
-      <path d='M168,188 L170,194 L176,194 L171,198 L173,204 L168,200 L163,204 L165,198 L160,194 L166,194 Z'/>
-      <path d='M90,120 L92,126 L98,126 L93,130 L95,136 L90,132 L85,136 L87,130 L82,126 L88,126 Z'/>
-      <path d='M248,108 L250,114 L256,114 L251,118 L253,124 L248,120 L243,124 L245,118 L240,114 L246,114 Z'/>
-    </g>
-  </g>
-</svg>`
-
-const PATTERN_URL = `url("data:image/svg+xml,${encodeURIComponent(CAKE_PATTERN_SVG)}")`
-
 const Featureinstructor = () => {
   const { t } = useTranslation()
   const avatarSrc = 'assets/img/avatar/avatar1.jpeg'
@@ -65,13 +17,13 @@ const Featureinstructor = () => {
       <style>{`
         /* ── Instructor section responsive ─────────────────────── */
         .sl-instr-section {
-          /* Unified burgundy (was #5C1228) so all dark sections share one palette.
-             Pattern layered ON TOP of the gradient via two background-image layers. */
+          /* Custom couture pattern image layered over the unified burgundy gradient. */
           background-color: #5A1A2E;
-          background-image: ${PATTERN_URL},
+          background-image: url("${process.env.PUBLIC_URL}/assets/img/cover/back%20pattern.png"),
             radial-gradient(120% 85% at 50% 50%, #6E1E36 0%, #5A1A2E 55%, #4A1425 100%);
-          background-repeat: repeat, no-repeat;
-          background-size: 340px 340px, cover;
+          background-repeat: no-repeat, no-repeat;
+          background-size: cover, cover;
+          background-position: center, center;
           position: relative;
           overflow: hidden;
           padding: 100px 0 90px;

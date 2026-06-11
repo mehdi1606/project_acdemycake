@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next'
 
 import BannerSection from './section/banner'
 import Benefits from './section/benefits'
+import StorySection from './section/story'
 import WhyChooseUs from './section/why-choose-us'
 import Howitworks from './section/how-it-works'
 import BrandGallery from './section/brand-gallery'
@@ -103,11 +104,20 @@ const HomeOne: React.FC = () => {
             {/* 3 — Featured Courses (hidden until courses are published) */}
             {/* <Featuredcourse /> */}
 
+            {/* 3 — Brand Identity Gallery (couture showcase — now the 2nd section) */}
+            <BrandGallery />
+
+            {/* ↑ blend from the dark gallery into the light sections */}
+            <SectionTransition to="light" />
+
             {/* 4 — Why Choose Us (animated stats + visual panels) */}
             <WhyChooseUs />
 
             {/* 5 — Benefits + certificate visual */}
             <Benefits />
+
+            {/* 5b — Where the Story Began (heritage + formation album) */}
+            <StorySection />
 
             {/* ↓ smooth blend into the dark "atelier" block */}
             <SectionTransition to="dark" />
@@ -115,10 +125,7 @@ const HomeOne: React.FC = () => {
             {/* 6 — How It Works (split layout) */}
             <Howitworks />
 
-            {/* 7 — Brand Identity Gallery */}
-            <BrandGallery />
-
-            {/* 8 — Featured Instructors */}
+            {/* 7 — Featured Instructors */}
             <Featureinstructor />
 
             {/* ↑ blend back to light */}

@@ -1,3 +1,8 @@
+/**
+ * Testimonials — SARALÖWE Academy
+ * "What Our Students Say" — real student voices, presented in an auto-playing
+ * carousel. Bilingual (AR/EN), RTL-aware slider.
+ */
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import Slider from 'react-slick'
@@ -12,51 +17,69 @@ const Stars = () => (
     </div>
 )
 
-const Testimonials = () => {
-    const { t } = useTranslation();
+// First letters of the first two name-parts (works for AR & EN)
+const initialsOf = (name: string) =>
+    name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('')
 
-    const testimonials = [
-        {
-            text: t('home.testimonials.t1.text', 'SARALÖWE transformed how I approach cake design. The isomalt module alone is worth every penny — I landed my first luxury wedding contract three weeks after completing it.'),
-            name: 'Amelia Fontaine',
-            role: t('home.testimonials.t1.role', 'Pastry Artist · Paris'),
-            avatar: null,
-            initials: 'AF',
-            dark: false,
+const Testimonials = () => {
+    const { i18n } = useTranslation()
+    const isRtl = i18n.language === 'ar'
+
+    const content = {
+        en: {
+            ornament: 'Voices',
+            title: 'What Our Students Say',
+            subtitle: 'Real stories from cake designers and pastry artists who developed their craft with SARALÖWE Academy.',
+            stats: [
+                { value: '98%',  label: 'Student satisfaction' },
+                { value: '4.9★', label: 'Average course rating' },
+                { value: '50+',  label: 'Countries represented' },
+            ],
+            list: [
+                { name: 'Nahla Bouchaib',        role: 'Cake Designer · Morocco',            text: 'When you learn with Chef Sara, you immediately feel she has a genuine scientific background. She doesn’t just explain the steps — she explains the reasons behind every technique, which makes learning deeper and far easier to apply.' },
+                { name: 'Hajar Mansouri',        role: 'Pastry Business Owner · Morocco',     text: 'For the first time I feel I truly understand what I’m doing. Every lesson is full of precise information and details that give you the confidence to develop your own recipes and your own business.' },
+                { name: 'Aya Ben Omar',          role: 'Cake Designer · Tunisia',            text: 'What sets SARALÖWE Academy apart is its level of professionalism and organisation. The content is rich, clear, and reflects long years of real expertise in the field.' },
+                { name: 'Rim Al-Zahrani',        role: 'Cake Artist · Saudi Arabia',         text: 'I had followed Chef Sara’s work for years, but learning with her revealed secrets and techniques I hadn’t found anywhere else. An experience worth every minute.' },
+                { name: 'Mariam El-Kettani',     role: 'Patisserie Student · Morocco',        text: 'What impressed me most is that Chef Sara doesn’t just pass on knowledge — she passes on the professional way of thinking behind every successful project.' },
+                { name: 'Iman Abdullah',         role: 'Cake Designer · UAE',                 text: 'Between art, science, and attention to detail, I found in SARALÖWE what I had been looking for for years. Refined content that rivals the best international academies.' },
+                { name: 'Nour El-Houda Bensalem',role: 'Artistic Cake Specialist · Algeria',  text: 'The quality of the lessons, the organisation, and the guidance made me feel as if I were receiving personal training. A professional learning experience in every sense.' },
+                { name: 'Asmaa El-Alaoui',       role: 'Home Pastry Business Owner · Morocco', text: 'What I loved most is the blend of the artistic and the scientific side. I no longer just follow recipes — I now understand why they work and how to improve them.' },
+            ],
         },
-        {
-            text: t('home.testimonials.t2.text', "The video quality and step-by-step guidance are unlike anything I've seen on other platforms. My instructors responded to feedback within hours. Absolutely world-class."),
-            name: 'Yuki Nakashima',
-            role: t('home.testimonials.t2.role', 'Cake Designer · Tokyo'),
-            avatar: null,
-            initials: 'YN',
-            dark: true,
+        ar: {
+            ornament: 'آراء',
+            title: 'ماذا تقول طالباتنا',
+            subtitle: 'قصص حقيقية من مصممات كيك وفنانات باتيسري طوّرن مهاراتهن مع أكاديمية SARALÖWE.',
+            stats: [
+                { value: '98%',  label: 'رضا الطالبات' },
+                { value: '4.9★', label: 'متوسط تقييم الدورات' },
+                { value: '50+',  label: 'دولة حول العالم' },
+            ],
+            list: [
+                { name: 'نهلة بوشعيب',     role: 'مصممة كيك – المغرب',              text: 'عندما تتعلم مع الشيف سارة، تشعر فوراً أنها تمتلك خلفية علمية حقيقية. فهي لا تشرح الخطوات فقط، بل تشرح الأسباب وراء كل تقنية، مما يجعل التعلم أعمق وأسهل في التطبيق.' },
+                { name: 'هاجر منصوري',     role: 'صاحبة مشروع حلويات – المغرب',      text: 'لأول مرة أشعر أنني أفهم ما أفعله فعلاً. كل درس مليء بالمعلومات الدقيقة والتفاصيل التي تمنحك الثقة لتطوير وصفاتك وأعمالك بنفسك.' },
+                { name: 'آية بن عمر',       role: 'مصممة كيك – تونس',                text: 'ما يميز أكاديمية SARALÖWE هو مستوى الاحترافية والتنظيم. المحتوى غني، واضح، ويعكس سنوات طويلة من الخبرة والتجربة في المجال.' },
+                { name: 'ريم الزهراني',     role: 'فنانة كيك – السعودية',            text: 'كنت أتابع أعمال الشيف سارة منذ سنوات، لكن التعلم معها كشف لي أسراراً وتقنيات لم أجدها في أي مكان آخر. تجربة تستحق كل دقيقة.' },
+                { name: 'مريم الكتاني',     role: 'طالبة باتيسري – المغرب',          text: 'أكثر ما أعجبني هو أن الشيف سارة لا تنقل المعرفة فقط، بل تنقل طريقة التفكير الاحترافية التي تقف وراء كل مشروع ناجح.' },
+                { name: 'إيمان عبد الله',   role: 'مصممة كيك – الإمارات',            text: 'بين الفن، العلم، والدقة في التفاصيل، وجدت في SARALÖWE ما كنت أبحث عنه منذ سنوات. محتوى راقٍ يوازي أفضل الأكاديميات العالمية.' },
+                { name: 'نور الهدى بنسالم', role: 'متخصصة في الكيك الفني – الجزائر', text: 'جودة الدروس والتنظيم والإرشادات جعلتني أشعر وكأنني أتلقى تدريباً شخصياً. تجربة تعليمية احترافية بكل معنى الكلمة.' },
+                { name: 'أسماء العلوي',     role: 'صاحبة مشروع حلويات منزلية – المغرب', text: 'أكثر ما أعجبني هو الجمع بين الجانب الفني والجانب العلمي. لم أعد أطبق الوصفات فقط، بل أصبحت أفهم أسباب نجاحها وكيفية تطويرها.' },
+            ],
         },
-        {
-            text: t('home.testimonials.t3.text', "I was a complete beginner. Eighteen months later I'm running a boutique cake studio. SARALÖWE gave me the confidence, the skills, and the certificate to make it real."),
-            name: 'Isabela Moreno',
-            role: t('home.testimonials.t3.role', 'Studio Owner · Madrid'),
-            avatar: null,
-            initials: 'IM',
-            dark: false,
-        },
-        {
-            text: t('home.testimonials.t4.text', 'The sugar flower programme is extraordinarily detailed. Every petal, every shade, every tool — explained with the patience of a true master. This is couture education.'),
-            name: 'Charlotte Reed',
-            role: t('home.testimonials.t4.role', 'Floral Sugar Artist · London'),
-            avatar: null,
-            initials: 'CR',
-            dark: false,
-        },
-    ]
+    }
+
+    const L = content[isRtl ? 'ar' : 'en']
+
     const sliderSettings = {
         infinite: true,
         slidesToShow: 3,
         slidesToScroll: 1,
         dots: true,
+        arrows: false,
         autoplay: true,
         autoplaySpeed: 5500,
         pauseOnHover: true,
+        rtl: isRtl,
         responsive: [
             { breakpoint: 1100, settings: { slidesToShow: 2, slidesToScroll: 1 } },
             { breakpoint: 640, settings: { slidesToShow: 1, slidesToScroll: 1 } },
@@ -105,46 +128,47 @@ const Testimonials = () => {
                     data-aos-duration="800"
                 >
                     <div className="sl-ornament justify-content-center">
-                        <span className="sl-script" style={{ fontSize: '1.8rem' }}>{t('home.testimonials.ornament', 'Voices')}</span>
+                        <span className="sl-script" style={{ fontSize: '1.8rem' }}>{L.ornament}</span>
                     </div>
-                    <h2 style={{ marginTop: '0.5rem' }}>{t('home.testimonials.title', 'What Our Students Say')}</h2>
-                    <p>
-                        {t('home.testimonials.subtitle', 'Real stories from pastry artists who turned their passion into a career with SARALÖWE Academy.')}
-                    </p>
+                    <h2 style={{ marginTop: '0.5rem' }}>{L.title}</h2>
+                    <p>{L.subtitle}</p>
                 </div>
 
                 {/* Slider */}
                 <div className="sl-slider-wrap" data-aos="fade-up" data-aos-delay="100" data-aos-duration="900">
                     <Slider {...sliderSettings}>
-                        {testimonials.map((testimonial, i) => (
-                            <div key={i} className="px-2">
-                                <div className={`sl-testimonial-card${testimonial.dark ? ' sl-testimonial-card--dark' : ''}`}>
-                                    <div className="sl-testimonial-card__quote">"</div>
-                                    <p className="sl-testimonial-card__text">{testimonial.text}</p>
-                                    <div className="sl-testimonial-card__footer">
-                                        {/* Avatar initials circle */}
-                                        <div className="sl-testimonial-card__avatar" style={{
-                                            background: testimonial.dark ? 'rgba(197,145,44,0.2)' : 'rgba(101,28,50,0.12)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        }}>
-                                            <span style={{
-                                                fontFamily: 'var(--sl-font-display)',
-                                                fontSize: '0.85rem',
-                                                fontWeight: 700,
-                                                color: testimonial.dark ? 'var(--sl-gold)' : 'var(--sl-burgundy)',
+                        {L.list.map((testimonial, i) => {
+                            const dark = i % 3 === 1
+                            return (
+                                <div key={i} className="px-2">
+                                    <div className={`sl-testimonial-card${dark ? ' sl-testimonial-card--dark' : ''}`} style={{ height: '100%' }}>
+                                        <div className="sl-testimonial-card__quote">"</div>
+                                        <p className="sl-testimonial-card__text">{testimonial.text}</p>
+                                        <div className="sl-testimonial-card__footer">
+                                            {/* Avatar initials circle */}
+                                            <div className="sl-testimonial-card__avatar" style={{
+                                                background: dark ? 'rgba(197,145,44,0.2)' : 'rgba(101,28,50,0.12)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             }}>
-                                                {testimonial.initials}
-                                            </span>
+                                                <span style={{
+                                                    fontFamily: 'var(--sl-font-display)',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 700,
+                                                    color: dark ? 'var(--sl-gold)' : 'var(--sl-burgundy)',
+                                                }}>
+                                                    {initialsOf(testimonial.name)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <div className="sl-testimonial-card__name">{testimonial.name}</div>
+                                                <div className="sl-testimonial-card__role">{testimonial.role}</div>
+                                            </div>
+                                            <Stars />
                                         </div>
-                                        <div>
-                                            <div className="sl-testimonial-card__name">{testimonial.name}</div>
-                                            <div className="sl-testimonial-card__role">{testimonial.role}</div>
-                                        </div>
-                                        <Stars />
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </Slider>
                 </div>
 
@@ -155,11 +179,7 @@ const Testimonials = () => {
                     data-aos-delay="200"
                     data-aos-duration="800"
                 >
-                    {[
-                        { value: '98%', label: t('home.testimonials.stat1', 'Student satisfaction') },
-                        { value: '4.9★', label: t('home.testimonials.stat2', 'Average course rating') },
-                        { value: '50+', label: t('home.testimonials.stat3', 'Countries represented') },
-                    ].map((stat, i) => (
+                    {L.stats.map((stat, i) => (
                         <div key={i} className="col-auto text-center">
                             <div style={{
                                 fontFamily: 'var(--sl-font-display)',
