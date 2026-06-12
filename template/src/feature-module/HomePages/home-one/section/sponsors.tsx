@@ -62,7 +62,7 @@ const SponsorsSection: React.FC = () => {
         .sl-spon__sub { color: #6f6058; font-size: 1rem; line-height: 1.7; max-width: 620px; margin: 0 auto; }
 
         /* ── Featured / main sponsor (out of the scroll) ── */
-        .sl-spon__hero { text-align: center; margin: 0 auto 48px; }
+        .sl-spon__hero { display: flex; flex-direction: column; align-items: center; margin: 0 auto 48px; }
         .sl-spon__hero-label {
           display: inline-flex; align-items: center; gap: 8px;
           font-family: 'Playfair Display', Georgia, serif; font-weight: 700;
