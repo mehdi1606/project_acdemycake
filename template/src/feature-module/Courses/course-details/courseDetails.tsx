@@ -898,6 +898,18 @@ const CourseDetails = () => {
                 {/* CTA buttons */}
                 <div style={{ padding: '16px 18px' }}>
                   {c.isEnrolled ? (
+                    <>
+                    {(c.enrollmentProgress ?? 0) >= 100 && (
+                      <Link to={route.studentCertificates} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                        width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 14,
+                        background: 'linear-gradient(135deg,#C5973E,#A67825)', color: '#fff', textDecoration: 'none',
+                        boxShadow: '0 6px 20px rgba(197,151,62,0.35)', marginBottom: 10, boxSizing: 'border-box',
+                      }}>
+                        <i className="fa-solid fa-award" style={{ fontSize: 14 }} />
+                        <span>{t('courseWatch.getCertificate', 'Get Your Certificate')}</span>
+                      </Link>
+                    )}
                     <Link to={`${route.courseWatch}/${c.slug}`} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                       width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 14,
@@ -908,6 +920,7 @@ const CourseDetails = () => {
                       <i className="fa-solid fa-play" style={{ fontSize: 13 }} />
                       <span>{t('courses.details.continueLearning', 'Continue Learning')}</span>
                     </Link>
+                    </>
                   ) : isInstructor ? (
                     /* Instructors: preview only — no enrollment */
                     <Link to={`${route.courseWatch}/${c.slug}`} style={{

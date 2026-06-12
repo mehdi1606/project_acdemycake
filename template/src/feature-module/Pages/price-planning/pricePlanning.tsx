@@ -688,7 +688,6 @@ const PricePlanning: React.FC = () => {
         t('pricing.feature.progressTracking', 'Progress tracking'),
       ],
       premiumExtras: [
-        t('pricing.feature.allMasterclasses', 'All masterclass access included'),
         t('pricing.feature.prioritySupport', 'Priority & dedicated support'),
         t('pricing.feature.earlyAccess', 'Early access to new courses'),
         t('pricing.feature.annualBadge', 'Exclusive annual member badge'),

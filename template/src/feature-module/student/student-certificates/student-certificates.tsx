@@ -311,6 +311,8 @@ const StudentCertificates = () => {
 
   const [selected, setSelected]           = useState<Certificate | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl]       = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const fetchCertificates = useCallback(async (page: number) => {
     try {
@@ -330,6 +332,20 @@ const StudentCertificates = () => {
   }, []);
 
   useEffect(() => { fetchCertificates(0); }, [fetchCertificates]);
+
+  // Load the REAL generated PDF for the selected certificate (so the preview shows
+  // the up-to-date template, not the old drawn design).
+  useEffect(() => {
+    if (!selected) { setPreviewUrl(null); return; }
+    let url: string | null = null;
+    let cancelled = false;
+    setPreviewLoading(true);
+    certificateService.downloadCertificate(selected.id)
+      .then(blob => { if (!cancelled) { url = URL.createObjectURL(blob); setPreviewUrl(url); } })
+      .catch(() => { if (!cancelled) setPreviewUrl(null); })
+      .finally(() => { if (!cancelled) setPreviewLoading(false); });
+    return () => { cancelled = true; if (url) URL.revokeObjectURL(url); };
+  }, [selected]);
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
@@ -564,9 +580,18 @@ const StudentCertificates = () => {
                 </button>
               </div>
 
-              {/* Certificate preview */}
-              <div style={{ background: '#eee', padding: '20px 20px 0' }}>
-                <CertificatePreview cert={selected} formatDate={formatDate} />
+              {/* Certificate preview — the actual generated PDF (new template) */}
+              <div style={{ background: '#eee', padding: 0, height: 'min(70vh, 520px)', position: 'relative' }}>
+                {previewLoading && (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', border: '3px solid rgba(101,28,50,0.15)', borderTopColor: CRIMSON, animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+                {previewUrl ? (
+                  <iframe title="Certificate" src={`${previewUrl}#toolbar=0&navpanes=0`} style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
+                ) : !previewLoading ? (
+                  <div style={{ padding: '20px 20px 0' }}><CertificatePreview cert={selected} formatDate={formatDate} /></div>
+                ) : null}
               </div>
 
               {/* Modal footer */}
