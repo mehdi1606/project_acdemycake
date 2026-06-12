@@ -291,9 +291,15 @@ const CourseWatch: React.FC = () => {
       setQuizData({ ...qd, questions: qs });
       const att = await quizService.startQuizAttempt(quizId);
       setAttemptId(att.attemptId);
-      const ea = new Date(att.endsAt);
+      // Timezone-proof countdown: the server sends startedAt/endsAt as naive timestamps
+      // (no zone), so new Date(endsAt) is read in the browser's TZ and can land in the
+      // past when server (UTC) ≠ browser (e.g. UTC+1) → instant auto-submit. Their
+      // DIFFERENCE is the true duration regardless of TZ, so anchor it to the browser clock.
+      const span = new Date(att.endsAt).getTime() - new Date(att.startedAt).getTime();
+      const spanMs = Number.isFinite(span) && span > 0 ? span : ((qd.duration ?? 30) * 60000);
+      const ea = new Date(Date.now() + spanMs);
       setEndsAt(ea);
-      setTimeLeft(Math.max(0, Math.round((ea.getTime() - Date.now()) / 1000)));
+      setTimeLeft(Math.round(spanMs / 1000));
       setQuizPhase('quiz');
     } catch (e: any) { setQuizErr(e?.response?.data?.message ?? 'Failed to load quiz.'); setQuizPhase('error'); }
   }, []);

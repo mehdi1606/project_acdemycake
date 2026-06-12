@@ -118,11 +118,15 @@ const StudentQuizQuestion = () => {
 
         const attempt = await quizService.startQuizAttempt(quizId);
         setAttemptId(attempt.attemptId);
-        setEndsAt(new Date(attempt.endsAt));
 
-        // Initial timer value
-        const remaining = Math.max(0, Math.round((new Date(attempt.endsAt).getTime() - Date.now()) / 1000));
-        setTimeLeft(remaining);
+        // Timezone-proof countdown: the server sends startedAt/endsAt as naive timestamps
+        // (no zone), so new Date(endsAt) is read in the browser's TZ and can land in the
+        // past when server (UTC) ≠ browser (e.g. UTC+1) → instant auto-submit. Their
+        // DIFFERENCE is the true duration regardless of TZ, so anchor it to the browser clock.
+        const span = new Date(attempt.endsAt).getTime() - new Date(attempt.startedAt).getTime();
+        const spanMs = Number.isFinite(span) && span > 0 ? span : (quizData.duration ?? 30) * 60000;
+        setEndsAt(new Date(Date.now() + spanMs));
+        setTimeLeft(Math.round(spanMs / 1000));
 
         setPhase("quiz");
       } catch (err: any) {

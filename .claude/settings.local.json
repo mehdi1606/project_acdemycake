@@ -137,7 +137,9 @@
       "Bash(grep -iE 'sponsors\\\\.tsx|homeone\\\\.tsx|clean if no lines' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bhweghmgv.output)",
       "Bash(seq 1 100)",
       "Bash(grep -q MVN_EXIT C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bg2la4gc5.output)",
-      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bg2la4gc5.output)"
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bg2la4gc5.output)",
+      "Bash(grep -q 'clean if no lines' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b5fil1o3g.output)",
+      "Bash(grep -iE 'courseWatch\\\\.tsx|studentQuizQuestion\\\\.tsx|clean if no lines' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b5fil1o3g.output)"
     ]
   }
 }
