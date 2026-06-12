@@ -146,9 +146,9 @@ public class AdminController {
     }
 
     @DeleteMapping("/courses/{id}")
-    @Operation(summary = "Delete a course")
+    @Operation(summary = "Force-delete a course and all records that reference it (admin)")
     public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable UUID id) {
-        courseService.deleteCourse(id);
+        courseService.forceDeleteCourse(id);
         return ResponseEntity.ok(ApiResponse.success("Course deleted"));
     }
 

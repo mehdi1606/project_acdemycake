@@ -73,6 +73,10 @@ const CourseWatch: React.FC = () => {
   const [markingDone,     setMarkingDone]     = useState(false);
   const [activeTab,       setActiveTab]       = useState<'overview'|'resources'>('overview');
   const [courseComplete,  setCourseComplete]  = useState(false);
+  const [showCertModal,   setShowCertModal]   = useState(false);
+  const certShownRef       = useRef(false);   // popup shown once per session
+  const certInitCheckedRef = useRef(false);   // recorded the on-load completion state?
+  const certWasCompleteRef = useRef(false);   // was the course already complete on load?
 
   // Resource viewer
   const [activeRes,       setActiveRes]       = useState<LessonResource | null>(null);
@@ -145,6 +149,21 @@ const CourseWatch: React.FC = () => {
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseSlug]);
+
+  // Show the "get your certificate" popup the moment the course is finished —
+  // only on a fresh completion in this session, not when reopening a done course.
+  useEffect(() => {
+    if (loading) return;
+    if (!certInitCheckedRef.current) {
+      certInitCheckedRef.current = true;
+      certWasCompleteRef.current = courseComplete;   // never popup for an already-finished course
+      return;
+    }
+    if (courseComplete && !certWasCompleteRef.current && !certShownRef.current) {
+      certShownRef.current = true;
+      setShowCertModal(true);
+    }
+  }, [courseComplete, loading]);
 
   // ── Select a lesson ───────────────────────────────────────────────────────
   const doSelectLesson = useCallback(async (lesson: CourseLesson) => {
@@ -1195,6 +1214,24 @@ const CourseWatch: React.FC = () => {
                 );
               })()}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Course finished → "get your certificate" popup ── */}
+      {showCertModal && (
+        <div onClick={() => setShowCertModal(false)} style={{ position:'fixed', inset:0, zIndex:99990, background:'rgba(20,7,14,0.72)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'5vh 4vw' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width:'min(440px,94vw)', background:WHITE, borderRadius:20, padding:'34px 28px 24px', textAlign:'center', boxShadow:'0 30px 80px rgba(0,0,0,0.45)', position:'relative' }}>
+            <button onClick={() => setShowCertModal(false)} aria-label="Close" style={{ position:'absolute', top:14, right:14, width:32, height:32, borderRadius:8, border:'none', background:'rgba(107,29,42,0.06)', color:BURG, cursor:'pointer' }}><i className="fa-solid fa-xmark" /></button>
+            <div style={{ width:84, height:84, borderRadius:'50%', margin:'0 auto 18px', display:'flex', alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', boxShadow:'0 12px 30px rgba(45,95,63,0.32)' }}>
+              <i className="fa-solid fa-trophy" style={{ fontSize:38, color:WHITE }} />
+            </div>
+            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:800, color:BURG_D, margin:'0 0 8px' }}>{t('courseWatch.certReadyTitle', 'Congratulations! 🎉')}</h3>
+            <p style={{ color:'#7A6060', fontSize:14, lineHeight:1.7, margin:'0 0 24px' }}>{t('courseWatch.certReadyText', "You've completed the course — your certificate is ready.")}</p>
+            <button onClick={() => { setShowCertModal(false); navigate(routes.studentCertificates); }} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'13px 30px', borderRadius:12, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:15, boxShadow:'0 6px 20px rgba(197,151,62,0.3)' }}>
+              <i className="fa-solid fa-award" />{t('courseWatch.getCertificate', 'Get Your Certificate')}
+            </button>
+            <button onClick={() => setShowCertModal(false)} style={{ marginTop:8, width:'100%', padding:'10px', borderRadius:10, border:'none', background:'transparent', color:'#9A8080', fontWeight:600, fontSize:13, cursor:'pointer' }}>{t('courseWatch.maybeLater', 'Maybe later')}</button>
           </div>
         </div>
       )}

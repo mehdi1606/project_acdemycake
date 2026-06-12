@@ -1530,6 +1530,10 @@
   },
   "courseWatch": {
     "yourProgress": "Your Progress",
+    "certReadyTitle": "Congratulations! 🎉",
+    "certReadyText": "You've completed the course — your certificate is ready.",
+    "getCertificate": "Get Your Certificate",
+    "maybeLater": "Maybe later",
     "complete": "complete",
     "courseComplete": "Course Complete!",
     "certificateGenerated": "Certificate generated",

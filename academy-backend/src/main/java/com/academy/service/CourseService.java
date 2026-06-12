@@ -44,6 +44,9 @@ public interface CourseService {
 
     void deleteCourse(UUID id);
 
+    /** Admin force-delete: removes the course and every record that references it. */
+    void forceDeleteCourse(UUID id);
+
     void publishCourse(UUID id);
 
     void archiveCourse(UUID id);

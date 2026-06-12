@@ -1653,6 +1653,10 @@
   },
   "courseWatch": {
     "yourProgress": "تقدّمك",
+    "certReadyTitle": "تهانينا! 🎉",
+    "certReadyText": "لقد أكملت الدورة — شهادتك جاهزة.",
+    "getCertificate": "احصل على شهادتك",
+    "maybeLater": "لاحقاً",
     "complete": "مكتمل",
     "courseComplete": "اكتملت الدورة!",
     "certificateGenerated": "تم إنشاء الشهادة",

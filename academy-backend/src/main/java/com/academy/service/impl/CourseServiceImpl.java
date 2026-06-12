@@ -35,6 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.academy.config.CacheConfig;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -50,6 +53,9 @@ public class CourseServiceImpl implements CourseService {
     private final CourseEnrollmentRepository courseEnrollmentRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
     private final CategoryService categoryService;
     private final FileStorageService fileStorageService;
     private final com.academy.service.TranslationService translationService;
@@ -369,6 +375,49 @@ public class CourseServiceImpl implements CourseService {
 
         courseRepository.delete(course);
         log.info("Course deleted: {}", course.getTitle());
+    }
+
+    /**
+     * Admin force-delete: removes the course AND every record that references it, in
+     * foreign-key-safe (child → parent) order, so a course that has enrolled students
+     * can still be removed. Destructive — also wipes that course's enrollments, lesson
+     * progress, quiz attempts, certificates, purchases, reviews and wishlist entries.
+     * Gated to admins by the /api/v1/admin/courses endpoint (hasRole('ADMIN')).
+     */
+    @Override
+    @Transactional
+    public void forceDeleteCourse(UUID id) {
+        Course course = findById(id);                  // 404 if it doesn't exist
+        String title = course.getTitle();
+        UUID c = course.getId();
+
+        // ── children → parents, so no foreign key can block the delete ──
+        bulkDelete("delete from QuizOption o where o.question.id in (select q.id from QuizQuestion q where q.quiz.id in (select z.id from Quiz z where z.course.id = :c))", c);
+        bulkDelete("delete from QuizQuestion q where q.quiz.id in (select z.id from Quiz z where z.course.id = :c)", c);
+        bulkDelete("delete from QuizAttempt a where a.quiz.id in (select z.id from Quiz z where z.course.id = :c)", c);
+        bulkDelete("delete from Quiz z where z.course.id = :c", c);
+        bulkDelete("delete from VideoAsset v where v.lesson.id in (select l.id from CourseLesson l where l.module.id in (select m.id from CourseModule m where m.course.id = :c))", c);
+        bulkDelete("delete from LessonProgress p where p.lesson.id in (select l.id from CourseLesson l where l.module.id in (select m.id from CourseModule m where m.course.id = :c))", c);
+        bulkDelete("delete from AssignmentSubmission s where s.assignment.id in (select a.id from Assignment a where a.course.id = :c)", c);
+        bulkDelete("delete from Assignment a where a.course.id = :c", c);
+        bulkDelete("delete from Certificate ct where ct.course.id = :c", c);
+        bulkDelete("delete from CoursePurchase p where p.course.id = :c", c);
+        bulkDelete("delete from InstructorEarning e where e.courseId = :c", c);
+        bulkDelete("delete from Wishlist w where w.course.id = :c", c);
+        bulkDelete("delete from CourseReview r where r.course.id = :c", c);
+        bulkDelete("delete from CourseLesson l where l.module.id in (select m.id from CourseModule m where m.course.id = :c)", c);
+        bulkDelete("delete from CourseModule m where m.course.id = :c", c);
+        bulkDelete("delete from CourseEnrollment en where en.course.id = :c", c);
+
+        entityManager.flush();
+        entityManager.clear();                          // detach the managed course before the row goes
+        bulkDelete("delete from Course cc where cc.id = :c", c);
+
+        log.info("Course force-deleted (with all dependents): {} [{}]", title, c);
+    }
+
+    private void bulkDelete(String jpql, UUID courseId) {
+        entityManager.createQuery(jpql).setParameter("c", courseId).executeUpdate();
     }
 
     @Override
