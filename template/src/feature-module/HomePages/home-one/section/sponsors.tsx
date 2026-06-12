@@ -15,9 +15,12 @@ const IVORY  = '#F2EFE8'
 // Logos in public/assets/img/sponsor (filenames kept verbatim — encoded at render)
 const SPONSORS = [
   'Bilait.webp', 'Bravo.png', 'Fo ozmer.jpg.jpeg', 'Katsan.jpg.jpeg',
-  'logo-cioccolato.png','mastergel-logo.jpeg', 'logo-gelato.png', 'logo-master.png', 'Martini.png',
+  'logo-cioccolato.png', 'logo-gelato.png', 'logo-master.png', 'Martini.png',
   'natra-cacao.png', 'one-way-plastics.webp', 'Saracino.png',
 ]
+
+// Featured "main sponsor" — shown large above the marquee, not in the scroll.
+const MAIN_SPONSOR = 'mastergel-logo.jpeg'
 
 const SponsorsSection: React.FC = () => {
   const { i18n } = useTranslation()
@@ -57,6 +60,26 @@ const SponsorsSection: React.FC = () => {
           color: ${MAROON}; margin: 0 0 12px; line-height: 1.2;
         }
         .sl-spon__sub { color: #6f6058; font-size: 1rem; line-height: 1.7; max-width: 620px; margin: 0 auto; }
+
+        /* ── Featured / main sponsor (out of the scroll) ── */
+        .sl-spon__hero { text-align: center; margin: 0 auto 48px; }
+        .sl-spon__hero-label {
+          display: inline-flex; align-items: center; gap: 8px;
+          font-family: 'Playfair Display', Georgia, serif; font-weight: 700;
+          font-size: .76rem; letter-spacing: .16em; text-transform: uppercase; color: ${MAROON};
+          background: rgba(201,168,76,.14); border: 1px solid ${GOLD}66; border-radius: 999px;
+          padding: .42rem 1.15rem; margin-bottom: 18px;
+        }
+        .sl-spon__hero-label i { color: ${GOLD}; font-size: .95rem; }
+        .sl-spon__hero-card {
+          display: inline-flex; align-items: center; justify-content: center;
+          background: #fff; border: 1.5px solid ${GOLD}55; border-radius: 22px;
+          box-shadow: 0 20px 55px rgba(107,29,42,.13);
+          padding: 30px 52px; transition: transform .4s ease, box-shadow .4s ease;
+        }
+        .sl-spon__hero-card:hover { transform: translateY(-5px); box-shadow: 0 28px 65px rgba(107,29,42,.2); }
+        .sl-spon__hero-card img { max-height: 120px; max-width: 360px; object-fit: contain; display: block; }
+        @media (max-width: 600px) { .sl-spon__hero-card { padding: 22px 30px; } .sl-spon__hero-card img { max-height: 84px; max-width: 240px; } }
 
         .sl-spon__viewport { position: relative; overflow: hidden; }
         .sl-spon__viewport::before, .sl-spon__viewport::after {
@@ -102,6 +125,22 @@ const SponsorsSection: React.FC = () => {
             <div className="sl-spon__script">{L.ornament}</div>
             <h2 className="sl-spon__title">{L.title}</h2>
             <p className="sl-spon__sub">{L.sub}</p>
+          </div>
+        </div>
+
+        {/* Main / super sponsor — featured, out of the scroll */}
+        <div className="container">
+          <div className="sl-spon__hero" data-aos="zoom-in" data-aos-duration="700">
+            <span className="sl-spon__hero-label"><i className="isax isax-crown-1" />{isRtl ? 'الراعي الرئيسي' : 'Main Sponsor'}</span>
+            <div className="sl-spon__hero-card">
+              <img
+                src={src(MAIN_SPONSOR)}
+                alt={label(MAIN_SPONSOR)}
+                loading="lazy"
+                decoding="async"
+                onError={(e) => { const el = (e.target as HTMLImageElement).closest('.sl-spon__hero') as HTMLElement | null; if (el) el.style.display = 'none' }}
+              />
+            </div>
           </div>
         </div>
 
