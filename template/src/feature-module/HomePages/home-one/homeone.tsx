@@ -28,6 +28,7 @@ import WhyChooseUs from './section/why-choose-us'
 import Howitworks from './section/how-it-works'
 import BrandGallery from './section/brand-gallery'
 import Featureinstructor from './section/feature-instructor'
+import SponsorsSection from './section/sponsors'
 import Testimonials from './section/testimonials'
 import CinematicCTA from './section/cinematic-cta'
 import Faq from './section/faq'
@@ -130,6 +131,9 @@ const HomeOne: React.FC = () => {
 
             {/* ↑ blend back to light */}
             <SectionTransition to="light" />
+
+            {/* 8 — Sponsors / partners (auto-scrolling marquee) — right after Meet The Author */}
+            <SponsorsSection />
 
             {/* 9 — Testimonials + trust stats */}
             <Testimonials />

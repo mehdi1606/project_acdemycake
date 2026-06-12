@@ -128,7 +128,13 @@
       "Bash(grep -iE 'courseWatch\\\\.tsx|clean if no courseWatch' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bc05y9h21.output)",
       "Bash(echo \"[[done]]\")",
       "mcp__visualize__read_me",
-      "mcp__visualize__show_widget"
+      "mcp__visualize__show_widget",
+      "Bash(sed -n '1092,1098p' template/src/i18n/locales/en.json)",
+      "Bash(sed -n '1215,1221p' template/src/i18n/locales/ar.json)",
+      "Bash(grep -q MVN_EXIT C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b81k02cxn.output)",
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b81k02cxn.output)",
+      "Bash(grep -q 'clean if no lines' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bhweghmgv.output)",
+      "Bash(grep -iE 'sponsors\\\\.tsx|homeone\\\\.tsx|clean if no lines' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bhweghmgv.output)"
     ]
   }
 }

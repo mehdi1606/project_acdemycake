@@ -132,6 +132,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/payments/cmi/status/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                        // Subscription plans (price) must be visible to guests on the pricing page
+                        .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions/plans").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/certificates/verify/**").permitAll()
                         .requestMatchers("/files/**").permitAll()
                         // Video streaming — token-gated, not JWT-gated

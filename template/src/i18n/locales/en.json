@@ -1090,9 +1090,10 @@
       "browseCourses": "Browse Courses"
     },
     "loginRequired": {
-      "title": "Login Required",
-      "content": "Please log in to start your subscription.",
-      "okText": "Login"
+      "title": "Login or Register",
+      "content": "Please log in or create an account to start your subscription.",
+      "okText": "Login",
+      "registerText": "Register"
     },
     "error": {
       "title": "Subscription Failed",

@@ -744,11 +744,12 @@ const PricePlanning: React.FC = () => {
   const handleSubscribe = (planId: string) => {
     if (!isAuthenticated) {
       Modal.confirm({
-        title: t('pricing.loginRequired.title', 'Login Required'),
-        content: t('pricing.loginRequired.content', 'Please log in to start your subscription.'),
+        title: t('pricing.loginRequired.title', 'Login or Register'),
+        content: t('pricing.loginRequired.content', 'Please log in or create an account to start your subscription.'),
         okText: t('pricing.loginRequired.okText', 'Login'),
-        cancelText: t('common.cancel', 'Cancel'),
+        cancelText: t('pricing.loginRequired.registerText', 'Register'),
         onOk: () => navigate(route.login),
+        onCancel: () => navigate(route.register),
       });
       return;
     }
