@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -64,14 +65,20 @@ public class CertificateServiceImpl implements CertificateService {
     private String uploadDir;
 
     // ── Certificate template files (blank designs) ────────────────────────────
-    // Live in {upload-dir}/certificate-templates/. The course level / type selects
-    // which design is used; only the student name, course title and date are stamped.
+    // Loaded from the classpath (bundled in the JAR under resources/certificate-templates/)
+    // so they are always available in every environment; an admin can override any of them
+    // by dropping a file with the SAME name into {upload-dir}/certificate-templates/.
+    // The course type/level selects which design is used; only the student name, course
+    // title and date are stamped on top.
+    //   • MASTERCLASS                 → master-online.pdf
+    //   • PLAN course, by level       → beginner / intermediate / advanced .pdf
+    //   • PLAN course (level missing) → academy.pdf (generic fallback)
     private static final String TEMPLATE_DIR = "certificate-templates";
-    private static final String TPL_MASTER       = "Certificate SARALÖWE - MASTER ONLINE (empty).pdf";
-    private static final String TPL_ACADEMY      = "Certificate SARALÖWE - Online ACADEMY (empty).pdf";
-    private static final String TPL_BEGINNER     = "Certificate SARALÖWE - BEGINNER (empty).pdf";
-    private static final String TPL_INTERMEDIATE = "Certificate SARALÖWE - INTERMEDIATE (empty).pdf";
-    private static final String TPL_ADVANCED     = "Certificate SARALÖWE - ADVANCED (empty).pdf";
+    private static final String TPL_MASTER       = "master-online.pdf";
+    private static final String TPL_ACADEMY      = "academy.pdf";
+    private static final String TPL_BEGINNER     = "beginner.pdf";
+    private static final String TPL_INTERMEDIATE = "intermediate.pdf";
+    private static final String TPL_ADVANCED     = "advanced.pdf";
 
     // ── Saralöwe brand colours (matching the pink certificate PDF) ────────────
     /** Blush pink background — matches PDF background */
@@ -189,9 +196,10 @@ public class CertificateServiceImpl implements CertificateService {
     // ══════════════════════════════════════════════════════════════════════════
 
     private byte[] generatePdf(Certificate certificate) throws Exception {
-        Path tpl = templatePathFor(certificate);
-        if (tpl == null || !Files.isRegularFile(tpl)) {
-            log.warn("Certificate template not found ({}); falling back to the drawn design.", tpl);
+        String tplName  = templateNameFor(certificate);
+        byte[] tplBytes = loadTemplate(tplName);
+        if (tplBytes == null) {
+            log.warn("Certificate template '{}' not found (uploads dir or classpath); falling back to the drawn design.", tplName);
             return generatePdfFromScratch(certificate);
         }
 
@@ -206,7 +214,7 @@ public class CertificateServiceImpl implements CertificateService {
                 ? certificate.getCourseTitle().toUpperCase(Locale.ENGLISH) : "";
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (PdfReader reader = new PdfReader(tpl.toFile());
+        try (PdfReader reader = new PdfReader(new ByteArrayInputStream(tplBytes));
              PdfDocument pdfDoc = new PdfDocument(reader, new PdfWriter(baos))) {
 
             PdfPage   firstPage = pdfDoc.getFirstPage();
@@ -235,29 +243,45 @@ public class CertificateServiceImpl implements CertificateService {
         return baos.toByteArray();
     }
 
-    /** Resolve the blank-template file for a certificate (by course type / level). */
-    private Path templatePathFor(Certificate certificate) {
+    /** Pick the blank-template filename for a certificate (by course type / level). */
+    private String templateNameFor(Certificate certificate) {
         var course = certificate.getCourse();
-        String file;
         if (course != null && course.getCourseType() == CourseType.MASTERCLASS) {
-            file = TPL_MASTER;
-        } else {
-            CourseLevel level = course != null && course.getLevel() != null
-                    ? course.getLevel() : CourseLevel.BEGINNER;
-            String byLevel = switch (level) {
-                case BEGINNER     -> TPL_BEGINNER;
-                case INTERMEDIATE -> TPL_INTERMEDIATE;
-                case ADVANCED     -> TPL_ADVANCED;
-            };
-            // Use the level-specific design if present, otherwise the generic academy one.
-            Path levelPath = templateFile(byLevel);
-            file = Files.isRegularFile(levelPath) ? byLevel : TPL_ACADEMY;
+            return TPL_MASTER;                       // masterclass → master design only
         }
-        return templateFile(file);
+        CourseLevel level = course != null && course.getLevel() != null
+                ? course.getLevel() : CourseLevel.BEGINNER;
+        String byLevel = switch (level) {
+            case BEGINNER     -> TPL_BEGINNER;
+            case INTERMEDIATE -> TPL_INTERMEDIATE;
+            case ADVANCED     -> TPL_ADVANCED;
+        };
+        // Use the level-specific design if it exists, otherwise the generic academy one.
+        return templateExists(byLevel) ? byLevel : TPL_ACADEMY;
     }
 
-    private Path templateFile(String name) {
-        return Path.of(uploadDir, TEMPLATE_DIR, name);
+    /** Available if present in the uploads dir (admin override) or bundled on the classpath. */
+    private boolean templateExists(String name) {
+        if (Files.isRegularFile(Path.of(uploadDir, TEMPLATE_DIR, name))) return true;
+        try (InputStream in = getClass().getResourceAsStream("/" + TEMPLATE_DIR + "/" + name)) {
+            return in != null;
+        } catch (Exception e) { return false; }
+    }
+
+    /** Template bytes: uploads dir first (admin override), then the bundled classpath copy. */
+    private byte[] loadTemplate(String name) {
+        try {
+            Path p = Path.of(uploadDir, TEMPLATE_DIR, name);
+            if (Files.isRegularFile(p)) return Files.readAllBytes(p);
+        } catch (Exception e) {
+            log.warn("Reading certificate template '{}' from uploads dir failed: {}", name, e.getMessage());
+        }
+        try (InputStream in = getClass().getResourceAsStream("/" + TEMPLATE_DIR + "/" + name)) {
+            if (in != null) return in.readAllBytes();
+        } catch (Exception e) {
+            log.warn("Reading certificate template '{}' from classpath failed: {}", name, e.getMessage());
+        }
+        return null;
     }
 
     /** Draws a single centred line at the given baseline, shrinking to fit maxWidth. */

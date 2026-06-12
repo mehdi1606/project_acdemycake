@@ -700,28 +700,28 @@ const CourseWatch: React.FC = () => {
                     ) : lessonQuiz ? (
                       <>
                         <p style={{ color:'rgba(255,255,255,0.45)', fontSize:13, marginBottom:16 }}>
-                          <i className="fa-solid fa-list-check" style={{ marginRight:5, color:GOLD }} />{lessonQuiz.questionCount??0} questions
+                          <i className="fa-solid fa-list-check" style={{ marginRight:5, color:GOLD }} />{t('quiz.questions', { n: lessonQuiz.questionCount??0, defaultValue: '{{n}} questions' })}
                           <span style={{ margin:'0 8px', opacity:0.3 }}>·</span>
-                          <i className="fa-solid fa-clock" style={{ marginRight:5, color:GOLD }} />{lessonQuiz.duration??0} min
+                          <i className="fa-solid fa-clock" style={{ marginRight:5, color:GOLD }} />{t('quiz.minutes', { n: lessonQuiz.duration??0, defaultValue: '{{n}} min' })}
                           <span style={{ margin:'0 8px', opacity:0.3 }}>·</span>
-                          Pass: {lessonQuiz.passingScore??70}%
+                          {t('quiz.passLabel', { n: lessonQuiz.passingScore??70, defaultValue: 'Pass: {{n}}%' })}
                         </p>
 
                         {quizPassed && (
                           <div style={{ display:'inline-block', margin:'0 auto 16px', padding:'10px 22px', borderRadius:10, background:'rgba(74,222,128,0.09)', border:'1px solid rgba(74,222,128,0.22)' }}>
-                            <p style={{ margin:0, fontWeight:800, color:'#4ADE80', fontSize:15 }}><i className="fa-solid fa-circle-check" style={{ marginRight:6 }} />Quiz Passed! 🎉</p>
-                            <p style={{ margin:'3px 0 0', fontSize:12, color:'rgba(74,222,128,0.65)' }}>Best score: {quizBest}%</p>
+                            <p style={{ margin:0, fontWeight:800, color:'#4ADE80', fontSize:15 }}><i className="fa-solid fa-circle-check" style={{ marginRight:6 }} />{t('quiz.quizPassed', 'Quiz Passed! 🎉')}</p>
+                            <p style={{ margin:'3px 0 0', fontSize:12, color:'rgba(74,222,128,0.65)' }}>{t('quiz.bestScore', { n: quizBest, defaultValue: 'Best score: {{n}}%' })}</p>
                           </div>
                         )}
 
                         {quizAttempts.length > 0 && (
                           <div style={{ margin:'0 auto 18px', maxWidth:300, textAlign:'left' }}>
                             <p style={{ fontSize:10, fontWeight:800, color:'rgba(255,255,255,0.25)', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.5px' }}>
-                              History ({quizAttempts.length}/{lessonQuiz.allowRetake?lessonQuiz.maxAttempts??'∞':1})
+                              {t('quiz.history', 'History')} ({quizAttempts.length}/{lessonQuiz.allowRetake?lessonQuiz.maxAttempts??'∞':1})
                             </p>
                             {quizAttempts.slice(0,4).map((a, i) => (
                               <div key={a.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 10px', borderRadius:6, marginBottom:4, background:a.passed?'rgba(74,222,128,0.06)':'rgba(139,35,53,0.08)', border:`1px solid ${a.passed?'rgba(74,222,128,0.14)':'rgba(139,35,53,0.18)'}` }}>
-                                <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Attempt {quizAttempts.length-i}</span>
+                                <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>{t('quiz.attempt', { n: quizAttempts.length-i, defaultValue: 'Attempt {{n}}' })}</span>
                                 <span style={{ fontSize:13, fontWeight:700, color:a.passed?'#4ADE80':'#F87171' }}>{Math.round(a.percentage??0)}% <i className={`fa-solid ${a.passed?'fa-circle-check':'fa-circle-xmark'}`} style={{ fontSize:11 }} /></span>
                               </div>
                             ))}
@@ -731,29 +731,29 @@ const CourseWatch: React.FC = () => {
                         {lessonQuiz.status === 'PUBLISHED' ? (
                           canStart ? (
                             <button onClick={() => openQuiz(lessonQuiz.id)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 32px', borderRadius:12, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:15, boxShadow:'0 6px 20px rgba(197,151,62,0.3)' }}>
-                              <i className="fa-solid fa-play" />{quizAttempts.length===0?'Start Quiz':'Retake Quiz'}
+                              <i className="fa-solid fa-play" />{quizAttempts.length===0?t('quiz.startQuiz','Start Quiz'):t('quiz.retakeQuiz','Retake Quiz')}
                             </button>
                           ) : quizPassed ? (
                             <button onClick={() => quizAttempts[0] && openReview(quizAttempts[0])} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 24px', borderRadius:10, border:'1px solid rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.65)', cursor:'pointer', fontWeight:600, fontSize:14 }}>
-                              <i className="fa-solid fa-eye" />Review Results
+                              <i className="fa-solid fa-eye" />{t('quiz.reviewResults','Review Results')}
                             </button>
                           ) : (
                             <p style={{ color:'#F87171', fontSize:13, display:'flex', alignItems:'center', gap:6, justifyContent:'center' }}>
-                              <i className="fa-solid fa-ban" />No more attempts available
+                              <i className="fa-solid fa-ban" />{t('quiz.noAttempts','No more attempts available')}
                             </p>
                           )
                         ) : (
                           <p style={{ color:GOLD, fontSize:13, display:'flex', alignItems:'center', gap:6, justifyContent:'center' }}>
-                            <i className="fa-solid fa-circle-info" />Quiz not yet published
+                            <i className="fa-solid fa-circle-info" />{t('quiz.notPublished','Quiz not yet published')}
                           </p>
                         )}
                       </>
                     ) : (
                       <>
-                        <p style={{ color:'rgba(255,255,255,0.35)', fontSize:13, marginBottom:4 }}>The instructor hasn't linked a quiz to this lesson yet.</p>
-                        <p style={{ color:'rgba(255,255,255,0.2)', fontSize:12, marginBottom:20 }}>Check back soon or browse available quizzes.</p>
+                        <p style={{ color:'rgba(255,255,255,0.35)', fontSize:13, marginBottom:4 }}>{t('quiz.noQuizLinked', "The instructor hasn't linked a quiz to this lesson yet.")}</p>
+                        <p style={{ color:'rgba(255,255,255,0.2)', fontSize:12, marginBottom:20 }}>{t('quiz.checkBack', 'Check back soon or browse available quizzes.')}</p>
                         <Link to={routes.studentQuiz} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 22px', borderRadius:10, border:`1px solid rgba(197,151,62,0.3)`, background:'rgba(197,151,62,0.07)', color:GOLD, textDecoration:'none', fontWeight:700, fontSize:14 }}>
-                          <i className="fa-solid fa-list" />Browse All Quizzes
+                          <i className="fa-solid fa-list" />{t('quiz.browseAll','Browse All Quizzes')}
                         </Link>
                       </>
                     )}
@@ -1051,16 +1051,16 @@ const CourseWatch: React.FC = () => {
               {quizPhase === 'loading' && (
                 <div style={{ textAlign:'center', padding:'56px 0' }}>
                   <div style={{ width:52, height:52, borderRadius:'50%', border:`4px solid rgba(197,151,62,0.15)`, borderTopColor:GOLD, animation:'spin 0.9s linear infinite', margin:'0 auto 16px' }} />
-                  <p style={{ color:'#9A8080', fontSize:15 }}>Preparing your quiz…</p>
+                  <p style={{ color:'#9A8080', fontSize:15 }}>{t('quiz.preparing', 'Preparing your quiz…')}</p>
                 </div>
               )}
 
               {quizPhase === 'error' && (
                 <div style={{ textAlign:'center', padding:'48px 0' }}>
                   <i className="fa-solid fa-circle-xmark" style={{ fontSize:54, color:BURG_D, display:'block', marginBottom:16 }} />
-                  <h5 style={{ color:BURG_D, marginBottom:8 }}>Unable to Load Quiz</h5>
+                  <h5 style={{ color:BURG_D, marginBottom:8 }}>{t('quiz.unableToLoad', 'Unable to Load Quiz')}</h5>
                   <p style={{ color:'#9A8080', marginBottom:28, fontSize:14 }}>{quizErr}</p>
-                  <button onClick={closeQuiz} style={{ padding:'10px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer', fontSize:14 }}>Close</button>
+                  <button onClick={closeQuiz} style={{ padding:'10px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer', fontSize:14 }}>{t('quiz.close', 'Close')}</button>
                 </div>
               )}
 
@@ -1069,10 +1069,10 @@ const CourseWatch: React.FC = () => {
                   <div style={{ width:84, height:84, borderRadius:'50%', margin:'0 auto 20px', display:'flex', alignItems:'center', justifyContent:'center', background:`rgba(197,151,62,0.09)`, border:`3px solid rgba(197,151,62,0.22)` }}>
                     <i className="fa-solid fa-triangle-exclamation" style={{ fontSize:40, color:GOLD }} />
                   </div>
-                  <h3 style={{ fontSize:22, fontWeight:800, color:BURG_D, marginBottom:12 }}>Quiz Terminated</h3>
-                  <p style={{ color:'#9A8080', fontSize:14, marginBottom:6 }}>You switched tabs. Score submitted as <strong style={{ color:BURG_D }}>0</strong>.</p>
-                  <p style={{ color:'#9A8080', fontSize:12, marginBottom:28 }}>This action is logged and cannot be reversed.</p>
-                  <button onClick={closeQuiz} style={{ padding:'10px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer' }}>Back to Course</button>
+                  <h3 style={{ fontSize:22, fontWeight:800, color:BURG_D, marginBottom:12 }}>{t('quiz.terminated', 'Quiz Terminated')}</h3>
+                  <p style={{ color:'#9A8080', fontSize:14, marginBottom:6 }}>{t('quiz.switchedTabs', 'You switched tabs. Your score was submitted as 0.')}</p>
+                  <p style={{ color:'#9A8080', fontSize:12, marginBottom:28 }}>{t('quiz.actionLogged', 'This action is logged and cannot be reversed.')}</p>
+                  <button onClick={closeQuiz} style={{ padding:'10px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer' }}>{t('quiz.backToCourse', 'Back to Course')}</button>
                 </div>
               )}
 
@@ -1083,17 +1083,17 @@ const CourseWatch: React.FC = () => {
                       <i className={`fa-solid ${qResult.passed?'fa-circle-check':'fa-circle-xmark'}`} style={{ fontSize:46, color:qResult.passed?'#2D5F3F':BURG_D }} />
                     </div>
                     <h3 style={{ fontSize:26, fontWeight:800, margin:'0 0 8px', color:qResult.passed?'#2D5F3F':BURG_D }}>
-                      {qResult.passed?'🎉 You Passed!':'Not Passed'}
+                      {qResult.passed?t('quiz.youPassed','🎉 You Passed!'):t('quiz.notPassed','Not Passed')}
                     </h3>
                     <p style={{ color:'#9A8080', fontSize:14, margin:0 }}>
-                      {qResult.passed?"Congratulations! You've completed this quiz.":`You need ${quizData?.passingScore??70}% to pass.`}
+                      {qResult.passed?t('quiz.congrats',"Congratulations! You've completed this quiz."):t('quiz.needToPass', { n: quizData?.passingScore??70, defaultValue: 'You need {{n}}% to pass.' })}
                     </p>
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:22 }}>
                     {[
-                      { label:'Points Earned', value:qResult.score,                                         color:qResult.passed?'#2D5F3F':BURG_D },
-                      { label:'Total Points',  value:qResult.totalPoints,                                   color:GOLD },
-                      { label:'Your Score',    value:`${Math.round((qResult.percentage??0)*10)/10}%`,       color:qResult.passed?'#2D5F3F':BURG_D },
+                      { label:t('quiz.pointsEarned','Points Earned'), value:qResult.score,                   color:qResult.passed?'#2D5F3F':BURG_D },
+                      { label:t('quiz.totalPoints','Total Points'),   value:qResult.totalPoints,             color:GOLD },
+                      { label:t('quiz.yourScore','Your Score'),       value:`${Math.round((qResult.percentage??0)*10)/10}%`, color:qResult.passed?'#2D5F3F':BURG_D },
                     ].map(c => (
                       <div key={c.label} style={{ padding:'16px 10px', borderRadius:12, textAlign:'center', background:`${c.color}10`, border:`1px solid ${c.color}22` }}>
                         <div style={{ fontSize:28, fontWeight:800, color:c.color, lineHeight:1.1, marginBottom:4 }}>{c.value}</div>
@@ -1107,7 +1107,7 @@ const CourseWatch: React.FC = () => {
                   </div>
                   <div style={{ display:'flex', justifyContent:'center' }}>
                     <button onClick={closeQuiz} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'11px 28px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.2)`, background:'transparent', color:BURG, fontWeight:700, cursor:'pointer', fontSize:14 }}>
-                      <i className="fa-solid fa-arrow-left" />Back to Course
+                      <i className="fa-solid fa-arrow-left" />{t('quiz.backToCourse','Back to Course')}
                     </button>
                   </div>
                 </div>
@@ -1131,7 +1131,7 @@ const CourseWatch: React.FC = () => {
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, flexWrap:'wrap', gap:8 }}>
                       <div>
                         <h5 style={{ margin:0, fontWeight:800, fontSize:17, fontFamily:"'Playfair Display',serif", color:'#2C1810' }}>{quizData.title}</h5>
-                        <span style={{ color:'#9A8080', fontSize:12 }}>Q {qIdx+1}/{totalQ} · <span style={{ color:answered===totalQ?'#2D5F3F':'#9A8080' }}>{answered}/{totalQ} answered</span></span>
+                        <span style={{ color:'#9A8080', fontSize:12 }}>{t('quiz.qShort','Q')} {qIdx+1}/{totalQ} · <span style={{ color:answered===totalQ?'#2D5F3F':'#9A8080' }}>{answered}/{totalQ} {t('quiz.answered','answered')}</span></span>
                       </div>
                       <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 14px', borderRadius:10, border:`1.5px solid ${warn?BURG_D:'rgba(197,151,62,0.2)'}`, background:warn?'rgba(139,35,53,0.05)':'rgba(197,151,62,0.04)', fontWeight:800, fontSize:16, color:warn?BURG_D:'#2C1810' }}>
                         <i className="fa-solid fa-stopwatch" style={{ fontSize:14, color:warn?BURG_D:GOLD }} />
@@ -1154,9 +1154,9 @@ const CourseWatch: React.FC = () => {
                     <div style={{ background:'rgba(101,28,50,0.02)', borderRadius:12, padding:'18px 22px', border:'1px solid rgba(197,151,62,0.1)', marginBottom:18 }}>
                       <div style={{ display:'flex', justifyContent:'space-between', gap:12, marginBottom:14 }}>
                         <h6 style={{ margin:0, lineHeight:1.55, fontWeight:700, fontSize:15, color:'#2C1810' }}>{Q.text}</h6>
-                        <span style={{ flexShrink:0, padding:'3px 10px', borderRadius:6, fontSize:11, fontWeight:800, background:`rgba(197,151,62,0.1)`, color:GOLD }}>{Q.points} pt{Q.points!==1?'s':''}</span>
+                        <span style={{ flexShrink:0, padding:'3px 10px', borderRadius:6, fontSize:11, fontWeight:800, background:`rgba(197,151,62,0.1)`, color:GOLD }}>{t('quiz.points', { n: Q.points, defaultValue: '{{n}} pts' })}</span>
                       </div>
-                      {isMulti && <p style={{ color:'#9A8080', fontSize:12, margin:'0 0 12px', display:'flex', alignItems:'center', gap:5 }}><i className="fa-solid fa-circle-info" /> Select all that apply</p>}
+                      {isMulti && <p style={{ color:'#9A8080', fontSize:12, margin:'0 0 12px', display:'flex', alignItems:'center', gap:5 }}><i className="fa-solid fa-circle-info" /> {t('quiz.selectAll','Select all that apply')}</p>}
                       {Q.options.slice().sort((a:any,b:any)=>a.orderIndex-b.orderIndex).map((opt:any) => {
                         const isSel = curAns.includes(opt.id);
                         return (
@@ -1173,22 +1173,22 @@ const CourseWatch: React.FC = () => {
                     {/* Nav */}
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                       <button onClick={() => setQIdx(p => Math.max(0,p-1))} disabled={isFirst} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 20px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.18)`, background:'transparent', color:isFirst?'#c4b5b5':BURG, fontWeight:700, cursor:isFirst?'not-allowed':'pointer', fontSize:14 }}>
-                        <i className="fa-solid fa-arrow-left" />Prev
+                        <i className="fa-solid fa-arrow-left" />{t('quiz.prev','Prev')}
                       </button>
                       {!isLast ? (
                         <button onClick={() => setQIdx(p=>p+1)} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 24px', borderRadius:10, border:'none', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, cursor:'pointer', fontSize:14, boxShadow:`0 4px 14px rgba(197,151,62,0.28)` }}>
-                          Next <i className="fa-solid fa-arrow-right" />
+                          {t('quiz.next','Next')} <i className="fa-solid fa-arrow-right" />
                         </button>
                       ) : (
-                        <button onClick={finalSubmit} disabled={!allAns||submitting} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 28px', borderRadius:10, border:'none', background:!allAns?'rgba(0,0,0,0.08)':`linear-gradient(135deg,${GOLD},#A67825)`, color:!allAns?'#9A8080':WHITE, fontWeight:800, cursor:!allAns?'not-allowed':'pointer', fontSize:14, boxShadow:allAns?`0 4px 14px rgba(197,151,62,0.28)`:'none', opacity:submitting?0.7:1 }} title={!allAns?`Answer all (${answered}/${totalQ})`:'Submit quiz'}>
+                        <button onClick={finalSubmit} disabled={!allAns||submitting} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'10px 28px', borderRadius:10, border:'none', background:!allAns?'rgba(0,0,0,0.08)':`linear-gradient(135deg,${GOLD},#A67825)`, color:!allAns?'#9A8080':WHITE, fontWeight:800, cursor:!allAns?'not-allowed':'pointer', fontSize:14, boxShadow:allAns?`0 4px 14px rgba(197,151,62,0.28)`:'none', opacity:submitting?0.7:1 }} title={!allAns?t('quiz.answerAllTitle', { a: answered, t: totalQ, defaultValue: 'Answer all ({{a}}/{{t}})' }):t('quiz.submitTitle','Submit quiz')}>
                           {submitting?<div style={{ width:13,height:13,borderRadius:'50%',border:'2px solid rgba(255,255,255,0.4)',borderTopColor:WHITE,animation:'spin 0.8s linear infinite' }} />:<i className="fa-solid fa-paper-plane" />}
-                          Submit Quiz
+                          {t('quiz.submitQuiz','Submit Quiz')}
                         </button>
                       )}
                     </div>
                     {isLast && !allAns && (
                       <p style={{ textAlign:'right', fontSize:12, color:GOLD, marginTop:7, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:5 }}>
-                        <i className="fa-solid fa-circle-info" />{totalQ-answered} question{totalQ-answered!==1?'s':''} unanswered
+                        <i className="fa-solid fa-circle-info" />{t('quiz.unanswered', { n: totalQ-answered, defaultValue: '{{n}} unanswered' })}
                       </p>
                     )}
                   </>
