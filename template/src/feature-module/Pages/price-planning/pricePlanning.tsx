@@ -663,6 +663,7 @@ const PricePlanning: React.FC = () => {
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   // Live annual price from the backend (admin-editable). Null until loaded.
   const [annualPrice, setAnnualPrice] = useState<number | null>(null);
 
@@ -742,14 +743,7 @@ const PricePlanning: React.FC = () => {
 
   const handleSubscribe = (planId: string) => {
     if (!isAuthenticated) {
-      Modal.confirm({
-        title: t('pricing.loginRequired.title', 'Login or Register'),
-        content: t('pricing.loginRequired.content', 'Please log in or create an account to start your subscription.'),
-        okText: t('pricing.loginRequired.okText', 'Login'),
-        cancelText: t('pricing.loginRequired.registerText', 'Register'),
-        onOk: () => navigate(route.login),
-        onCancel: () => navigate(route.register),
-      });
+      setShowLoginPrompt(true);   // custom modal below — reliable, no Ant static-method context issue
       return;
     }
     const plan = PLANS.find(p => p.id === planId);
@@ -971,6 +965,22 @@ const PricePlanning: React.FC = () => {
           onConfirm={handleConfirmPayment}
           onCancel={() => { if (!subscribing) setConfirmPlan(null); }}
         />
+      )}
+
+      {/* ══ LOGIN / REGISTER PROMPT (guests clicking Subscribe) ══ */}
+      {showLoginPrompt && (
+        <div onClick={() => setShowLoginPrompt(false)} style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(20,7,14,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5vh 4vw' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: 'min(420px,94vw)', background: '#fff', borderRadius: 20, padding: '32px 28px 24px', textAlign: 'center', boxShadow: '0 30px 80px rgba(0,0,0,0.45)', position: 'relative' }}>
+            <button onClick={() => setShowLoginPrompt(false)} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(101,28,50,0.06)', color: '#651C32', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
+            <div style={{ width: 72, height: 72, borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#DEBB6B' }}>
+              <i className="isax isax-lock-1" style={{ fontSize: 30 }} />
+            </div>
+            <h3 style={{ fontFamily: '"Playfair Display",serif', fontSize: 22, fontWeight: 800, color: '#651C32', margin: '0 0 8px' }}>{t('pricing.loginRequired.title', 'Login or Register')}</h3>
+            <p style={{ color: '#7A6060', fontSize: 14, lineHeight: 1.7, margin: '0 0 22px' }}>{t('pricing.loginRequired.content', 'Please log in or create an account to start your subscription.')}</p>
+            <button onClick={() => navigate(route.login)} style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#C5973E,#A67825)', color: '#fff', fontWeight: 800, fontSize: 15, marginBottom: 10, boxShadow: '0 6px 18px rgba(197,151,62,0.3)' }}>{t('pricing.loginRequired.okText', 'Login')}</button>
+            <button onClick={() => navigate(route.register)} style={{ display: 'block', width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid rgba(101,28,50,0.22)', cursor: 'pointer', background: 'transparent', color: '#651C32', fontWeight: 700, fontSize: 14 }}>{t('pricing.loginRequired.registerText', 'Register')}</button>
+          </div>
+        </div>
       )}
 
     </div>

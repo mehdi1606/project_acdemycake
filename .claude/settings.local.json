@@ -163,7 +163,10 @@
       "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b5jt34dl9.output)",
       "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b5jt34dl9.output)",
       "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b8cgh2ovp.output)",
-      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b8cgh2ovp.output)"
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b8cgh2ovp.output)",
+      "Bash(grep -vE \"ConfirmModal|loginRequired|//\")",
+      "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/blbuydf2o.output)",
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/blbuydf2o.output)"
     ]
   }
 }
