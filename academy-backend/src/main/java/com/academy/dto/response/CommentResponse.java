@@ -21,6 +21,7 @@ public class CommentResponse {
     private UUID userId;
     private String userName;
     private String userAvatar;
+    private String userRole;
     private UUID parentCommentId;
     private String content;
     private Integer likesCount;
@@ -44,6 +45,7 @@ public class CommentResponse {
                 .userId(comment.getUser() != null ? comment.getUser().getId() : null)
                 .userName(comment.getUser() != null ? comment.getUser().getFullName() : "Deleted User")
                 .userAvatar(comment.getUser() != null ? comment.getUser().getAvatarUrl() : null)
+                .userRole(comment.getUser() != null && comment.getUser().getRole() != null ? comment.getUser().getRole().name() : null)
                 .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)
                 .content(comment.getContent())
                 .likesCount(comment.getLikesCount())

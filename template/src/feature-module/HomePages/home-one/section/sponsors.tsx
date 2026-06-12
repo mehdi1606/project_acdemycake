@@ -15,7 +15,7 @@ const IVORY  = '#F2EFE8'
 // Logos in public/assets/img/sponsor (filenames kept verbatim — encoded at render)
 const SPONSORS = [
   'Bilait.webp', 'Bravo.png', 'Fo ozmer.jpg.jpeg', 'Katsan.jpg.jpeg',
-  'logo-cioccolato.png', 'logo-gelato.png', 'logo-master.png', 'Martini.png',
+  'logo-cioccolato.png','mastergel-logo.jpeg', 'logo-gelato.png', 'logo-master.png', 'Martini.png',
   'natra-cacao.png', 'one-way-plastics.webp', 'Saracino.png',
 ]
 
@@ -71,16 +71,16 @@ const SponsorsSection: React.FC = () => {
         }
         .sl-spon__viewport:hover .sl-spon__track { animation-play-state: paused; }
 
-        .sl-spon__item { flex: 0 0 auto; width: 190px; height: 112px; padding: 0 14px; display: flex; }
+        .sl-spon__item { flex: 0 0 auto; width: 240px; height: 150px; padding: 0 14px; display: flex; }
         .sl-spon__card {
           width: 100%; height: 100%; background: #fff; border-radius: 16px;
           border: 1px solid rgba(201,168,76,.16); box-shadow: 0 8px 24px rgba(107,29,42,.06);
-          display: flex; align-items: center; justify-content: center; padding: 18px;
+          display: flex; align-items: center; justify-content: center; padding: 20px;
           transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
         }
         .sl-spon__card:hover { transform: translateY(-6px); box-shadow: 0 18px 42px rgba(107,29,42,.14); border-color: ${GOLD}66; }
         .sl-spon__card img {
-          max-width: 100%; max-height: 60px; object-fit: contain;
+          max-width: 100%; max-height: 90px; object-fit: contain;
           opacity: .9; transition: opacity .35s ease, transform .35s ease;
         }
         .sl-spon__card:hover img { opacity: 1; transform: scale(1.04); }
@@ -91,8 +91,8 @@ const SponsorsSection: React.FC = () => {
         }
         @media (max-width: 600px) {
           .sl-spon { padding: 56px 0 58px; }
-          .sl-spon__item { width: 152px; height: 94px; }
-          .sl-spon__card img { max-height: 46px; }
+          .sl-spon__item { width: 190px; height: 120px; }
+          .sl-spon__card img { max-height: 68px; }
         }
       `}</style>
 

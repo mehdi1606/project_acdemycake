@@ -22,6 +22,7 @@ public class PostResponse {
     private UUID userId;
     private String userName;
     private String userAvatar;
+    private String userRole;
     private String title;
     private String content;
     private List<String> images;
@@ -60,6 +61,7 @@ public class PostResponse {
                 .userId(author != null ? author.getId() : null)
                 .userName(author != null ? author.getFullName() : "Deleted User")
                 .userAvatar(author != null ? author.getAvatarUrl() : null)
+                .userRole(author != null && author.getRole() != null ? author.getRole().name() : null)
                 .title(post.getTitle())
                 .content(post.getContent())
                 .images(images)
