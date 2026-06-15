@@ -115,9 +115,11 @@ const AdminCategories = () => {
   };
 
   const handleImageChange: UploadProps['onChange'] = (info) => {
-    if (info.file.originFileObj) {
-      setImageFile(info.file.originFileObj);
-    }
+    // With beforeUpload returning false, Ant passes the raw File as info.file
+    // (originFileObj is undefined here), so fall back to info.file itself.
+    if (info.file.status === 'removed') { setImageFile(null); return; }
+    const raw = (info.file.originFileObj ?? info.file) as unknown as File;
+    if (raw) setImageFile(raw);
   };
 
   const openDeleteModal = (category: CourseCategory) => {

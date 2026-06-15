@@ -1,4 +1,4 @@
-import api from './axios.config';
+import api, { apiMultipart } from './axios.config';
 import {
   AdminDashboard,
   AdminUser,
@@ -243,9 +243,7 @@ class AdminService {
   async uploadCategoryImage(categoryId: string, file: File): Promise<string> {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post(`/categories/${categoryId}/image`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiMultipart.post(`/categories/${categoryId}/image`, formData);
     return response.data;
   }
 

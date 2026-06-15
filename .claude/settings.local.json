@@ -168,7 +168,13 @@
       "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/blbuydf2o.output)",
       "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/blbuydf2o.output)",
       "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bdepx8k79.output)",
-      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bdepx8k79.output)"
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/bdepx8k79.output)",
+      "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b7h6jnfuz.output)",
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b7h6jnfuz.output)",
+      "Bash(cd /c/Users/PC/Plateform/template)",
+      "Bash(sed -n '1,3p' src/services/api/admin.service.ts)",
+      "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b6ofdrkod.output)",
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b6ofdrkod.output)"
     ]
   }
 }
