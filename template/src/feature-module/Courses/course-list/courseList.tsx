@@ -12,6 +12,8 @@ import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
 import BadgeAvatar from '../../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../../config/badges';
+import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
+import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 
 // ── Representative image for a category (its own image, else an on-brand cake) ──
 const CAKE_POOL = Array.from({ length: 15 }, (_, i) => `cake/${i + 1}.png`);
@@ -66,8 +68,9 @@ interface CourseListCardProps {
 const CourseListCard: React.FC<CourseListCardProps> = ({
   course, inWishlist, isLoadingWishlist, onWishlist, getLevelDisplay, index,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const route   = all_routes;
+  const localCourse = useLocalizedCourse(course, i18n.language);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -109,13 +112,13 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
       <Link to={`${route.courseDetails}/${course.slug}`} className="sl-cl-card__thumb">
         <img
           src={thumb}
-          alt={course.title}
+          alt={localCourse.title}
           onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }}
         />
         <div className="sl-cl-card__thumb-overlay" />
 
         {/* Category ribbon */}
-        <span className="sl-cl-card__badge">{course.category?.name || 'Pastry Arts'}</span>
+        <span className="sl-cl-card__badge">{course.category ? getLocalizedCategory(course.category, i18n.language).name : 'Pastry Arts'}</span>
 
         {/* Wishlist */}
         <button
@@ -160,7 +163,7 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
 
         {/* Title */}
         <h3 className="sl-cl-card__title">
-          <Link to={`${route.courseDetails}/${course.slug}`}>{course.title}</Link>
+          <Link to={`${route.courseDetails}/${course.slug}`}>{localCourse.title}</Link>
         </h3>
 
         {/* Description */}
@@ -251,7 +254,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
   categories, selectedCategory, selectedLevel,
   onCategoryChange, onLevelChange, onClear, hasActiveFilters,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState<Set<string>>(new Set(['categories', 'level']));
   const toggle = (s: string) =>
     setOpen(p => { const n = new Set(p); if (n.has(s)) n.delete(s); else n.add(s); return n; });
@@ -289,7 +292,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
                   onChange={() => onCategoryChange(cat.id)}
                 />
                 <span className="sl-cl-check__box" />
-                <span className="sl-cl-check__label">{cat.name}</span>
+                <span className="sl-cl-check__label">{getLocalizedCategory(cat, i18n.language).name}</span>
                 {cat.coursesCount !== undefined && (
                   <span className="sl-cl-check__count">{cat.coursesCount}</span>
                 )}
@@ -414,7 +417,7 @@ const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, 
                 tabIndex={0}
                 onClick={() => onSelect(cat.id)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(cat.id); } }}
-                aria-label={cat.name}
+                aria-label={getLocalizedCategory(cat, i18n.language).name}
                 data-aos="fade-up"
                 data-aos-delay={String((i % 3) * 70)}
                 data-aos-duration="700"
@@ -422,7 +425,7 @@ const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, 
                 <div className="sl-cat-card__media">
                   <img
                     src={categoryImage(cat)}
-                    alt={cat.name}
+                    alt={getLocalizedCategory(cat, i18n.language).name}
                     loading="lazy"
                     decoding="async"
                     onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/cake/1.png`; }}
@@ -434,7 +437,7 @@ const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, 
                   </span>
                 </div>
                 <div className="sl-cat-card__body">
-                  <h3 className="sl-cat-card__name">{cat.name}</h3>
+                  <h3 className="sl-cat-card__name">{getLocalizedCategory(cat, i18n.language).name}</h3>
                   {cat.description && <p className="sl-cat-card__desc">{cat.description}</p>}
                   <span className="sl-cat-card__cta">
                     {t('courseList.exploreCategory', 'Explore')}
@@ -765,7 +768,7 @@ const CourseList: React.FC = () => {
                     const cat = categories.find(c => c.id === selectedCategory);
                     return cat ? (
                       <span className="sl-cl-chip">
-                        {cat.name}
+                        {getLocalizedCategory(cat, i18n.language).name}
                         <button onClick={() => { setSelectedCategory(null); setCurrentPage(1); }}>×</button>
                       </span>
                     ) : null;

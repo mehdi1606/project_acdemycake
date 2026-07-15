@@ -19,5 +19,10 @@ public class CreateModuleRequest {
 
     private String description;
 
+    private String titleEn;
+    private String titleAr;
+    private String descriptionEn;
+    private String descriptionAr;
+
     private Integer orderIndex;
 }

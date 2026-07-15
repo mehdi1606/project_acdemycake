@@ -38,6 +38,18 @@ public class CourseCategory extends BaseEntity {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "name_en", columnDefinition = "TEXT")
+    private String nameEn;
+
+    @Column(name = "name_ar", columnDefinition = "TEXT")
+    private String nameAr;
+
+    @Column(name = "description_en", columnDefinition = "TEXT")
+    private String descriptionEn;
+
+    @Column(name = "description_ar", columnDefinition = "TEXT")
+    private String descriptionAr;
+
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @Builder.Default
     private Set<Course> courses = new HashSet<>();

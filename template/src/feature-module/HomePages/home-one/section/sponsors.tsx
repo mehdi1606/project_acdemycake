@@ -1,25 +1,20 @@
 /**
  * SponsorsSection — SARALÖWE Academy
- * An infinite, auto-scrolling marquee of sponsor / partner logos. Logos sit on
- * elegant white cards (so any logo displays cleanly), drift continuously, pause
- * on hover, and lift on hover. Bilingual (AR/EN), edge-faded, seamless loop.
+ * Infinite auto-scrolling marquee of sponsor logos using requestAnimationFrame.
  */
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
-// ─── palette ──────────────────────────────────────────────────────────────────
 const GOLD   = '#C9A84C'
 const MAROON = '#6B1D2A'
 const IVORY  = '#F2EFE8'
 
-// Logos in public/assets/img/sponsor (filenames kept verbatim — encoded at render)
 const SPONSORS = [
   'Bilait.webp', 'Bravo.png', 'Fo ozmer.jpg.jpeg', 'Katsan.jpg.jpeg',
   'logo-cioccolato.png', 'logo-gelato.png', 'logo-master.png', 'Martini.png',
   'natra-cacao.png', 'one-way-plastics.webp', 'Saracino.png',
 ]
 
-// Featured "main sponsor" — shown large above the marquee, not in the scroll.
 const MAIN_SPONSOR = 'mastergel-logo.jpeg'
 
 const SponsorsSection: React.FC = () => {
@@ -32,8 +27,21 @@ const SponsorsSection: React.FC = () => {
     ? { ornament: 'بثقة من', title: 'رعاتنا وشركاؤنا', sub: 'بفخر بدعم من أبرز العلامات التجارية في عالم الباتيسري وفنون الطهي.' }
     : { ornament: 'Trusted By', title: 'Our Sponsors & Partners', sub: 'Proudly supported by leading brands across the pastry and culinary world.' }
 
-  // Rendered twice → translateX(-50%) gives a seamless infinite loop.
   const track = [...SPONSORS, ...SPONSORS]
+  const trackRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    let offset = 0
+    const id = setInterval(() => {
+      offset += 1
+      const half = el.scrollWidth / 2
+      if (half > 0 && offset >= half) offset -= half
+      el.style.marginLeft = `-${offset}px`
+    }, 16)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <>
@@ -61,7 +69,6 @@ const SponsorsSection: React.FC = () => {
         }
         .sl-spon__sub { color: #6f6058; font-size: 1rem; line-height: 1.7; max-width: 620px; margin: 0 auto; }
 
-        /* ── Featured / main sponsor (out of the scroll) ── */
         .sl-spon__hero { display: flex; flex-direction: column; align-items: center; margin: 0 auto 48px; }
         .sl-spon__hero-label {
           display: inline-flex; align-items: center; gap: 8px;
@@ -90,28 +97,22 @@ const SponsorsSection: React.FC = () => {
 
         .sl-spon__track {
           display: flex; width: max-content; align-items: center; direction: ltr;
-          animation: sl-spon-scroll 44s linear infinite; will-change: transform;
         }
-        .sl-spon__viewport:hover .sl-spon__track { animation-play-state: paused; }
 
         .sl-spon__item { flex: 0 0 auto; width: 240px; height: 150px; padding: 0 14px; display: flex; }
         .sl-spon__card {
           width: 100%; height: 100%; background: #fff; border-radius: 16px;
           border: 1px solid rgba(201,168,76,.16); box-shadow: 0 8px 24px rgba(107,29,42,.06);
           display: flex; align-items: center; justify-content: center; padding: 20px;
-          transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+          transition: box-shadow .35s ease, border-color .35s ease;
         }
-        .sl-spon__card:hover { transform: translateY(-6px); box-shadow: 0 18px 42px rgba(107,29,42,.14); border-color: ${GOLD}66; }
+        .sl-spon__card:hover { box-shadow: 0 18px 42px rgba(107,29,42,.14); border-color: ${GOLD}66; }
         .sl-spon__card img {
           max-width: 100%; max-height: 90px; object-fit: contain;
-          opacity: .9; transition: opacity .35s ease, transform .35s ease;
+          opacity: .9; transition: opacity .35s ease;
         }
-        .sl-spon__card:hover img { opacity: 1; transform: scale(1.04); }
+        .sl-spon__card:hover img { opacity: 1; }
 
-        @keyframes sl-spon-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        @media (prefers-reduced-motion: reduce) {
-          .sl-spon__track { animation: none; flex-wrap: wrap; justify-content: center; }
-        }
         @media (max-width: 600px) {
           .sl-spon { padding: 56px 0 58px; }
           .sl-spon__item { width: 190px; height: 120px; }
@@ -128,7 +129,6 @@ const SponsorsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Main / super sponsor — featured, out of the scroll */}
         <div className="container">
           <div className="sl-spon__hero" data-aos="zoom-in" data-aos-duration="700">
             <span className="sl-spon__hero-label"><i className="isax isax-crown-1" />{isRtl ? 'الراعي الرئيسي' : 'Main Sponsor'}</span>
@@ -144,10 +144,10 @@ const SponsorsSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="sl-spon__viewport" data-aos="fade-up" data-aos-delay="100" data-aos-duration="800">
-          <div className="sl-spon__track">
+        <div className="sl-spon__viewport">
+          <div className="sl-spon__track" ref={trackRef}>
             {track.map((name, i) => (
-              <div className="sl-spon__item" key={i} aria-hidden={i >= SPONSORS.length}>
+              <div className="sl-spon__item" key={i}>
                 <div className="sl-spon__card">
                   <img
                     src={src(name)}

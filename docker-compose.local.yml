@@ -1,0 +1,59 @@
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║  SARALÖWE ACADEMY — Docker Compose LOCAL override               ║
+# ║                                                                  ║
+# ║  Layered on top of docker-compose.yml for local development.    ║
+# ║  Differences from production:                                    ║
+# ║   • No SSL — plain HTTP on localhost:80                         ║
+# ║   • Backend also exposed on port 8080 for direct API access    ║
+# ║   • Uses nginx.local.conf (no SSL config)                      ║
+# ║   • DB exposed on port 5433 for local tools (pgAdmin, etc.)    ║
+# ║                                                                  ║
+# ║  Usage:                                                         ║
+# ║    docker compose -f docker-compose.yml                         ║
+# ║                   -f docker-compose.local.yml                   ║
+# ║                   --env-file .env.local up -d --build           ║
+# ║                                                                  ║
+# ║  Then open: http://localhost                                    ║
+# ║                                                                  ║
+# ║  NOTE: Your .env.docker (server config) is NOT touched.        ║
+# ╚══════════════════════════════════════════════════════════════════╝
+
+services:
+
+  # ── Expose DB on host for local dev tools ──────────────────────
+  db:
+    ports:
+      - "5433:5432"
+
+  # ── Backend: override URLs for localhost ────────────────────────
+  backend:
+    environment:
+      CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:80
+      FRONTEND_URL:    http://localhost
+      FILE_BASE_URL:   http://localhost
+      SPRING_PROFILES_ACTIVE: dev
+
+      # CMI callbacks (local — CMI can't reach localhost,
+      # but this prevents startup errors)
+      CMI_CALLBACK_URL: http://localhost/api/v1/payments/cmi/callback
+      CMI_OK_URL:       http://localhost/api/v1/payments/cmi/return
+      CMI_FAIL_URL:     http://localhost/api/v1/payments/cmi/return
+      CMI_SHOP_URL:     http://localhost
+
+      # PayZone callbacks (local)
+      PAYZONE_CALLBACK_URL: http://localhost/api/v1/payments/webhook
+      PAYZONE_RETURN_URL:   http://localhost/payment/callback
+
+    # Also expose backend directly for debugging
+    ports:
+      - "8080:8080"
+
+  # ── Frontend: HTTP only, no SSL ─────────────────────────────────
+  frontend:
+    build:
+      args:
+        REACT_APP_API_URL:     http://localhost
+        REACT_APP_WS_URL:      ws://localhost/ws
+    volumes:
+      # Override the production nginx config with the local one (no SSL)
+      - ./template/nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro

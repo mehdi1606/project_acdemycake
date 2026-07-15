@@ -55,8 +55,9 @@ const CommunityPage: React.FC = () => {
   const [search,      setSearch]      = useState('');
   const [searchInput, setSearchInput] = useState('');
 
-  // Create post modal
+  // Create/Edit post modal
   const [modalOpen,      setModalOpen]      = useState(false);
+  const [editingPostId,  setEditingPostId]  = useState<string | null>(null);
   const [formTitle,      setFormTitle]      = useState('');
   const [formContent,    setFormContent]    = useState('');
   const [formType,       setFormType]       = useState<PostType>('DISCUSSION');
@@ -65,6 +66,10 @@ const CommunityPage: React.FC = () => {
   const [formImageUrl,   setFormImageUrl]   = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // Action menu
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -121,11 +126,53 @@ const CommunityPage: React.FC = () => {
     }
   };
 
-  // ── create post ───────────────────────────────────────────────────────────
-  const openModal = () => {
-    setFormTitle(''); setFormContent(''); setFormType('DISCUSSION');
-    setFormError(''); setFormImageUrl(null);
+  // ── create / edit post ─────────────────────────────────────────────────────
+  const openModal = (post?: CommunityPost) => {
+    if (post) {
+      setEditingPostId(post.id);
+      setFormTitle(post.title);
+      setFormContent(post.content);
+      setFormType(post.postType);
+      setFormImageUrl(post.images?.[0] ?? null);
+    } else {
+      setEditingPostId(null);
+      setFormTitle(''); setFormContent(''); setFormType('DISCUSSION');
+      setFormImageUrl(null);
+    }
+    setFormError('');
     setModalOpen(true);
+  };
+
+  // ── delete post ───────────────────────────────────────────────────────────
+  const handleDelete = async (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveMenuId(null);
+    if (!window.confirm(t('community.confirmDelete', 'Are you sure you want to delete this post?'))) return;
+    setDeleting(postId);
+    try {
+      await communityService.deletePost(postId);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+    } catch {
+      // silent
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  // ── pin / unpin post ──────────────────────────────────────────────────────
+  const handleTogglePin = async (post: CommunityPost, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveMenuId(null);
+    try {
+      if (post.isPinned) {
+        await communityService.unpinPost(post.id);
+      } else {
+        await communityService.pinPost(post.id);
+      }
+      setPosts((prev) => prev.map((p) => p.id === post.id ? { ...p, isPinned: !post.isPinned } : p));
+    } catch {
+      // silent
+    }
   };
 
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +203,6 @@ const CommunityPage: React.FC = () => {
     setSubmitting(true);
     setFormError('');
     try {
-      // Guard: students cannot submit CHALLENGE posts
       const safeType: PostType = (!isInstructor && formType === 'CHALLENGE') ? 'DISCUSSION' : formType;
       const req: CreatePostRequest = {
         title:     formTitle.trim(),
@@ -164,8 +210,13 @@ const CommunityPage: React.FC = () => {
         postType:  safeType,
         ...(formImageUrl ? { imageUrls: [formImageUrl] } : {}),
       };
-      const created = await communityService.createPost(req);
-      setPosts((prev) => [created, ...prev]);
+      if (editingPostId) {
+        const updated = await communityService.updatePost(editingPostId, req);
+        setPosts((prev) => prev.map((p) => p.id === editingPostId ? updated : p));
+      } else {
+        const created = await communityService.createPost(req);
+        setPosts((prev) => [created, ...prev]);
+      }
       setModalOpen(false);
     } catch {
       setFormError(t('community.errorCreate', 'Failed to publish post. Please try again.'));
@@ -175,6 +226,11 @@ const CommunityPage: React.FC = () => {
   };
 
   const handleFilterType = (ptype: PostType | '') => { setFilterType(ptype); setPage(0); };
+
+  const canManagePost = (post: CommunityPost) => {
+    const userId = user?.id;
+    return userId === post.userId || effectiveRole === 'ADMIN';
+  };
 
   // ─── render ───────────────────────────────────────────────────────────────
   return (
@@ -188,7 +244,7 @@ const CommunityPage: React.FC = () => {
             </h4>
             <p className="text-muted mb-0 fs-14">{t('community.description', 'Share, discuss and grow together.')}</p>
           </div>
-          <button className="btn btn-primary d-flex align-items-center gap-2" onClick={openModal}>
+          <button className="btn btn-primary d-flex align-items-center gap-2" onClick={() => openModal()}>
             <i className="isax isax-add-circle fs-18" />
             {t('community.newPost', 'New Post')}
           </button>
@@ -292,6 +348,62 @@ const CommunityPage: React.FC = () => {
                           {post.postType === 'CHALLENGE' && <i className="isax isax-crown me-1" style={{ fontSize: 10 }} />}
                           {TYPE_LABELS[post.postType]}
                         </span>
+
+                        {/* Action menu */}
+                        {(canManagePost(post) || isInstructor) && (
+                          <div style={{ position: 'relative' }}>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-light"
+                              style={{ padding: '2px 8px', lineHeight: 1 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuId(activeMenuId === post.id ? null : post.id);
+                              }}
+                            >
+                              <i className="fa-solid fa-ellipsis-vertical" />
+                            </button>
+                            {activeMenuId === post.id && (
+                              <>
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                                  onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                                <div style={{
+                                  position: 'absolute', right: 0, top: '100%', zIndex: 100,
+                                  background: '#fff', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                  border: '1px solid rgba(0,0,0,0.08)', minWidth: 180, overflow: 'hidden',
+                                }}>
+                                  {canManagePost(post) && (
+                                    <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                                      onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); openModal(post); }}>
+                                      <i className="isax isax-edit-2 fs-16" style={{ color: '#6B1D2A' }} />
+                                      {t('community.edit', 'Edit')}
+                                    </button>
+                                  )}
+                                  {isInstructor && (
+                                    <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                                      onClick={(e) => handleTogglePin(post, e)}>
+                                      <i className={`fa-solid fa-thumbtack fs-14 ${post.isPinned ? 'text-warning' : ''}`}
+                                        style={!post.isPinned ? { color: '#6B1D2A' } : {}} />
+                                      {post.isPinned
+                                        ? t('community.unpin', 'Unpin')
+                                        : t('community.pin', 'Pin')}
+                                    </button>
+                                  )}
+                                  {canManagePost(post) && (
+                                    <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2 text-danger"
+                                      onClick={(e) => handleDelete(post.id, e)}
+                                      disabled={deleting === post.id}>
+                                      <i className="isax isax-trash fs-16" />
+                                      {deleting === post.id
+                                        ? t('community.deleting', 'Deleting…')
+                                        : t('community.delete', 'Delete')}
+                                    </button>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -376,10 +488,10 @@ const CommunityPage: React.FC = () => {
           }}>
             <div>
               <div style={{ fontFamily: '"Pinyon Script", cursive', color: '#C5912C', fontSize: '1.1rem', lineHeight: 1 }}>
-                Share
+                {editingPostId ? 'Edit' : 'Share'}
               </div>
               <div style={{ color: '#fff', fontSize: 20, fontWeight: 700, fontFamily: '"Playfair Display", serif' }}>
-                {t('community.createPost', 'Create a Post')}
+                {editingPostId ? t('community.editPost', 'Edit Post') : t('community.createPost', 'Create a Post')}
               </div>
             </div>
             <button type="button" onClick={() => setModalOpen(false)}
@@ -528,8 +640,8 @@ const CommunityPage: React.FC = () => {
                   opacity: (submitting || !formTitle.trim() || !formContent.trim()) ? 0.6 : 1,
                   display: 'flex', alignItems: 'center', gap: 8,
                 }}>
-                {submitting ? <Spin size="small" /> : <i className="isax isax-send-2" />}
-                {t('community.post', 'Publish Post')}
+                {submitting ? <Spin size="small" /> : <i className={`isax ${editingPostId ? 'isax-edit-2' : 'isax-send-2'}`} />}
+                {editingPostId ? t('community.saveChanges', 'Save Changes') : t('community.post', 'Publish Post')}
               </button>
             </div>
           </div>

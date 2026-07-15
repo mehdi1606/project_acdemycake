@@ -4,300 +4,9 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import certificateService from '../../../services/api/certificate.service';
 import { Certificate } from '../../../services/api/types';
 
-// ── Design tokens (Saralöwe pink certificate palette) ─────────────────────────
-const PINK_BG  = '#FCE6E8';
-const CRIMSON  = '#9D1C34';
-const CRIM_DK  = '#781224';
-const WHITE    = '#FFFFFF';
-
-// ── Art Nouveau ribbon SVG ─────────────────────────────────────────────────────
-// Portrait 595 × 210 view-box matching the PDF banner area
-const RibbonSvg = () => (
-  <svg
-    viewBox="0 0 595 210"
-    xmlns="http://www.w3.org/2000/svg"
-    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 'auto', display: 'block' }}
-    preserveAspectRatio="none"
-  >
-    {/* ── Main crimson wave band ── */}
-    <path
-      d={[
-        'M0,0 L595,0 L595,148',
-        'C524,123 387,141 297.5,120',
-        'C208,99  71,133  0,148 Z',
-      ].join(' ')}
-      fill={CRIMSON}
-    />
-
-    {/* ── LEFT Art-Nouveau swirl knot (circle mostly off-page) ── */}
-    {/* Outer ring */}
-    <circle cx="-18" cy="148" r="75" fill="none" stroke={CRIMSON} strokeWidth="20" />
-    {/* Inner filled dot */}
-    <circle cx="-18" cy="148" r="28" fill={CRIMSON} />
-    {/* Ribbon tail sweeping right-downward */}
-    <path
-      d="M55,162 C95,178 120,205 90,230 C60,255 28,242 40,268"
-      fill="none" stroke={CRIMSON} strokeWidth="18" strokeLinecap="round"
-    />
-
-    {/* ── RIGHT Art-Nouveau swirl knot (mirror) ── */}
-    <circle cx="613" cy="148" r="75" fill="none" stroke={CRIMSON} strokeWidth="20" />
-    <circle cx="613" cy="148" r="28" fill={CRIMSON} />
-    <path
-      d="M540,162 C500,178 475,205 505,230 C535,255 567,242 555,268"
-      fill="none" stroke={CRIMSON} strokeWidth="18" strokeLinecap="round"
-    />
-
-    {/* ── "COUTURE PASTRY" ── */}
-    <text
-      x="297.5" y="52"
-      textAnchor="middle"
-      fontFamily="'Cinzel', 'Trajan Pro', Georgia, serif"
-      fontSize="11" fill={WHITE} letterSpacing="5"
-    >COUTURE PASTRY</text>
-
-    {/* ── "SARALÖWE" ── */}
-    <text
-      x="297.5" y="104"
-      textAnchor="middle"
-      fontFamily="'Cinzel', 'Trajan Pro', Georgia, serif"
-      fontWeight="700" fontSize="52" fill={WHITE} letterSpacing="5"
-    >SARALÖWE</text>
-
-    {/* ── "CRAFTED BY SCIENCE, ELEVATED BY ART!" ── */}
-    <text
-      x="297.5" y="127"
-      textAnchor="middle"
-      fontFamily="'Cinzel', 'Trajan Pro', Georgia, serif"
-      fontSize="9" fill={WHITE} letterSpacing="3"
-    >CRAFTED BY SCIENCE, ELEVATED BY ART!</text>
-  </svg>
-);
-
-// ── Certificate Preview Component ─────────────────────────────────────────────
-const CertificatePreview = ({ cert, formatDate }: { cert: Certificate; formatDate: (d?: string) => string }) => {
-  const instructorDisplay = cert.instructorName || 'Saralöwe Academy';
-
-  return (
-    <div style={{
-      background: PINK_BG,
-      width: '100%',
-      maxWidth: 595,
-      margin: '0 auto',
-      fontFamily: "'Lato', 'Segoe UI', sans-serif",
-      position: 'relative',
-      boxShadow: `0 8px 48px rgba(120,18,36,0.28)`,
-      aspectRatio: '595 / 842',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-
-      {/* ── Ribbon banner area ── */}
-      <div style={{ position: 'relative', width: '100%', height: '25%', flexShrink: 0 }}>
-        <RibbonSvg />
-      </div>
-
-      {/* ── Certificate content ── */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '0 6% 3%',
-        position: 'relative',
-      }}>
-
-        {/* "Certificate" script */}
-        <div style={{
-          fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive",
-          fontSize: 'clamp(32px, 8vw, 64px)',
-          color: CRIMSON,
-          lineHeight: 1.1,
-          marginTop: '2%',
-          textAlign: 'center',
-        }}>
-          Certificate
-        </div>
-
-        {/* "ISSUED BY SARALÖWE ACADEMY" */}
-        <div style={{
-          fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
-          fontSize: 'clamp(7px, 1.4vw, 10px)',
-          color: CRIMSON,
-          letterSpacing: '0.25em',
-          marginTop: '0.5%',
-          textAlign: 'center',
-        }}>
-          ISSUED BY &nbsp;&nbsp; SARALÖWE ACADEMY
-        </div>
-
-        {/* Thin rule with diamond */}
-        <div style={{ position: 'relative', width: '65%', margin: '2% 0' }}>
-          <div style={{ height: 1, background: CRIMSON, width: '100%' }} />
-          <div style={{
-            position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%) rotate(45deg)',
-            width: 7, height: 7, background: CRIMSON,
-          }} />
-        </div>
-
-        {/* "THIS CERTIFICATE IS AWARDED TO" */}
-        <div style={{
-          fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
-          fontSize: 'clamp(7px, 1.5vw, 11px)',
-          color: CRIMSON,
-          letterSpacing: '0.2em',
-          textAlign: 'center',
-          marginBottom: '2%',
-        }}>
-          THIS CERTIFICATE IS AWARDED TO
-        </div>
-
-        {/* Student name + underline */}
-        <div style={{ width: '78%', position: 'relative', textAlign: 'center', marginBottom: '1.5%' }}>
-          <div style={{
-            fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive",
-            fontSize: 'clamp(24px, 5.5vw, 40px)',
-            color: CRIMSON,
-            lineHeight: 1.1,
-          }}>
-            {cert.studentName}
-          </div>
-          <div style={{ height: 1, background: CRIMSON, marginTop: '0.5%' }} />
-        </div>
-
-        {/* Recognition text */}
-        <div style={{
-          fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
-          fontSize: 'clamp(6px, 1.3vw, 9.5px)',
-          color: CRIMSON,
-          letterSpacing: '0.17em',
-          textAlign: 'center',
-          lineHeight: 1.85,
-          marginBottom: '2.5%',
-        }}>
-          IN RECOGNITION OF THE DEDICATION, DISCIPLINE, AND<br />
-          ARTISTRY DEMONSTRATED THROUGHOUT THE<br />
-          <strong>{cert.courseTitle.toUpperCase()} COURSE</strong>
-        </div>
-
-        {/* ── Fields ── */}
-        <div style={{ width: '100%', marginBottom: 'auto' }}>
-          {[
-            { label: 'Course :', value: cert.courseTitle },
-            { label: 'Instructor :', value: instructorDisplay },
-            { label: 'Date :', value: formatDate(cert.completionDate || cert.issuedAt) },
-          ].map(({ label, value }) => (
-            <div key={label} style={{
-              display: 'flex', alignItems: 'baseline',
-              gap: '1.5%', marginBottom: '1.8%',
-            }}>
-              <span style={{
-                fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive",
-                fontSize: 'clamp(14px, 3vw, 22px)',
-                color: CRIMSON,
-                flexShrink: 0,
-                minWidth: '20%',
-              }}>
-                {label}
-              </span>
-              <div style={{ flex: 1, position: 'relative', paddingBottom: 2 }}>
-                <span style={{
-                  fontFamily: "'Lato', 'Segoe UI', sans-serif",
-                  fontSize: 'clamp(7px, 1.3vw, 10px)',
-                  color: CRIMSON,
-                  position: 'absolute',
-                  bottom: 4,
-                  left: 4,
-                  right: 0,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>
-                  {value}
-                </span>
-                <div style={{ borderBottom: `0.5px solid ${CRIMSON}`, width: '100%', marginTop: '1.6em' }} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Bottom row: Instructor name (left) + Seal (right) ── */}
-        <div style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          marginTop: '2%',
-        }}>
-          {/* Left: Instructor block */}
-          <div>
-            <div style={{
-              fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
-              fontSize: 'clamp(6px, 1.3vw, 9.5px)',
-              color: CRIMSON,
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-            }}>
-              {instructorDisplay.toUpperCase()}
-            </div>
-            <div style={{
-              fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
-              fontSize: 'clamp(5px, 1.1vw, 8px)',
-              color: CRIMSON,
-              letterSpacing: '0.18em',
-              marginTop: 3,
-            }}>
-              COURSE INSTRUCTOR
-            </div>
-          </div>
-
-          {/* Right: Circular seal */}
-          <div style={{
-            width: 'clamp(52px, 11%, 78px)',
-            aspectRatio: '1',
-            borderRadius: '50%',
-            border: `2px solid ${CRIMSON}`,
-            boxShadow: `inset 0 0 0 6px ${PINK_BG}, inset 0 0 0 7px ${CRIMSON}`,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
-              fontSize: 'clamp(5px, 1.1vw, 7.5px)',
-              color: CRIMSON,
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              textAlign: 'center',
-              lineHeight: 1.5,
-            }}>
-              SARALÖWE<br />ACADEMY<br />
-              <span style={{ fontSize: '0.85em', letterSpacing: '0.06em' }}>EST. 2010</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Certificate number */}
-        <div style={{
-          marginTop: '2%',
-          fontFamily: "'Lato', 'Segoe UI', sans-serif",
-          fontSize: 'clamp(5px, 1vw, 7.5px)',
-          color: CRIMSON,
-          textAlign: 'center',
-          opacity: 0.75,
-        }}>
-          Certificate No: {cert.certificateNumber}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ── Main Component ─────────────────────────────────────────────────────────────
+const PINK_BG = '#FCE6E8';
+const CRIMSON = '#9D1C34';
+const CRIM_DK = '#781224';
 
 const StudentCertificates = () => {
   const { t } = useTranslation();
@@ -333,19 +42,20 @@ const StudentCertificates = () => {
 
   useEffect(() => { fetchCertificates(0); }, [fetchCertificates]);
 
-  // Load the REAL generated PDF for the selected certificate (so the preview shows
-  // the up-to-date template, not the old drawn design).
-  useEffect(() => {
-    if (!selected) { setPreviewUrl(null); return; }
-    let url: string | null = null;
-    let cancelled = false;
+  const handlePreview = async (cert: Certificate) => {
     setPreviewLoading(true);
-    certificateService.downloadCertificate(selected.id)
-      .then(blob => { if (!cancelled) { url = URL.createObjectURL(blob); setPreviewUrl(url); } })
-      .catch(() => { if (!cancelled) setPreviewUrl(null); })
-      .finally(() => { if (!cancelled) setPreviewLoading(false); });
-    return () => { cancelled = true; if (url) URL.revokeObjectURL(url); };
-  }, [selected]);
+    try {
+      const blob = await certificateService.downloadCertificate(cert.id);
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
+      setSelected(cert);
+    } catch {
+      setPreviewUrl(null);
+      setSelected(cert);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
@@ -464,7 +174,7 @@ const StudentCertificates = () => {
                       <td>
                         <button
                           type="button"
-                          onClick={() => setSelected(cert)}
+                          onClick={() => handlePreview(cert)}
                           style={{
                             background: 'none', border: 'none', padding: 0,
                             cursor: 'pointer', fontWeight: 600,
@@ -492,7 +202,7 @@ const StudentCertificates = () => {
                         <div className="d-flex align-items-center gap-2">
                           <button className="lx-btn lx-btn-outline lx-btn-sm"
                             title="Preview certificate"
-                            onClick={() => setSelected(cert)}>
+                            onClick={() => handlePreview(cert)}>
                             <i className="isax isax-eye" />
                           </button>
                           <button className="lx-btn lx-btn-outline lx-btn-sm"
@@ -524,7 +234,7 @@ const StudentCertificates = () => {
         <>
           {/* Backdrop */}
           <div
-            onClick={() => setSelected(null)}
+            onClick={() => { if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setSelected(null); }}
             style={{
               position: 'fixed', inset: 0,
               background: 'rgba(20, 8, 12, 0.72)',
@@ -569,7 +279,7 @@ const StudentCertificates = () => {
                   </span>
                 </div>
                 <button
-                  onClick={() => setSelected(null)}
+                  onClick={() => { if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setSelected(null); }}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     color: CRIMSON, fontSize: 22, padding: 4, lineHeight: 1,
@@ -580,7 +290,7 @@ const StudentCertificates = () => {
                 </button>
               </div>
 
-              {/* Certificate preview — the actual generated PDF (new template) */}
+              {/* Certificate preview — the actual generated PDF */}
               <div style={{ background: '#eee', padding: 0, height: 'min(70vh, 520px)', position: 'relative' }}>
                 {previewLoading && (
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -590,7 +300,9 @@ const StudentCertificates = () => {
                 {previewUrl ? (
                   <iframe title="Certificate" src={`${previewUrl}#toolbar=0&navpanes=0`} style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
                 ) : !previewLoading ? (
-                  <div style={{ padding: '20px 20px 0' }}><CertificatePreview cert={selected} formatDate={formatDate} /></div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: CRIMSON, fontFamily: "'Cinzel', Georgia, serif", fontSize: 14 }}>
+                    Failed to load certificate preview
+                  </div>
                 ) : null}
               </div>
 
@@ -623,7 +335,7 @@ const StudentCertificates = () => {
                 <div className="d-flex gap-2">
                   <button
                     className="lx-btn lx-btn-outline"
-                    onClick={() => setSelected(null)}
+                    onClick={() => { if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setSelected(null); }}
                     style={{ borderColor: `${CRIMSON}44`, color: CRIMSON }}
                   >
                     Close

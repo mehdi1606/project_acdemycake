@@ -10,9 +10,10 @@ import { courseService } from '../../../../services/api/course.service';
 import { CourseCategory } from '../../../../services/api/types';
 import { getFileUrl } from '../../../../environment';
 import { Spin } from 'antd';
+import { getLocalizedCategory } from '../../../../hooks/useLocalizedCategory';
 
 const Topcourses = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -146,14 +147,14 @@ const Topcourses = () => {
                   <img
                     className="mx-auto"
                     src={getCategoryIcon(category)}
-                    alt={category.name}
+                    alt={getLocalizedCategory(category, i18n.language).name}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'assets/img/category/icons/icon-6.svg';
                     }}
                     style={{ width: '60px', height: '60px' }}
                   />
                   <h6 className="title">
-                    <Link to={route.masterclass}>{category.name}</Link>
+                    <Link to={route.masterclass}>{getLocalizedCategory(category, i18n.language).name}</Link>
                   </h6>
                   {category.coursesCount > 0 && (
                     <span className="badge badge-soft-primary mt-2">{category.coursesCount} {t('topCourses.courses', 'courses')}</span>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Spin } from 'antd';
+import { Modal, Spin } from 'antd';
 import LuxuryDashboardLayout from '../../components/LuxuryDashboardLayout';
 import communityService from '../../services/api/community.service';
 import { CommunityComment, CommunityPost, PostType } from '../../services/api/types';
@@ -88,6 +88,26 @@ const CommunityPostDetail: React.FC = () => {
   const achievementFileRef = useRef<HTMLInputElement>(null);
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editType, setEditType] = useState<PostType>('DISCUSSION');
+  const [editImageUrl, setEditImageUrl] = useState<string | null>(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [editImageUploading, setEditImageUploading] = useState(false);
+  const editImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Action menu state
+  const [showActionMenu, setShowActionMenu] = useState(false);
+
+  const effectiveRole = user?.role ?? (() => {
+    try { return JSON.parse(localStorage.getItem('user') ?? '{}').role; } catch { return undefined; }
+  })();
+  const isAdminOrInstructor = effectiveRole === 'ADMIN' || effectiveRole === 'INSTRUCTOR';
+  const canManage = user?.id === post?.userId || effectiveRole === 'ADMIN';
 
   const id = postId ?? '';
 
@@ -237,6 +257,83 @@ const CommunityPostDetail: React.FC = () => {
     fetchComments(next);
   };
 
+  // ── edit post ─────────────────────────────────────────────────────────────
+  const openEditModal = () => {
+    if (!post) return;
+    setEditTitle(post.title);
+    setEditContent(post.content);
+    setEditType(post.postType);
+    setEditImageUrl(post.images?.[0] ?? null);
+    setEditError('');
+    setEditModalOpen(true);
+    setShowActionMenu(false);
+  };
+
+  const handleEditImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditImageUploading(true);
+    setEditError('');
+    try {
+      const url = await communityService.uploadPostImage(file);
+      setEditImageUrl(url);
+    } catch {
+      setEditError('Failed to upload image.');
+    } finally {
+      setEditImageUploading(false);
+      if (editImageInputRef.current) editImageInputRef.current.value = '';
+    }
+  };
+
+  const submitEdit = async () => {
+    if (!editTitle.trim() || !editContent.trim() || !post) return;
+    setEditSubmitting(true);
+    setEditError('');
+    try {
+      const updated = await communityService.updatePost(post.id, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        postType: editType,
+        ...(editImageUrl ? { imageUrls: [editImageUrl] } : {}),
+      });
+      setPost(updated);
+      setEditModalOpen(false);
+    } catch {
+      setEditError('Failed to update post.');
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  // ── delete post ───────────────────────────────────────────────────────────
+  const handleDeletePost = async () => {
+    if (!post) return;
+    setShowActionMenu(false);
+    if (!window.confirm(t('community.confirmDelete', 'Are you sure you want to delete this post?'))) return;
+    try {
+      await communityService.deletePost(post.id);
+      navigate(all_routes.blogGrid);
+    } catch {
+      // silent
+    }
+  };
+
+  // ── pin / unpin ───────────────────────────────────────────────────────────
+  const handleTogglePin = async () => {
+    if (!post) return;
+    setShowActionMenu(false);
+    try {
+      if (post.isPinned) {
+        await communityService.unpinPost(post.id);
+      } else {
+        await communityService.pinPost(post.id);
+      }
+      setPost((p) => p ? { ...p, isPinned: !p.isPinned } : p);
+    } catch {
+      // silent
+    }
+  };
+
   // ─── render ───────────────────────────────────────────────────────────────
   if (postLoading) {
     return (
@@ -300,21 +397,73 @@ const CommunityPostDetail: React.FC = () => {
           )}
 
           <div className="card-body p-4">
-            <div className="mb-3 d-flex align-items-center gap-2">
-              {isChallenge ? (
-                <span className="badge rounded-pill px-3 fs-12 text-white" style={{ background: '#4E1420' }}>
-                  <i className="isax isax-crown me-1" style={{ fontSize: 10 }} />
-                  {TYPE_LABELS[post.postType]}
-                </span>
-              ) : (
-                <span className={`badge bg-${TYPE_BADGE[post.postType]}-subtle text-${TYPE_BADGE[post.postType]} rounded-pill px-3 fs-12`}>
-                  {TYPE_LABELS[post.postType]}
-                </span>
-              )}
-              {post.isPinned && (
-                <span className="badge bg-warning-subtle text-warning rounded-pill px-3 fs-12">
-                  <i className="fa-solid fa-thumbtack me-1" />Pinned
-                </span>
+            <div className="mb-3 d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center gap-2">
+                {isChallenge ? (
+                  <span className="badge rounded-pill px-3 fs-12 text-white" style={{ background: '#4E1420' }}>
+                    <i className="isax isax-crown me-1" style={{ fontSize: 10 }} />
+                    {TYPE_LABELS[post.postType]}
+                  </span>
+                ) : (
+                  <span className={`badge bg-${TYPE_BADGE[post.postType]}-subtle text-${TYPE_BADGE[post.postType]} rounded-pill px-3 fs-12`}>
+                    {TYPE_LABELS[post.postType]}
+                  </span>
+                )}
+                {post.isPinned && (
+                  <span className="badge bg-warning-subtle text-warning rounded-pill px-3 fs-12">
+                    <i className="fa-solid fa-thumbtack me-1" />{t('community.pinned', 'Pinned')}
+                  </span>
+                )}
+                {post.isEdited && (
+                  <span className="text-muted fs-11">({t('community.edited', 'edited')})</span>
+                )}
+              </div>
+
+              {/* Action menu */}
+              {(canManage || isAdminOrInstructor) && (
+                <div style={{ position: 'relative' }}>
+                  <button type="button" className="btn btn-sm btn-light"
+                    style={{ padding: '2px 10px', lineHeight: 1 }}
+                    onClick={() => setShowActionMenu(!showActionMenu)}>
+                    <i className="fa-solid fa-ellipsis-vertical" />
+                  </button>
+                  {showActionMenu && (
+                    <>
+                      <div style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                        onClick={() => setShowActionMenu(false)} />
+                      <div style={{
+                        position: 'absolute', right: 0, top: '100%', zIndex: 100,
+                        background: '#fff', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                        border: '1px solid rgba(0,0,0,0.08)', minWidth: 180, overflow: 'hidden',
+                      }}>
+                        {canManage && (
+                          <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                            onClick={openEditModal}>
+                            <i className="isax isax-edit-2 fs-16" style={{ color: '#6B1D2A' }} />
+                            {t('community.edit', 'Edit')}
+                          </button>
+                        )}
+                        {isAdminOrInstructor && (
+                          <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                            onClick={handleTogglePin}>
+                            <i className={`fa-solid fa-thumbtack fs-14 ${post.isPinned ? 'text-warning' : ''}`}
+                              style={!post.isPinned ? { color: '#6B1D2A' } : {}} />
+                            {post.isPinned
+                              ? t('community.unpin', 'Unpin')
+                              : t('community.pin', 'Pin')}
+                          </button>
+                        )}
+                        {canManage && (
+                          <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2 text-danger"
+                            onClick={handleDeletePost}>
+                            <i className="isax isax-trash fs-16" />
+                            {t('community.delete', 'Delete')}
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
 
@@ -650,14 +799,32 @@ const CommunityPostDetail: React.FC = () => {
                       <p className="mb-2 fs-14" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {comment.content}
                       </p>
-                      <button
-                        type="button"
-                        className={`btn btn-sm py-0 d-flex align-items-center gap-1 ${comment.isLikedByCurrentUser ? 'btn-danger' : 'btn-outline-secondary'}`}
-                        onClick={() => toggleCommentLike(comment)}
-                      >
-                        <i className={`isax ${comment.isLikedByCurrentUser ? 'isax-heart5' : 'isax-heart'} fs-12`} />
-                        <span className="fs-12">{comment.likesCount}</span>
-                      </button>
+                      <div className="d-flex align-items-center gap-2">
+                        <button
+                          type="button"
+                          className={`btn btn-sm py-0 d-flex align-items-center gap-1 ${comment.isLikedByCurrentUser ? 'btn-danger' : 'btn-outline-secondary'}`}
+                          onClick={() => toggleCommentLike(comment)}
+                        >
+                          <i className={`isax ${comment.isLikedByCurrentUser ? 'isax-heart5' : 'isax-heart'} fs-12`} />
+                          <span className="fs-12">{comment.likesCount}</span>
+                        </button>
+                        {(comment.userId === user?.id || effectiveRole === 'ADMIN') && (
+                          <button
+                            type="button"
+                            className="btn btn-sm py-0 btn-outline-danger d-flex align-items-center gap-1"
+                            onClick={async () => {
+                              if (!window.confirm(t('community.confirmDeleteComment', 'Delete this comment?'))) return;
+                              try {
+                                await communityService.deleteComment(comment.id);
+                                setComments((prev) => prev.filter((c) => c.id !== comment.id));
+                                setPost((p) => p ? { ...p, commentsCount: Math.max(0, p.commentsCount - 1) } : p);
+                              } catch { /* silent */ }
+                            }}
+                          >
+                            <i className="isax isax-trash fs-12" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -678,6 +845,110 @@ const CommunityPostDetail: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ── Edit Post Modal ──────────────────────────────────────────────── */}
+      <Modal
+        open={editModalOpen}
+        onCancel={() => setEditModalOpen(false)}
+        footer={null}
+        closable={false}
+        width={600}
+        styles={{ body: { padding: 0 } }}
+      >
+        <div style={{ borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #4E1420 0%, #6B1D2A 100%)',
+            padding: '20px 24px 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div>
+              <div style={{ fontFamily: '"Pinyon Script", cursive', color: '#C5912C', fontSize: '1.1rem', lineHeight: 1 }}>
+                Edit
+              </div>
+              <div style={{ color: '#fff', fontSize: 20, fontWeight: 700, fontFamily: '"Playfair Display", serif' }}>
+                {t('community.editPost', 'Edit Post')}
+              </div>
+            </div>
+            <button type="button" onClick={() => setEditModalOpen(false)}
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="isax isax-close-circle" />
+            </button>
+          </div>
+
+          <div style={{ padding: '24px', background: 'var(--sl-ivory, #F2EFE8)', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {editError && <div className="alert alert-danger py-2 mb-0">{editError}</div>}
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.titleLabel', 'Title')} <span style={{ color: '#B03060' }}>*</span>
+              </label>
+              <input type="text"
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2C1810' }}
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                maxLength={200}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.contentLabel', 'Content')} <span style={{ color: '#B03060' }}>*</span>
+              </label>
+              <textarea
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2C1810', resize: 'vertical', minHeight: 120 }}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={5}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.attachImage', 'Image (optional)')}
+              </label>
+              <input ref={editImageInputRef} type="file" accept="image/png,image/jpeg,image/webp"
+                style={{ display: 'none' }} onChange={handleEditImageSelect} />
+              {editImageUrl ? (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img src={getFileUrl(editImageUrl) ?? editImageUrl} alt="preview"
+                    style={{ maxHeight: 160, maxWidth: '100%', borderRadius: 10, objectFit: 'cover', border: '1.5px solid rgba(101,28,50,0.15)' }} />
+                  <button type="button" onClick={() => setEditImageUrl(null)}
+                    style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => editImageInputRef.current?.click()} disabled={editImageUploading}
+                  style={{ padding: '9px 18px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, border: '1.5px dashed rgba(101,28,50,0.3)', background: '#fff', color: '#651C32', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {editImageUploading
+                    ? <><Spin size="small" /> {t('community.uploadingImage', 'Uploading…')}</>
+                    : <><i className="isax isax-image fs-16" /> {t('community.chooseImage', 'Choose Image')}</>}
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', paddingTop: 4 }}>
+              <button type="button" onClick={() => setEditModalOpen(false)}
+                style={{ padding: '11px 24px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', background: '#fff', color: '#651C32', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
+                {t('common.cancel', 'Cancel')}
+              </button>
+              <button type="button" onClick={submitEdit}
+                disabled={editSubmitting || !editTitle.trim() || !editContent.trim()}
+                style={{
+                  padding: '11px 28px', borderRadius: 10, border: 'none',
+                  background: 'linear-gradient(135deg, #C5912C 0%, #DEBB6B 50%, #C5912C 100%)',
+                  color: '#4E1420', fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  opacity: (editSubmitting || !editTitle.trim() || !editContent.trim()) ? 0.6 : 1,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                {editSubmitting ? <Spin size="small" /> : <i className="isax isax-edit-2" />}
+                {t('community.saveChanges', 'Save Changes')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </LuxuryDashboardLayout>
   );
 };

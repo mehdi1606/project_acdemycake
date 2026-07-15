@@ -50,8 +50,8 @@ const Footer = () => {
                         <div className="sl-footer__tagline">l'art du gâteau</div>
 
                         <div className="sl-footer__social">
-                            <a href="#" aria-label="Instagram"><i className="fa-brands fa-instagram" /></a>
-                            <a href="#" aria-label="Facebook"><i className="fa-brands fa-facebook-f" /></a>
+                            <a href="https://www.instagram.com/saralowe.academy/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i className="fa-brands fa-instagram" /></a>
+                            <a href="https://www.facebook.com/SweetcakesChezSara" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i className="fa-brands fa-facebook-f" /></a>
                         </div>
                     </div>
 

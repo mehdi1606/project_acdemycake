@@ -19,16 +19,17 @@ interface LuxuryTopbarProps {
 }
 
 /* ── helpers ── */
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, lang: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
+  const isAr = lang === 'ar';
+  if (mins < 1) return isAr ? 'الآن' : 'Just now';
+  if (mins < 60) return isAr ? `منذ ${mins} د` : `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return isAr ? `منذ ${hrs} س` : `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
+  if (days < 7) return isAr ? `منذ ${days} ي` : `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString(isAr ? 'ar' : undefined);
 }
 
 function notifIcon(type: string): string {
@@ -376,7 +377,8 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
           {/* Notification dropdown panel */}
           {notifOpen && (
             <div style={{
-              position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+              position: 'absolute', top: 'calc(100% + 10px)',
+              ...(i18n.dir() === 'rtl' ? { left: 0 } : { right: 0 }),
               width: 380, maxHeight: 520,
               background: '#fff',
               borderRadius: 14,
@@ -385,6 +387,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
               zIndex: 9999,
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
+              direction: i18n.dir() === 'rtl' ? 'rtl' : 'ltr',
             }}>
               {/* Panel header */}
               <div style={{
@@ -501,7 +504,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                             {notif.message}
                           </p>
                           <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>
-                            {timeAgo(notif.createdAt)}
+                            {timeAgo(notif.createdAt, i18n.language)}
                           </span>
                         </div>
 
@@ -517,7 +520,8 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                         <button
                           onClick={(e) => handleDeleteNotif(e, notif.id)}
                           style={{
-                            position: 'absolute', top: 10, right: 12,
+                            position: 'absolute', top: 10,
+                            ...(i18n.dir() === 'rtl' ? { left: 12 } : { right: 12 }),
                             background: 'none', border: 'none', cursor: 'pointer',
                             padding: 3, borderRadius: 4,
                             opacity: 0, transition: 'opacity 0.15s',

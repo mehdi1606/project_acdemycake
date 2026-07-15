@@ -20,4 +20,9 @@ public class CreateCategoryRequest {
     private String description;
 
     private Integer displayOrder;
+
+    private String nameEn;
+    private String nameAr;
+    private String descriptionEn;
+    private String descriptionAr;
 }

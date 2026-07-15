@@ -14,6 +14,8 @@ import { Spin, App, Rate, Collapse } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { addToWishlist, removeFromWishlist } from '../../../core/redux/courseSlice';
 import { addToCart } from '../../../core/redux/cartSlice';
+import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
+import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 
 const { Panel } = Collapse;
 const route = all_routes;
@@ -56,7 +58,7 @@ const StarBar = ({ pct }: { pct: number }) => (
 
 /* ================================================ */
 const CourseDetails = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { slug }   = useParams<{ slug: string }>();
   const navigate   = useNavigate();
   const dispatch   = useAppDispatch();

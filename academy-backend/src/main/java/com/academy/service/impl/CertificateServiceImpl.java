@@ -91,6 +91,10 @@ public class CertificateServiceImpl implements CertificateService {
     private static final DeviceRgb WHITE    = new DeviceRgb(255, 255, 255);
     /** Light pink — for decorative lines / muted elements */
     private static final DeviceRgb PINK_LT  = new DeviceRgb(240, 185, 195);
+    /** Gold — text overlay for beginner & intermediate certificates (#BC9243) */
+    private static final DeviceRgb GOLD     = new DeviceRgb(0xBC, 0x92, 0x43);
+    /** Dark red — text overlay for advanced certificates (#963035) */
+    private static final DeviceRgb ADV_RED  = new DeviceRgb(0x96, 0x30, 0x35);
 
     // ── Student methods ────────────────────────────────────────────────────────
 
@@ -154,7 +158,8 @@ public class CertificateServiceImpl implements CertificateService {
                 .course(course)
                 .certificateNumber(certificateNumber)
                 .studentName(user.getFullName())
-                .courseTitle(course.getTitle())
+                .courseTitle(course.getTitleEn() != null && !course.getTitleEn().isBlank()
+                        ? course.getTitleEn() : course.getTitle())
                 .instructorName(course.getInstructor().getFullName())
                 .completionDate(LocalDateTime.now())
                 .issuedAt(LocalDateTime.now())
@@ -206,12 +211,21 @@ public class CertificateServiceImpl implements CertificateService {
         boolean isMaster = certificate.getCourse() != null
                 && certificate.getCourse().getCourseType() == CourseType.MASTERCLASS;
 
+        CourseLevel level = certificate.getCourse() != null && certificate.getCourse().getLevel() != null
+                ? certificate.getCourse().getLevel() : CourseLevel.BEGINNER;
+        DeviceRgb textColor = level == CourseLevel.ADVANCED ? ADV_RED : GOLD;
+
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
         String dateStr = certificate.getCompletionDate() != null
                 ? certificate.getCompletionDate().format(fmt).toUpperCase(Locale.ENGLISH) : "";
         String name    = certificate.getStudentName() != null ? certificate.getStudentName() : "";
-        String course  = certificate.getCourseTitle() != null
-                ? certificate.getCourseTitle().toUpperCase(Locale.ENGLISH) : "";
+        String courseTitle = certificate.getCourseTitle();
+        if (certificate.getCourse() != null && certificate.getCourse().getTitleEn() != null
+                && !certificate.getCourse().getTitleEn().isBlank()) {
+            courseTitle = certificate.getCourse().getTitleEn();
+        }
+        String course  = courseTitle != null
+                ? courseTitle.toUpperCase(Locale.ENGLISH) : "";
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (PdfReader reader = new PdfReader(new ByteArrayInputStream(tplBytes));
@@ -230,14 +244,14 @@ public class CertificateServiceImpl implements CertificateService {
             float maxW = mb.getWidth() * 0.82f;   // keep text within the design margins
             if (isMaster) {
                 // Portrait 595.5 × 842.2 — anchored to the template's labels.
-                drawCentered(canvas, name,    script, 40f, CRIMSON, cx, top - 392f, maxW);
-                drawCentered(canvas, course,  body,   15f, CRIMSON, cx, top - 500f, maxW);
-                drawCentered(canvas, dateStr, body,   13f, CRIMSON, cx, top - 562f, maxW);
+                drawCentered(canvas, name,    script, 40f, textColor, cx, top - 392f, maxW);
+                drawCentered(canvas, course,  body,   15f, textColor, cx, top - 500f, maxW);
+                drawCentered(canvas, dateStr, body,   13f, textColor, cx, top - 562f, maxW);
             } else {
                 // Landscape 842.25 × 595.5 — academy / level certificates.
-                drawCentered(canvas, name,    script, 40f, CRIMSON, cx, top - 352f, maxW);
-                drawCentered(canvas, course,  body,   14f, CRIMSON, cx, top - 432f, maxW);
-                drawCentered(canvas, dateStr, body,   12f, CRIMSON, cx, top - 486f, maxW);
+                drawCentered(canvas, name,    script, 40f, textColor, cx, top - 352f, maxW);
+                drawCentered(canvas, course,  body,   14f, textColor, cx, top - 432f, maxW);
+                drawCentered(canvas, dateStr, body,   12f, textColor, cx, top - 486f, maxW);
             }
         }
         return baos.toByteArray();
@@ -321,6 +335,12 @@ public class CertificateServiceImpl implements CertificateService {
         PdfFont cinzelFont = loadFont("/fonts/Cinzel-Regular.ttf");        // small-caps headers
         PdfFont latoFont   = loadFont("/fonts/Lato-Regular.ttf");          // body text
         PdfFont latoItalic = loadFont("/fonts/Lato-Italic.ttf");           // italic body
+
+        String enTitle = certificate.getCourseTitle();
+        if (certificate.getCourse() != null && certificate.getCourse().getTitleEn() != null
+                && !certificate.getCourse().getTitleEn().isBlank()) {
+            enTitle = certificate.getCourse().getTitleEn();
+        }
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
         String dateStr = certificate.getCompletionDate() != null
@@ -495,7 +515,7 @@ public class CertificateServiceImpl implements CertificateService {
                 .setTextAlignment(TextAlignment.CENTER));
 
         // Course name in bold
-        String courseUpper = certificate.getCourseTitle().toUpperCase() + " COURSE";
+        String courseUpper = enTitle.toUpperCase() + " COURSE";
         canvas.add(new Paragraph(courseUpper)
                 .setFont(cinzelFont).setFontColor(CRIMSON)
                 .setFontSize(10f).setBold().setCharacterSpacing(1.5f)
@@ -517,7 +537,7 @@ public class CertificateServiceImpl implements CertificateService {
                 .moveTo(lineStartX, courseY + 6f)
                 .lineTo(lineEndX,   courseY + 6f)
                 .stroke();
-        canvas.add(new Paragraph(certificate.getCourseTitle())
+        canvas.add(new Paragraph(enTitle)
                 .setFont(latoFont).setFontColor(CRIMSON).setFontSize(10.5f)
                 .setFixedPosition(lineStartX + 6f, courseY + 8f, lineWF - 12f));
 

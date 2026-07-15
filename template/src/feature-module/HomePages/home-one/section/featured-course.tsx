@@ -11,10 +11,12 @@ import { getFileUrl } from '../../../../environment'
 import BadgeAvatar from '../../../../components/BadgeAvatar'
 import { getBadgeFromRole } from '../../../../config/badges'
 import { useMouseTilt } from '../hooks/useMouseTilt'
+import { useLocalizedCourse } from '../../../../hooks/useLocalizedCourse'
 
 // ── Single card with 3D tilt ──────────────────────────────────────────────────
 const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
+    const localCourse = useLocalizedCourse(course, i18n.language)
     const route = all_routes
     const { containerRef, handleMouseMove, handleMouseLeave } = useMouseTilt({
         maxAngle: 8,
@@ -44,7 +46,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
             <div className="sl-course-card__img">
                 <img
                     src={getThumbnail()}
-                    alt={course.title}
+                    alt={localCourse.title}
                     onError={e => {
                         (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg'
                     }}
@@ -74,7 +76,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
 
                 <div className="sl-course-card__title">
                     <Link to={`${route.courseDetails}/${course.slug}`}>
-                        {course.title}
+                        {localCourse.title}
                     </Link>
                 </div>
 

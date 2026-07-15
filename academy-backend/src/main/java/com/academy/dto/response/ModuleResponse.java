@@ -18,6 +18,10 @@ public class ModuleResponse {
     private UUID id;
     private String title;
     private String description;
+    private String titleEn;
+    private String titleAr;
+    private String descriptionEn;
+    private String descriptionAr;
     private Integer orderIndex;
     private Integer lessonsCount;
     private Integer totalDurationSeconds;
@@ -32,6 +36,10 @@ public class ModuleResponse {
                 .id(module.getId())
                 .title(module.getTitle())
                 .description(module.getDescription())
+                .titleEn(module.getTitleEn())
+                .titleAr(module.getTitleAr())
+                .descriptionEn(module.getDescriptionEn())
+                .descriptionAr(module.getDescriptionAr())
                 .orderIndex(module.getOrderIndex())
                 .lessonsCount(module.getLessons() != null ? module.getLessons().size() : 0)
                 .totalDurationSeconds(module.getTotalDurationSeconds());

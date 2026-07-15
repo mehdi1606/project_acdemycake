@@ -174,7 +174,12 @@
       "Bash(cd /c/Users/PC/Plateform/template)",
       "Bash(sed -n '1,3p' src/services/api/admin.service.ts)",
       "Bash(grep -q 'clean if none' C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b6ofdrkod.output)",
-      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b6ofdrkod.output)"
+      "Bash(cat C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/98b8774a-a07e-411f-9b38-b19025679a9e/tasks/b6ofdrkod.output)",
+      "Bash(git -C \"C:/Users/asus/Desktop/project/project_acdemycake\" check-ignore .env.local)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git -C \"C:/Users/asus/Desktop/project/project_acdemycake\" check-ignore .env.docker)",
+      "Bash(git -C \"C:/Users/asus/Desktop/project/project_acdemycake\" ls-files .env.docker .env.local)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Java\\\\jdk-21\"; cd C:\\\\Users\\\\asus\\\\Desktop\\\\project\\\\project_acdemycake\\\\academy-backend; .\\\\mvnw.cmd compile -q 2>&1 | Select-Object -Last 20)"
     ]
   }
 }

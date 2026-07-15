@@ -53,8 +53,8 @@ const AddNewCourse = () => {
   const route = all_routes
   const [value1, setValue1] = useState<any>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [translationDone, setTranslationDone] = useState(false);
+  const [_isTranslating, setIsTranslating] = useState(false);
+  const [_translationDone, setTranslationDone] = useState(false);
   const [translations, setTranslations] = useState<{
     titleEn?: string; descriptionEn?: string;
     titleAr?: string; titleFr?: string; descriptionAr?: string; descriptionFr?: string;
@@ -311,11 +311,19 @@ const AddNewCourse = () => {
   };
 
   const [values, setValue] = React.useState('');
+  const [descriptionAr, setDescriptionAr] = React.useState('');
 
   function onChange(e: any) {
     const newValue = e.target.value;
     setValue(newValue);
     handleInputChange('description', newValue);
+    setTranslations(prev => ({ ...prev, descriptionEn: newValue }));
+  };
+
+  function onChangeDescAr(e: any) {
+    const newValue = e.target.value;
+    setDescriptionAr(newValue);
+    setTranslations(prev => ({ ...prev, descriptionAr: newValue }));
   };
   // Curriculum state
   const [curriculum, setCurriculum] = useState<Topic[]>([]);
@@ -485,8 +493,8 @@ const AddNewCourse = () => {
     }
   };
 
-  // ── Auto-translate title + description ───────────────────────────────────────
-  const handleAutoTranslate = async () => {
+  // ── Auto-translate title + description (kept for potential future use) ──────
+  const _handleAutoTranslate = async () => {
     const rawDesc = formData.description.replace(/<[^>]*>/g, '').trim();
     if (!formData.title.trim() || rawDesc.length < 5) {
       message.warning('Please fill in the title and description before translating.');
@@ -630,21 +638,44 @@ const AddNewCourse = () => {
                           <h5>{t('addCourse.step1.title')}</h5>
                         </div>
                         <div className="row">
-                          <div className="col-md-12">
+                          <div className="col-md-6">
                             <div className="input-block">
                               <label className="form-label">
-                                {t('addCourse.step1.courseTitle')}<span className="text-danger ms-1">*</span>
+                                {t('addCourse.step1.courseTitle')} (English)<span className="text-danger ms-1">*</span>
                               </label>
                               <input
                                 type="text"
                                 className={`form-control ${errors.title && touched.title ? 'is-invalid' : ''}`}
-                                value={formData.title}
-                                onChange={(e) => handleInputChange('title', e.target.value)}
-                                placeholder={t('addCourse.step1.courseTitlePlaceholder')}
+                                value={translations.titleEn || formData.title}
+                                onChange={(e) => {
+                                  handleInputChange('title', e.target.value);
+                                  setTranslations(prev => ({ ...prev, titleEn: e.target.value }));
+                                }}
+                                placeholder="Course title in English"
                               />
                               {errors.title && touched.title && (
                                 <div className="invalid-feedback d-block">{errors.title}</div>
                               )}
+                            </div>
+                          </div>
+                          <div className="col-md-6">
+                            <div className="input-block">
+                              <label className="form-label">
+                                {t('addCourse.step1.courseTitle')} (العربية)
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                dir="rtl"
+                                value={translations.titleAr || ''}
+                                onChange={(e) => {
+                                  setTranslations(prev => ({ ...prev, titleAr: e.target.value }));
+                                  if (!translations.titleEn && !formData.title) {
+                                    handleInputChange('title', e.target.value);
+                                  }
+                                }}
+                                placeholder="عنوان الدورة بالعربية"
+                              />
                             </div>
                           </div>
                           <div className="col-md-4">
@@ -826,18 +857,21 @@ const AddNewCourse = () => {
                               )}
                             </div>
                           </div>
-                          <div className="col-md-12">
+                          <div className="col-md-6">
                             <div className="input-block">
                               <label className="form-label">
-                                {t('addCourse.step1.shortDescription')}
+                                {t('addCourse.step1.shortDescription')} (English)
                                 <span className="text-danger ms-1">*</span>
                               </label>
-                              <input
-                                type="text"
+                              <textarea
+                                rows={3}
                                 className={`form-control ${errors.shortDescription && touched.shortDescription ? 'is-invalid' : ''}`}
-                                value={formData.shortDescription}
-                                onChange={(e) => handleInputChange('shortDescription', e.target.value)}
-                                placeholder={t('addCourse.step1.shortDescPlaceholder')}
+                                value={translations.descriptionEn || formData.shortDescription}
+                                onChange={(e) => {
+                                  handleInputChange('shortDescription', e.target.value);
+                                  setTranslations(prev => ({ ...prev, descriptionEn: e.target.value }));
+                                }}
+                                placeholder="Short description in English"
                               />
                               {errors.shortDescription && touched.shortDescription && (
                                 <div className="invalid-feedback d-block">{errors.shortDescription}</div>
@@ -847,10 +881,30 @@ const AddNewCourse = () => {
                               </small>
                             </div>
                           </div>
-                          <div className="col-md-12">
+                          <div className="col-md-6">
                             <div className="input-block">
                               <label className="form-label">
-                                {t('addCourse.step1.courseDescription')}
+                                {t('addCourse.step1.shortDescription')} (العربية)
+                              </label>
+                              <textarea
+                                rows={3}
+                                className="form-control"
+                                dir="rtl"
+                                value={translations.descriptionAr || ''}
+                                onChange={(e) => {
+                                  setTranslations(prev => ({ ...prev, descriptionAr: e.target.value }));
+                                  if (!translations.descriptionEn && !formData.shortDescription) {
+                                    handleInputChange('shortDescription', e.target.value);
+                                  }
+                                }}
+                                placeholder="وصف قصير بالعربية"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-md-6">
+                            <div className="input-block">
+                              <label className="form-label">
+                                {t('addCourse.step1.courseDescription')} (English)
                                 <span className="text-danger ms-1">*</span>
                               </label>
                               <div className={`summernote ${errors.description ? 'border border-danger rounded' : ''}`}>
@@ -864,67 +918,14 @@ const AddNewCourse = () => {
                               </small>
                             </div>
                           </div>
-
-                          {/* ── Auto-translate banner ─────────────────────── */}
-                          <div className="col-md-12">
-                            <div style={{
-                              background: translationDone
-                                ? 'linear-gradient(135deg,rgba(29,60,52,0.07) 0%,rgba(29,60,52,0.03) 100%)'
-                                : 'linear-gradient(135deg,rgba(197,145,44,0.1) 0%,rgba(197,145,44,0.05) 100%)',
-                              border: `1px solid ${translationDone ? 'rgba(29,60,52,0.25)' : 'rgba(197,145,44,0.35)'}`,
-                              borderRadius: 12,
-                              padding: '16px 20px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: 16,
-                              flexWrap: 'wrap',
-                            }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <i className={`isax ${translationDone ? 'isax-tick-circle' : 'isax-translate'}`}
-                                  style={{ fontSize: 22, color: translationDone ? '#1D3C34' : '#C5912C', flexShrink: 0 }} />
-                                <div>
-                                  <div style={{ fontWeight: 700, fontSize: 14, color: translationDone ? '#1D3C34' : '#9B7B50' }}>
-                                    {translationDone
-                                      ? t('addCourse.step1.translateDoneTitle')
-                                      : t('addCourse.step1.translateTitle')}
-                                  </div>
-                                  <div style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', marginTop: 2 }}>
-                                    {translationDone
-                                      ? t('addCourse.step1.translateDoneSubtitle')
-                                      : t('addCourse.step1.translateSubtitle')}
-                                  </div>
-                                </div>
+                          <div className="col-md-6">
+                            <div className="input-block">
+                              <label className="form-label">
+                                {t('addCourse.step1.courseDescription')} (العربية)
+                              </label>
+                              <div className="summernote">
+                                <DefaultEditor value={descriptionAr} onChange={onChangeDescAr} />
                               </div>
-                              <button
-                                type="button"
-                                onClick={handleAutoTranslate}
-                                disabled={isTranslating || !formData.title.trim()}
-                                style={{
-                                  padding: '9px 22px',
-                                  borderRadius: 10,
-                                  border: 'none',
-                                  background: translationDone
-                                    ? 'rgba(29,60,52,0.12)'
-                                    : 'linear-gradient(135deg,#C5912C 0%,#DEBB6B 50%,#C5912C 100%)',
-                                  color: translationDone ? '#1D3C34' : '#4E1420',
-                                  fontWeight: 700,
-                                  fontSize: 13,
-                                  cursor: isTranslating || !formData.title.trim() ? 'not-allowed' : 'pointer',
-                                  opacity: !formData.title.trim() ? 0.5 : 1,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 7,
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {isTranslating
-                                  ? <><Spin size="small" /> {t('addCourse.step1.translating')}</>
-                                  : translationDone
-                                    ? <><i className="isax isax-refresh" /> {t('addCourse.step1.retranslate')}</>
-                                    : <><i className="isax isax-translate" /> {t('addCourse.step1.translateBtn')}</>
-                                }
-                              </button>
                             </div>
                           </div>
 

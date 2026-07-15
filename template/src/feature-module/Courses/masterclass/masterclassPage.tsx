@@ -12,6 +12,8 @@ import { addToCart } from '../../../core/redux/cartSlice';
 import { all_routes } from '../../router/all_routes';
 import BadgeAvatar from '../../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../../config/badges';
+import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
+import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 
 const PAGE_SIZE = 9;
 
@@ -36,7 +38,8 @@ const MasterclassCard: React.FC<{
 }> = ({ course, inCart, onCart, index }) => {
   const route   = all_routes;
   const cardRef = useRef<HTMLDivElement>(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const localCourse = useLocalizedCourse(course, i18n.language);
   const { user } = useAppSelector(s => s.auth);
   const isStaff   = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR';
 
@@ -88,7 +91,7 @@ const MasterclassCard: React.FC<{
       >
         <img
           src={thumb}
-          alt={course.title}
+          alt={localCourse.title}
           onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }}
           style={{
             width: '100%', height: 200, objectFit: 'cover',
@@ -180,7 +183,7 @@ const MasterclassCard: React.FC<{
           WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
           <Link to={`${route.courseDetails}/${course.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-            {course.title}
+            {localCourse.title}
           </Link>
         </h3>
 
@@ -321,7 +324,7 @@ const SkeletonCard: React.FC<{ index: number }> = ({ index }) => (
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const MasterclassPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
@@ -603,7 +606,7 @@ const MasterclassPage: React.FC = () => {
                     transition: 'all 0.25s ease',
                   }}
                 >
-                  {cat.name}
+                  {getLocalizedCategory(cat, i18n.language).name}
                 </button>
               ))}
             </div>
@@ -614,9 +617,10 @@ const MasterclassPage: React.FC = () => {
             <div className="sl-cl-toolbar" style={{ marginBottom: '1.75rem' }} data-aos="fade-down">
               <p className="sl-cl-toolbar__results">
                 {t('masterclass.showing')} <strong>{totalElements}</strong> {totalElements !== 1 ? t('courseCategory.masterclasses') : t('courseCategory.masterclass')}
-                {activeTab !== 'all' && (
-                  <> {t('masterclass.in')} <strong>{categories.find(c => c.id === activeTab)?.name}</strong></>
-                )}
+                {activeTab !== 'all' && (() => {
+                  const activeCat = categories.find(c => c.id === activeTab);
+                  return activeCat ? <> {t('masterclass.in')} <strong>{getLocalizedCategory(activeCat, i18n.language).name}</strong></> : null;
+                })()}
                 {searchQuery && <> {t('masterclass.matching')} "<strong>{searchQuery}</strong>"</>}
               </p>
               {searchQuery && (

@@ -100,14 +100,15 @@ public class CategoryServiceImpl implements CategoryService {
                 .description(request.getDescription())
                 .displayOrder(displayOrder)
                 .isActive(true)
+                .nameEn(request.getNameEn())
+                .nameAr(request.getNameAr())
+                .descriptionEn(request.getDescriptionEn())
+                .descriptionAr(request.getDescriptionAr())
                 .build();
 
+        populateTranslations(category);
         category = categoryRepository.save(category);
         log.info("Category created: {} with slug: {}", request.getName(), slug);
-
-        // Pre-translate so the category shows in both languages from the first view.
-        translationService.prewarm(category.getName());
-        translationService.prewarm(category.getDescription());
 
         return CategoryResponse.fromEntity(category);
     }
@@ -136,11 +137,14 @@ public class CategoryServiceImpl implements CategoryService {
             category.setDisplayOrder(request.getDisplayOrder());
         }
 
+        if (request.getNameEn() != null) category.setNameEn(request.getNameEn());
+        if (request.getNameAr() != null) category.setNameAr(request.getNameAr());
+        if (request.getDescriptionEn() != null) category.setDescriptionEn(request.getDescriptionEn());
+        if (request.getDescriptionAr() != null) category.setDescriptionAr(request.getDescriptionAr());
+
+        populateTranslations(category);
         category = categoryRepository.save(category);
         log.info("Category updated: {}", id);
-
-        translationService.prewarm(category.getName());
-        translationService.prewarm(category.getDescription());
 
         return CategoryResponse.fromEntity(category);
     }
@@ -188,6 +192,36 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         log.info("Categories reordered");
+    }
+
+    private void populateTranslations(CourseCategory category) {
+        String name = category.getName();
+        String desc = category.getDescription();
+        boolean isArabic = name != null && name.codePoints().anyMatch(c -> c >= 0x0600 && c <= 0x06FF);
+
+        if (isArabic) {
+            category.setNameAr(name);
+            if (category.getNameEn() == null || category.getNameEn().isBlank()) {
+                category.setNameEn(translationService.localize(name, "en"));
+            }
+            if (desc != null && !desc.isBlank()) {
+                category.setDescriptionAr(desc);
+                if (category.getDescriptionEn() == null || category.getDescriptionEn().isBlank()) {
+                    category.setDescriptionEn(translationService.localize(desc, "en"));
+                }
+            }
+        } else {
+            category.setNameEn(name);
+            if (category.getNameAr() == null || category.getNameAr().isBlank()) {
+                category.setNameAr(translationService.localize(name, "ar"));
+            }
+            if (desc != null && !desc.isBlank()) {
+                category.setDescriptionEn(desc);
+                if (category.getDescriptionAr() == null || category.getDescriptionAr().isBlank()) {
+                    category.setDescriptionAr(translationService.localize(desc, "ar"));
+                }
+            }
+        }
     }
 
     private String generateSlug(String input) {

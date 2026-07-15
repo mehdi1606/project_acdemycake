@@ -119,6 +119,20 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("Post unliked"));
     }
 
+    @PostMapping("/posts/{id}/pin")
+    @Operation(summary = "Pin a post (admin/instructor only)")
+    public ResponseEntity<ApiResponse<Void>> pinPost(@PathVariable UUID id) {
+        communityService.pinPost(id);
+        return ResponseEntity.ok(ApiResponse.success("Post pinned"));
+    }
+
+    @DeleteMapping("/posts/{id}/pin")
+    @Operation(summary = "Unpin a post (admin/instructor only)")
+    public ResponseEntity<ApiResponse<Void>> unpinPost(@PathVariable UUID id) {
+        communityService.unpinPost(id);
+        return ResponseEntity.ok(ApiResponse.success("Post unpinned"));
+    }
+
     @PostMapping("/posts/{id}/report")
     @Operation(summary = "Report a post")
     public ResponseEntity<ApiResponse<Void>> reportPost(

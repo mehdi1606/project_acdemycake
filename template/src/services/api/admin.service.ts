@@ -226,12 +226,12 @@ class AdminService {
     return [];
   }
 
-  async createCategory(data: { name: string; description?: string; displayOrder?: number }): Promise<CourseCategory> {
+  async createCategory(data: { name: string; description?: string; displayOrder?: number; nameEn?: string; nameAr?: string; descriptionEn?: string; descriptionAr?: string }): Promise<CourseCategory> {
     const response = await api.post('/categories', data);
     return response.data;
   }
 
-  async updateCategory(categoryId: string, data: { name?: string; description?: string; displayOrder?: number }): Promise<CourseCategory> {
+  async updateCategory(categoryId: string, data: { name?: string; description?: string; displayOrder?: number; nameEn?: string; nameAr?: string; descriptionEn?: string; descriptionAr?: string }): Promise<CourseCategory> {
     const response = await api.put(`/categories/${categoryId}`, data);
     return response.data;
   }

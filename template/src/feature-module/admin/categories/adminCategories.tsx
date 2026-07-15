@@ -28,6 +28,10 @@ const AdminCategories = () => {
     name: '',
     description: '',
     displayOrder: 0,
+    nameEn: '',
+    nameAr: '',
+    descriptionEn: '',
+    descriptionAr: '',
   });
 
   useEffect(() => {
@@ -54,7 +58,7 @@ const AdminCategories = () => {
   const openCreateModal = () => {
     setIsEditMode(false);
     setEditingCategory(null);
-    setFormData({ name: '', description: '', displayOrder: categories.length });
+    setFormData({ name: '', description: '', displayOrder: categories.length, nameEn: '', nameAr: '', descriptionEn: '', descriptionAr: '' });
     setImageFile(null);
     setIsModalOpen(true);
   };
@@ -66,6 +70,10 @@ const AdminCategories = () => {
       name: category.name,
       description: category.description || '',
       displayOrder: category.displayOrder || 0,
+      nameEn: category.nameEn || '',
+      nameAr: category.nameAr || '',
+      descriptionEn: category.descriptionEn || '',
+      descriptionAr: category.descriptionAr || '',
     });
     setImageFile(null);
     setIsModalOpen(true);
@@ -102,7 +110,7 @@ const AdminCategories = () => {
 
       setIsModalOpen(false);
       setImageFile(null);
-      setFormData({ name: '', description: '', displayOrder: 0 });
+      setFormData({ name: '', description: '', displayOrder: 0, nameEn: '', nameAr: '', descriptionEn: '', descriptionAr: '' });
       await fetchCategories();
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message ||
@@ -283,6 +291,7 @@ const AdminCategories = () => {
         title={isEditMode ? t('admin.categories.editCategory', 'Edit Category') : t('admin.categories.addCategory', 'Create New Category')}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
+        width={700}
         footer={[
           <Button key="cancel" onClick={() => setIsModalOpen(false)}>
             {t('common.cancel', 'Cancel')}
@@ -297,26 +306,58 @@ const AdminCategories = () => {
           </Button>,
         ]}
       >
+        {/* Category Name — EN / AR side by side */}
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
             {t('admin.categories.categoryName', 'Category Name')} <span style={{ color: '#8B2335' }}>*</span>
           </label>
-          <Input
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder={t('admin.categories.categoryNamePlaceholder', 'Enter category name')}
-          />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4 }}>🇬🇧 English</label>
+              <Input
+                value={formData.nameEn}
+                onChange={(e) => setFormData({ ...formData, nameEn: e.target.value, name: formData.nameAr || e.target.value })}
+                placeholder="Category name in English"
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4, textAlign: 'right' }}>العربية 🇲🇦</label>
+              <Input
+                dir="rtl"
+                value={formData.nameAr}
+                onChange={(e) => setFormData({ ...formData, nameAr: e.target.value, name: e.target.value || formData.nameEn })}
+                placeholder="اسم الفئة بالعربية"
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Description — EN / AR side by side */}
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
             {t('admin.categories.description', 'Description')}
           </label>
-          <TextArea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder={t('admin.categories.descriptionPlaceholder', 'Enter category description')}
-            rows={3}
-          />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4 }}>🇬🇧 English</label>
+              <TextArea
+                value={formData.descriptionEn}
+                onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value, description: formData.descriptionAr || e.target.value })}
+                placeholder="Description in English"
+                rows={3}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4, textAlign: 'right' }}>العربية 🇲🇦</label>
+              <TextArea
+                dir="rtl"
+                value={formData.descriptionAr}
+                onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value, description: e.target.value || formData.descriptionEn })}
+                placeholder="الوصف بالعربية"
+                rows={3}
+              />
+            </div>
+          </div>
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>

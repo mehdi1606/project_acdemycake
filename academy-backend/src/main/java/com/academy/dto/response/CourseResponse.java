@@ -8,9 +8,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.UUID;
 
 @Data
@@ -96,10 +98,10 @@ public class CourseResponse {
 
         return CourseResponse.builder()
                 .id(course.getId())
-                .title(com.academy.service.TranslationSupport.localize(course.getTitle()))
+                .title(pickTitle(course))
                 .slug(course.getSlug())
-                .description(com.academy.service.TranslationSupport.localize(course.getDescription()))
-                .shortDescription(com.academy.service.TranslationSupport.localize(course.getShortDescription()))
+                .description(pickDescription(course))
+                .shortDescription(course.getShortDescription())
                 .thumbnailUrl(course.getThumbnailUrl())
                 .previewVideoUrl(course.getPreviewVideoUrl())
                 .instructor(instructor)
@@ -134,5 +136,33 @@ public class CourseResponse {
                 .descriptionAr(course.getDescriptionAr())
                 .descriptionFr(course.getDescriptionFr())
                 .build();
+    }
+
+    private static String currentLang() {
+        Locale locale = LocaleContextHolder.getLocale();
+        String lang = locale != null ? locale.getLanguage() : "en";
+        return lang.startsWith("ar") ? "ar" : "en";
+    }
+
+    private static String pickTitle(Course course) {
+        String lang = currentLang();
+        if ("ar".equals(lang) && course.getTitleAr() != null && !course.getTitleAr().isBlank()) {
+            return course.getTitleAr();
+        }
+        if ("en".equals(lang) && course.getTitleEn() != null && !course.getTitleEn().isBlank()) {
+            return course.getTitleEn();
+        }
+        return course.getTitle();
+    }
+
+    private static String pickDescription(Course course) {
+        String lang = currentLang();
+        if ("ar".equals(lang) && course.getDescriptionAr() != null && !course.getDescriptionAr().isBlank()) {
+            return course.getDescriptionAr();
+        }
+        if ("en".equals(lang) && course.getDescriptionEn() != null && !course.getDescriptionEn().isBlank()) {
+            return course.getDescriptionEn();
+        }
+        return course.getDescription();
     }
 }

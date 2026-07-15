@@ -34,6 +34,10 @@ interface UpdateCourseRequest extends Partial<CreateCourseRequest> {}
 interface CreateModuleRequest {
   title: string;
   description?: string;
+  titleEn?: string;
+  titleAr?: string;
+  descriptionEn?: string;
+  descriptionAr?: string;
   orderIndex: number;
 }
 

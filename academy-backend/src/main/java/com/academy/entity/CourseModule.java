@@ -28,6 +28,18 @@ public class CourseModule extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "title_en", length = 255)
+    private String titleEn;
+
+    @Column(name = "title_ar", length = 255)
+    private String titleAr;
+
+    @Column(name = "description_en", columnDefinition = "TEXT")
+    private String descriptionEn;
+
+    @Column(name = "description_ar", columnDefinition = "TEXT")
+    private String descriptionAr;
+
     @Column(name = "order_index", nullable = false)
     @Builder.Default
     private Integer orderIndex = 0;

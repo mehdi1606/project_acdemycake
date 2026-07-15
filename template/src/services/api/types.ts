@@ -122,6 +122,10 @@ export interface CourseCategory {
   imageUrl?: string;
   displayOrder?: number;
   coursesCount: number;
+  nameEn?: string;
+  nameAr?: string;
+  descriptionEn?: string;
+  descriptionAr?: string;
 }
 
 export interface CourseInstructor {

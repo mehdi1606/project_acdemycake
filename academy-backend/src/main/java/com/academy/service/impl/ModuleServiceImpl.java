@@ -59,6 +59,10 @@ public class ModuleServiceImpl implements ModuleService {
                 .course(course)
                 .title(request.getTitle())
                 .description(request.getDescription())
+                .titleEn(request.getTitleEn())
+                .titleAr(request.getTitleAr())
+                .descriptionEn(request.getDescriptionEn())
+                .descriptionAr(request.getDescriptionAr())
                 .orderIndex(request.getOrderIndex() != null ? request.getOrderIndex() : maxOrder + 1)
                 .isPublished(true)
                 .build();
@@ -80,6 +84,18 @@ public class ModuleServiceImpl implements ModuleService {
         }
         if (request.getDescription() != null) {
             module.setDescription(request.getDescription());
+        }
+        if (request.getTitleEn() != null) {
+            module.setTitleEn(request.getTitleEn());
+        }
+        if (request.getTitleAr() != null) {
+            module.setTitleAr(request.getTitleAr());
+        }
+        if (request.getDescriptionEn() != null) {
+            module.setDescriptionEn(request.getDescriptionEn());
+        }
+        if (request.getDescriptionAr() != null) {
+            module.setDescriptionAr(request.getDescriptionAr());
         }
         if (request.getOrderIndex() != null) {
             module.setOrderIndex(request.getOrderIndex());

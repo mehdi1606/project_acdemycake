@@ -13,6 +13,8 @@ import { addToCart } from '../../../core/redux/cartSlice';
 import SubscriptionGate from '../../common/SubscriptionGate';
 import BadgeAvatar from '../../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../../config/badges';
+import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
+import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 
 // ── Stars ─────────────────────────────────────────────────────────────────────
 const Stars: React.FC<{ rating: number }> = ({ rating }) => (
@@ -33,8 +35,9 @@ const CourseCard: React.FC<{
   onCart: (c: Course) => void;
   index: number;
 }> = ({ course, inCart, onCart, index }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const route  = all_routes;
+  const localCourse = useLocalizedCourse(course, i18n.language);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -67,10 +70,10 @@ const CourseCard: React.FC<{
     >
       {/* Image */}
       <div className="sl-course-card__img">
-        <img src={thumb} alt={course.title}
+        <img src={thumb} alt={localCourse.title}
           onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }} />
         <div className="sl-course-card__img-overlay" />
-        <div className="sl-course-card__badge">{course.category?.name || 'Pastry Arts'}</div>
+        <div className="sl-course-card__badge">{course.category ? getLocalizedCategory(course.category, i18n.language).name : 'Pastry Arts'}</div>
         {course.isEnrolled && (
           <span style={{
             position: 'absolute', top: '0.75rem', right: '0.75rem',
@@ -99,7 +102,7 @@ const CourseCard: React.FC<{
         </div>
 
         <div className="sl-course-card__title">
-          <Link to={`${route.courseDetails}/${course.slug}`}>{course.title}</Link>
+          <Link to={`${route.courseDetails}/${course.slug}`}>{localCourse.title}</Link>
         </div>
 
         <div className="sl-course-card__rating">
@@ -160,7 +163,7 @@ const SkeletonCard: React.FC = () => (
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 const CourseCategory = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
@@ -279,7 +282,9 @@ const CourseCategory = () => {
                 paddingBottom: '1.25rem',
               }}
             >
-              {categories.map(cat => (
+              {categories.map(cat => {
+                const localCat = getLocalizedCategory(cat, i18n.language);
+                return (
                 <button
                   key={cat.id}
                   onClick={() => setActiveTab(cat.id)}
@@ -300,7 +305,7 @@ const CourseCategory = () => {
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}
                 >
-                  {cat.name}
+                  {localCat.name}
                   {cat.coursesCount > 0 && (
                     <span style={{
                       fontSize: '0.58rem', fontWeight: 700,
@@ -312,7 +317,8 @@ const CourseCategory = () => {
                     </span>
                   )}
                 </button>
-              ))}
+              );
+              })}
             </div>
           )}
 
@@ -321,7 +327,7 @@ const CourseCategory = () => {
             <div className="sl-cl-toolbar" style={{ marginBottom: '1.5rem' }}>
               <p className="sl-cl-toolbar__results">
                 <strong>{totalElements}</strong> {totalElements !== 1 ? t('courseCategory.masterclasses', 'masterclasses') : t('courseCategory.masterclass', 'masterclass')} {t('courseCategory.inCategory', 'in')}{' '}
-                <strong>{activeCategory?.name}</strong>
+                <strong>{activeCategory ? getLocalizedCategory(activeCategory, i18n.language).name : ''}</strong>
               </p>
               <Link
                 to={`${route.courseList}?category=${activeTab}`}

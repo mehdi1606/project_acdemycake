@@ -254,6 +254,8 @@ const CourseManage: React.FC = () => {
   // Form states
   const [moduleTitle, setModuleTitle] = useState('');
   const [moduleDesc, setModuleDesc] = useState('');
+  const [moduleTitleAr, setModuleTitleAr] = useState('');
+  const [moduleDescAr, setModuleDescAr] = useState('');
   const [lessonTitle, setLessonTitle] = useState('');
   const [lessonDesc, setLessonDesc] = useState('');
   const [lessonType, setLessonType] = useState<'VIDEO' | 'TEXT' | 'QUIZ'>('VIDEO');
@@ -399,13 +401,16 @@ const CourseManage: React.FC = () => {
   const handleAddModule = () => {
     setEditingModule(null);
     setModuleTitle(''); setModuleDesc('');
+    setModuleTitleAr(''); setModuleDescAr('');
     setModuleModalVisible(true);
   };
 
   const handleEditModule = (module: ModuleWithLessons) => {
     setEditingModule(module);
-    setModuleTitle(module.title);
-    setModuleDesc(module.description || '');
+    setModuleTitle((module as any).titleEn || module.title);
+    setModuleDesc((module as any).descriptionEn || module.description || '');
+    setModuleTitleAr((module as any).titleAr || '');
+    setModuleDescAr((module as any).descriptionAr || '');
     setModuleModalVisible(true);
   };
 
@@ -416,12 +421,18 @@ const CourseManage: React.FC = () => {
       setSubmitting(true);
       if (editingModule) {
         await instructorService.updateModule(editingModule.id, {
-          title: moduleTitle, description: moduleDesc, orderIndex: editingModule.orderIndex,
+          title: moduleTitle, description: moduleDesc,
+          titleEn: moduleTitle, titleAr: moduleTitleAr,
+          descriptionEn: moduleDesc, descriptionAr: moduleDescAr,
+          orderIndex: editingModule.orderIndex,
         });
         message.success('Module updated successfully');
       } else {
         await instructorService.createModule(courseId, {
-          title: moduleTitle, description: moduleDesc, orderIndex: modules.length,
+          title: moduleTitle, description: moduleDesc,
+          titleEn: moduleTitle, titleAr: moduleTitleAr,
+          descriptionEn: moduleDesc, descriptionAr: moduleDescAr,
+          orderIndex: modules.length,
         });
         message.success('Module created successfully');
       }
@@ -660,7 +671,7 @@ const CourseManage: React.FC = () => {
         <div className="lx-card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <h5 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: 'var(--lx-text)' }}>
-              {course.title}
+              {(course as any).titleEn || course.title}
             </h5>
             <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)', lineHeight: 1.5 }}>
               {course.shortDescription}
@@ -861,23 +872,48 @@ const CourseManage: React.FC = () => {
         open={moduleModalVisible}
         onClose={() => { setModuleModalVisible(false); setEditingModule(null); }}
         title={editingModule ? 'Edit Module' : 'Add New Module'}
+        maxWidth={720}
       >
         <form onSubmit={handleModuleSubmit}>
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Module Title <span style={{ color: '#8B2335' }}>*</span></label>
-            <input
-              type="text" style={inputStyle} placeholder="e.g., Introduction to Cake Design"
-              value={moduleTitle} onChange={(e) => setModuleTitle(e.target.value)}
-              required {...focusHandlers}
-            />
+          {/* Module Title — EN / AR side by side */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Module Title (English) <span style={{ color: '#8B2335' }}>*</span></label>
+              <input
+                type="text" style={inputStyle} placeholder="e.g., Introduction to Cake Design"
+                value={moduleTitle} onChange={(e) => setModuleTitle(e.target.value)}
+                required {...focusHandlers}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>عنوان الوحدة (عربي)</label>
+              <input
+                type="text" style={{ ...inputStyle, direction: 'rtl', textAlign: 'right' }}
+                placeholder="مثال: مقدمة في تصميم الكيك"
+                value={moduleTitleAr} onChange={(e) => setModuleTitleAr(e.target.value)}
+                {...focusHandlers}
+              />
+            </div>
           </div>
-          <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Description <span style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>(optional)</span></label>
-            <textarea
-              style={textareaStyle} placeholder="Brief description of this module" rows={3}
-              value={moduleDesc} onChange={(e) => setModuleDesc(e.target.value)}
-              {...focusHandlers}
-            />
+          {/* Description — EN / AR side by side */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Description (English) <span style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>(optional)</span></label>
+              <textarea
+                style={textareaStyle} placeholder="Brief description of this module" rows={3}
+                value={moduleDesc} onChange={(e) => setModuleDesc(e.target.value)}
+                {...focusHandlers}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>الوصف (عربي) <span style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>(اختياري)</span></label>
+              <textarea
+                style={{ ...textareaStyle, direction: 'rtl', textAlign: 'right' }}
+                placeholder="وصف مختصر لهذه الوحدة" rows={3}
+                value={moduleDescAr} onChange={(e) => setModuleDescAr(e.target.value)}
+                {...focusHandlers}
+              />
+            </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button type="button" className="lx-btn lx-btn-outline" onClick={() => { setModuleModalVisible(false); setEditingModule(null); }}>

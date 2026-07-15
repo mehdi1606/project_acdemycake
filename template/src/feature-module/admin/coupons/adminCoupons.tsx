@@ -101,9 +101,9 @@ const AdminCoupons: React.FC = () => {
     setFormError(null);
 
     const code = form.code.trim().toUpperCase();
-    if (!code) { setFormError('Coupon code is required'); return; }
+    if (!code) { setFormError(t('admin.coupons.codeRequired', 'Coupon code is required')); return; }
     if (!form.discountPercent || Number(form.discountPercent) < 1 || Number(form.discountPercent) > 100) {
-      setFormError('Discount must be between 1% and 100%'); return;
+      setFormError(t('admin.coupons.discountRange', 'Discount must be between 1% and 100%')); return;
     }
 
     setCreating(true);
@@ -115,7 +115,7 @@ const AdminCoupons: React.FC = () => {
         expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : null,
         description: form.description.trim() || null,
       });
-      flash(`Coupon "${code}" created successfully`);
+      flash(t('admin.coupons.couponCreated', { code, defaultValue: `Coupon "${code}" created successfully` }));
       setForm(EMPTY_FORM);
       setShowForm(false);
       loadCoupons();
@@ -127,11 +127,11 @@ const AdminCoupons: React.FC = () => {
   };
 
   const handleDeactivate = async (coupon: CouponRow) => {
-    if (!window.confirm(`Deactivate coupon "${coupon.code}"? Students will no longer be able to use it.`)) return;
+    if (!window.confirm(t('admin.coupons.confirmDeactivate', { code: coupon.code, defaultValue: `Deactivate coupon "${coupon.code}"? Students will no longer be able to use it.` }))) return;
     setActionId(coupon.id);
     try {
       await api.patch(`/admin/coupons/${coupon.id}/deactivate`);
-      flash(`Coupon "${coupon.code}" deactivated`);
+      flash(t('admin.coupons.couponDeactivated', { code: coupon.code, defaultValue: `Coupon "${coupon.code}" deactivated` }));
       loadCoupons();
     } catch (e) {
       flash(extractApiError(e), 'error');
@@ -141,11 +141,11 @@ const AdminCoupons: React.FC = () => {
   };
 
   const handleDelete = async (coupon: CouponRow) => {
-    if (!window.confirm(`Delete coupon "${coupon.code}"? This cannot be undone.`)) return;
+    if (!window.confirm(t('admin.coupons.confirmDelete', { code: coupon.code, defaultValue: `Delete coupon "${coupon.code}"? This cannot be undone.` }))) return;
     setActionId(coupon.id);
     try {
       await api.delete(`/admin/coupons/${coupon.id}`);
-      flash(`Coupon "${coupon.code}" deleted`);
+      flash(t('admin.coupons.couponDeleted', { code: coupon.code, defaultValue: `Coupon "${coupon.code}" deleted` }));
       loadCoupons();
     } catch (e) {
       flash(extractApiError(e), 'error');
@@ -324,9 +324,9 @@ const AdminCoupons: React.FC = () => {
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#4E1420' }}>{form.code}</div>
                     <div style={{ fontSize: 12, color: '#9B7B50' }}>
-                      {form.discountPercent}% off Annual plan (3,900 MAD → {Math.round(3900 * (1 - Number(form.discountPercent) / 100)).toLocaleString()} MAD)
-                      {form.maxUses ? ` · Max ${form.maxUses} use${Number(form.maxUses) > 1 ? 's' : ''}` : ' · Unlimited'}
-                      {form.expiresAt ? ` · Expires ${new Date(form.expiresAt).toLocaleDateString()}` : ''}
+                      {form.discountPercent}% {t('admin.coupons.annualPlan', 'Annual plan')} (3,900 MAD → {Math.round(3900 * (1 - Number(form.discountPercent) / 100)).toLocaleString()} MAD)
+                      {form.maxUses ? ` · Max ${form.maxUses}` : ` · ${t('admin.coupons.unlimited', 'Unlimited')}`}
+                      {form.expiresAt ? ` · ${fmt(form.expiresAt)}` : ''}
                     </div>
                   </div>
                 </div>
@@ -375,7 +375,7 @@ const AdminCoupons: React.FC = () => {
             fontWeight: 700, color: '#2C1810',
           }}>
             <i className="isax isax-discount-shape" style={{ color: '#C5912C' }} />
-            All Coupons
+            {t('admin.coupons.allCoupons', 'All Coupons')}
             <span style={{
               background: 'rgba(197,145,44,0.1)', color: '#C5912C',
               borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700,
@@ -479,7 +479,7 @@ const AdminCoupons: React.FC = () => {
                             <button
                               onClick={() => handleDeactivate(coupon)}
                               disabled={!!actionId}
-                              title="Deactivate"
+                              title={t('admin.coupons.deactivate', 'Deactivate')}
                               style={{
                                 padding: '6px 12px', borderRadius: 8, border: 'none',
                                 background: 'rgba(197,145,44,0.1)', color: '#C5912C',
@@ -493,7 +493,7 @@ const AdminCoupons: React.FC = () => {
                           <button
                             onClick={() => handleDelete(coupon)}
                             disabled={!!actionId}
-                            title="Delete"
+                            title={t('common.delete', 'Delete')}
                             style={{
                               padding: '6px 12px', borderRadius: 8, border: 'none',
                               background: 'rgba(232,84,84,0.1)', color: '#E85454',
@@ -522,9 +522,8 @@ const AdminCoupons: React.FC = () => {
         }}>
           <i className="isax isax-info-circle" style={{ fontSize: 18, color: '#C5912C', flexShrink: 0, marginTop: 1 }} />
           <div style={{ fontSize: 13, color: '#9B7B50', lineHeight: 1.6 }}>
-            <strong style={{ color: '#6B4A2A' }}>How coupons work:</strong> Each coupon can be applied only once per user,
-            exclusively on the <strong style={{ color: '#6B4A2A' }}>Annual plan (3,900 MAD)</strong>.
-            Share codes with students and they'll enter the code in the Annual checkout screen to receive the discount.
+            <strong style={{ color: '#6B4A2A' }}>{t('admin.coupons.howCouponsWork', 'How coupons work:')}</strong>{' '}
+            {t('admin.coupons.howCouponsWorkDesc', 'Each coupon can be applied only once per user, exclusively on the Annual plan (3,900 MAD). Share codes with students and they\'ll enter the code in the Annual checkout screen to receive the discount.')}
           </div>
         </div>
 

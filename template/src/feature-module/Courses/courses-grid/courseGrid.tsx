@@ -12,6 +12,7 @@ import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
 import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
+import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 import BadgeAvatar from '../../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../../config/badges';
 
@@ -139,7 +140,7 @@ const CourseGridCard: React.FC<CourseGridCardProps> = ({
           letterSpacing: '0.15em', textTransform: 'uppercase',
           padding: '4px 10px', borderRadius: 20,
         }}>
-          {course.category?.name || 'Pastry Arts'}
+          {course.category ? getLocalizedCategory(course.category, i18n.language).name : 'Pastry Arts'}
         </span>
 
         {/* Wishlist button */}
@@ -344,7 +345,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
   categories, selectedCategory, selectedLevel, priceRange,
   onCategoryChange, onLevelChange, onPriceChange, onClear, hasActiveFilters,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState<Set<string>>(new Set(['categories', 'price', 'level']));
   const toggle = (s: string) =>
     setOpen(p => { const n = new Set(p); if (n.has(s)) n.delete(s); else n.add(s); return n; });
@@ -383,7 +384,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
                   onChange={() => onCategoryChange(cat.id)}
                 />
                 <span className="sl-cl-check__box" />
-                <span className="sl-cl-check__label">{cat.name}</span>
+                <span className="sl-cl-check__label">{getLocalizedCategory(cat, i18n.language).name}</span>
                 {cat.coursesCount !== undefined && (
                   <span className="sl-cl-check__count">{cat.coursesCount}</span>
                 )}
@@ -447,7 +448,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const CourseGrid: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const route = all_routes;
   const { message } = App.useApp();
@@ -704,7 +705,7 @@ const CourseGrid: React.FC = () => {
                       const cat = categories.find(c => c.id === selectedCategory);
                       return cat ? (
                         <span className="sl-cl-chip">
-                          {cat.name}
+                          {getLocalizedCategory(cat, i18n.language).name}
                           <button onClick={() => { setSelectedCategory(null); setCurrentPage(1); }}>×</button>
                         </span>
                       ) : null;

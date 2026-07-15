@@ -53,6 +53,14 @@ class CommunityService {
     await api.delete(`${this.base}/posts/${id}/like`);
   }
 
+  async pinPost(id: string): Promise<void> {
+    await api.post(`${this.base}/posts/${id}/pin`);
+  }
+
+  async unpinPost(id: string): Promise<void> {
+    await api.delete(`${this.base}/posts/${id}/pin`);
+  }
+
   // ── Comments ───────────────────────────────────────────────────────────────
 
   async getPostComments(

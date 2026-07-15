@@ -514,9 +514,16 @@ const PostCard: React.FC<{
   post: Post;
   liking: boolean;
   onLike: (p: Post) => void;
+  onEdit: (p: Post) => void;
+  onDelete: (p: Post) => void;
+  onTogglePin: (p: Post) => void;
+  canManage: boolean;
+  isAdminOrInstructor: boolean;
   index: number;
-}> = ({ post, liking, onLike, index }) => {
+}> = ({ post, liking, onLike, onEdit, onDelete, onTogglePin, canManage, isAdminOrInstructor, index }) => {
   const { t, i18n } = useTranslation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const avatar = getFileUrl(post.userAvatar);
   const { bg, text: textColor } = TYPE_COLORS[post.postType] ?? TYPE_COLORS.DISCUSSION;
   const images = post.images?.filter(Boolean) ?? [];
@@ -529,14 +536,98 @@ const PostCard: React.FC<{
     CHALLENGE:    t('community.type.CHALLENGE'),
   };
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
+
+  const showMenu = canManage || isAdminOrInstructor;
+
   return (
     <div
       className="sl-cl-card"
       data-aos="fade-up"
       data-aos-delay={String(index * 60)}
       data-aos-duration="700"
-      style={{ flexDirection: 'column', overflow: 'hidden' }}
+      style={{ flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
     >
+      {/* 3-dot action menu */}
+      {showMenu && (
+        <div ref={menuRef} style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}>
+          <button
+            onClick={e => { e.stopPropagation(); setMenuOpen(o => !o); }}
+            style={{
+              background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(101,28,50,0.12)',
+              width: 32, height: 32, borderRadius: '50%', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'rgba(101,28,50,0.5)', fontSize: 14, backdropFilter: 'blur(4px)',
+            }}
+          >
+            <i className="fa-solid fa-ellipsis-vertical" />
+          </button>
+          {menuOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: 4,
+              background: '#fff', border: '1px solid rgba(101,28,50,0.1)',
+              borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+              minWidth: 160, overflow: 'hidden',
+            }}>
+              {canManage && (
+                <button
+                  onClick={e => { e.stopPropagation(); setMenuOpen(false); onEdit(post); }}
+                  style={{
+                    width: '100%', padding: '10px 16px', background: 'none', border: 'none',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                    fontFamily: 'var(--sl-font-body)', fontSize: '0.82rem', color: 'var(--sl-burgundy)',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(101,28,50,0.04)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                >
+                  <i className="isax isax-edit-2" /> {t('common.edit', 'Edit')}
+                </button>
+              )}
+              {isAdminOrInstructor && (
+                <button
+                  onClick={e => { e.stopPropagation(); setMenuOpen(false); onTogglePin(post); }}
+                  style={{
+                    width: '100%', padding: '10px 16px', background: 'none', border: 'none',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                    fontFamily: 'var(--sl-font-body)', fontSize: '0.82rem', color: '#C5912C',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(197,145,44,0.06)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                >
+                  <i className={`fa-solid fa-thumbtack${post.isPinned ? '-slash' : ''}`} style={{ fontSize: 12 }} />
+                  {post.isPinned ? t('community.unpin', 'Unpin') : t('community.pin', 'Pin')}
+                </button>
+              )}
+              {canManage && (
+                <button
+                  onClick={e => { e.stopPropagation(); setMenuOpen(false); onDelete(post); }}
+                  style={{
+                    width: '100%', padding: '10px 16px', background: 'none', border: 'none',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                    fontFamily: 'var(--sl-font-body)', fontSize: '0.82rem', color: '#DC2626',
+                    borderTop: '1px solid rgba(0,0,0,0.06)',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.04)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                >
+                  <i className="isax isax-trash" /> {t('common.delete', 'Delete')}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Post image */}
       {images.length > 0 && (
         <div style={{ position: 'relative', overflow: 'hidden', height: 200, flexShrink: 0 }}>
@@ -638,7 +729,7 @@ const PostCard: React.FC<{
               {timeAgo(post.createdAt, i18n.language)}
             </span>
             <button
-              onClick={() => onLike(post)}
+              onClick={e => { e.stopPropagation(); onLike(post); }}
               disabled={liking}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
@@ -720,12 +811,27 @@ const BlogGrid = () => {
   const [newType,           setNewType]           = useState<PostType>('DISCUSSION');
   const [creating,          setCreating]          = useState(false);
 
+  // Edit / Delete
+  const [editingPost,    setEditingPost]    = useState<Post | null>(null);
+  const [editTitle,      setEditTitle]      = useState('');
+  const [editContent,    setEditContent]    = useState('');
+  const [editType,       setEditType]       = useState<PostType>('DISCUSSION');
+  const [editing,        setEditing]        = useState(false);
+  const [deletingId,     setDeletingId]     = useState<string | null>(null);
+
   // Image upload
   const [_imageFile,     setImageFile]      = useState<File | null>(null);
   const [imagePreview,   setImagePreview]   = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadedUrl,    setUploadedUrl]    = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Edit image upload
+  const [_editImageFile,    setEditImageFile]      = useState<File | null>(null);
+  const [editImagePreview,  setEditImagePreview]   = useState<string | null>(null);
+  const [editUploadingImg,  setEditUploadingImg]   = useState(false);
+  const [editUploadedUrl,   setEditUploadedUrl]    = useState<string | null>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   const PAGE_SIZE = 6;
 
@@ -825,6 +931,109 @@ const BlogGrid = () => {
       message.error(msg);
     }
     finally { setCreating(false); }
+  };
+
+  // ── Edit post ────────────────────────────────────────────────────────────────
+  const openEditModal = (post: Post) => {
+    setEditingPost(post);
+    setEditTitle(post.title);
+    setEditContent(post.content);
+    setEditType(post.postType);
+    setEditImageFile(null);
+    setEditImagePreview(post.images?.[0] ? (getFileUrl(post.images[0]) ?? post.images[0]) : null);
+    setEditUploadedUrl(post.images?.[0] ?? null);
+  };
+
+  const handleEditImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditImageFile(file);
+    setEditImagePreview(URL.createObjectURL(file));
+    setEditUploadingImg(true);
+    setEditUploadedUrl(null);
+    try {
+      const url = await communityService.uploadPostImage(file);
+      setEditUploadedUrl(url);
+    } catch {
+      message.error(t('community.errorImageUpload'));
+      setEditImageFile(null);
+      setEditImagePreview(null);
+    } finally {
+      setEditUploadingImg(false);
+    }
+  };
+
+  const removeEditImage = () => {
+    setEditImageFile(null);
+    setEditImagePreview(null);
+    setEditUploadedUrl(null);
+    if (editFileInputRef.current) editFileInputRef.current.value = '';
+  };
+
+  const handleEditPost = async () => {
+    if (!editingPost || !editTitle.trim() || !editContent.trim()) {
+      message.warning(t('community.errorRequired'));
+      return;
+    }
+    if (editUploadingImg) { message.warning(t('community.waitForUpload')); return; }
+    setEditing(true);
+    try {
+      const updated = await communityService.updatePost(editingPost.id, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        postType: editType,
+        ...(editUploadedUrl ? { imageUrls: [editUploadedUrl] } : {}),
+      });
+      setPosts(p => p.map(x => x.id === editingPost.id ? { ...x, ...updated } : x));
+      setEditingPost(null);
+      message.success(t('community.postUpdated', 'Post updated'));
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || t('community.errorCreate'));
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  // ── Delete post ─────────────────────────────────────────────────────────────
+  const showDeleteConfirm = (post: Post) => {
+    setDeletingId(post.id);
+  };
+
+  const confirmDeletePost = async () => {
+    if (!deletingId) return;
+    const id = deletingId;
+    try {
+      await communityService.deletePost(id);
+      setPosts(p => p.filter(x => x.id !== id));
+      setTotalElements(n => n - 1);
+      message.success(t('community.postDeleted', 'Post deleted'));
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || t('community.errorDelete', 'Failed to delete post'));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // ── Pin/Unpin post ──────────────────────────────────────────────────────────
+  const handleTogglePin = async (post: Post) => {
+    try {
+      if (post.isPinned) {
+        await communityService.unpinPost(post.id);
+        message.success(t('community.unpinned', 'Post unpinned'));
+      } else {
+        await communityService.pinPost(post.id);
+        message.success(t('community.pinnedSuccess', 'Post pinned'));
+      }
+      fetchPosts();
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || t('community.errorPin', 'Failed to pin/unpin'));
+    }
+  };
+
+  const canManagePost = (post: Post) => {
+    if (!user) return false;
+    if (user.role === 'ADMIN') return true;
+    return String(post.userId) === String(user.id);
   };
 
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -977,6 +1186,11 @@ const BlogGrid = () => {
                     post={post}
                     liking={liking.has(post.id)}
                     onLike={handleLike}
+                    onEdit={openEditModal}
+                    onDelete={showDeleteConfirm}
+                    onTogglePin={handleTogglePin}
+                    canManage={canManagePost(post)}
+                    isAdminOrInstructor={isInstructor}
                     index={i}
                   />
                 </div>
@@ -1139,6 +1353,248 @@ const BlogGrid = () => {
                 }}
               >
                 {t('community.maybeLater')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deletingId && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 10002,
+            background: 'rgba(40,8,18,0.72)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}
+        >
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: '2rem', maxWidth: 400, width: '100%',
+            boxShadow: '0 24px 80px rgba(78,20,32,0.25)', textAlign: 'center',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
+              background: 'rgba(220,38,38,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <i className="isax isax-trash" style={{ fontSize: 24, color: '#DC2626' }} />
+            </div>
+            <h5 style={{ fontFamily: 'var(--sl-font-display)', color: 'var(--sl-burgundy)', marginBottom: 8 }}>
+              {t('community.confirmDeleteTitle', 'Delete Post?')}
+            </h5>
+            <p style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.88rem', color: 'rgba(58,30,32,0.6)', marginBottom: 24 }}>
+              {t('community.confirmDeleteMsg', 'This action cannot be undone.')}
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button
+                onClick={() => setDeletingId(null)}
+                className="sl-btn-outline"
+                style={{ padding: '10px 24px' }}
+              >
+                {t('common.cancel', 'Cancel')}
+              </button>
+              <button
+                onClick={confirmDeletePost}
+                style={{
+                  padding: '10px 24px', background: '#DC2626', color: '#fff',
+                  border: 'none', borderRadius: 8, cursor: 'pointer',
+                  fontWeight: 600, fontFamily: 'var(--sl-font-body)',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                }}
+              >
+                <i className="isax isax-trash" /> {t('common.delete', 'Delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit Post Modal ── */}
+      {editingPost && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 10000,
+            background: 'rgba(40,8,18,0.72)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setEditingPost(null); }}
+        >
+          <div style={{
+            background: 'var(--sl-ivory, #F2EFE8)',
+            border: '1px solid rgba(197,145,44,0.25)',
+            borderRadius: 0,
+            padding: '2.5rem',
+            width: '100%', maxWidth: 560,
+            boxShadow: '0 32px 80px rgba(40,8,18,0.4)',
+            maxHeight: '90vh', overflowY: 'auto',
+          }}>
+            {/* Modal header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <div>
+                <div className="sl-ornament sl-ornament--left" style={{ marginBottom: '0.25rem' }}>
+                  <span className="sl-script" style={{ fontSize: '1.3rem' }}>{t('community.editScript', 'Edit')}</span>
+                </div>
+                <h5 style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.1rem', color: 'var(--sl-burgundy)', margin: 0 }}>
+                  {t('community.editPost', 'Edit Post')}
+                </h5>
+              </div>
+              <button
+                onClick={() => setEditingPost(null)}
+                style={{
+                  background: 'none', border: '1px solid rgba(101,28,50,0.15)',
+                  width: 32, height: 32, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'rgba(101,28,50,0.5)', fontSize: 16,
+                }}
+              >
+                <i className="isax isax-close-circle" />
+              </button>
+            </div>
+
+            {/* Post type */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.68rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(101,28,50,0.6)', display: 'block', marginBottom: 8 }}>
+                {t('community.typeLabel')}
+              </label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {ALL_TYPES.filter(btype => isInstructor || btype !== 'CHALLENGE').map(btype => {
+                  const { bg, text: tc } = TYPE_COLORS[btype];
+                  return (
+                    <button
+                      key={btype}
+                      onClick={() => setEditType(btype)}
+                      style={{
+                        padding: '5px 14px', fontSize: '0.65rem', fontWeight: 600,
+                        fontFamily: 'var(--sl-font-body)', letterSpacing: '0.12em', textTransform: 'uppercase',
+                        border: editType === btype ? `1px solid ${tc}` : '1px solid rgba(101,28,50,0.15)',
+                        background: editType === btype ? bg : 'transparent',
+                        color: editType === btype ? tc : 'rgba(101,28,50,0.5)',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >
+                      {TYPE_LABELS[btype]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Title */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.68rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(101,28,50,0.6)', display: 'block', marginBottom: 6 }}>
+                {t('community.titleLabel')} *
+              </label>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={e => setEditTitle(e.target.value)}
+                maxLength={200}
+                style={{
+                  width: '100%', padding: '10px 14px',
+                  border: '1px solid rgba(101,28,50,0.18)',
+                  background: '#fff', outline: 'none',
+                  fontFamily: 'var(--sl-font-body)', fontSize: '0.9rem',
+                  color: 'var(--sl-burgundy)',
+                }}
+              />
+            </div>
+
+            {/* Content */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.68rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(101,28,50,0.6)', display: 'block', marginBottom: 6 }}>
+                {t('community.contentLabel')} *
+              </label>
+              <textarea
+                rows={5}
+                value={editContent}
+                onChange={e => setEditContent(e.target.value)}
+                style={{
+                  width: '100%', padding: '10px 14px',
+                  border: '1px solid rgba(101,28,50,0.18)',
+                  background: '#fff', outline: 'none', resize: 'vertical',
+                  fontFamily: 'var(--sl-font-body)', fontSize: '0.88rem',
+                  color: 'var(--sl-burgundy)', lineHeight: 1.6,
+                }}
+              />
+            </div>
+
+            {/* Image upload */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.68rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(101,28,50,0.6)', display: 'block', marginBottom: 6 }}>
+                {t('community.attachImage')}
+              </label>
+              {editImagePreview ? (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img src={editImagePreview} alt="preview"
+                    style={{ maxHeight: 150, maxWidth: '100%', border: '1px solid rgba(101,28,50,0.18)', display: 'block' }} />
+                  {editUploadingImg && (
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      background: 'rgba(255,255,255,0.75)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.78rem', color: 'var(--sl-burgundy)',
+                      fontFamily: 'var(--sl-font-body)',
+                    }}>
+                      <i className="isax isax-refresh me-2" style={{ animation: 'spin 1s linear infinite' }} />
+                      {t('community.uploadingImage')}
+                    </div>
+                  )}
+                  {!editUploadingImg && (
+                    <button type="button" onClick={removeEditImage}
+                      style={{
+                        marginTop: 6, background: 'none',
+                        border: '1px solid rgba(101,28,50,0.2)',
+                        padding: '3px 10px', fontSize: '0.7rem',
+                        cursor: 'pointer', color: 'rgba(101,28,50,0.6)',
+                        fontFamily: 'var(--sl-font-body)',
+                      }}>
+                      <i className="isax isax-trash me-1" />
+                      {t('community.removeImage')}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <input
+                    ref={editFileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={handleEditImageSelect}
+                  />
+                  <button type="button"
+                    onClick={() => editFileInputRef.current?.click()}
+                    style={{
+                      background: 'transparent',
+                      border: '1px dashed rgba(101,28,50,0.25)',
+                      padding: '8px 18px', cursor: 'pointer',
+                      fontFamily: 'var(--sl-font-body)', fontSize: '0.75rem',
+                      color: 'rgba(101,28,50,0.55)',
+                      display: 'flex', alignItems: 'center', gap: 6,
+                    }}>
+                    <i className="isax isax-image fs-14" />
+                    {t('community.chooseImage')}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setEditingPost(null)}
+                disabled={editing}
+                className="sl-btn-outline"
+                style={{ padding: '10px 24px' }}
+              >
+                {t('common.cancel', 'Cancel')}
+              </button>
+              <button
+                onClick={handleEditPost}
+                disabled={editing || !editTitle.trim() || !editContent.trim() || editUploadingImg}
+                className="sl-btn-gold sl-btn-magnetic"
+                style={{ padding: '10px 28px' }}
+              >
+                {editing ? t('community.saving', 'Saving...') : t('community.saveChanges', 'Save Changes')}
               </button>
             </div>
           </div>

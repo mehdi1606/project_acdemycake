@@ -32,7 +32,11 @@ public class CertificateResponse {
                 .studentName(certificate.getStudentName())
                 .studentEmail(certificate.getUser().getEmail())
                 .courseId(certificate.getCourse().getId())
-                .courseTitle(certificate.getCourseTitle())
+                .courseTitle(certificate.getCourse() != null
+                        && certificate.getCourse().getTitleEn() != null
+                        && !certificate.getCourse().getTitleEn().isBlank()
+                        ? certificate.getCourse().getTitleEn()
+                        : certificate.getCourseTitle())
                 .instructorName(certificate.getInstructorName())
                 .pdfUrl(certificate.getPdfUrl())
                 .completionDate(certificate.getCompletionDate())

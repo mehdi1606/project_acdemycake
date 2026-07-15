@@ -221,19 +221,19 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional
     public void pinPost(UUID postId) {
         User currentUser = getCurrentUser();
-        verifyAdmin(currentUser);
+        verifyAdminOrInstructor(currentUser);
 
         CommunityPost post = findPostById(postId);
         post.setIsPinned(true);
         postRepository.save(post);
-        log.info("Post pinned: {} by admin: {}", postId, currentUser.getEmail());
+        log.info("Post pinned: {} by {}: {}", postId, currentUser.getRole(), currentUser.getEmail());
     }
 
     @Override
     @Transactional
     public void unpinPost(UUID postId) {
         User currentUser = getCurrentUser();
-        verifyAdmin(currentUser);
+        verifyAdminOrInstructor(currentUser);
 
         CommunityPost post = findPostById(postId);
         post.setIsPinned(false);
@@ -478,6 +478,12 @@ public class CommunityServiceImpl implements CommunityService {
     private void verifyAdmin(User user) {
         if (user.getRole() != UserRole.ADMIN) {
             throw new ForbiddenException("Admin access required");
+        }
+    }
+
+    private void verifyAdminOrInstructor(User user) {
+        if (user.getRole() != UserRole.ADMIN && user.getRole() != UserRole.INSTRUCTOR) {
+            throw new ForbiddenException("Admin or instructor access required");
         }
     }
 

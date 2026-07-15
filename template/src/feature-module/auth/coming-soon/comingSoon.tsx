@@ -114,18 +114,20 @@ const ComingSoon = () => {
             </div>
           </form>
           <div className="d-flex align-items-center justify-content-center">
-            <Link
-              to="#"
+            <a
+              href="https://www.facebook.com/SweetcakesChezSara"
+              target="_blank" rel="noopener noreferrer"
               className="coming-soon media-btn rounded-circle d-inline-flex align-items-center justify-content-center me-2"
             >
               <i className="fa-brands fa-facebook-f" />
-            </Link>
-            <Link
-              to="#"
+            </a>
+            <a
+              href="https://www.instagram.com/saralowe.academy/"
+              target="_blank" rel="noopener noreferrer"
               className="coming-soon media-btn rounded-circle d-inline-flex align-items-center justify-content-center me-2"
             >
               <i className="fa-brands fa-instagram" />
-            </Link>
+            </a>
             <Link
               to="#"
               className="coming-soon media-btn rounded-circle d-inline-flex align-items-center justify-content-center me-2"
