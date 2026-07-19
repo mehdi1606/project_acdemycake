@@ -23,15 +23,13 @@ RUN npm ci --silent
 COPY . .
 RUN npm run build
 
-# ══════════════════════════════════════════════════════
-#  Stage 2 — Serve with Nginx (reverse proxy + SPA)
-# ══════════════════════════════════════════════════════
+
 FROM nginx:1.27-alpine
 
-# Replace default Nginx config with ours
+
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built React files
+
 COPY --from=build /app/build /usr/share/nginx/html
 
 EXPOSE 80

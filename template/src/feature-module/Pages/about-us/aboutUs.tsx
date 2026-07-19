@@ -697,7 +697,7 @@ const AboutUs: React.FC = () => {
 
                 {/* Avatar image */}
                 <img
-                  src="/assets/img/avatar/avatar1.jpeg"
+                  src="/assets/img/avatar/avatar2.jpeg"
                   alt="Chef Sara Alawi"
                   style={{
                     width: '100%',

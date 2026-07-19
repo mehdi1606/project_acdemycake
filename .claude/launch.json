@@ -6,7 +6,8 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
       "port": 3000,
-      "cwd": "template"
+      "cwd": "template",
+      "autoPort": true
     }
   ]
 }
