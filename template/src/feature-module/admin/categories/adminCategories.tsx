@@ -80,7 +80,12 @@ const AdminCategories = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name.trim()) {
+    const submitData = {
+      ...formData,
+      name: formData.name.trim() || formData.nameEn?.trim() || formData.nameAr?.trim() || '',
+    };
+
+    if (!submitData.name) {
       message.error('Category name is required');
       return;
     }
@@ -91,10 +96,10 @@ const AdminCategories = () => {
       let category: CourseCategory;
 
       if (isEditMode && editingCategory) {
-        category = await adminService.updateCategory(editingCategory.id, formData);
+        category = await adminService.updateCategory(editingCategory.id, submitData);
         message.success('Category updated successfully');
       } else {
-        category = await adminService.createCategory(formData);
+        category = await adminService.createCategory(submitData);
         message.success('Category created successfully');
       }
 

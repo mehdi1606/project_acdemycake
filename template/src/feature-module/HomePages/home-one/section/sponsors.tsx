@@ -38,7 +38,7 @@ const SponsorsSection: React.FC = () => {
       offset += 1
       const half = el.scrollWidth / 2
       if (half > 0 && offset >= half) offset -= half
-      el.style.marginLeft = `-${offset}px`
+      el.style.transform = `translateX(-${offset}px)`
     }, 16)
     return () => clearInterval(id)
   }, [])

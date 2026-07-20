@@ -34,7 +34,7 @@ const content = {
       {
         icon: '📱',
         label: 'WhatsApp',
-        value: '+212 600 000 000',
+        value: '+212 664 576 477',
         href:  'https://wa.me/212600000000',
       },
       {
@@ -91,7 +91,7 @@ const content = {
       {
         icon: '📱',
         label: 'واتساب',
-        value: '+212 600 000 000',
+        value: '+212 664 576 477',
         href:  'https://wa.me/212600000000',
       },
       {

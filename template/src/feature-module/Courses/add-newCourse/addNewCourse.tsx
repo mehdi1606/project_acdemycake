@@ -58,6 +58,7 @@ const AddNewCourse = () => {
   const [translations, setTranslations] = useState<{
     titleEn?: string; descriptionEn?: string;
     titleAr?: string; titleFr?: string; descriptionAr?: string; descriptionFr?: string;
+    shortDescriptionAr?: string;
   }>({});
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -890,12 +891,9 @@ const AddNewCourse = () => {
                                 rows={3}
                                 className="form-control"
                                 dir="rtl"
-                                value={translations.descriptionAr || ''}
+                                value={translations.shortDescriptionAr || ''}
                                 onChange={(e) => {
-                                  setTranslations(prev => ({ ...prev, descriptionAr: e.target.value }));
-                                  if (!translations.descriptionEn && !formData.shortDescription) {
-                                    handleInputChange('shortDescription', e.target.value);
-                                  }
+                                  setTranslations(prev => ({ ...prev, shortDescriptionAr: e.target.value }));
                                 }}
                                 placeholder="وصف قصير بالعربية"
                               />
