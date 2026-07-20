@@ -88,7 +88,7 @@ const SponsorsSection: React.FC = () => {
         .sl-spon__hero-card img { max-height: 120px; max-width: 360px; object-fit: contain; display: block; }
         @media (max-width: 600px) { .sl-spon__hero-card { padding: 22px 30px; } .sl-spon__hero-card img { max-height: 84px; max-width: 240px; } }
 
-        .sl-spon__viewport { position: relative; overflow: hidden; }
+        .sl-spon__viewport { position: relative; overflow: hidden; direction: ltr; }
         .sl-spon__viewport::before, .sl-spon__viewport::after {
           content: ''; position: absolute; top: 0; bottom: 0; width: 110px; z-index: 2; pointer-events: none;
         }
