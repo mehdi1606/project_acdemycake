@@ -77,11 +77,14 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse createCategory(CreateCategoryRequest request) {
         verifyAdmin();
 
-        String slug = generateSlug(request.getName());
+        String slugSource = request.getNameEn() != null && !request.getNameEn().isBlank()
+                ? request.getNameEn() : request.getName();
+        String slug = generateSlug(slugSource);
 
-        // Check for duplicate slug
+        // Check for duplicate slug — append suffix if needed
         if (categoryRepository.existsBySlug(slug)) {
-            throw new BadRequestException("Category with similar name already exists");
+            String base = slug;
+            slug = base + "-" + UUID.randomUUID().toString().substring(0, 4);
         }
 
         // Check for duplicate name
@@ -228,7 +231,11 @@ public class CategoryServiceImpl implements CategoryService {
         String noWhitespace = WHITESPACE.matcher(input).replaceAll("-");
         String normalized = Normalizer.normalize(noWhitespace, Normalizer.Form.NFD);
         String slug = NONLATIN.matcher(normalized).replaceAll("");
-        return slug.toLowerCase(Locale.ENGLISH);
+        slug = slug.toLowerCase(Locale.ENGLISH).replaceAll("-{2,}", "-").replaceAll("^-|-$", "");
+        if (slug.isEmpty()) {
+            slug = UUID.randomUUID().toString().substring(0, 8);
+        }
+        return slug;
     }
 
     private void verifyAdmin() {
