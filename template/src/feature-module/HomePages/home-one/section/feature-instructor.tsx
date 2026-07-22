@@ -1,5 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import { all_routes } from '../../../router/all_routes'
 
 const Featureinstructor = () => {
   const { t } = useTranslation()
@@ -182,11 +184,40 @@ const Featureinstructor = () => {
                 }}
               >
                 <p style={{ margin: '0 0 14px' }}>
-                  {t('home.instructor.bio1', 'Sara Alöwe is a cake designer and passionate instructor, known for her attention to detail and artistic approach to pastry. After many requests from her students, she compiled her expertise into a three-volume collection featuring 30 innovative cake recipes for modern cake design.')}
+                  {t('home.instructor.bio1', "Hello, I'm Chef Sara Alaoui.")}
                 </p>
-                <p style={{ margin: 0 }}>
-                  {t('home.instructor.bio2', 'Cupcake Evolution – 10 Innovative Cake Recipes is the first volume in this series, dedicated to stability, creativity, and excellence in contemporary pastry.')}
+                <p style={{ margin: '0 0 18px' }}>
+                  {t('home.instructor.bio2', "If I had to describe my journey in a few words, I'd say it began with curiosity, grew with passion, and continues to this day.")}
                 </p>
+                <Link
+                  to={all_routes.about_us}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    color: '#C5973E',
+                    fontFamily: "'Playfair Display',Georgia,serif",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    textDecoration: 'none',
+                    borderBottom: '1px solid rgba(197,151,62,0.4)',
+                    paddingBottom: 2,
+                    transition: 'color 0.2s, border-color 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.color = '#DEBB6B';
+                    (e.currentTarget as HTMLElement).style.borderColor = '#DEBB6B';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.color = '#C5973E';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(197,151,62,0.4)';
+                  }}
+                >
+                  {t('home.instructor.seeMore', 'See More')}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </Link>
               </div>
 
               {/* Stats grid */}

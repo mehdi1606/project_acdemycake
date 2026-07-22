@@ -867,10 +867,9 @@ const AddNewCourse = () => {
                               <textarea
                                 rows={3}
                                 className={`form-control ${errors.shortDescription && touched.shortDescription ? 'is-invalid' : ''}`}
-                                value={translations.descriptionEn || formData.shortDescription}
+                                value={formData.shortDescription}
                                 onChange={(e) => {
                                   handleInputChange('shortDescription', e.target.value);
-                                  setTranslations(prev => ({ ...prev, descriptionEn: e.target.value }));
                                 }}
                                 placeholder="Short description in English"
                               />
