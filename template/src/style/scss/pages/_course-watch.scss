@@ -39,3 +39,27 @@ body:has(.course-watch-root) {
 .course-watch-main::-webkit-scrollbar-thumb:hover {
   background: rgba(101, 28, 50, 0.3);
 }
+
+/* Force light readable text inside rich-text lesson content on dark background */
+.sl-cw-text-content,
+.sl-cw-text-content * {
+  color: rgba(245, 230, 220, 0.88) !important;
+}
+.sl-cw-text-content strong,
+.sl-cw-text-content b {
+  color: rgba(255, 245, 238, 0.95) !important;
+}
+.sl-cw-text-content h1,
+.sl-cw-text-content h2,
+.sl-cw-text-content h3,
+.sl-cw-text-content h4,
+.sl-cw-text-content h5,
+.sl-cw-text-content h6 {
+  color: #f5e6dc !important;
+}
+.sl-cw-text-content a {
+  color: #debb6b !important;
+}
+.sl-cw-text-content u {
+  text-decoration-color: rgba(197, 151, 62, 0.5);
+}

@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryTopbar from './LuxuryTopbar';
 import LuxurySidebar from './LuxurySidebar';
+import { useAppDispatch } from '../core/redux/hooks';
+import { fetchCurrentUser } from '../core/redux/authSlice';
+
+const USER_REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes
 
 interface LuxuryDashboardLayoutProps {
   children: React.ReactNode;
@@ -9,8 +13,18 @@ interface LuxuryDashboardLayoutProps {
 
 const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children }) => {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch();
   const [sidebarCollapsed,  setSidebarCollapsed]  = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const lastRefresh = useRef(0);
+
+  useEffect(() => {
+    const now = Date.now();
+    if (now - lastRefresh.current > USER_REFRESH_INTERVAL) {
+      lastRefresh.current = now;
+      dispatch(fetchCurrentUser());
+    }
+  }, [dispatch, children]);
 
   const handleSidebarToggle = () => {
     if (window.innerWidth < 992) {

@@ -697,7 +697,7 @@ const CourseWatch: React.FC = () => {
                 {selectedLesson.contentType === 'TEXT' && (
                   <div style={{ padding:'32px 48px', maxWidth:820 }}>
                     {lessonDetail?.textContent ? (
-                      <div style={{ color:'rgba(255,255,255,0.82)', lineHeight:1.85, fontSize:15 }}
+                      <div className="sl-cw-text-content" style={{ color:'rgba(255,255,255,0.85)', lineHeight:1.85, fontSize:15 }}
                         dangerouslySetInnerHTML={{ __html: lessonDetail.textContent }}
                       />
                     ) : (
