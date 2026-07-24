@@ -168,7 +168,6 @@ const InstructorCard: React.FC<CardProps> = ({ instructor, t, lang, onBanToggle 
           {[
             { val: (instructor as any).totalCourses ?? 0,                        lbl: t('instructorPages.list.courses') },
             { val: (instructor as any).totalStudents ?? (instructor as any).enrollmentsCount ?? 0, lbl: t('instructorPages.list.students') },
-            { val: ((instructor as any).averageRating ?? 0).toFixed(1),           lbl: t('instructorPages.list.rating') },
           ].map(({ val, lbl }) => (
             <div key={lbl} style={{
               flex: 1, background: 'var(--lx-primary-mist)',

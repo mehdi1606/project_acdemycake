@@ -9,6 +9,8 @@ import com.academy.entity.User;
 import com.academy.entity.enums.UserRole;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ResourceNotFoundException;
+import com.academy.repository.CourseEnrollmentRepository;
+import com.academy.repository.CourseRepository;
 import com.academy.repository.UserRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.EmailService;
@@ -35,6 +37,8 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
+    private final CourseEnrollmentRepository enrollmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
     private final EmailService emailService;
@@ -191,7 +195,12 @@ public class UserServiceImpl implements UserService {
             users = userRepository.findByRoleAndIsDeletedFalse(UserRole.INSTRUCTOR, pageRequest);
         }
 
-        return PageResponse.from(users, UserResponse::fromEntity);
+        return PageResponse.from(users, user -> {
+            UserResponse response = UserResponse.fromEntity(user);
+            response.setTotalCourses(courseRepository.countByInstructor(user));
+            response.setTotalStudents(enrollmentRepository.countStudentsByInstructor(user));
+            return response;
+        });
     }
 
     @Override

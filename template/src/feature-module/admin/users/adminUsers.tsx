@@ -74,6 +74,10 @@ const AdminUsers: React.FC = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [banReason, setBanReason] = useState<string>('');
 
+  // Activate subscription state
+  const [planModalUserId, setPlanModalUserId] = useState<string | null>(null);
+  const [activating, setActivating] = useState(false);
+
   // Create user state
   const [createModal, setCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState({ fullName: '', email: '', role: 'STUDENT' as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' });
@@ -153,6 +157,21 @@ const AdminUsers: React.FC = () => {
       setCreateError(extractApiError(err, 'Failed to create user'));
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleActivateSubscription = async () => {
+    if (!planModalUserId) return;
+    setActivating(true);
+    try {
+      await adminService.activateSubscription(planModalUserId);
+      message.success(t('admin.users.subscriptionActivated', 'Yearly subscription activated successfully'));
+      setPlanModalUserId(null);
+      dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined }));
+    } catch (err) {
+      message.error(extractApiError(err, 'Failed to activate subscription'));
+    } finally {
+      setActivating(false);
     }
   };
 
@@ -313,6 +332,16 @@ const AdminUsers: React.FC = () => {
                       </td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
+                          {user.subscriptionStatus !== 'ACTIVE' && (
+                            <button
+                              className="lx-btn lx-btn-outline lx-btn-sm"
+                              style={{ color: '#16a34a', borderColor: 'rgba(22,163,74,0.20)' }}
+                              onClick={() => setPlanModalUserId(String(user.id))}
+                              title={t('admin.users.activatePlan', 'Activate Yearly Plan')}
+                            >
+                              <i className="isax isax-crown-1" />
+                            </button>
+                          )}
                           {user.isBanned ? (
                             <button
                               className="lx-btn lx-btn-outline lx-btn-sm"
@@ -550,6 +579,78 @@ const AdminUsers: React.FC = () => {
               </div>
             </form>
           )}
+        </GlassModal>
+      )}
+
+      {/* ── Activate Subscription Modal ── */}
+      {planModalUserId && (
+        <GlassModal onClose={() => setPlanModalUserId(null)} maxWidth={420}>
+          <div style={{
+            padding: '20px 24px', borderBottom: '1px solid rgba(107,29,42,0.08)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
+              {t('admin.users.activatePlan', 'Activate Yearly Plan')}
+            </h5>
+            <button
+              type="button"
+              onClick={() => setPlanModalUserId(null)}
+              style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)', lineHeight: 1 }}
+            >
+              <i className="isax isax-close-circle" />
+            </button>
+          </div>
+          <div style={{ padding: 24 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px',
+              background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.15)',
+              borderRadius: 10, marginBottom: 20,
+            }}>
+              <i className="isax isax-crown-1" style={{ fontSize: 24, color: 'var(--lx-gold)' }} />
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: 'var(--lx-text)' }}>
+                  {t('admin.users.yearlyPlan', 'Yearly Plan')}
+                </p>
+                <p style={{ margin: 0, fontSize: 12.5, color: 'var(--lx-text-muted)' }}>
+                  {t('admin.users.planDuration', 'Access for 1 year from today')}
+                </p>
+              </div>
+            </div>
+            <p style={{ fontSize: 13.5, color: 'var(--lx-text-mid)', lineHeight: 1.6, margin: '0 0 6px' }}>
+              {t('admin.users.activateConfirm', 'This will activate a yearly subscription for this user without requiring payment. The user will get full access to all courses.')}
+            </p>
+          </div>
+          <div style={{
+            padding: '16px 24px', borderTop: '1px solid rgba(107,29,42,0.08)',
+            display: 'flex', justifyContent: 'flex-end', gap: 10,
+          }}>
+            <button
+              type="button"
+              className="lx-btn lx-btn-outline"
+              onClick={() => setPlanModalUserId(null)}
+              disabled={activating}
+            >
+              {t('common.cancel', 'Cancel')}
+            </button>
+            <button
+              type="button"
+              className="lx-btn lx-btn-gold"
+              onClick={handleActivateSubscription}
+              disabled={activating}
+            >
+              {activating ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+                  {t('admin.users.activating', 'Activating...')}
+                </span>
+              ) : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <i className="isax isax-crown-1" />
+                  {t('admin.users.confirmActivate', 'Activate Plan')}
+                </span>
+              )}
+            </button>
+          </div>
         </GlassModal>
       )}
 

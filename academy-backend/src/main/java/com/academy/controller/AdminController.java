@@ -107,6 +107,13 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("User deleted"));
     }
 
+    @PostMapping("/users/{id}/activate-subscription")
+    @Operation(summary = "Manually activate a yearly subscription for a user (no payment required)")
+    public ResponseEntity<ApiResponse<SubscriptionResponse>> activateSubscription(@PathVariable UUID id) {
+        SubscriptionResponse response = subscriptionService.adminActivateSubscription(id);
+        return ResponseEntity.ok(ApiResponse.success("Subscription activated", response));
+    }
+
     // Course Management
     @GetMapping("/courses")
     @Operation(summary = "Get all courses (including drafts, pending, published)")

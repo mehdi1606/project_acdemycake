@@ -11,6 +11,7 @@ import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.repository.CourseEnrollmentRepository;
 import com.academy.repository.NotificationRepository;
+import com.academy.repository.UserRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.NotificationService;
 import com.academy.service.UserService;
@@ -36,6 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
+    private final UserRepository userRepository;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -164,6 +166,23 @@ public class NotificationServiceImpl implements NotificationService {
                 NotificationType.MESSAGE,
                 "/messages?userId=" + senderId
         );
+    }
+
+    @Override
+    @Async
+    @Transactional
+    public void sendNewPostNotification(User author, UUID postId, String postTitle) {
+        List<User> users = userRepository.findByIsDeletedFalse();
+        String title = "New Post from " + author.getFullName();
+        String message = postTitle != null ? postTitle : "A new post has been published in the community";
+
+        for (User user : users) {
+            if (!user.getId().equals(author.getId())) {
+                createNotification(user, title, message, NotificationType.COMMUNITY, "/community/posts/" + postId);
+            }
+        }
+
+        log.info("Sent new-post notification to {} users for post {}", users.size() - 1, postId);
     }
 
     @Override

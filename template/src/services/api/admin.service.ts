@@ -132,6 +132,11 @@ class AdminService {
     await api.delete(`/admin/users/${userId}`);
   }
 
+  // Manually activate yearly subscription for a user (admin)
+  async activateSubscription(userId: string | number): Promise<void> {
+    await api.post(`/admin/users/${userId}/activate-subscription`);
+  }
+
   // Get all instructors (admin only)
   async getInstructors(
     page = 0,

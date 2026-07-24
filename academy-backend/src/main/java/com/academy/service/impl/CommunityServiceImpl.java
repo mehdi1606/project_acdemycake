@@ -117,6 +117,8 @@ public class CommunityServiceImpl implements CommunityService {
         post = postRepository.save(post);
         log.info("Post created: {} by user: {}", post.getId(), currentUser.getEmail());
 
+        notificationService.sendNewPostNotification(currentUser, post.getId(), post.getTitle());
+
         return PostResponse.fromEntity(post, false);
     }
 

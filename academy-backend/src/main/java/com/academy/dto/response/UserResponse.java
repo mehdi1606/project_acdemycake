@@ -29,6 +29,8 @@ public class UserResponse {
     private String socialLinks;
     private LocalDateTime createdAt;
     private Boolean mustChangePassword;
+    private Long totalCourses;
+    private Long totalStudents;
 
     public static UserResponse fromEntity(User user) {
         return UserResponse.builder()

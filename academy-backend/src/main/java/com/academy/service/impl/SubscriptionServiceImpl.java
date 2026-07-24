@@ -351,6 +351,43 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         log.info("Sent {} subscription expiry reminders", expiringSubscriptions.size());
     }
 
+    @Override
+    @Transactional
+    public SubscriptionResponse adminActivateSubscription(UUID userId) {
+        User user = userService.findById(userId);
+
+        if (user.hasActiveSubscription()) {
+            throw new BadRequestException("User already has an active subscription");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime periodEnd = now.plusYears(1);
+
+        Subscription subscription = Subscription.builder()
+                .user(user)
+                .planType("YEARLY")
+                .status(SubscriptionStatus.ACTIVE)
+                .currentPeriodStart(now)
+                .currentPeriodEnd(periodEnd)
+                .amount(settingsService.getYearlyPrice())
+                .currency(currency)
+                .lastPaymentAt(now)
+                .nextBillingDate(periodEnd)
+                .build();
+
+        subscription = subscriptionRepository.save(subscription);
+
+        user.setSubscriptionStatus(SubscriptionStatus.ACTIVE);
+        user.setSubscriptionStartDate(now);
+        user.setSubscriptionEndDate(periodEnd);
+        userRepository.save(user);
+
+        enrollmentService.enrollUserInAllBeginnerCourses(user);
+
+        log.info("Admin manually activated yearly subscription for user: {} until {}", user.getEmail(), periodEnd);
+        return SubscriptionResponse.fromEntity(subscription);
+    }
+
     private User getCurrentUser() {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();

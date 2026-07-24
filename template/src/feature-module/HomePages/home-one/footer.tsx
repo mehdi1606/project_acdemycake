@@ -83,8 +83,6 @@ const Footer = () => {
                                 <ul className="sl-footer__links">
                                     <li><Link to={route.termsConditions}>{t('footer.termsOfUse', 'Terms of Use')}</Link></li>
                                     <li><Link to={route.privacyPolicy}>{t('footer.privacy', 'Privacy Policy')}</Link></li>
-                                    <li><Link to="#">{t('footer.cookiePolicy', 'Cookie Policy')}</Link></li>
-                                    <li><Link to="#">{t('footer.refundPolicy', 'Refund Policy')}</Link></li>
                                 </ul>
                             </div>
                         </div>
@@ -107,7 +105,6 @@ const Footer = () => {
                         <div className="sl-footer__bottom-links">
                             <Link to={route.termsConditions}>{t('footer.terms', 'Terms')}</Link>
                             <Link to={route.privacyPolicy}>{t('footer.privacy', 'Privacy')}</Link>
-                            <Link to="#">{t('footer.cookies', 'Cookies')}</Link>
                         </div>
                     </div>
                 </div>

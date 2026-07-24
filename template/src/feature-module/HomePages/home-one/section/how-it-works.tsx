@@ -20,7 +20,7 @@ const Howitworks = () => {
                 { num: '02', icon: 'isax isax-discover-1', title: 'Explore the World of Learning', text: 'Browse courses, masterclasses, and learning resources designed to help you build your skills step by step.' },
                 { num: '03', icon: 'isax isax-video-play', title: 'Learn & Apply',               text: 'Watch the lessons, complete hands-on projects, and share your work to receive feedback and guidance from experts and the community.' },
                 { num: '04', icon: 'isax isax-medal-star', title: 'Achieve Your Milestones',     text: 'Complete courses, collect badges, and earn certificates that reflect your progress and level within the academy.' },
-                { num: '05', icon: 'isax isax-teacher',    title: 'Join the Elite Instructors',  text: 'Are you a chef, trainer, or expert in patisserie and cake art? Apply for an instructor account and join the Elite Instructors network to offer your courses and masterclasses and reach thousands of students worldwide.', highlight: true, ctaLabel: 'Apply to teach' },
+                { num: '05', icon: 'isax isax-teacher',    title: 'Join the Elite Instructors',  text: 'Are you a chef, trainer, or expert in patisserie and cake art? Apply for an instructor account and join the Elite Instructors network to offer your courses and masterclasses and reach thousands of students worldwide.', highlight: true },
             ],
             ad: {
                 aria: 'Become an Elite Instructor at SARALÖWE Academy',
@@ -37,7 +37,7 @@ const Howitworks = () => {
                 { num: '02', icon: 'isax isax-discover-1', title: 'استكشف عالم التعلم',       text: 'تصفح الدورات، الماستر كلاس، والموارد التعليمية المصممة لمساعدتك على تطوير مهاراتك خطوة بخطوة.' },
                 { num: '03', icon: 'isax isax-video-play', title: 'تعلّم وطبّق',               text: 'شاهد الدروس، نفّذ المشاريع العملية، وشارك أعمالك للحصول على الملاحظات والتوجيهات من الخبراء والمجتمع.' },
                 { num: '04', icon: 'isax isax-medal-star', title: 'حقّق إنجازاتك',            text: 'أكمل الدورات، اجمع الشارات، واحصل على شهادات تعكس تقدمك ومستواك داخل الأكاديمية.' },
-                { num: '05', icon: 'isax isax-teacher',    title: 'انضم إلى نخبة المدربين',   text: 'هل أنت شيف، مدرب، أو خبير في مجال الباتيسري وفنون الكيك؟ يمكنك التقديم للحصول على حساب مدرب والانضمام إلى شبكة Elite Instructors لتقديم دوراتك وماستر كلاسك والوصول إلى آلاف الطلاب حول العالم.', highlight: true, ctaLabel: 'قدّم للتدريس' },
+                { num: '05', icon: 'isax isax-teacher',    title: 'انضم إلى نخبة المدربين',   text: 'هل أنت شيف، مدرب، أو خبير في مجال الباتيسري وفنون الكيك؟ يمكنك التقديم للحصول على حساب مدرب والانضمام إلى شبكة Elite Instructors لتقديم دوراتك وماستر كلاسك والوصول إلى آلاف الطلاب حول العالم.', highlight: true },
             ],
             ad: {
                 aria: 'انضم إلى نخبة المدربين في أكاديمية SARALÖWE',
@@ -189,9 +189,9 @@ const Howitworks = () => {
                                             }}>
                                                 {s.text}
                                             </p>
-                                            {s.ctaLabel && (
+                                            {(s as any).ctaLabel && (
                                                 <Link to={route.becomeAnInstructor} className="sl-hiw-step__cta">
-                                                    {s.ctaLabel}
+                                                    {(s as any).ctaLabel}
                                                     <i className={`isax ${isRtl ? 'isax-arrow-left-2' : 'isax-arrow-right-1'}`} />
                                                 </Link>
                                             )}

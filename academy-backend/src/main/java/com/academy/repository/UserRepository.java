@@ -36,6 +36,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Page<User> findByRoleAndIsDeletedFalse(UserRole role, Pageable pageable);
 
+    List<User> findByIsDeletedFalse();
+
     long countByIsDeletedFalse();
 
     @Query("SELECT u FROM User u WHERE u.subscriptionStatus = :status AND u.subscriptionEndDate < :date")

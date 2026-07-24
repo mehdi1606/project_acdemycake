@@ -6,6 +6,7 @@ import com.academy.dto.response.SubscriptionPlanResponse;
 import com.academy.dto.response.SubscriptionResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface SubscriptionService {
 
@@ -30,4 +31,6 @@ public interface SubscriptionService {
     void checkAndExpireSubscriptions();
 
     void sendExpiryReminders();
+
+    SubscriptionResponse adminActivateSubscription(UUID userId);
 }

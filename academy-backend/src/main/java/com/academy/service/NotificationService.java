@@ -27,5 +27,7 @@ public interface NotificationService {
 
     void sendMessageNotification(User user, String senderName, String preview, UUID senderId);
 
+    void sendNewPostNotification(User author, UUID postId, String postTitle);
+
     void cleanupOldNotifications();
 }
