@@ -100,6 +100,35 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
   </div>
 )
 
+/**
+ * NOTE: GlassModal and ModalHeader MUST stay at module scope.
+ * If they are declared inside InstructorAssignment they get a new function
+ * identity on every render, so React treats them as a different component type
+ * and unmounts/remounts the whole modal on each keystroke — which makes the
+ * inputs lose focus after every character typed.
+ */
+const GlassModal: React.FC<{ children: React.ReactNode; maxWidth?: number; onClose: () => void }> = ({
+  children, maxWidth = 600, onClose,
+}) => (
+  <div
+    style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+    onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+  >
+    <div style={{ width: '100%', maxWidth, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)', boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)' }}>
+      {children}
+    </div>
+  </div>
+)
+
+const ModalHeader: React.FC<{ title: string; onClose: () => void }> = ({ title, onClose }) => (
+  <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{title}</h5>
+    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
+      <i className="isax isax-close-circle" />
+    </button>
+  </div>
+)
+
 const InstructorAssignment: React.FC = () => {
   const { t } = useTranslation();
   const [assignments, setAssignments] = useState<Assignment[]>([])
@@ -268,26 +297,6 @@ const InstructorAssignment: React.FC = () => {
     finally { setDeleteSubmitting(false) }
   }
 
-  const GlassModal = ({ children, maxWidth = 600 }: { children: React.ReactNode; maxWidth?: number }) => (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-      onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-    >
-      <div style={{ width: '100%', maxWidth, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)', boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)' }}>
-        {children}
-      </div>
-    </div>
-  )
-
-  const ModalHeader = ({ title }: { title: string }) => (
-    <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{title}</h5>
-      <button onClick={closeModal} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
-        <i className="isax isax-close-circle" />
-      </button>
-    </div>
-  )
-
   const renderPagination = () => {
     if (totalPages <= 1) return null
     return (
@@ -371,8 +380,8 @@ const InstructorAssignment: React.FC = () => {
 
       {/* Add Modal */}
       {modal === 'add' && (
-        <GlassModal>
-          <ModalHeader title="Add New Assignment" />
+        <GlassModal onClose={closeModal}>
+          <ModalHeader title="Add New Assignment" onClose={closeModal} />
           <form onSubmit={handleAdd}>
             <div style={{ padding: 24 }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
@@ -387,8 +396,8 @@ const InstructorAssignment: React.FC = () => {
 
       {/* View Modal */}
       {modal === 'view' && selected && (
-        <GlassModal>
-          <ModalHeader title="Assignment Details" />
+        <GlassModal onClose={closeModal}>
+          <ModalHeader title="Assignment Details" onClose={closeModal} />
           <div style={{ padding: 24 }}>
             {[
               { label: 'Title', value: selected.title },
@@ -417,8 +426,8 @@ const InstructorAssignment: React.FC = () => {
 
       {/* Edit Modal */}
       {modal === 'edit' && selected && (
-        <GlassModal>
-          <ModalHeader title="Edit Assignment" />
+        <GlassModal onClose={closeModal}>
+          <ModalHeader title="Edit Assignment" onClose={closeModal} />
           <form onSubmit={handleEdit}>
             <div style={{ padding: 24 }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
@@ -433,8 +442,8 @@ const InstructorAssignment: React.FC = () => {
 
       {/* Submissions Modal */}
       {modal === 'submissions' && selected && (
-        <GlassModal maxWidth={800}>
-          <ModalHeader title={`Submissions — ${selected.title}`} />
+        <GlassModal maxWidth={800} onClose={closeModal}>
+          <ModalHeader title={`Submissions — ${selected.title}`} onClose={closeModal} />
           <div style={{ padding: 24, maxHeight: '60vh', overflowY: 'auto' }}>
             {submissionsLoading ? (
               <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lx-text-muted)' }}>Loading…</div>
@@ -527,7 +536,7 @@ const InstructorAssignment: React.FC = () => {
 
       {/* Delete Modal */}
       {modal === 'delete' && selected && (
-        <GlassModal maxWidth={420}>
+        <GlassModal maxWidth={420} onClose={closeModal}>
           <div style={{ padding: '32px 24px', textAlign: 'center' }}>
             <div style={{ width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px', background: 'rgba(139, 35, 53, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
