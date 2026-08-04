@@ -48,9 +48,9 @@ const StudentAssignment = () => {
     setError(null);
     try {
       const res = await assignmentService.getStudentAssignments(p, PAGE_SIZE);
-      setAssignments(res.content);
-      setTotalPages(res.totalPages);
-      setTotalElements(res.totalElements);
+      setAssignments(Array.isArray(res?.content) ? res.content : []);
+      setTotalPages(res?.totalPages ?? 0);
+      setTotalElements(res?.totalElements ?? 0);
     } catch (e) {
       setError(extractApiError(e, 'Failed to load assignments'));
     } finally {

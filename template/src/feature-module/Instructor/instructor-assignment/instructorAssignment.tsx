@@ -175,7 +175,7 @@ const InstructorAssignment: React.FC = () => {
     setSubmissionsLoading(true)
     try {
       const data = await assignmentService.getSubmissionsForAssignment(a.id, 0, 50)
-      setSubmissions(data.content)
+      setSubmissions(Array.isArray(data?.content) ? data.content : [])
     } catch (e) {
       setSubmissionsError(extractApiError(e, 'Failed to load submissions'))
     } finally {
