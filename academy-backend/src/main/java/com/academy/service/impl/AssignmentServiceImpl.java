@@ -20,6 +20,7 @@ import com.academy.repository.CourseEnrollmentRepository;
 import com.academy.repository.CourseRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.AssignmentService;
+import com.academy.service.FileStorageService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -43,6 +47,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final CourseRepository courseRepository;
     private final AssignmentSubmissionRepository assignmentSubmissionRepository;
     private final CourseEnrollmentRepository courseEnrollmentRepository;
+    private final FileStorageService fileStorageService;
     private final UserService userService;
 
     @Override
@@ -149,6 +154,25 @@ public class AssignmentServiceImpl implements AssignmentService {
     }
 
     @Override
+    public List<AssignmentResponse> getStudentAssignmentsForCourse(UUID courseId) {
+        User student = getCurrentUser();
+        return assignmentRepository.findPublishedByEnrolledStudentAndCourse(student, courseId)
+                .stream()
+                .map(AssignmentResponse::fromEntity)
+                .toList();
+    }
+
+    @Override
+    public String uploadSubmissionFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("File is empty");
+        }
+        // Size (10MB) and extension (pdf/doc/docx/images) are enforced by FileStorageService.
+        String stored = fileStorageService.storeFile(file, "assignment-submissions");
+        return fileStorageService.getFileUrl(stored);
+    }
+
+    @Override
     @Transactional
     public SubmissionResponse submitAssignment(UUID assignmentId, SubmitAssignmentRequest request) {
         User student = getCurrentUser();
@@ -158,7 +182,10 @@ public class AssignmentServiceImpl implements AssignmentService {
             throw new BadRequestException("Assignment is not open for submission");
         }
 
-        if (assignment.getDueDate() != null && LocalDateTime.now().isAfter(assignment.getDueDate().atStartOfDay())) {
+        // The due date is a whole day — the student keeps it until 23:59:59, so compare
+        // against the END of that day (atStartOfDay() would reject the due date itself).
+        if (assignment.getDueDate() != null
+                && LocalDateTime.now().isAfter(assignment.getDueDate().atTime(LocalTime.MAX))) {
             throw new BadRequestException("Assignment due date has passed");
         }
 

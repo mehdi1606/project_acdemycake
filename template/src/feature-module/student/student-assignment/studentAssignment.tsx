@@ -37,6 +37,8 @@ const StudentAssignment = () => {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [content, setContent] = useState('');
   const [fileUrl, setFileUrl] = useState('');
+  const [fileName, setFileName] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loadingSubmission, setLoadingSubmission] = useState(false);
@@ -62,7 +64,7 @@ const StudentAssignment = () => {
     setSelected(a);
     setSubmitError(null);
     setContent('');
-    setFileUrl('');
+    clearFile();
     setSubmission(null);
     setLoadingSubmission(true);
     setActiveTab('submit');
@@ -76,6 +78,30 @@ const StudentAssignment = () => {
       setLoadingSubmission(false);
     }
   };
+
+  /* Upload the student's answer file straight away; we keep only the returned URL. */
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setSubmitError(t('student.assignments.fileTooLarge', 'File too large (max 10MB)'));
+      return;
+    }
+    setUploading(true);
+    setSubmitError(null);
+    try {
+      const url = await assignmentService.uploadSubmissionFile(file);
+      setFileUrl(url);
+      setFileName(file.name);
+    } catch (err) {
+      setSubmitError(extractApiError(err, 'Failed to upload file'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const clearFile = () => { setFileUrl(''); setFileName(''); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +123,13 @@ const StudentAssignment = () => {
 
   const back = () => { setActiveTab('list'); setSelected(null); };
 
-  const isPastDue = (a: Assignment) =>
-    a.dueDate ? new Date() > new Date(a.dueDate) : false;
+  // The student keeps the whole due day, so compare against 23:59:59 of that date —
+  // this must match the backend, which accepts submissions until end of the due date.
+  const isPastDue = (a: Assignment) => {
+    if (!a.dueDate) return false;
+    const d = new Date(a.dueDate);
+    return new Date() > new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+  };
 
   const fmt = (d?: string) =>
     d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
@@ -284,18 +315,43 @@ const StudentAssignment = () => {
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{t('student.assignments.fileUrl', 'File URL')} ({t('common.optional', 'optional')})</label>
-              <input
-                type="url"
-                value={fileUrl}
-                onChange={e => setFileUrl(e.target.value)}
-                placeholder="https://drive.google.com/…"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--lx-border)', background: 'var(--lx-bg)', fontSize: 14, outline: 'none', color: 'var(--lx-text)' }}
-              />
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+                {t('student.assignments.attachment', 'Attachment')} ({t('common.optional', 'optional')})
+              </label>
+
+              {fileUrl ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--lx-border)', background: 'var(--lx-bg)' }}>
+                  <i className="isax isax-document-text" style={{ color: 'var(--lx-primary)' }} />
+                  <span style={{ flex: 1, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fileName}</span>
+                  <button type="button" onClick={clearFile} title={t('common.remove', 'Remove')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: 15 }}>
+                    <i className="isax isax-close-circle" />
+                  </button>
+                </div>
+              ) : (
+                <label style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '18px 14px', borderRadius: 8, cursor: uploading ? 'wait' : 'pointer',
+                  border: '2px dashed var(--lx-border)', background: 'var(--lx-bg)',
+                  fontSize: 13, color: 'var(--lx-text-muted)', opacity: uploading ? 0.7 : 1,
+                }}>
+                  <i className={uploading ? 'isax isax-refresh' : 'isax isax-document-upload'} style={{ fontSize: 18 }} />
+                  {uploading
+                    ? t('common.loading', 'Uploading…')
+                    : t('student.assignments.chooseFile', 'Click to attach your file — PDF, DOC, DOCX or image (max 10MB)')}
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.webp"
+                    style={{ display: 'none' }}
+                    onChange={handleFilePick}
+                    disabled={uploading}
+                  />
+                </label>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: 10 }}>
-              <button type="submit" className="lx-btn lx-btn-primary" disabled={submitting || !content.trim()}>
+              <button type="submit" className="lx-btn lx-btn-primary" disabled={submitting || uploading || !content.trim()}>
                 {submitting ? t('common.loading', 'Submitting…') : t('student.assignments.submitAssignment', 'Submit Assignment')}
               </button>
               <button type="button" className="lx-btn lx-btn-outline" onClick={back}>{t('common.cancel', 'Cancel')}</button>

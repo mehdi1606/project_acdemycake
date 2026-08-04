@@ -593,7 +593,10 @@
       "due": "Due",
       "submitted": "Submitted",
       "pending": "Pending",
-      "grade": "Grade"
+      "grade": "Grade",
+      "attachment": "Attachment",
+      "chooseFile": "Click to attach your file — PDF, DOC, DOCX or image (max 10MB)",
+      "fileTooLarge": "File too large (max 10MB)"
     },
     "tickets": {
       "title": "Support Tickets",
@@ -1557,6 +1560,11 @@
     "noOverview": "No overview content for this lesson.",
     "noResources": "No resources for this lesson",
     "noResourcesSub": "The instructor hasn't uploaded any files yet",
+    "assignments": "Assignments",
+    "noAssignments": "No assignments for this course yet",
+    "marks": "marks",
+    "overdue": "Past due",
+    "openAssignment": "Open & Submit",
     "previewNotAvailable": "Preview not available for this file type",
     "selectLessonToBegin": "Select a lesson to begin",
     "closePreview": "Close preview",

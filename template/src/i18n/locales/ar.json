@@ -716,7 +716,10 @@
       "due": "الموعد النهائي",
       "submitted": "تم التسليم",
       "pending": "قيد الانتظار",
-      "grade": "الدرجة"
+      "grade": "الدرجة",
+      "attachment": "مرفق",
+      "chooseFile": "اضغط لإرفاق ملفك — PDF أو DOC أو صورة (بحد أقصى 10 ميغابايت)",
+      "fileTooLarge": "الملف كبير جداً (بحد أقصى 10 ميغابايت)"
     },
     "tickets": {
       "title": "تذاكر الدعم",
@@ -1714,6 +1717,11 @@
     "noOverview": "لا يوجد محتوى نظرة عامة لهذا الدرس.",
     "noResources": "لا توجد موارد لهذا الدرس",
     "noResourcesSub": "لم يقم المدرب بتحميل أي ملفات بعد",
+    "assignments": "الواجبات",
+    "noAssignments": "لا توجد واجبات لهذه الدورة بعد",
+    "marks": "نقطة",
+    "overdue": "انتهى الموعد",
+    "openAssignment": "افتح وسلّم",
     "previewNotAvailable": "المعاينة غير متاحة لهذا النوع من الملفات",
     "selectLessonToBegin": "اختر درساً للبدء",
     "closePreview": "إغلاق المعاينة",

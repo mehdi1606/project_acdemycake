@@ -1,4 +1,4 @@
-import api from './axios.config';
+import api, { apiMultipart } from './axios.config';
 import {
   Assignment,
   Submission,
@@ -67,6 +67,20 @@ class AssignmentService {
       `/student/assignments/${assignmentId}/submit`,
       data,
     );
+    return res.data.data;
+  }
+
+  /** Published assignments of a single enrolled course (for the course page). */
+  async getAssignmentsForCourse(courseId: string): Promise<Assignment[]> {
+    const res = await api.get<ApiResponse<Assignment[]>>(`/student/assignments/course/${courseId}`);
+    return res.data.data;
+  }
+
+  /** Upload the student's answer file; returns the stored URL to put in `fileUrl`. */
+  async uploadSubmissionFile(file: File): Promise<string> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await apiMultipart.post<ApiResponse<string>>('/student/assignments/upload', form);
     return res.data.data;
   }
 

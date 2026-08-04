@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -24,4 +25,11 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
     @Query("SELECT a FROM Assignment a WHERE a.status = 'PUBLISHED' " +
            "AND EXISTS (SELECT e FROM CourseEnrollment e WHERE e.user = :student AND e.course = a.course AND e.isActive = true)")
     Page<Assignment> findPublishedByEnrolledStudent(@Param("student") User student, Pageable pageable);
+
+    /** Published assignments of ONE course the student is actively enrolled in. */
+    @Query("SELECT a FROM Assignment a WHERE a.status = 'PUBLISHED' AND a.course.id = :courseId " +
+           "AND EXISTS (SELECT e FROM CourseEnrollment e WHERE e.user = :student AND e.course = a.course AND e.isActive = true) " +
+           "ORDER BY a.dueDate ASC NULLS LAST, a.createdAt DESC")
+    List<Assignment> findPublishedByEnrolledStudentAndCourse(@Param("student") User student,
+                                                             @Param("courseId") UUID courseId);
 }

@@ -45,6 +45,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
       items: [
         { title: t('sidebar.dashboard', 'Dashboard'),    icon: 'isax isax-category',     route: all_routes.studentDashboard },
         { title: t('sidebar.myCourses', 'My Courses'),   icon: 'isax isax-book',          route: all_routes.studentCourses },
+        { title: t('sidebar.assignments', 'Assignments'), icon: 'isax isax-clipboard-text', route: all_routes.studentAssignments },
         { title: t('sidebar.myProfile', 'My Profile'),   icon: 'isax isax-user',          route: all_routes.studentProfile },
         { title: t('sidebar.certificates', 'Certificates'), icon: 'isax isax-medal',     route: all_routes.studentCertificates },
         { title: t('sidebar.wishlist', 'Wishlist'),      icon: 'isax isax-heart',         route: all_routes.studentWishlist },

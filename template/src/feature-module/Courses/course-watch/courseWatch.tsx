@@ -5,9 +5,10 @@ import VideoPlayer from '../../../components/VideoPlayer';
 import courseService from '../../../services/api/course.service';
 import quizService from '../../../services/api/quiz.service';
 import {
-  Course, CourseLesson, CourseModule,
+  Assignment, Course, CourseLesson, CourseModule,
   LessonDetail, LessonResource, Quiz, QuizAttempt,
 } from '../../../services/api/types';
+import { assignmentService } from '../../../services/api/assignment.service';
 import { all_routes } from '../../router/all_routes';
 import { getFileUrl } from '../../../environment';
 import { useAppSelector } from '../../../core/redux/hooks';
@@ -86,7 +87,8 @@ const CourseWatch: React.FC = () => {
   const [completedIds,    setCompletedIds]    = useState<Set<string>>(new Set());
   const [openModuleIds,   setOpenModuleIds]   = useState<Set<string>>(new Set());
   const [markingDone,     setMarkingDone]     = useState(false);
-  const [activeTab,       setActiveTab]       = useState<'overview'|'resources'>('overview');
+  const [activeTab,       setActiveTab]       = useState<'overview'|'resources'|'assignments'>('overview');
+  const [assignments,     setAssignments]     = useState<Assignment[]>([]);
   const [courseComplete,  setCourseComplete]  = useState(false);
   const [showCertModal,   setShowCertModal]   = useState(false);
   const certShownRef       = useRef(false);   // popup shown once per session
@@ -179,6 +181,16 @@ const CourseWatch: React.FC = () => {
       setShowCertModal(true);
     }
   }, [courseComplete, loading]);
+
+  // ── Load this course's published assignments (students only) ──────────────
+  useEffect(() => {
+    if (!course?.id || user?.role !== 'STUDENT') { setAssignments([]); return; }
+    let cancelled = false;
+    assignmentService.getAssignmentsForCourse(course.id)
+      .then(list => { if (!cancelled) setAssignments(list ?? []); })
+      .catch(() => { if (!cancelled) setAssignments([]); });
+    return () => { cancelled = true; };
+  }, [course?.id, user?.role]);
 
   // ── Select a lesson ───────────────────────────────────────────────────────
   const doSelectLesson = useCallback(async (lesson: CourseLesson) => {
@@ -836,7 +848,7 @@ const CourseWatch: React.FC = () => {
               {/* ── Tabs ── */}
               <div style={{ background:IVORY, padding:'18px 28px 0', flexShrink:0, borderBottom:`1px solid rgba(197,151,62,0.08)` }}>
                 <div style={{ display:'inline-flex', gap:3, background:WHITE, borderRadius:10, padding:4, boxShadow:'0 2px 14px rgba(78,20,32,0.06)', border:`1px solid rgba(197,151,62,0.1)` }}>
-                  {(['overview','resources'] as const).map(tab => (
+                  {(['overview','resources','assignments'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)} style={{
                       padding:'8px 22px', border:'none', borderRadius:7, cursor:'pointer',
                       fontWeight:700, fontSize:13, textTransform:'capitalize',
@@ -849,6 +861,11 @@ const CourseWatch: React.FC = () => {
                       {tab==='resources' && (lessonDetail?.resources?.length??0)>0 && (
                         <span style={{ position:'absolute', top:-6, right:-4, background:GOLD, color:WHITE, fontSize:9, fontWeight:800, borderRadius:20, padding:'1px 5px', lineHeight:1.4 }}>
                           {lessonDetail!.resources.length}
+                        </span>
+                      )}
+                      {tab==='assignments' && assignments.length>0 && (
+                        <span style={{ position:'absolute', top:-6, right:-4, background:GOLD, color:WHITE, fontSize:9, fontWeight:800, borderRadius:20, padding:'1px 5px', lineHeight:1.4 }}>
+                          {assignments.length}
                         </span>
                       )}
                     </button>
@@ -906,6 +923,62 @@ const CourseWatch: React.FC = () => {
                       <div style={{ ...panelStyle, textAlign:'center', padding:'52px 24px', color:'#9A8080' }}>
                         <i className="fa-regular fa-file-lines" style={{ fontSize:44, display:'block', marginBottom:12, opacity:0.25 }} />
                         <p style={{ margin:0, fontWeight:600 }}>{t('courseWatch.noOverview', 'No overview content for this lesson.')}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ASSIGNMENTS — published assignments for this course */}
+                {activeTab === 'assignments' && (
+                  <div style={{ maxWidth:780 }}>
+                    {assignments.length === 0 ? (
+                      <div style={{ ...panelStyle, textAlign:'center', padding:'56px 24px', color:'#9A8080' }}>
+                        <i className="fa-regular fa-clipboard" style={{ fontSize:52, display:'block', marginBottom:14, opacity:0.25 }} />
+                        <p style={{ margin:0, fontWeight:700, fontSize:15 }}>{t('courseWatch.noAssignments', 'No assignments for this course yet')}</p>
+                      </div>
+                    ) : (
+                      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                        {assignments.map(a => {
+                          const due = a.dueDate ? new Date(a.dueDate) : null;
+                          const overdue = due ? new Date() > new Date(due.getFullYear(), due.getMonth(), due.getDate(), 23, 59, 59) : false;
+                          return (
+                            <div key={a.id} style={{ ...panelStyle, padding:18 }}>
+                              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+                                <div style={{ flex:1, minWidth:200 }}>
+                                  <h6 style={{ margin:'0 0 6px', fontFamily:"'Playfair Display',Georgia,serif", fontSize:15, fontWeight:800, color:'#2C1810' }}>
+                                    {a.title}
+                                  </h6>
+                                  {a.description && (
+                                    <p style={{ margin:'0 0 8px', fontSize:13, color:'#4b5563', lineHeight:1.6 }}>{a.description}</p>
+                                  )}
+                                  <div style={{ display:'flex', gap:14, flexWrap:'wrap', fontSize:12, color:'#7A6060' }}>
+                                    <span>
+                                      <i className="fa-regular fa-calendar" style={{ marginInlineEnd:5, color:GOLD }} />
+                                      {due ? due.toLocaleDateString(i18n.language, { year:'numeric', month:'short', day:'numeric' }) : '—'}
+                                    </span>
+                                    <span>
+                                      <i className="fa-solid fa-star" style={{ marginInlineEnd:5, color:GOLD }} />
+                                      {a.totalMark} {t('courseWatch.marks', 'marks')}
+                                    </span>
+                                    {overdue && (
+                                      <span style={{ color:'#dc2626', fontWeight:700 }}>{t('courseWatch.overdue', 'Past due')}</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <Link
+                                  to={routes.studentAssignments}
+                                  style={{
+                                    padding:'8px 18px', borderRadius:8, textDecoration:'none',
+                                    background:`linear-gradient(135deg,${BURG},${BURG_D})`, color:WHITE,
+                                    fontSize:12.5, fontWeight:700, whiteSpace:'nowrap',
+                                  }}
+                                >
+                                  {t('courseWatch.openAssignment', 'Open & Submit')}
+                                </Link>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
