@@ -100,6 +100,64 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
   </div>
 )
 
+const isGraded = (s: Submission) => s.grade !== undefined && s.grade !== null
+
+/**
+ * Renders the student's attachment INLINE so the instructor never has to click
+ * through: images render as a picture, PDFs in an embedded viewer, and formats
+ * browsers cannot display (doc/docx) fall back to a labelled open-link.
+ */
+const AttachmentPreview: React.FC<{ url: string }> = ({ url }) => {
+  const clean = url.split('?')[0].toLowerCase()
+  const ext = clean.slice(clean.lastIndexOf('.') + 1)
+  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+  const isPdf = ext === 'pdf'
+
+  const frame: React.CSSProperties = {
+    border: '1px solid rgba(107,29,42,0.14)', borderRadius: 10,
+    overflow: 'hidden', background: '#fff',
+  }
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text-mid)' }}>
+          <i className="isax isax-paperclip-2" style={{ marginInlineEnd: 5 }} />
+          Attachment ({ext.toUpperCase()})
+        </span>
+        <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--lx-primary)', fontWeight: 600 }}>
+          Open full size ↗
+        </a>
+      </div>
+
+      {isImage && (
+        <a href={url} target="_blank" rel="noreferrer" style={{ ...frame, display: 'block' }}>
+          <img src={url} alt="Student attachment" style={{ width: '100%', maxHeight: 420, objectFit: 'contain', display: 'block', background: '#faf8f5' }} />
+        </a>
+      )}
+
+      {isPdf && (
+        <div style={frame}>
+          <iframe src={`${url}#toolbar=0&view=FitH`} title="Student attachment" style={{ width: '100%', height: 460, border: 'none', display: 'block' }} />
+        </div>
+      )}
+
+      {!isImage && !isPdf && (
+        <a
+          href={url} target="_blank" rel="noreferrer"
+          style={{ ...frame, display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', textDecoration: 'none' }}
+        >
+          <i className="isax isax-document-text" style={{ fontSize: 26, color: 'var(--lx-primary)' }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lx-text)' }}>{ext.toUpperCase()} file</div>
+            <div style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>Preview not supported — click to open</div>
+          </div>
+        </a>
+      )}
+    </div>
+  )
+}
+
 /**
  * NOTE: GlassModal and ModalHeader MUST stay at module scope.
  * If they are declared inside InstructorAssignment they get a new function
@@ -150,7 +208,9 @@ const InstructorAssignment: React.FC = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [submissionsLoading, setSubmissionsLoading] = useState(false)
   const [submissionsError, setSubmissionsError] = useState<string | null>(null)
-  const [gradingId, setGradingId] = useState<string | null>(null)
+  const [activeSubId, setActiveSubId] = useState<string | null>(null)
+  const [subSearch, setSubSearch] = useState('')
+  const [subFilter, setSubFilter] = useState<'all' | 'ungraded' | 'graded'>('all')
   const [gradeValue, setGradeValue] = useState('')
   const [gradeFeedback, setGradeFeedback] = useState('')
   const [grading, setGrading] = useState(false)
@@ -197,14 +257,18 @@ const InstructorAssignment: React.FC = () => {
     setSelected(a)
     setSubmissions([])
     setSubmissionsError(null)
-    setGradingId(null)
+    setActiveSubId(null)
+    setSubSearch('')
+    setSubFilter('all')
     setGradeValue('')
     setGradeFeedback('')
     setModal('submissions')
     setSubmissionsLoading(true)
     try {
-      const data = await assignmentService.getSubmissionsForAssignment(a.id, 0, 50)
-      setSubmissions(Array.isArray(data?.content) ? data.content : [])
+      const data = await assignmentService.getSubmissionsForAssignment(a.id, 0, 200)
+      const list = Array.isArray(data?.content) ? data.content : []
+      setSubmissions(list)
+      if (list.length > 0) selectSubmission(list[0])   // open the first student straight away
     } catch (e) {
       setSubmissionsError(extractApiError(e, 'Failed to load submissions'))
     } finally {
@@ -212,28 +276,39 @@ const InstructorAssignment: React.FC = () => {
     }
   }, [])
 
-  const startGrading = (sub: Submission) => {
-    setGradingId(sub.id)
+  /** Show one student's work and preload their existing grade into the form. */
+  function selectSubmission(sub: Submission) {
+    setActiveSubId(sub.id)
     setGradeValue(sub.grade !== undefined && sub.grade !== null ? String(sub.grade) : '')
     setGradeFeedback(sub.feedback || '')
   }
-
-  const cancelGrading = () => { setGradingId(null); setGradeValue(''); setGradeFeedback('') }
 
   const submitGrade = async (submissionId: string) => {
     const grade = parseInt(gradeValue)
     if (isNaN(grade) || grade < 0) return
     setGrading(true)
+    setSubmissionsError(null)
     try {
       const updated = await assignmentService.gradeSubmission(submissionId, { grade, feedback: gradeFeedback.trim() || undefined })
       setSubmissions(prev => prev.map(s => s.id === submissionId ? updated : s))
-      cancelGrading()
     } catch (e) {
       setSubmissionsError(extractApiError(e, 'Failed to save grade'))
     } finally {
       setGrading(false)
     }
   }
+
+  // ── Derived view state for the submissions modal ──────────────────────────
+  const gradedCount = submissions.filter(isGraded).length
+  const visibleSubmissions = submissions.filter(s => {
+    if (subFilter === 'graded' && !isGraded(s)) return false
+    if (subFilter === 'ungraded' && isGraded(s)) return false
+    const q = subSearch.trim().toLowerCase()
+    if (!q) return true
+    return (s.studentName || '').toLowerCase().includes(q)
+        || (s.studentEmail || '').toLowerCase().includes(q)
+  })
+  const activeSub = submissions.find(s => s.id === activeSubId) || null
 
   const openAdd = () => { setForm(emptyForm()); setModal('add'); }
   const openView = (a: Assignment) => { setSelected(a); setModal('view'); }
@@ -442,92 +517,189 @@ const InstructorAssignment: React.FC = () => {
 
       {/* Submissions Modal */}
       {modal === 'submissions' && selected && (
-        <GlassModal maxWidth={800} onClose={closeModal}>
+        <GlassModal maxWidth={1080} onClose={closeModal}>
           <ModalHeader title={`Submissions — ${selected.title}`} onClose={closeModal} />
-          <div style={{ padding: 24, maxHeight: '60vh', overflowY: 'auto' }}>
-            {submissionsLoading ? (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lx-text-muted)' }}>Loading…</div>
-            ) : submissionsError ? (
-              <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(139,35,53,0.06)', color: '#8B2335', fontSize: 13 }}>{submissionsError}</div>
-            ) : submissions.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lx-text-muted)', fontSize: 14 }}>
-                <i className="isax isax-document" style={{ fontSize: 32, display: 'block', marginBottom: 8, opacity: 0.4 }} />
-                No submissions yet
+
+          {submissionsLoading ? (
+            <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--lx-text-muted)' }}>Loading…</div>
+          ) : submissions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--lx-text-muted)', fontSize: 14 }}>
+              <i className="isax isax-document" style={{ fontSize: 34, display: 'block', marginBottom: 10, opacity: 0.4 }} />
+              No submissions yet
+            </div>
+          ) : (
+            <>
+              {/* Summary strip */}
+              <div style={{ display: 'flex', gap: 18, padding: '12px 24px', borderBottom: '1px solid rgba(107,29,42,0.08)', fontSize: 12.5, color: 'var(--lx-text-mid)', flexWrap: 'wrap' }}>
+                <span><strong>{submissions.length}</strong> submitted</span>
+                <span style={{ color: '#16a34a' }}><strong>{gradedCount}</strong> graded</span>
+                <span style={{ color: '#d97706' }}><strong>{submissions.length - gradedCount}</strong> ungraded</span>
+                <span style={{ marginInlineStart: 'auto' }}>Total mark: <strong>{selected.totalMark}</strong></span>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {submissions.map(sub => (
-                  <div key={sub.id} style={{ border: '1px solid var(--lx-border)', borderRadius: 10, padding: '14px 16px', background: 'var(--lx-bg)' }}>
-                    {/* Student header */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <div>
-                        <span style={{ fontWeight: 600, fontSize: 14 }}>{sub.studentName}</span>
-                        <span style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginLeft: 8 }}>{sub.studentEmail}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {sub.grade !== undefined && sub.grade !== null ? (
-                          <span style={{ fontSize: 13, fontWeight: 700, color: '#16a34a' }}>{sub.grade}/{sub.totalMark}</span>
-                        ) : (
-                          <span style={{ fontSize: 12, color: '#d97706', fontWeight: 600 }}>Ungraded</span>
-                        )}
-                        {gradingId !== sub.id && (
-                          <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => startGrading(sub)}>
-                            {sub.grade !== undefined && sub.grade !== null ? 'Re-grade' : 'Grade'}
-                          </button>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Submission content */}
-                    <div style={{ fontSize: 13, color: 'var(--lx-text)', background: 'rgba(107,29,42,0.02)', borderRadius: 6, padding: '8px 10px', marginBottom: 8, whiteSpace: 'pre-wrap', maxHeight: 120, overflowY: 'auto' }}>
-                      {sub.content}
-                    </div>
-                    {sub.fileUrl && (
-                      <a href={sub.fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--lx-primary)', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
-                        <i className="isax isax-paperclip-2" />Attachment
-                      </a>
-                    )}
-                    {sub.feedback && gradingId !== sub.id && (
-                      <div style={{ fontSize: 12, color: 'var(--lx-text-muted)', fontStyle: 'italic' }}>Feedback: {sub.feedback}</div>
-                    )}
+              <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 420, maxHeight: '62vh' }}>
 
-                    {/* Grade form */}
-                    {gradingId === sub.id && (
-                      <div style={{ marginTop: 10, padding: '12px 14px', background: 'rgba(107,29,42,0.03)', borderRadius: 8, border: '1px solid rgba(107,29,42,0.08)' }}>
-                        <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-                          <div style={{ flex: '0 0 100px' }}>
-                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Grade (/{sub.totalMark})</label>
+                {/* ── Left: student list ── */}
+                <div style={{ flex: '0 0 258px', borderInlineEnd: '1px solid rgba(107,29,42,0.08)', display: 'flex', flexDirection: 'column', background: 'rgba(107,29,42,0.015)' }}>
+                  <div style={{ padding: '12px 12px 8px' }}>
+                    <input
+                      type="text"
+                      value={subSearch}
+                      onChange={e => setSubSearch(e.target.value)}
+                      placeholder="Search student…"
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: 7, border: '1px solid rgba(107,29,42,0.14)', fontSize: 12.5, outline: 'none', background: '#fff' }}
+                    />
+                    <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+                      {(['all', 'ungraded', 'graded'] as const).map(f => (
+                        <button
+                          key={f}
+                          type="button"
+                          onClick={() => setSubFilter(f)}
+                          style={{
+                            flex: 1, padding: '5px 0', borderRadius: 6, cursor: 'pointer',
+                            fontSize: 11, fontWeight: 700, textTransform: 'capitalize',
+                            border: '1px solid ' + (subFilter === f ? 'transparent' : 'rgba(107,29,42,0.14)'),
+                            background: subFilter === f ? '#6B1D2A' : '#fff',
+                            color: subFilter === f ? '#fff' : 'var(--lx-text-mid)',
+                          }}
+                        >
+                          {f}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px 10px' }}>
+                    {visibleSubmissions.length === 0 ? (
+                      <p style={{ fontSize: 12.5, color: 'var(--lx-text-muted)', textAlign: 'center', padding: '18px 6px', margin: 0 }}>
+                        No student matches
+                      </p>
+                    ) : visibleSubmissions.map(sub => {
+                      const active = sub.id === activeSubId
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => selectSubmission(sub)}
+                          style={{
+                            width: '100%', textAlign: 'start', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 9,
+                            padding: '9px 10px', marginBottom: 4, borderRadius: 8,
+                            border: '1px solid ' + (active ? 'rgba(107,29,42,0.22)' : 'transparent'),
+                            background: active ? '#fff' : 'transparent',
+                            boxShadow: active ? '0 2px 8px rgba(44,24,16,0.07)' : 'none',
+                          }}
+                        >
+                          <span style={{
+                            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                            background: isGraded(sub) ? 'rgba(22,163,74,0.12)' : 'rgba(217,119,6,0.12)',
+                            color: isGraded(sub) ? '#16a34a' : '#d97706',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 12, fontWeight: 800,
+                          }}>
+                            {(sub.studentName || '?').charAt(0).toUpperCase()}
+                          </span>
+                          <span style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--lx-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {sub.studentName}
+                            </span>
+                            <span style={{ display: 'block', fontSize: 11, color: isGraded(sub) ? '#16a34a' : '#d97706', fontWeight: 600 }}>
+                              {isGraded(sub) ? `${sub.grade}/${sub.totalMark}` : 'Ungraded'}
+                            </span>
+                          </span>
+                          {sub.fileUrl && <i className="isax isax-paperclip-2" style={{ fontSize: 12, color: 'var(--lx-text-muted)' }} />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Right: the selected student's work ── */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '18px 22px', minWidth: 0 }}>
+                  {submissionsError && (
+                    <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(139,35,53,0.06)', color: '#8B2335', fontSize: 13, marginBottom: 14 }}>
+                      {submissionsError}
+                    </div>
+                  )}
+
+                  {!activeSub ? (
+                    <p style={{ color: 'var(--lx-text-muted)', fontSize: 13.5, textAlign: 'center', paddingTop: 40 }}>
+                      Select a student on the left to review their work.
+                    </p>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                        <div>
+                          <h6 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--lx-text)' }}>{activeSub.studentName}</h6>
+                          <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{activeSub.studentEmail}</span>
+                        </div>
+                        <span style={{
+                          fontSize: 12.5, fontWeight: 700, padding: '4px 12px', borderRadius: 20,
+                          background: isGraded(activeSub) ? 'rgba(22,163,74,0.1)' : 'rgba(217,119,6,0.1)',
+                          color: isGraded(activeSub) ? '#16a34a' : '#d97706',
+                        }}>
+                          {isGraded(activeSub) ? `${activeSub.grade} / ${activeSub.totalMark}` : 'Ungraded'}
+                        </span>
+                      </div>
+
+                      {/* Written answer */}
+                      <div style={{ marginBottom: 16 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text-mid)', display: 'block', marginBottom: 6 }}>
+                          <i className="isax isax-note-1" style={{ marginInlineEnd: 5 }} />Answer
+                        </span>
+                        <div style={{ fontSize: 13.5, color: 'var(--lx-text)', background: 'rgba(107,29,42,0.025)', border: '1px solid rgba(107,29,42,0.08)', borderRadius: 8, padding: '11px 13px', whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
+                          {activeSub.content || <em style={{ color: 'var(--lx-text-muted)' }}>No written answer</em>}
+                        </div>
+                      </div>
+
+                      {/* Attachment — rendered inline, no click needed */}
+                      {activeSub.fileUrl
+                        ? <AttachmentPreview url={activeSub.fileUrl} />
+                        : (
+                          <p style={{ fontSize: 12.5, color: 'var(--lx-text-muted)', fontStyle: 'italic', margin: '0 0 4px' }}>
+                            No attachment submitted
+                          </p>
+                        )}
+
+                      {/* Grading — always visible for the selected student */}
+                      <div style={{ marginTop: 18, padding: '14px 16px', background: 'rgba(107,29,42,0.03)', borderRadius: 10, border: '1px solid rgba(107,29,42,0.08)' }}>
+                        <div style={{ display: 'flex', gap: 12, marginBottom: 10, flexWrap: 'wrap' }}>
+                          <div style={{ flex: '0 0 110px' }}>
+                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Mark (/{activeSub.totalMark})</label>
                             <input
-                              type="number" min={0} max={sub.totalMark}
+                              type="number" min={0} max={activeSub.totalMark}
                               value={gradeValue}
                               onChange={e => setGradeValue(e.target.value)}
-                              style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid var(--lx-border)', fontSize: 13, outline: 'none' }}
+                              style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1px solid rgba(107,29,42,0.16)', fontSize: 13, outline: 'none' }}
                             />
                           </div>
-                          <div style={{ flex: 1 }}>
+                          <div style={{ flex: 1, minWidth: 180 }}>
                             <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Feedback (optional)</label>
                             <input
                               type="text"
                               value={gradeFeedback}
                               onChange={e => setGradeFeedback(e.target.value)}
                               placeholder="Great work! / Needs improvement…"
-                              style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid var(--lx-border)', fontSize: 13, outline: 'none' }}
+                              style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1px solid rgba(107,29,42,0.16)', fontSize: 13, outline: 'none' }}
                             />
                           </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button type="button" className="lx-btn lx-btn-sm lx-btn-primary" disabled={grading || gradeValue === ''} onClick={() => submitGrade(sub.id)}>
-                            {grading ? 'Saving…' : 'Save Grade'}
-                          </button>
-                          <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={cancelGrading}>Cancel</button>
-                        </div>
+                        <button
+                          type="button"
+                          className="lx-btn lx-btn-sm lx-btn-primary"
+                          disabled={grading || gradeValue === ''}
+                          onClick={() => submitGrade(activeSub.id)}
+                        >
+                          {grading ? 'Saving…' : isGraded(activeSub) ? 'Update Mark' : 'Save Mark'}
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))}
+                    </>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
+
           <div style={{ padding: '14px 24px', borderTop: '1px solid rgba(107,29,42,0.08)', display: 'flex', justifyContent: 'flex-end' }}>
             <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Close</button>
           </div>
