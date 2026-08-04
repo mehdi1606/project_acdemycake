@@ -242,16 +242,25 @@ public class CertificateServiceImpl implements CertificateService {
             PdfFont body   = loadFont("/fonts/Lato-Regular.ttf");        // course + date
 
             float maxW = mb.getWidth() * 0.82f;   // keep text within the design margins
+
+            // The date rule is short and sits right of the "DATE" label, so it is NOT
+            // centred on the page like the name/course rules — it needs its own centre.
             if (isMaster) {
                 // Portrait 595.5 × 842.2 — anchored to the template's labels.
                 drawCentered(canvas, name,    script, 40f, textColor, cx, top - 392f, maxW);
                 drawCentered(canvas, course,  body,   15f, textColor, cx, top - 500f, maxW);
-                drawCentered(canvas, dateStr, body,   13f, textColor, cx, top - 562f, maxW);
+                // Date rule: y = top-553.6, x 250.6→433.3 (centre 342).
+                drawCentered(canvas, dateStr, body,   13f, textColor, mb.getX() + 342f, top - 552f, 180f);
             } else {
                 // Landscape 842.25 × 595.5 — academy / level certificates.
                 drawCentered(canvas, name,    script, 40f, textColor, cx, top - 352f, maxW);
                 drawCentered(canvas, course,  body,   14f, textColor, cx, top - 432f, maxW);
-                drawCentered(canvas, dateStr, body,   12f, textColor, cx, top - 486f, maxW);
+                // The advanced design sits 3pt lower than the other landscape templates.
+                // Date rule: y = top-475.1 / top-478.1, centred on x 455.6 / 454.
+                boolean adv    = level == CourseLevel.ADVANCED;
+                float   dateY  = adv ? 477f : 474f;
+                float   dateCx = mb.getX() + (adv ? 454f : 455.5f);
+                drawCentered(canvas, dateStr, body,   12f, textColor, dateCx, top - dateY, 170f);
             }
         }
         return baos.toByteArray();

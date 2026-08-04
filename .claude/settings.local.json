@@ -179,7 +179,18 @@
       "Bash(echo \"exit: $?\")",
       "Bash(git -C \"C:/Users/asus/Desktop/project/project_acdemycake\" check-ignore .env.docker)",
       "Bash(git -C \"C:/Users/asus/Desktop/project/project_acdemycake\" ls-files .env.docker .env.local)",
-      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Java\\\\jdk-21\"; cd C:\\\\Users\\\\asus\\\\Desktop\\\\project\\\\project_acdemycake\\\\academy-backend; .\\\\mvnw.cmd compile -q 2>&1 | Select-Object -Last 20)"
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Java\\\\jdk-21\"; cd C:\\\\Users\\\\asus\\\\Desktop\\\\project\\\\project_acdemycake\\\\academy-backend; .\\\\mvnw.cmd compile -q 2>&1 | Select-Object -Last 20)",
+      "Bash(python -c \"import sys; print\\(sys.version\\)\")",
+      "Bash(python -c \"import fitz; print\\('pymupdf ok'\\)\")",
+      "Bash(python -c \"import pypdf; print\\('pypdf ok'\\)\")",
+      "Bash(python -c \"import PyPDF2; print\\('PyPDF2 ok'\\)\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/measure_cert.py\" \"academy-backend/src/main/resources/certificate-templates/beginner.pdf\")",
+      "Bash(cd \"C:/Users/PC/Plateform\")",
+      "Bash(python __TRACKED_VAR__/verify_cert.py academy-backend/src/main/resources/certificate-templates/beginner.pdf __TRACKED_VAR__/beginner_new.png)",
+      "Bash(echo \"--- LANDSCAPE \\(beginner\\) ---\")",
+      "Bash(echo)",
+      "Bash(echo \"--- PORTRAIT \\(master-online\\) ---\")",
+      "Bash(./mvnw -q -o compile -DskipTests)"
     ]
   }
 }
