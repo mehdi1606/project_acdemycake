@@ -30,9 +30,13 @@ const renderLessonHtml = (html: string): string =>
     /<div class="sl-pdf-embed" data-pdf-url="([^"]+)"[^>]*>[\s\S]*?<\/div>/g,
     (_m, url) => {
       const full = getFileUrl(url) ?? url;
-      return `<iframe src="${full}#toolbar=0&navpanes=0&scrollbar=0" title="Lesson PDF" style="width:100%;height:78vh;border:none;border-radius:12px;background:#fff;margin:8px 0;" oncontextmenu="return false"></iframe>`;
+      return `<div style="border:1px solid rgba(197,151,62,0.35);border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,0.45);margin:4px 0;background:#3a3d40;">
+        <iframe src="${full}#toolbar=0&navpanes=0&view=FitH" title="Lesson PDF" style="width:100%;height:calc(100vh - 180px);min-height:560px;border:none;display:block;background:#3a3d40;" oncontextmenu="return false"></iframe>
+      </div>`;
     }
   );
+
+const contentHasPdf = (html?: string | null): boolean => !!html && html.includes('sl-pdf-embed');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const DARK_BG    = '#0e0508';
@@ -706,7 +710,9 @@ const CourseWatch: React.FC = () => {
 
                 {/* TEXT */}
                 {selectedLesson.contentType === 'TEXT' && (
-                  <div style={{ padding:'32px 48px', maxWidth:820 }}>
+                  <div style={contentHasPdf(lessonDetail?.textContent)
+                    ? { padding:'20px 24px', maxWidth:1200, margin:'0 auto', width:'100%' }
+                    : { padding:'32px 48px', maxWidth:820 }}>
                     {lessonDetail?.textContent ? (
                       <div className="sl-cw-text-content" style={{ color:'rgba(255,255,255,0.85)', lineHeight:1.85, fontSize:15 }}
                         dangerouslySetInnerHTML={{ __html: renderLessonHtml(lessonDetail.textContent) }}
