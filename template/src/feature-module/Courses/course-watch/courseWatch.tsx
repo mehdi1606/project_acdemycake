@@ -23,6 +23,17 @@ const fmtDuration = (seconds?: number) => {
 const flatLessons = (mods: CourseModule[]): CourseLesson[] =>
   mods.flatMap(m => m.lessons ?? []);
 
+/* Replace instructor "display PDF as content" markers with an inline viewer
+   (#toolbar=0 hides the browser PDF toolbar → no download/print buttons) */
+const renderLessonHtml = (html: string): string =>
+  html.replace(
+    /<div class="sl-pdf-embed" data-pdf-url="([^"]+)"[^>]*>[\s\S]*?<\/div>/g,
+    (_m, url) => {
+      const full = getFileUrl(url) ?? url;
+      return `<iframe src="${full}#toolbar=0&navpanes=0&scrollbar=0" title="Lesson PDF" style="width:100%;height:78vh;border:none;border-radius:12px;background:#fff;margin:8px 0;" oncontextmenu="return false"></iframe>`;
+    }
+  );
+
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const DARK_BG    = '#0e0508';
 const SIDEBAR_BG = 'linear-gradient(180deg,#130710 0%,#1e0c13 55%,#2b0f1a 100%)';
@@ -698,7 +709,7 @@ const CourseWatch: React.FC = () => {
                   <div style={{ padding:'32px 48px', maxWidth:820 }}>
                     {lessonDetail?.textContent ? (
                       <div className="sl-cw-text-content" style={{ color:'rgba(255,255,255,0.85)', lineHeight:1.85, fontSize:15 }}
-                        dangerouslySetInnerHTML={{ __html: lessonDetail.textContent }}
+                        dangerouslySetInnerHTML={{ __html: renderLessonHtml(lessonDetail.textContent) }}
                       />
                     ) : (
                       <p style={{ color:'rgba(255,255,255,0.3)', fontSize:14 }}>No content available.</p>

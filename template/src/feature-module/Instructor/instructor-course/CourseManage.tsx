@@ -320,6 +320,35 @@ const CourseManage: React.FC = () => {
     }
   }, [textLesson, message]);
 
+  /* Upload a PDF that will be DISPLAYED inline as the lesson content (embedded viewer, no download) */
+  const handleContentPdfUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !textLesson) return;
+    if (file.type !== 'application/pdf') {
+      message.error('Only PDF files can be displayed as content');
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      message.error('File too large (max 50MB)');
+      return;
+    }
+    try {
+      setUploadingResource(true);
+      const res = await instructorService.uploadLessonResource(textLesson.id, file, file.name);
+      // Insert an embed marker into the editor — rendered as an inline PDF viewer for students
+      const marker = `<div class="sl-pdf-embed" data-pdf-url="${res.url}" contenteditable="false" style="display:flex;align-items:center;gap:10px;padding:14px 18px;margin:10px 0;background:#FBF7F0;border:1.5px solid #E5D5B8;border-radius:10px;font-weight:600;color:#6B1D2A;">📄 ${file.name} — displayed as lesson content</div><p><br/></p>`;
+      if (editorRef.current) {
+        editorRef.current.innerHTML += marker;
+      }
+      message.success(`"${file.name}" will be displayed as lesson content. Click "Save Content" to confirm.`);
+    } catch {
+      message.error('Failed to upload PDF');
+    } finally {
+      setUploadingResource(false);
+    }
+  }, [textLesson, message]);
+
   const handleResourceUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !textLesson) return;
@@ -1145,10 +1174,30 @@ const CourseManage: React.FC = () => {
           <>
             {/* ─ Rich Text Editor ─ */}
             <div style={{ marginBottom: 24 }}>
-              <label style={{ ...labelStyle, marginBottom: 8 }}>
-                <i className="fa-solid fa-pen-to-square" style={{ marginRight: 6, color: '#6B1D2A' }} />
-                Lesson Content
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
+                <label style={{ ...labelStyle, margin: 0 }}>
+                  <i className="fa-solid fa-pen-to-square" style={{ marginRight: 6, color: '#6B1D2A' }} />
+                  Lesson Content
+                </label>
+                <label style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 14px', borderRadius: 8, cursor: uploadingResource ? 'wait' : 'pointer',
+                  background: 'linear-gradient(135deg, rgba(197,151,62,0.12), rgba(197,151,62,0.06))',
+                  color: '#8a6516', fontWeight: 700, fontSize: 12,
+                  border: '1px solid rgba(197,151,62,0.3)',
+                  opacity: uploadingResource ? 0.7 : 1,
+                }}>
+                  <i className={`fa-solid ${uploadingResource ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} />
+                  {uploadingResource ? 'Uploading…' : 'Display PDF as content'}
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    style={{ display: 'none' }}
+                    onChange={handleContentPdfUpload}
+                    disabled={uploadingResource}
+                  />
+                </label>
+              </div>
 
               {/* Toolbar */}
               <RichToolbar editorRef={editorRef} />
