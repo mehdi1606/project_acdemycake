@@ -121,7 +121,6 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
       label: t('sidebar.financeReports', 'Finance & Reports'),
       items: [
         { title: t('sidebar.transactions', 'Transactions'), icon: 'isax isax-card',    route: all_routes.adminTransactions },
-        { title: t('sidebar.analytics', 'Analytics'),       icon: 'isax isax-chart-2', route: all_routes.adminAnalytics },
       ],
     },
     {
