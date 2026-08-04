@@ -75,6 +75,41 @@ const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children 
         {/* Page content */}
         <main className="luxury-main">{children}</main>
       </div>
+
+      {/* Floating WhatsApp community button */}
+      <a
+        href="https://chat.whatsapp.com/GYeg9kfflBBLhInu1ghzJM"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="WhatsApp Group"
+        title={t('common.whatsappGroup', 'Join our WhatsApp group')}
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          insetInlineEnd: 24,
+          zIndex: 1040,
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          background: '#25D366',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 8px 24px rgba(37,211,102,0.4)',
+          textDecoration: 'none',
+          transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.boxShadow = '0 12px 32px rgba(37,211,102,0.55)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,211,102,0.4)';
+        }}
+      >
+        <i className="fa-brands fa-whatsapp" style={{ fontSize: 30, color: '#fff' }} />
+      </a>
     </div>
   );
 };

@@ -41,7 +41,7 @@ const content = {
         icon: '📸',
         label: 'Instagram',
         value: '@saralowe.academy',
-        href:  'https://www.instagram.com/saralowe.academy/',
+        href:  'https://www.instagram.com/saracakeartist/',
       },
     ],
     form: {
@@ -98,7 +98,7 @@ const content = {
         icon: '📸',
         label: 'إنستغرام',
         value: '@saralowe.academy',
-        href:  'https://www.instagram.com/saralowe.academy/',
+        href:  'https://www.instagram.com/saracakeartist/',
       },
     ],
     form: {

@@ -12,7 +12,7 @@ const IVORY  = '#F2EFE8'
 const SPONSORS = [
   'Bilait.webp', 'Bravo.png', 'Fo ozmer.jpg.jpeg', 'Katsan.jpg.jpeg',
   'logo-cioccolato.png', 'logo-gelato.png', 'logo-master.png', 'Martini.png',
-  'natra-cacao.png', 'one-way-plastics.webp', 'Saracino.png',
+  'natra-cacao.png', 'one-way-plastics.webp', 'Saracino.png', 'IMG_7674.webp',
 ]
 
 const MAIN_SPONSOR = 'mastergel-logo.jpeg'

@@ -258,7 +258,7 @@ const BannerSection: React.FC = () => {
                                     <>
                                         <StatItem rawValue={stats.totalCourses} label={t('banner.courses', 'Courses')} inView={statsVisible} delay={0} />
                                         <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
-                                        <StatItem rawValue={stats.totalEnrollments} label={t('banner.enrolments', 'Enrolments')} inView={statsVisible} delay={200} />
+                                        <StatItem rawValue={stats.totalStudents} label={t('banner.enrolments', 'Enrolments')} inView={statsVisible} delay={200} />
                                         <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
                                         <StatItem rawValue={stats.totalInstructors} label={t('banner.expertTutors', 'Expert Tutors')} inView={statsVisible} delay={400} />
                                     </>

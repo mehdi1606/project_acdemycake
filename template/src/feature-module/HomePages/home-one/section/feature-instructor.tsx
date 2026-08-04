@@ -179,14 +179,14 @@ const Featureinstructor = () => {
               <div
                 className="sl-instr-bio"
                 style={{
-                  color: 'rgba(255,235,240,0.88)',
+                  color: '#ffffff',
                   fontSize: 15, lineHeight: 1.8, marginBottom: 32,
                 }}
               >
-                <p style={{ margin: '0 0 14px' }}>
+                <p style={{ margin: '0 0 14px', color: '#ffffff' }}>
                   {t('home.instructor.bio1', "Hello, I'm Chef Sara Alaoui.")}
                 </p>
-                <p style={{ margin: '0 0 18px' }}>
+                <p style={{ margin: '0 0 18px', color: '#ffffff' }}>
                   {t('home.instructor.bio2', "If I had to describe my journey in a few words, I'd say it began with curiosity, grew with passion, and continues to this day.")}
                 </p>
                 <Link

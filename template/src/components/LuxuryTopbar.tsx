@@ -569,29 +569,37 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
             onClick={() => setGuideOpen(true)}
             title={t('badgeGuide.intro.title', 'Badge Guide')}
             style={{
-              background: 'none',
-              border: 'none',
+              background: `radial-gradient(circle, ${userBadge.color}1f 0%, transparent 72%)`,
+              border: `1.5px solid ${userBadge.color}40`,
               cursor: 'pointer',
               padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 36,
-              height: 36,
+              width: 48,
+              height: 48,
               borderRadius: '50%',
-              transition: 'transform 0.2s',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              boxShadow: `0 0 10px ${userBadge.color}33`,
+              flexShrink: 0,
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 16px ${userBadge.color}66`;
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 10px ${userBadge.color}33`;
+            }}
           >
             <img
               src={userBadge.image}
               alt=""
               style={{
-                width: 30,
-                height: 30,
+                width: 42,
+                height: 42,
                 objectFit: 'contain',
-                filter: `drop-shadow(0 1px 4px ${userBadge.color}99)`,
+                filter: `drop-shadow(0 1px 5px ${userBadge.color}99)`,
               }}
             />
           </button>

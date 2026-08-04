@@ -27,36 +27,47 @@ const Footer = () => {
                 <div className="row row-gap-5">
 
                     {/* ── Brand column ── */}
-                    <div className="col-lg-4">
-                        {/* SVG Logo — gold on dark */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '0.5rem' }}>
-                            <img
-                                src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
-                                alt="SARALÖWE Academy"
-                                style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }}
-                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                            />
-                            <div>
+                    <div className="col-lg-5">
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flexWrap: 'wrap' }}>
+
+                            {/* Big circular logo badge — sits beside the whole text block */}
+                            <div style={{
+                                width: 150, height: 150, borderRadius: '50%', flexShrink: 0,
+                                background: 'rgba(197,145,44,0.07)',
+                                border: '2px solid rgba(197,145,44,0.4)',
+                                boxShadow: '0 0 34px rgba(197,145,44,0.16)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                                <img
+                                    src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+                                    alt="SARALÖWE Academy"
+                                    style={{ width: 118, height: 118, objectFit: 'contain', display: 'block' }}
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                />
+                            </div>
+
+                            {/* Text block */}
+                            <div style={{ flex: 1, minWidth: 220 }}>
                                 <div className="sl-footer__brand-name">SARALÖWE</div>
                                 <div className="sl-footer__brand-sub">Academy of Couture Pastry Design</div>
+
+                                <div className="sl-footer__divider" />
+
+                                <p className="sl-footer__description">
+                                    {t('footer.descriptionLong', "The world's premier online destination for luxury cake design education. Expert-led programmes, industry-recognised certificates, and a global community of passionate pastry artists.")}
+                                </p>
+                                <div className="sl-footer__tagline">l'art du gâteau</div>
+
+                                <div className="sl-footer__social">
+                                    <a href="https://www.instagram.com/saracakeartist/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i className="fa-brands fa-instagram" /></a>
+                                    <a href="https://www.facebook.com/SweetcakesChezSara" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i className="fa-brands fa-facebook-f" /></a>
+                                </div>
                             </div>
-                        </div>
-
-                        <div className="sl-footer__divider" />
-
-                        <p className="sl-footer__description">
-                            {t('footer.descriptionLong', "The world's premier online destination for luxury cake design education. Expert-led programmes, industry-recognised certificates, and a global community of passionate pastry artists.")}
-                        </p>
-                        <div className="sl-footer__tagline">l'art du gâteau</div>
-
-                        <div className="sl-footer__social">
-                            <a href="https://www.instagram.com/saralowe.academy/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i className="fa-brands fa-instagram" /></a>
-                            <a href="https://www.facebook.com/SweetcakesChezSara" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i className="fa-brands fa-facebook-f" /></a>
                         </div>
                     </div>
 
                     {/* ── Links columns ── */}
-                    <div className="col-lg-8">
+                    <div className="col-lg-7">
                         <div className="row row-gap-4">
                             <div className="col-6 col-md-4">
                                 <div className="sl-footer__heading">{t('footer.learn', 'Learn')}</div>

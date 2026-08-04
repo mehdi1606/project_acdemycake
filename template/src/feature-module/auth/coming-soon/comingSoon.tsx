@@ -122,7 +122,7 @@ const ComingSoon = () => {
               <i className="fa-brands fa-facebook-f" />
             </a>
             <a
-              href="https://www.instagram.com/saralowe.academy/"
+              href="https://www.instagram.com/saracakeartist/"
               target="_blank" rel="noopener noreferrer"
               className="coming-soon media-btn rounded-circle d-inline-flex align-items-center justify-content-center me-2"
             >
