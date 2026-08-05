@@ -136,6 +136,7 @@ const Featureinstructor = () => {
                   <img
                     src={avatarSrc}
                     alt={t('home.instructor.avatarAlt', 'Sara Alöwe')}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 </div>

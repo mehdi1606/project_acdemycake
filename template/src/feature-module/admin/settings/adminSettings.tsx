@@ -5,9 +5,9 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector } from '../../../core/redux/hooks';
-import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import { getFileUrl } from '../../../environment';
 import adminService from '../../../services/api/admin.service';
+import AvatarImage from '../../../components/AvatarImage';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -95,11 +95,10 @@ const AdminSettings = () => {
               width: 72, height: 72, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
               border: '3px solid rgba(107, 29, 42, 0.1)',
             }}>
-              {user?.avatarUrl ? (
-                <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <ImageWithBasePath src="assets/img/user/user-01.jpg" alt="" className="img-fluid" />
-              )}
+              <AvatarImage
+                src={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                name={user?.fullName || 'Admin'}
+              />
             </div>
             <div>
               <h5 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: 'var(--lx-text)' }}>

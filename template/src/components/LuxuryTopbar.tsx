@@ -595,6 +595,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
             <img
               src={userBadge.image}
               alt=""
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
               style={{
                 width: 42,
                 height: 42,

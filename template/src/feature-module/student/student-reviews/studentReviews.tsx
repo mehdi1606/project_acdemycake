@@ -5,6 +5,7 @@ import { message } from 'antd';
 import { reviewService, MyReview } from '../../../services/api/review.service';
 import { extractApiError } from '../../../services/api/error.utils';
 import { getFileUrl } from '../../../environment';
+import AvatarImage from '../../../components/AvatarImage';
 
 const PAGE_SIZE = 10;
 
@@ -172,10 +173,10 @@ const StudentReviews = () => {
               {/* Header: avatar + date + stars */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <img
-                    src={getFileUrl(review.userAvatar) ?? 'assets/img/user/user-02.jpg'}
-                    alt=""
-                    style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                  <AvatarImage
+                    src={getFileUrl(review.userAvatar) ?? null}
+                    name={review.userName}
+                    size={36}
                   />
                   <div>
                     <h6 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--lx-text)' }}>

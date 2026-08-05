@@ -9,7 +9,7 @@
  * and corner badge are not clipped by any parent overflow: hidden rule.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BadgeDefinition, badgeSrcSet } from '../config/badges';
 
 interface Props {
@@ -41,6 +41,12 @@ const BadgeAvatar: React.FC<Props> = ({
   const d = DIMS[size];
   const ringColor = badge?.color ?? roleColor;
   const initial = name?.charAt(0).toUpperCase() || 'U';
+
+  // A broken/missing avatar URL must fall back to the initial, never to the
+  // browser's broken-image glyph. Reset the flag whenever the URL changes.
+  const [imgFailed, setImgFailed] = useState(false);
+  useEffect(() => { setImgFailed(false); }, [avatarUrl]);
+  const showImage = !!avatarUrl && !imgFailed;
 
   return (
     <div
@@ -87,12 +93,13 @@ const BadgeAvatar: React.FC<Props> = ({
           zIndex: 2,
         }}
       >
-        {avatarUrl ? (
+        {showImage ? (
           <img
-            src={avatarUrl}
+            src={avatarUrl as string}
             alt={name}
             loading="lazy"
             decoding="async"
+            onError={() => setImgFailed(true)}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (

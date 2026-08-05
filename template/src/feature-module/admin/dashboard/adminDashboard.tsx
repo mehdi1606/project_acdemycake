@@ -9,6 +9,7 @@ import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchAdminDashboard } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
+import AvatarImage from '../../../components/AvatarImage';
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -275,10 +276,10 @@ const AdminDashboard = () => {
                           <tr key={i}>
                             <td>
                               <div className="d-flex align-items-center gap-2">
-                                <img
-                                  src={item.user?.avatarUrl ? (getFileUrl(item.user.avatarUrl) ?? item.user.avatarUrl) : 'assets/img/user/user-01.jpg'}
-                                  alt=""
-                                  style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                                <AvatarImage
+                                  src={item.user?.avatarUrl ? (getFileUrl(item.user.avatarUrl) ?? item.user.avatarUrl) : null}
+                                  name={item.user?.fullName}
+                                  size={38}
                                 />
                                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-brown)' }}>
                                   {item.user?.fullName || 'Instructor'}

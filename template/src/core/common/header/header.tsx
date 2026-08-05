@@ -7,6 +7,7 @@ import { logout } from "../../redux/authSlice";
 import { getFileUrl } from "../../../environment";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../../../i18n/LanguageSwitcher";
+import AvatarImage from "../../../components/AvatarImage";
 
 const Header = () => {
   const { t } = useTranslation();
@@ -431,11 +432,11 @@ const Header = () => {
                         overflow: 'hidden',
                         border: '2px solid rgba(255,255,255,0.15)',
                       }}>
-                        {user.avatarUrl ? (
-                          <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          user.fullName?.charAt(0).toUpperCase() || 'U'
-                        )}
+                        <AvatarImage
+                          src={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                          name={user.fullName}
+                          bg="transparent"
+                        />
                       </div>
 
                       {/* Name + Role */}
@@ -477,11 +478,11 @@ const Header = () => {
                             color: '#fff', fontWeight: 700, fontSize: 17, overflow: 'hidden',
                             border: '2px solid rgba(255,255,255,0.15)',
                           }}>
-                            {user.avatarUrl ? (
-                              <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              user.fullName?.charAt(0).toUpperCase() || 'U'
-                            )}
+                            <AvatarImage
+                              src={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                              name={user.fullName}
+                              bg="transparent"
+                            />
                           </div>
                           <div style={{ overflow: 'hidden' }}>
                             <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

@@ -7,6 +7,7 @@ import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchPendingCourses, approveCourse, deleteCourse } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
+import AvatarImage from '../../../components/AvatarImage';
 
 const levelBadge = (level: string) => {
   const map: Record<string, string> = {
@@ -172,10 +173,10 @@ const AdminPendingCourses = () => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <img
-                          src={course.instructor?.avatarUrl ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl) : '/assets/img/user/user-01.jpg'}
-                          alt=""
-                          style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: '50%' }}
+                        <AvatarImage
+                          src={course.instructor?.avatarUrl ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl) : null}
+                          name={course.instructor?.fullName}
+                          size={28}
                         />
                         <small style={{ fontWeight: 500 }}>{course.instructor?.fullName || 'Unknown'}</small>
                       </div>

@@ -7,6 +7,7 @@ import { useAppSelector, useAppDispatch } from '../../../../core/redux/hooks';
 import { getFileUrl } from '../../../../environment';
 import { profileService } from '../../../../services/api/profile.service';
 import { setUser } from '../../../../core/redux/authSlice';
+import AvatarImage from '../../../../components/AvatarImage';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
@@ -94,17 +95,13 @@ const InstructorProfileSettings = () => {
                 border: '2px solid rgba(107, 29, 42, 0.08)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                {user?.avatarUrl ? (
-                  <img
-                    src={getFileUrl(user.avatarUrl) ?? user.avatarUrl}
-                    alt={user.fullName}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <span style={{ fontSize: 28, fontWeight: 700, color: '#6B1D2A' }}>
-                    {user?.fullName?.charAt(0).toUpperCase() || 'I'}
-                  </span>
-                )}
+                <AvatarImage
+                  src={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                  name={user?.fullName || 'I'}
+                  bg="transparent"
+                  color="#6B1D2A"
+                  style={{ fontSize: 28 }}
+                />
               </div>
               <div style={{ flex: 1 }}>
                 <h6 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>

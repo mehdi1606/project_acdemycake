@@ -4,7 +4,6 @@ import LuxuryDashboardLayout from "../../../components/LuxuryDashboardLayout"
 import { all_routes } from "../../router/all_routes"
 import { Link } from "react-router-dom"
 import SettingsLinks from "./settingsLinks/settingsLinks"
-import ImageWithBasePath from "../../../core/common/imageWithBasePath"
 import SettingsModal from "./settingsModal/settingsModal"
 import { useAppSelector, useAppDispatch } from "../../../core/redux/hooks"
 import { setUser } from "../../../core/redux/authSlice"
@@ -12,6 +11,7 @@ import profileService from "../../../services/api/profile.service"
 import { extractApiError } from "../../../services/api/error.utils"
 import { getFileUrl } from "../../../environment"
 import { App } from "antd"
+import AvatarImage from "../../../components/AvatarImage";
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -152,10 +152,11 @@ const StudentSettings = () => {
               >
                 {avatarUploading ? (
                   <div style={{ width: 24, height: 24, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                ) : user?.avatarUrl ? (
-                  <img src={getFileUrl(user.avatarUrl) ?? user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <ImageWithBasePath src="assets/img/user/user-02.jpg" alt="Img" className="img-fluid" />
+                  <AvatarImage
+                    src={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                    name={user?.fullName}
+                  />
                 )}
               </Link>
               <div>

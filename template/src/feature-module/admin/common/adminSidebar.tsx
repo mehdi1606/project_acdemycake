@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { logout } from '../../../core/redux/authSlice';
 import { getFileUrl } from '../../../environment';
 import { useTranslation } from 'react-i18next';
+import AvatarImage from '../../../components/AvatarImage';
 
 const adminSidebarData = [
   { title: 'Dashboard',         i18nKey: 'admin.sidebar.dashboard',       icon: 'isax isax-category',        route: all_routes.adminDashboard },
@@ -59,15 +60,11 @@ const AdminSidebar = () => {
                   flexShrink: 0,
                 }}
               >
-                {user?.avatarUrl ? (
-                  <img
-                    src={getFileUrl(user.avatarUrl) ?? user.avatarUrl}
-                    alt={user.fullName}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  user?.fullName?.charAt(0).toUpperCase() || 'A'
-                )}
+                <AvatarImage
+                  src={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                  name={user?.fullName || 'Admin'}
+                  bg="transparent"
+                />
               </div>
               <div className="ms-3">
                 <h6 className="mb-0 text-white">{user?.fullName || 'Admin'}</h6>

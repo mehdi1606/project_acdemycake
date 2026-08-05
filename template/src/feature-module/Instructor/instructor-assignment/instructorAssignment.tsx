@@ -108,9 +108,13 @@ const isGraded = (s: Submission) => s.grade !== undefined && s.grade !== null
  * browsers cannot display (doc/docx) fall back to a labelled open-link.
  */
 const AttachmentPreview: React.FC<{ url: string }> = ({ url }) => {
+  const [imgFailed, setImgFailed] = useState(false)
+  useEffect(() => { setImgFailed(false) }, [url])
+
   const clean = url.split('?')[0].toLowerCase()
   const ext = clean.slice(clean.lastIndexOf('.') + 1)
-  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+  // A dead image URL must fall through to the generic file card, not a broken glyph.
+  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext) && !imgFailed
   const isPdf = ext === 'pdf'
 
   const frame: React.CSSProperties = {
@@ -132,7 +136,7 @@ const AttachmentPreview: React.FC<{ url: string }> = ({ url }) => {
 
       {isImage && (
         <a href={url} target="_blank" rel="noreferrer" style={{ ...frame, display: 'block' }}>
-          <img src={url} alt="Student attachment" style={{ width: '100%', maxHeight: 420, objectFit: 'contain', display: 'block', background: '#faf8f5' }} />
+          <img src={url} alt="Student attachment" onError={() => setImgFailed(true)} style={{ width: '100%', maxHeight: 420, objectFit: 'contain', display: 'block', background: '#faf8f5' }} />
         </a>
       )}
 
