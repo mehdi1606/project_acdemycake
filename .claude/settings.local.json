@@ -211,7 +211,8 @@
       "Bash(sed -i \"/^import ImageWithBasePath from '..\\\\/..\\\\/..\\\\/core\\\\/common\\\\/imageWithBasePath';$/d\" feature-module/admin/settings/adminSettings.tsx)",
       "Bash(sed -i '/^import ImageWithBasePath from \"..\\\\/..\\\\/..\\\\/core\\\\/common\\\\/imageWithBasePath\"$/d' feature-module/student/student-settings/studentSettings.tsx)",
       "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/find_all_imgs.py\")",
-      "Bash(curl -s -o /dev/null http://localhost:3000)"
+      "Bash(curl -s -o /dev/null http://localhost:3000)",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/check_build.py\")"
     ]
   }
 }

@@ -151,6 +151,10 @@ services:
       - "443:443"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Let's Encrypt ACME webroot — certbot writes challenge tokens here on
+      # the host, nginx serves them. Needed for issuing/renewing without
+      # stopping the container (nginx holds ports 80/443).
+      - /var/www/certbot:/var/www/certbot:ro
     networks:
       - academy-net
 
