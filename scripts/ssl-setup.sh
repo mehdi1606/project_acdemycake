@@ -18,7 +18,12 @@ CERT_NAME="saralowe.ma"                 # keep the existing cert lineage
 WEBROOT="/var/www/certbot"              # must match nginx.conf + docker-compose
 FRONTEND_CONTAINER="academy-frontend"
 EMAIL="elmehdi.houari@etu.uae.ac.ma"    # Let's Encrypt expiry notices
-DOMAINS=(saralowe.ma www.saralowe.ma saralowe.com www.saralowe.com)
+RENEWAL_CONF="/etc/letsencrypt/renewal/${CERT_NAME}.conf"
+
+# Domains to cover. Override to drop a name that has no DNS yet, e.g.:
+#   sudo SSL_DOMAINS="saralowe.ma www.saralowe.ma saralowe.com" bash scripts/ssl-setup.sh
+# shellcheck disable=SC2206
+DOMAINS=(${SSL_DOMAINS:-saralowe.ma www.saralowe.ma saralowe.com www.saralowe.com})
 
 # Reload nginx inside the running container (certs are mounted read-only,
 # nginx must be told to re-read them after a renewal).
@@ -81,6 +86,19 @@ certbot certonly \
   --email "${EMAIL}" \
   --agree-tos --no-eff-email \
   --non-interactive
+
+# ── 3b. Strip legacy standalone hooks that break webroot renewals ─
+# The original cert was issued in standalone mode, which stored:
+#     pre_hook  = docker stop academy-frontend
+#     post_hook = docker start academy-frontend
+# Those take nginx DOWN while Let's Encrypt fetches the challenge token,
+# which is fatal for webroot (→ "Connection refused"). Remove them so
+# renewals happen with nginx up. The --deploy-hook (nginx -s reload) that
+# certonly just saved is all we need.
+if [[ -f "${RENEWAL_CONF}" ]]; then
+  echo "▶ Removing legacy standalone pre/post hooks from ${RENEWAL_CONF}…"
+  sed -i -E '/^[[:space:]]*pre_hook[[:space:]]*=/d; /^[[:space:]]*post_hook[[:space:]]*=/d' "${RENEWAL_CONF}"
+fi
 
 # ── 4. Reload nginx now so it serves the new cert immediately ────
 echo "▶ Reloading nginx in the container…"
