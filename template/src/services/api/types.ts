@@ -152,6 +152,8 @@ export interface Course {
   currency?: string;
   requiresPurchase: boolean;
   courseType?: 'PLAN' | 'MASTERCLASS';
+  masterclassFormat?: 'RECORDED' | 'LIVE';
+  reservationWhatsapp?: string;
   isBeginner: boolean;
   durationMinutes: number;
   lessonsCount: number;
@@ -729,6 +731,8 @@ export interface CourseQueryParams extends PaginationParams {
   instructorId?: string;
   sortBy?: string;   // backend-expected sort keyword: newest | popular | rating | price_asc | price_desc
   courseType?: 'PLAN' | 'MASTERCLASS';
+  masterclassFormat?: 'RECORDED' | 'LIVE';
+  reservationWhatsapp?: string;
 }
 
 // ============================================

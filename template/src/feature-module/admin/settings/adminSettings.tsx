@@ -43,6 +43,7 @@ const AdminSettings = () => {
   // ── Dynamic subscription pricing (annual plan) ────────────────────────────
   const [yearlyPrice,  setYearlyPrice]  = useState<string>('');
   const [currency,     setCurrency]     = useState<string>('MAD');
+  const [masterclassWhatsapp, setMasterclassWhatsapp] = useState<string>('');
   const [pricingLoading, setPricingLoading] = useState<boolean>(true);
   const [pricingSaving,  setPricingSaving]  = useState<boolean>(false);
 
@@ -53,6 +54,7 @@ const AdminSettings = () => {
         if (!active) return;
         setYearlyPrice(String(p.yearlyPrice ?? ''));
         setCurrency(p.currency || 'MAD');
+        setMasterclassWhatsapp(p.masterclassWhatsapp || '');
       })
       .catch(() => { /* leave fields empty on failure */ })
       .finally(() => { if (active) setPricingLoading(false); });
@@ -67,8 +69,9 @@ const AdminSettings = () => {
     }
     setPricingSaving(true);
     try {
-      const updated = await adminService.updatePricingSettings(y);
+      const updated = await adminService.updatePricingSettings(y, undefined, masterclassWhatsapp);
       setYearlyPrice(String(updated.yearlyPrice));
+      setMasterclassWhatsapp(updated.masterclassWhatsapp || '');
       message.success(t('admin.settings.pricingSaved', 'Subscription pricing updated.'));
     } catch (err: any) {
       message.error(err?.response?.data?.message || t('admin.settings.pricingError', 'Failed to update pricing.'));
@@ -170,6 +173,24 @@ const AdminSettings = () => {
                   value={yearlyPrice}
                   onChange={(e) => setYearlyPrice(e.target.value)}
                 />
+              </div>
+
+              {/* WhatsApp number used by students to book a LIVE masterclass */}
+              <div style={{ marginBottom: 16, maxWidth: 360 }}>
+                <label style={labelStyle}>
+                  {t('admin.settings.masterclassWhatsapp', 'Live masterclass WhatsApp number')}
+                </label>
+                <input
+                  type="text"
+                  style={editableInputStyle}
+                  value={masterclassWhatsapp}
+                  onChange={(e) => setMasterclassWhatsapp(e.target.value)}
+                  placeholder="212600000000"
+                />
+                <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: '6px 0 0' }}>
+                  {t('admin.settings.masterclassWhatsappHint',
+                     'International format, digits only (country code first). Leave empty to hide the reserve button.')}
+                </p>
               </div>
               <button
                 className="lx-btn lx-btn-gold"

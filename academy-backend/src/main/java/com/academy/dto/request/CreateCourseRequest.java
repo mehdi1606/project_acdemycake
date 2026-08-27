@@ -2,6 +2,7 @@ package com.academy.dto.request;
 
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseType;
+import com.academy.entity.enums.MasterclassFormat;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -35,6 +36,12 @@ public class CreateCourseRequest {
 
     /** PLAN = subscription-included, MASTERCLASS = one-time purchase */
     private CourseType courseType = CourseType.PLAN;
+
+    /** Only meaningful when courseType = MASTERCLASS (RECORDED or LIVE). */
+    private MasterclassFormat masterclassFormat;
+
+    /** Seat limit for a LIVE masterclass; null = unlimited. */
+    private Integer maxStudents;
 
     private Boolean requiresPurchase = false;
 

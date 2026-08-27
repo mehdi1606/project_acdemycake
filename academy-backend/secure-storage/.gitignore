@@ -1,0 +1,11 @@
+# Paid digital goods (ebook PDFs) live here.
+#
+# This directory is deliberately OUTSIDE ./uploads because /files/** is
+# permitAll() in SecurityConfig — anything under uploads/ is downloadable by
+# anyone who has the URL. Ebooks are paid products, so their bytes may only be
+# streamed by an endpoint that first checks the buyer owns them.
+#
+# The files themselves are never committed: they are large (100 MB+) and are
+# licensed content.
+*
+!.gitignore

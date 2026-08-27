@@ -16,4 +16,6 @@ public class PricingSettingsResponse {
     private BigDecimal monthlyPrice;
     private BigDecimal yearlyPrice;
     private String currency;
+    /** Academy WhatsApp number for live-masterclass reservations ("" when unset). */
+    private String masterclassWhatsapp;
 }

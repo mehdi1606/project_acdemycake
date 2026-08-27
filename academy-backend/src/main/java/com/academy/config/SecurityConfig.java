@@ -132,6 +132,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/payments/cmi/status/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                        // Ebook shop is browsable by anyone. ORDER MATTERS: the
+                        // authenticated paths must precede the public /ebooks/* slug rule,
+                        // otherwise /my-library and /{id}/content would fall through to permitAll.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/ebooks/my-library").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/ebooks/*/content").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/ebooks/*/download").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/ebooks").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/ebooks/*").permitAll()
                         // Subscription plans (price) must be visible to guests on the pricing page
                         .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions/plans").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/certificates/verify/**").permitAll()

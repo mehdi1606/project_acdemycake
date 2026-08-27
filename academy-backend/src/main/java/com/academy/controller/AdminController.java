@@ -198,6 +198,7 @@ public class AdminController {
                 .monthlyPrice(settingsService.getMonthlyPrice())
                 .yearlyPrice(settingsService.getYearlyPrice())
                 .currency(settingsService.getCurrency())
+                .masterclassWhatsapp(settingsService.getMasterclassWhatsappNumber())
                 .build();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -207,10 +208,14 @@ public class AdminController {
     public ResponseEntity<ApiResponse<PricingSettingsResponse>> updatePricing(
             @Valid @RequestBody UpdatePricingRequest request) {
         settingsService.updateSubscriptionPricing(request.getMonthlyPrice(), request.getYearlyPrice());
+        if (request.getMasterclassWhatsapp() != null) {
+            settingsService.updateMasterclassWhatsappNumber(request.getMasterclassWhatsapp());
+        }
         PricingSettingsResponse response = PricingSettingsResponse.builder()
                 .monthlyPrice(settingsService.getMonthlyPrice())
                 .yearlyPrice(settingsService.getYearlyPrice())
                 .currency(settingsService.getCurrency())
+                .masterclassWhatsapp(settingsService.getMasterclassWhatsappNumber())
                 .build();
         return ResponseEntity.ok(ApiResponse.success("Subscription pricing updated", response));
     }

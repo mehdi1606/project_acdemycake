@@ -24,6 +24,8 @@ public class SettingsService {
 
     public static final String KEY_MONTHLY_PRICE = "subscription.monthly_price";
     public static final String KEY_YEARLY_PRICE  = "subscription.yearly_price";
+    /** Academy WhatsApp number used to reserve a place on a LIVE masterclass. */
+    public static final String KEY_MASTERCLASS_WHATSAPP = "masterclass.whatsapp_number";
 
     private final AppSettingRepository repository;
 
@@ -46,6 +48,17 @@ public class SettingsService {
         return currency;
     }
 
+    /**
+     * Digits-only WhatsApp number (country code included), or "" when the admin
+     * has not configured one yet. Callers must treat blank as "not available"
+     * rather than sending students to an invalid chat.
+     */
+    public String getMasterclassWhatsappNumber() {
+        return repository.findById(KEY_MASTERCLASS_WHATSAPP)
+                .map(s -> s.getValue() == null ? "" : s.getValue().replaceAll("[^0-9]", ""))
+                .orElse("");
+    }
+
     // ── Writes ────────────────────────────────────────────────────────────────
 
     @Transactional
@@ -53,6 +66,14 @@ public class SettingsService {
         if (monthlyPrice != null) upsert(KEY_MONTHLY_PRICE, monthlyPrice.toPlainString());
         if (yearlyPrice  != null) upsert(KEY_YEARLY_PRICE,  yearlyPrice.toPlainString());
         log.info("Subscription pricing updated → monthly={} yearly={}", monthlyPrice, yearlyPrice);
+    }
+
+    /** Store the academy WhatsApp number; non-digits are stripped so wa.me links always work. */
+    @Transactional
+    public void updateMasterclassWhatsappNumber(String number) {
+        String digits = number == null ? "" : number.replaceAll("[^0-9]", "");
+        upsert(KEY_MASTERCLASS_WHATSAPP, digits);
+        log.info("Masterclass WhatsApp number updated (length={})", digits.length());
     }
 
     // ── Internals ─────────────────────────────────────────────────────────────

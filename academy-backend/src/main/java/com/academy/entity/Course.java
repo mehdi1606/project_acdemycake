@@ -3,6 +3,7 @@ package com.academy.entity;
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.CourseType;
+import com.academy.entity.enums.MasterclassFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -68,6 +69,22 @@ public class Course extends BaseEntity {
     @Column(name = "course_type", length = 20, columnDefinition = "varchar(20) DEFAULT 'PLAN'")
     @Builder.Default
     private CourseType courseType = CourseType.PLAN;
+
+    /**
+     * Only used when {@link #courseType} is MASTERCLASS.
+     * RECORDED – paid online, student watches the curriculum.
+     * LIVE     – bespoke live session reserved via WhatsApp, no curriculum.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "masterclass_format", length = 20)
+    private MasterclassFormat masterclassFormat;
+
+    /**
+     * Seat limit for a LIVE masterclass ("places limitées"). Null means no limit.
+     * Not used by recorded courses, which have unlimited access.
+     */
+    @Column(name = "max_students")
+    private Integer maxStudents;
 
     @Column(name = "requires_purchase", nullable = false)
     @Builder.Default

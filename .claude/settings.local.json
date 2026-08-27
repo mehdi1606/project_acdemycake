@@ -212,7 +212,17 @@
       "Bash(sed -i '/^import ImageWithBasePath from \"..\\\\/..\\\\/..\\\\/core\\\\/common\\\\/imageWithBasePath\"$/d' feature-module/student/student-settings/studentSettings.tsx)",
       "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/find_all_imgs.py\")",
       "Bash(curl -s -o /dev/null http://localhost:3000)",
-      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/check_build.py\")"
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/check_build.py\")",
+      "Bash(cd \"C:/Users/PC/Ebook-main\" 2>/dev/null && ls -la | head -30 || echo \"PATH NOT FOUND\")",
+      "Bash(mv 'C:/Users/PC/Downloads/book/Alchemy in layers FR version.pdf' C:/Users/PC/Plateform/academy-backend/secure-storage/ebooks/alchemy-in-layers-vol1-fr.pdf)",
+      "Bash(echo \"moved 1/3\")",
+      "Bash(mv 'C:/Users/PC/Downloads/book/CUpCAKES EBOOK.pdf' C:/Users/PC/Plateform/academy-backend/secure-storage/ebooks/cupcake-evolution-vol1.pdf)",
+      "Bash(echo \"moved 2/3\")",
+      "Bash(mv 'C:/Users/PC/Downloads/book/Ebook Final ARABIC.pdf' C:/Users/PC/Plateform/academy-backend/secure-storage/ebooks/ebook-final-arabic.pdf)",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/inspect_ebooks.py\")",
+      "Bash(cd \"C:/Users/PC/Plateform/academy-backend/src/main/resources/db/migration\" && echo \"=== does the project already use gen_random_uuid\\(\\)? ===\"; grep -l \"gen_random_uuid\" *.sql | head -5; echo; echo \"=== pgcrypto extension declared anywhere? ===\"; grep -rn \"pgcrypto\\\\|uuid-ossp\" *.sql | head -3; echo; echo \"=== seeded filenames vs disk ===\"; grep -o \"'[a-z0-9-]*\\\\.pdf'\" V27__ebooks.sql | tr -d \"'\" | sort > /tmp/seeded.txt; ls \"C:/Users/PC/Plateform/academy-backend/secure-storage/ebooks\" | sort > /tmp/ondisk.txt; diff /tmp/seeded.txt /tmp/ondisk.txt && echo \"  MATCH — every seeded file exists on disk\")",
+      "Bash(python -c \"import psycopg2; print\\('psycopg2 ok'\\)\")",
+      "Bash(python -c \"import psycopg2; print\\('psycopg2 now available'\\)\")"
     ]
   }
 }

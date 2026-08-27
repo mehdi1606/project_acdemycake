@@ -3,6 +3,7 @@ package com.academy.dto.request;
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.CourseType;
+import com.academy.entity.enums.MasterclassFormat;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,12 @@ public class UpdateCourseRequest {
     private Boolean isBeginner;
 
     private CourseType courseType;
+
+    /** Only meaningful when courseType = MASTERCLASS (RECORDED or LIVE). */
+    private MasterclassFormat masterclassFormat;
+
+    /** Seat limit for a LIVE masterclass; null = unlimited. */
+    private Integer maxStudents;
 
     private Boolean requiresPurchase;
 

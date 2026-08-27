@@ -229,6 +229,20 @@ const CourseDetails = () => {
   const isPlan        = c.courseType === 'PLAN' || !c.courseType;
   const isMasterclass = c.courseType === 'MASTERCLASS';
 
+  // A LIVE masterclass is bespoke: no online payment, the student books on WhatsApp.
+  const isLiveMasterclass = isMasterclass && (c as any).masterclassFormat === 'LIVE';
+  // Seats remaining for a live session; null when the instructor set no limit.
+  const seatCap   = (c as any).maxStudents as number | null | undefined;
+  const seatsLeft = seatCap && seatCap > 0
+    ? Math.max(0, seatCap - (c.enrolledCount ?? 0))
+    : null;
+  const reservationNumber = ((c as any).reservationWhatsapp || '').replace(/[^0-9]/g, '');
+  const reservationHref = isLiveMasterclass && reservationNumber
+    ? `https://wa.me/${reservationNumber}?text=${encodeURIComponent(
+        t('courseDetails.reserveMessage', 'Hello, I would like to reserve a place for the masterclass: {{title}}', { title: c.title })
+      )}`
+    : null;
+
   const thumb        = getFileUrl(c.thumbnailUrl) ?? 'assets/img/course/course-01.jpg';
   const instrAvatar  = getFileUrl(c.instructor?.avatarUrl ?? instructor?.avatarUrl) ?? 'assets/img/user/user-01.jpg';
   const inCart       = cartItems.some((i) => i.id === c.id);
@@ -868,6 +882,22 @@ const CourseDetails = () => {
                         <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>Subscribe to access all Plan courses</p>
                       </div>
                     )
+                  ) : isLiveMasterclass ? (
+                    /* Bespoke live session — no price, no date. Only the seats left. */
+                    <div>
+                      <span style={{
+                        fontFamily: "'Playfair Display',serif", fontSize: 34, fontWeight: 800,
+                        color: seatsLeft !== null && seatsLeft <= 0 ? '#DC2626' : '#2C1810',
+                      }}>
+                        {seatsLeft !== null
+                          ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+                          : t('courseDetails.limitedPlaces', 'Limited places')}
+                      </span>
+                      <div style={{ fontSize: 12, color: '#9A8080', marginTop: 6 }}>
+                        <i className="fa-solid fa-users" style={{ marginInlineEnd: 6, color: '#C5912C' }} />
+                        {t('courseDetails.liveSeatsNote', 'Reserve early — places are limited')}
+                      </div>
+                    </div>
                   ) : isMasterclass ? (
                     !c.requiresPurchase ? (
                       <div>
@@ -982,6 +1012,38 @@ const CourseDetails = () => {
                         </p>
                       </React.Fragment>
                     )
+                  ) : isLiveMasterclass ? (
+                    /* Bespoke live masterclass — booked through WhatsApp, not paid online */
+                    <React.Fragment>
+                      {reservationHref ? (
+                        <a
+                          href={reservationHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
+                            width: '100%', padding: '14px 18px', borderRadius: 12, boxSizing: 'border-box' as const,
+                            background: 'linear-gradient(135deg,#25D366,#1da851)', color: '#fff',
+                            fontWeight: 800, fontSize: 15, textDecoration: 'none',
+                            boxShadow: '0 6px 20px rgba(37,211,102,0.32)', marginBottom: 10,
+                          }}
+                        >
+                          <i className="fa-brands fa-whatsapp" style={{ fontSize: 19 }} />
+                          {t('courseDetails.reservePlace', 'Reserve my place')}
+                        </a>
+                      ) : (
+                        <div style={{
+                          padding: '12px 14px', borderRadius: 12, marginBottom: 10,
+                          background: 'rgba(197,145,44,0.07)', border: '1px solid rgba(197,145,44,0.2)',
+                          fontSize: 12.5, color: '#7A6060', textAlign: 'center',
+                        }}>
+                          {t('courseDetails.reserveUnavailable', 'Reservations are not open yet — please contact the academy.')}
+                        </div>
+                      )}
+                      <p style={{ fontSize: 11, color: '#9A8080', textAlign: 'center', margin: '0 0 10px' }}>
+                        {t('courseDetails.liveSessionNote', 'Live bespoke session — the date is agreed with you directly')}
+                      </p>
+                    </React.Fragment>
                   ) : (
                     <React.Fragment>
                       {!isAuthenticated ? (

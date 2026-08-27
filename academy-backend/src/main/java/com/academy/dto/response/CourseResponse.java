@@ -4,6 +4,7 @@ import com.academy.entity.Course;
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.CourseType;
+import com.academy.entity.enums.MasterclassFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,6 +32,11 @@ public class CourseResponse {
     private CategoryResponse category;
     private Boolean isBeginner;
     private CourseType courseType;
+    private MasterclassFormat masterclassFormat;
+    /** Seat limit for a LIVE masterclass; null = unlimited. */
+    private Integer maxStudents;
+    /** Populated only for LIVE masterclasses; blank when the admin has not set a number. */
+    private String reservationWhatsapp;
     private Boolean requiresPurchase;
     private BigDecimal price;
     private BigDecimal originalPrice;
@@ -108,6 +114,8 @@ public class CourseResponse {
                 .category(category)
                 .isBeginner(course.getIsBeginner())
                 .courseType(course.getCourseType())
+                .masterclassFormat(course.getMasterclassFormat())
+                .maxStudents(course.getMaxStudents())
                 .requiresPurchase(course.getRequiresPurchase())
                 .price(course.getPrice())
                 .originalPrice(course.getOriginalPrice())

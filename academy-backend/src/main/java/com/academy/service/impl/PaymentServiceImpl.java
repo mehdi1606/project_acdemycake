@@ -49,6 +49,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final InstructorService instructorService;
     private final SubscriptionService subscriptionService;
     private final NotificationService notificationService;
+    private final EbookService ebookService;
     private final EmailService emailService;
     private final UserService userService;
     private final PayZoneService payZoneService;
@@ -177,6 +178,21 @@ public class PaymentServiceImpl implements PaymentService {
                     transaction.setCompletedAt(LocalDateTime.now());
                     transactionRepository.save(transaction);
                     processCoursePaymentSuccess(transaction);
+
+                } else if ("EBOOK_PURCHASE".equals(transaction.getTransactionType())) {
+                    // Same lifecycle as a course purchase: mark paid, then grant
+                    // ownership. grantPurchase also notifies the buyer in-app.
+                    transaction.setStatus(PaymentStatus.COMPLETED);
+                    transaction.setPayzoneTransactionId(transactionId);
+                    transaction.setCompletedAt(LocalDateTime.now());
+                    transactionRepository.save(transaction);
+                    ebookService.grantPurchase(
+                            transaction.getUser(),
+                            transaction.getReferenceId(),
+                            orderId,
+                            transaction.getAmount(),
+                            transaction.getCurrency()
+                    );
 
                 } else {
                     // Generic fallback for any other transaction types

@@ -2,8 +2,10 @@ package com.academy.integration.cmi;
 
 import com.academy.dto.response.CmiInitiateResponse;
 import com.academy.entity.Course;
+import com.academy.entity.Ebook;
 import com.academy.entity.PaymentTransaction;
 import com.academy.entity.User;
+import com.academy.entity.enums.EbookStatus;
 import com.academy.entity.enums.PaymentStatus;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ResourceNotFoundException;
@@ -11,6 +13,7 @@ import com.academy.repository.CourseRepository;
 import com.academy.repository.PaymentTransactionRepository;
 import com.academy.service.CouponService;
 import com.academy.service.EnrollmentService;
+import com.academy.service.EbookService;
 import com.academy.service.PaymentService;
 import com.academy.service.SettingsService;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +76,7 @@ public class CmiPaymentService {
     private final PaymentService              paymentService;
     private final CouponService               couponService;
     private final SettingsService             settingsService;
+    private final EbookService                ebookService;
 
     /**
      * The exact parameter names we put into buildFormParams (case-insensitive).
@@ -178,6 +182,45 @@ public class CmiPaymentService {
         );
 
         Map<String, String> formParams = buildFormParams(orderId, course.getPrice(), user);
+        return CmiInitiateResponse.builder()
+                .transactionId(txn.getId())
+                .gatewayUrl(gatewayUrl)
+                .formParams(formParams)
+                .build();
+    }
+
+    /**
+     * Start a CMI payment for an ebook.
+     *
+     * Deliberately performs no subscription check: an ebook is a one-off purchase
+     * that any signed-in student can make, with or without a plan.
+     */
+    public CmiInitiateResponse initiateCmiEbookPayment(UUID ebookId, User user) {
+        Ebook ebook = ebookService.findById(ebookId);
+
+        if (ebook.getStatus() != EbookStatus.PUBLISHED) {
+            throw new BadRequestException("This ebook is not available for purchase");
+        }
+        if (ebookService.userOwns(user, ebook)) {
+            throw new BadRequestException("You already own this ebook");
+        }
+
+        String orderId = "EBK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        PaymentTransaction txn = transactionRepository.save(
+            PaymentTransaction.builder()
+                .user(user)
+                .payzoneOrderId(orderId)
+                .transactionType("EBOOK_PURCHASE")
+                .referenceId(ebookId)
+                .amount(ebook.getPrice())
+                .currency("MAD")
+                .status(PaymentStatus.PENDING)
+                .expiresAt(LocalDateTime.now().plusHours(1))
+                .build()
+        );
+
+        Map<String, String> formParams = buildFormParams(orderId, ebook.getPrice(), user);
         return CmiInitiateResponse.builder()
                 .transactionId(txn.getId())
                 .gatewayUrl(gatewayUrl)

@@ -104,6 +104,11 @@ app:
     upload-dir: ${FILE_UPLOAD_DIR:./uploads}
     base-url: ${FILE_BASE_URL:http://localhost:8080}
     max-size: 10485760  # 10MB
+    # Paid ebook PDFs. Kept OUTSIDE upload-dir on purpose: /files/** is
+    # permitAll(), so anything under upload-dir is publicly downloadable.
+    # These bytes are streamed only after an ownership check.
+    ebook-dir: ${EBOOK_STORAGE_DIR:./secure-storage/ebooks}
+    ebook-max-size: 209715200  # 200MB — real ebooks run well past the 10MB cap
 
   subscription:
     monthly-price: 390.00

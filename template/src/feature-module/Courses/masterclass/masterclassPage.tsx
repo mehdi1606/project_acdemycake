@@ -60,6 +60,12 @@ const MasterclassCard: React.FC<{
   const thumb  = getFileUrl(course.thumbnailUrl) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
   const avatar = getFileUrl(course.instructor?.avatarUrl) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
 
+  // A LIVE masterclass is booked on WhatsApp: show remaining seats instead of a price.
+  const isLive = (course as any).masterclassFormat === 'LIVE';
+  const liveCap = (course as any).maxStudents as number | null | undefined;
+  const liveSeatsLeft = liveCap && liveCap > 0
+    ? Math.max(0, liveCap - (course.enrolledCount ?? 0))
+    : null;
   const discounted = course.originalPrice && course.originalPrice > (course.price ?? 0);
   const discountPct = discounted
     ? Math.round((1 - (course.price ?? 0) / course.originalPrice!) * 100)
@@ -222,6 +228,14 @@ const MasterclassCard: React.FC<{
             ) : isStaff ? (
               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#651C32', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <i className="fa-solid fa-shield-halved" style={{ fontSize: 10 }} /> {t('masterclass.freeAccess')}
+              </span>
+            ) : isLive ? (
+              /* Bespoke live session — reserved on WhatsApp, so show seats, never a price */
+              <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#4E1420', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <i className="fa-solid fa-users" style={{ fontSize: 11, color: '#C5912C' }} />
+                {liveSeatsLeft !== null
+                  ? t('courseDetails.placesLeft', '{{count}} places left', { count: liveSeatsLeft })
+                  : t('courseDetails.limitedPlaces', 'Limited places')}
               </span>
             ) : !course.requiresPurchase || (course.price ?? 0) === 0 ? (
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1A7F4B' }}>{t('common.free')}</span>

@@ -9,6 +9,7 @@ import com.academy.entity.User;
 import com.academy.entity.enums.CourseLevel;
 import com.academy.entity.enums.CourseType;
 import com.academy.entity.enums.CourseStatus;
+import com.academy.entity.enums.MasterclassFormat;
 import com.academy.entity.enums.UserRole;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
@@ -20,6 +21,7 @@ import com.academy.security.UserPrincipal;
 import com.academy.service.CategoryService;
 import com.academy.service.CourseService;
 import com.academy.service.FileStorageService;
+import com.academy.service.SettingsService;
 import com.academy.service.UserService;
 import com.github.slugify.Slugify;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +61,7 @@ public class CourseServiceImpl implements CourseService {
     private final CategoryService categoryService;
     private final FileStorageService fileStorageService;
     private final com.academy.service.TranslationService translationService;
+    private final SettingsService settingsService;
     private final Slugify slugify = Slugify.builder().build();
 
     @Override
@@ -217,6 +220,8 @@ public class CourseServiceImpl implements CourseService {
                 .instructor(instructor)
                 .isBeginner(request.getIsBeginner() != null ? request.getIsBeginner() : false)
                 .courseType(request.getCourseType() != null ? request.getCourseType() : com.academy.entity.enums.CourseType.PLAN)
+                .masterclassFormat(resolveMasterclassFormat(request.getCourseType(), request.getMasterclassFormat()))
+                .maxStudents(request.getMaxStudents())
                 // Masterclass always requires individual purchase
                 .requiresPurchase(com.academy.entity.enums.CourseType.MASTERCLASS.equals(request.getCourseType()) ? true
                         : (request.getRequiresPurchase() != null ? request.getRequiresPurchase() : false))
@@ -282,8 +287,12 @@ public class CourseServiceImpl implements CourseService {
         if (request.getIsBeginner() != null) {
             course.setIsBeginner(request.getIsBeginner());
         }
+        if (request.getMaxStudents() != null) {
+            course.setMaxStudents(request.getMaxStudents());
+        }
         if (request.getCourseType() != null) {
             course.setCourseType(request.getCourseType());
+            course.setMasterclassFormat(resolveMasterclassFormat(request.getCourseType(), request.getMasterclassFormat()));
             // Masterclass always requires purchase; PLAN courses keep their existing flag unless overridden below
             if (com.academy.entity.enums.CourseType.MASTERCLASS.equals(request.getCourseType())) {
                 course.setRequiresPurchase(true);
@@ -629,7 +638,22 @@ public class CourseServiceImpl implements CourseService {
                     fileStorageService.getFileUrl(course.getInstructor().getAvatarUrl())
             );
         }
+        // A LIVE masterclass is booked over WhatsApp, so the front end needs the
+        // academy number. Left blank when the admin has not configured one yet.
+        if (MasterclassFormat.LIVE.equals(course.getMasterclassFormat())) {
+            response.setReservationWhatsapp(settingsService.getMasterclassWhatsappNumber());
+        }
         return response;
+    }
+
+    /**
+     * A format only applies to a MASTERCLASS. PLAN courses always clear it, and a
+     * masterclass with no explicit choice stays RECORDED (today's behaviour).
+     */
+    private MasterclassFormat resolveMasterclassFormat(com.academy.entity.enums.CourseType type,
+                                                       MasterclassFormat requested) {
+        if (!com.academy.entity.enums.CourseType.MASTERCLASS.equals(type)) return null;
+        return requested != null ? requested : MasterclassFormat.RECORDED;
     }
 
     private void verifyInstructorAccess(Course course) {

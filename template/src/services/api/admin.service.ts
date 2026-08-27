@@ -17,6 +17,8 @@ export interface PricingSettings {
   monthlyPrice: number;
   yearlyPrice: number;
   currency: string;
+  /** Academy WhatsApp number for live-masterclass reservations ('' when unset). */
+  masterclassWhatsapp?: string;
 }
 
 // Aggregate revenue stats from CMI payments (server-computed over the whole dataset)
@@ -213,9 +215,14 @@ class AdminService {
     return response.data;
   }
 
-  async updatePricingSettings(yearlyPrice: number, monthlyPrice?: number): Promise<PricingSettings> {
-    const body: Record<string, number> = { yearlyPrice };
+  async updatePricingSettings(
+    yearlyPrice: number,
+    monthlyPrice?: number,
+    masterclassWhatsapp?: string,
+  ): Promise<PricingSettings> {
+    const body: Record<string, number | string> = { yearlyPrice };
     if (monthlyPrice != null) body.monthlyPrice = monthlyPrice;
+    if (masterclassWhatsapp != null) body.masterclassWhatsapp = masterclassWhatsapp;
     const response = await api.put<PricingSettings>('/admin/settings/pricing', body);
     return response.data;
   }

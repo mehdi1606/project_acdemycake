@@ -28,6 +28,7 @@ interface CourseFormData {
   language: string;
   maxStudents: string;
   courseType: string;
+  masterclassFormat: string;
   shortDescription: string;
   description: string;
   learningObjectives: string[];
@@ -108,6 +109,7 @@ const AddNewCourse = () => {
     language: '',
     maxStudents: '',
     courseType: '',
+    masterclassFormat: '',
     shortDescription: '',
     description: '',
     learningObjectives: [''],
@@ -124,6 +126,9 @@ const AddNewCourse = () => {
     expiryType: 'lifetime',
     expiryMonths: '',
   });
+
+  /** A LIVE masterclass is a bespoke session — there is no curriculum to build. */
+  const skipCurriculum = formData.courseType === 'MASTERCLASS' && formData.masterclassFormat === 'LIVE';
 
   // Validation errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -239,7 +244,9 @@ const AddNewCourse = () => {
         const categoryValid = !!formData.category;
         const levelValid = !!formData.level;
         const languageValid = !!formData.language;
-        const courseTypeValid = !!formData.courseType;
+        // A masterclass must also declare how it is delivered (recorded vs live).
+        const courseTypeValid = !!formData.courseType &&
+          (formData.courseType !== 'MASTERCLASS' || !!formData.masterclassFormat);
         const shortDescValid = formData.shortDescription.trim().length >= 20;
         const descriptionText = formData.description.replace(/<[^>]*>/g, '').trim();
         const descriptionValid = descriptionText.length >= 50;
@@ -252,6 +259,10 @@ const AddNewCourse = () => {
       case 4:
         return true; // Additional info is optional
       case 5:
+        // LIVE masterclass: no price, no expiry — only the number of places.
+        if (skipCurriculum) {
+          return Boolean(formData.maxStudents && Number(formData.maxStudents) > 0);
+        }
         // PLAN = subscription, no price required. MASTERCLASS = must set a price.
         if (formData.courseType === 'PLAN') {
           const expiryOk = formData.expiryType === 'lifetime' ||
@@ -291,7 +302,9 @@ const AddNewCourse = () => {
     }
 
     if (isValid) {
-      setCurrentStep(currentStep + 1);
+      // A LIVE masterclass has no recorded lessons, so step 3 (Curriculum) is skipped.
+      const next = currentStep + 1;
+      setCurrentStep(next === 3 && skipCurriculum ? 4 : next);
       setErrors({});
       setTouched({});
     } else {
@@ -300,7 +313,8 @@ const AddNewCourse = () => {
   };
 
   const handlePrev = () => {
-    setCurrentStep(currentStep - 1);
+    const prev = currentStep - 1;
+    setCurrentStep(prev === 3 && skipCurriculum ? 2 : prev);
     setErrors({});
     setTouched({});
   };
@@ -417,8 +431,13 @@ const AddNewCourse = () => {
       validationErrors.push('Description is required (min 50 characters)');
     }
 
-    // Pricing validation (only if not free)
-    if (!formData.isFree) {
+    // A LIVE masterclass is not sold online — it only needs a seat count.
+    if (skipCurriculum && (!formData.maxStudents || Number(formData.maxStudents) <= 0)) {
+      validationErrors.push('Please enter how many places are available');
+    }
+
+    // Pricing validation (only if not free, and never for a LIVE masterclass)
+    if (!formData.isFree && !skipCurriculum) {
       if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
         validationErrors.push('Please enter a valid course price');
       }
@@ -450,10 +469,17 @@ const AddNewCourse = () => {
         level: formData.level as CourseLevelType,
         language: formData.language || 'fr',
         courseType: formData.courseType,
+        // Only a masterclass carries a delivery format (RECORDED or LIVE).
+        masterclassFormat: isMasterclass ? (formData.masterclassFormat || 'RECORDED') : undefined,
+        // Seat limit only applies to a LIVE (bespoke) masterclass.
+        maxStudents: skipCurriculum && formData.maxStudents ? parseInt(formData.maxStudents, 10) : undefined,
         // PLAN = subscription access, price=0, no purchase required
-        // MASTERCLASS = paid individually, use entered price
-        price: isPlan ? 0 : (formData.hasDiscount ? parseFloat(formData.discountPrice) : parseFloat(formData.price || '0')),
-        originalPrice: isMasterclass && formData.hasDiscount ? parseFloat(formData.price) : undefined,
+        // LIVE masterclass = booked on WhatsApp, never sold online, so price stays 0
+        // RECORDED masterclass = paid individually, use entered price
+        price: (isPlan || skipCurriculum)
+          ? 0
+          : (formData.hasDiscount ? parseFloat(formData.discountPrice) : parseFloat(formData.price || '0')),
+        originalPrice: isMasterclass && !skipCurriculum && formData.hasDiscount ? parseFloat(formData.price) : undefined,
         requiresPurchase: isMasterclass,
         requirements: formData.requirements.filter(r => r.trim() !== '').join('\n'),
         whatYouWillLearn: formData.learningObjectives.filter(o => o.trim() !== '').join('\n'),
@@ -854,6 +880,92 @@ const AddNewCourse = () => {
                               {!formData.courseType && errors.courseType && (
                                 <div className="text-danger small mt-2">
                                   <i className="isax isax-warning-2 me-1" /> {t('addCourse.step1.selectCourseTypeError')}
+                                </div>
+                              )}
+
+                              {/* ── Masterclass delivery format (recorded vs live) ── */}
+                              {formData.courseType === 'MASTERCLASS' && (
+                                <div className="mt-4">
+                                  <label className="form-label">
+                                    {t('addCourse.step1.masterclassFormat', 'How is this masterclass delivered?')}
+                                    <span className="text-danger ms-1">*</span>
+                                  </label>
+                                  <div className="row g-3">
+                                    {[
+                                      {
+                                        value: 'RECORDED',
+                                        icon: 'isax isax-video-play',
+                                        title: t('addCourse.step1.recordedTitle', 'Recorded course'),
+                                        sub: t('addCourse.step1.recordedSubtitle', 'Students pay online and watch the lessons'),
+                                        bullets: [
+                                          t('addCourse.step1.recordedBullet1', 'You build the curriculum with lessons'),
+                                          t('addCourse.step1.recordedBullet2', 'Paid online, access is immediate'),
+                                        ],
+                                      },
+                                      {
+                                        value: 'LIVE',
+                                        icon: 'isax isax-video',
+                                        title: t('addCourse.step1.liveTitle', 'Live — bespoke session'),
+                                        sub: t('addCourse.step1.liveSubtitle', 'Students reserve a place on WhatsApp'),
+                                        bullets: [
+                                          t('addCourse.step1.liveBullet1', 'No lessons to prepare — the session is live'),
+                                          t('addCourse.step1.liveBullet2', 'Students open a WhatsApp chat to book'),
+                                        ],
+                                      },
+                                    ].map((opt) => {
+                                      const active = formData.masterclassFormat === opt.value;
+                                      return (
+                                        <div className="col-md-6" key={opt.value}>
+                                          <div
+                                            onClick={() => handleInputChange('masterclassFormat', opt.value)}
+                                            style={{
+                                              border: `2px solid ${active ? '#C5912C' : 'rgba(197,145,44,0.2)'}`,
+                                              borderRadius: 12,
+                                              padding: '16px 18px',
+                                              cursor: 'pointer',
+                                              background: active ? 'rgba(197,145,44,0.04)' : '#fff',
+                                              transition: 'all 0.2s ease',
+                                              position: 'relative',
+                                              height: '100%',
+                                            }}
+                                          >
+                                            {active && (
+                                              <span style={{
+                                                position: 'absolute', top: 10, right: 12,
+                                                width: 18, height: 18, borderRadius: '50%',
+                                                background: '#C5912C',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                              }}>
+                                                <i className="fa-solid fa-check" style={{ fontSize: 9, color: '#fff' }} />
+                                              </span>
+                                            )}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                                              <span style={{
+                                                width: 38, height: 38, borderRadius: 9,
+                                                background: 'rgba(197,145,44,0.1)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                                              }}>
+                                                <i className={opt.icon} style={{ fontSize: 19, color: '#C5912C' }} />
+                                              </span>
+                                              <div>
+                                                <h6 style={{ margin: 0, fontWeight: 700, color: '#9A6F1A', fontSize: 14 }}>{opt.title}</h6>
+                                                <span style={{ fontSize: 11.5, color: 'rgba(58,30,32,0.55)' }}>{opt.sub}</span>
+                                              </div>
+                                            </div>
+                                            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'rgba(58,30,32,0.65)', lineHeight: 1.7 }}>
+                                              {opt.bullets.map((b, i) => <li key={i}>{b}</li>)}
+                                            </ul>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  {!formData.masterclassFormat && errors.masterclassFormat && (
+                                    <div className="text-danger small mt-2">
+                                      <i className="isax isax-warning-2 me-1" />
+                                      {t('addCourse.step1.selectFormatError', 'Please choose how this masterclass is delivered')}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1509,7 +1621,16 @@ const AddNewCourse = () => {
                         <div className="title mb-4">
                           <h5>{t('addCourse.step5.title')}</h5>
                           {/* Course type context banner */}
-                          {formData.courseType === 'MASTERCLASS' ? (
+                          {skipCurriculum ? (
+                            <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
+                              style={{ background: 'rgba(37,211,102,0.07)', border: '1px solid rgba(37,211,102,0.25)' }}>
+                              <i className="fa-brands fa-whatsapp" style={{ fontSize: 18, color: '#1da851' }} />
+                              <span style={{ fontSize: 13, color: '#146c35', fontWeight: 500 }}>
+                                {t('addCourse.step5.liveBanner',
+                                   'Live bespoke masterclass — no online payment. Students reserve on WhatsApp, so only the number of places is needed.')}
+                              </span>
+                            </div>
+                          ) : formData.courseType === 'MASTERCLASS' ? (
                             <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
                               style={{ background: 'rgba(197,145,44,0.07)', border: '1px solid rgba(197,145,44,0.2)' }}>
                               <i className="isax isax-crown" style={{ fontSize: 18, color: '#C5912C' }} />
@@ -1528,8 +1649,30 @@ const AddNewCourse = () => {
                           ) : null}
                         </div>
                         <div>
-                          {/* Price fields — only for MASTERCLASS (PLAN = subscription, no separate payment) */}
-                          {formData.courseType === 'MASTERCLASS' && (
+                          {/* LIVE masterclass — seats only. No price, no discount, no expiry. */}
+                          {skipCurriculum && (
+                            <div className="input-block mb-3" style={{ maxWidth: 320 }}>
+                              <label className="form-label">
+                                {t('addCourse.step5.placesLimit', 'Places available')}
+                                <span className="text-danger ms-1">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                min={1}
+                                className="form-control"
+                                placeholder={t('addCourse.step5.placesPlaceholder', 'e.g. 12')}
+                                value={formData.maxStudents}
+                                onChange={(e) => handleInputChange('maxStudents', e.target.value)}
+                              />
+                              <p className="text-muted small mt-2 mb-0">
+                                {t('addCourse.step5.placesHint',
+                                   'Shown to students as the number of seats for this live session.')}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Price fields — only for a RECORDED masterclass (PLAN = subscription; LIVE = booked on WhatsApp) */}
+                          {formData.courseType === 'MASTERCLASS' && !skipCurriculum && (
                             <>
                               <div className="input-block mb-2">
                                 <label className="form-label">
@@ -1591,6 +1734,7 @@ const AddNewCourse = () => {
                               )}
                             </>
                           )}
+                          {!skipCurriculum && (
                           <div className="mb-4">
                             <label className="form-label mb-1">{t('addCourse.step5.expiryPeriod')}</label>
                             <div className="d-flex align-items-center ">
@@ -1628,7 +1772,8 @@ const AddNewCourse = () => {
                               </div>
                             </div>
                           </div>
-                          {formData.expiryType === 'limited' && (
+                          )}
+                          {!skipCurriculum && formData.expiryType === 'limited' && (
                             <div className="input-block">
                               <label className="form-label">
                                 {t('addCourse.step5.numberOfMonths')}<span className="text-danger ms-1">*</span>

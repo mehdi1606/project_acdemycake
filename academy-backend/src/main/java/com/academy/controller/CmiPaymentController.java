@@ -75,6 +75,17 @@ public class CmiPaymentController {
         return ResponseEntity.ok(ApiResponse.success("CMI payment form ready", response));
     }
 
+    @PostMapping("/initiate/ebook/{ebookId}")
+    @Operation(summary = "Initiate CMI ebook purchase — no subscription required")
+    public ResponseEntity<ApiResponse<CmiInitiateResponse>> initiateEbook(
+            @PathVariable UUID ebookId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        User user = userService.findById(principal.getId());
+        CmiInitiateResponse response = cmiPaymentService.initiateCmiEbookPayment(ebookId, user);
+        return ResponseEntity.ok(ApiResponse.success("CMI payment form ready", response));
+    }
+
     // ── Browser return after payment (NO JWT) ─────────────────────────────────
 
     /**

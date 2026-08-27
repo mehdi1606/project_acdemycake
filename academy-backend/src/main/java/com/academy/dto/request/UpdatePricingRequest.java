@@ -23,4 +23,11 @@ public class UpdatePricingRequest {
     @NotNull(message = "Yearly price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Yearly price must be greater than 0")
     private BigDecimal yearlyPrice;
+
+    /**
+     * Optional — academy WhatsApp number used to reserve a place on a LIVE
+     * masterclass, in international form (e.g. 212600000000). Non-digits are
+     * stripped server-side. Only updated when the field is present.
+     */
+    private String masterclassWhatsapp;
 }
