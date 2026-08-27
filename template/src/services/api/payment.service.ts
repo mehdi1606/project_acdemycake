@@ -90,6 +90,14 @@ class PaymentService {
     return response.data;
   }
 
+  /** Ebook purchase — a one-off buy that needs no subscription. */
+  async initiateCmiEbook(ebookId: string): Promise<CmiInitiateResponse> {
+    const response = await api.post<CmiInitiateResponse>(
+      `/payments/cmi/initiate/ebook/${ebookId}`
+    );
+    return response.data;
+  }
+
   /**
    * Auto-submits a hidden HTML form to the CMI payment gateway.
    * The browser navigates away to CMI's hosted payment page.

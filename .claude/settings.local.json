@@ -222,7 +222,9 @@
       "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/inspect_ebooks.py\")",
       "Bash(cd \"C:/Users/PC/Plateform/academy-backend/src/main/resources/db/migration\" && echo \"=== does the project already use gen_random_uuid\\(\\)? ===\"; grep -l \"gen_random_uuid\" *.sql | head -5; echo; echo \"=== pgcrypto extension declared anywhere? ===\"; grep -rn \"pgcrypto\\\\|uuid-ossp\" *.sql | head -3; echo; echo \"=== seeded filenames vs disk ===\"; grep -o \"'[a-z0-9-]*\\\\.pdf'\" V27__ebooks.sql | tr -d \"'\" | sort > /tmp/seeded.txt; ls \"C:/Users/PC/Plateform/academy-backend/secure-storage/ebooks\" | sort > /tmp/ondisk.txt; diff /tmp/seeded.txt /tmp/ondisk.txt && echo \"  MATCH — every seeded file exists on disk\")",
       "Bash(python -c \"import psycopg2; print\\('psycopg2 ok'\\)\")",
-      "Bash(python -c \"import psycopg2; print\\('psycopg2 now available'\\)\")"
+      "Bash(python -c \"import psycopg2; print\\('psycopg2 now available'\\)\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/test_migration.py\")",
+      "Bash(xargs echo \"  matches:\")"
     ]
   }
 }

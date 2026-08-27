@@ -60,6 +60,10 @@ const StudentQuiz                   = lazy(() => import("../student/student-quiz
 const StudentQuizQuestion           = lazy(() => import("../student/student-quiz-question/studentQuizQuestion"));
 const StudentAssignment             = lazy(() => import("../student/student-assignment/studentAssignment"));
 const StudentSubscription           = lazy(() => import("../student/student-subscription/studentSubscription"));
+const EbooksPage                    = lazy(() => import("../Ebooks/ebooksPage"));
+const EbookDetail                   = lazy(() => import("../Ebooks/ebookDetail"));
+const EbookReader                   = lazy(() => import("../Ebooks/ebookReader"));
+const StudentEbooks                 = lazy(() => import("../student/student-ebooks/studentEbooks"));
 const StudentOrder                  = lazy(() => import("../student/student-order-history/studentOrder"));
 const StudentRefferal               = lazy(() => import("../student/student-refferal/studentRefferal"));
 const StudentMessage                = lazy(() => import("../student/student-message/studentMessage"));
@@ -557,6 +561,28 @@ export const publicRoutes = [
   {
     path: routes.studentSubscription,
     element: <RoleGuard allowedRoles={['STUDENT']}><StudentSubscription /></RoleGuard>,
+    route: Route,
+  },
+  {
+    // Ebooks are a one-off purchase: an account is enough, no plan required.
+    // Deliberately NOT wrapped in SubscriptionGuard.
+    path: routes.ebooks,
+    element: <EbooksPage />,
+    route: Route,
+  },
+  {
+    path: routes.ebookDetail,
+    element: <EbookDetail />,
+    route: Route,
+  },
+  {
+    path: routes.ebookRead,
+    element: <RoleGuard allowedRoles={['STUDENT', 'INSTRUCTOR', 'ADMIN']}><EbookReader /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.studentEbooks,
+    element: <RoleGuard allowedRoles={['STUDENT', 'INSTRUCTOR', 'ADMIN']}><StudentEbooks /></RoleGuard>,
     route: Route,
   },
   {

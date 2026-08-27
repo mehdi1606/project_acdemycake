@@ -6,6 +6,10 @@ export const all_routes = {
 
     //Course Modules
     masterclass: "/masterclass",
+    ebooks: "/ebooks",
+    ebookDetail: "/ebooks/:slug",
+    ebookRead: "/ebooks/:id/read",
+    studentEbooks: "/student/student-ebooks",
     courseGrid: "/course/course-grid",
     courseList: "/course/course-list",
     courseDetails: "/course/course-details",

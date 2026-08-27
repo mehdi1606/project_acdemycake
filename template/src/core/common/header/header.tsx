@@ -246,6 +246,22 @@ const Header = () => {
                 {t('nav.masterclasses')}
               </Link>
 
+              {/* Ebooks */}
+              <Link
+                to={all_routes.ebooks}
+                style={{
+                  padding: '8px 16px', borderRadius: 8,
+                  fontSize: 15, fontWeight: isActive('/ebooks') ? 600 : 500,
+                  color: isActive('/ebooks') ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                  textDecoration: 'none', transition: 'all 0.2s ease',
+                  background: isActive('/ebooks') ? 'rgba(197,151,62,0.08)' : 'transparent',
+                }}
+                onMouseEnter={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+              >
+                {t('nav.ebooks', 'Ebooks')}
+              </Link>
+
               {/* Academy dropdown */}
               <div
                 style={{ position: 'relative' }}
@@ -630,6 +646,7 @@ const Header = () => {
             {[
               { label: t('nav.home'),          to: all_routes.homeone,      icon: 'isax-home' },
               { label: t('nav.masterclasses'), to: all_routes.masterclass, icon: 'isax-video-play' },
+              { label: t('nav.ebooks', 'Ebooks'), to: all_routes.ebooks,   icon: 'isax-book-1' },
             ].map((link) => (
               <Link
                 key={link.label}
