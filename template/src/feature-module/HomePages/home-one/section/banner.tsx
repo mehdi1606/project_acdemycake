@@ -249,7 +249,7 @@ const BannerSection: React.FC = () => {
                             {/* Animated stats */}
                             <div
                                 ref={statsRef}
-                                className="d-flex align-items-center gap-4 flex-wrap"
+                                className="d-flex align-items-center gap-4 flex-wrap sl-banner-stats"
                                 data-aos="fade-up"
                                 data-aos-delay="520"
                                 data-aos-duration="700"
@@ -257,9 +257,9 @@ const BannerSection: React.FC = () => {
                                 {stats && (
                                     <>
                                         <StatItem rawValue={stats.totalCourses} label={t('banner.courses', 'Courses')} inView={statsVisible} delay={0} />
-                                        <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
+                                        <div className="sl-banner-stats__divider" style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
                                         <StatItem rawValue={stats.totalStudents} label={t('banner.enrolments', 'Enrolments')} inView={statsVisible} delay={200} />
-                                        <div style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
+                                        <div className="sl-banner-stats__divider" style={{ width: 1, height: 36, background: 'rgba(197,145,44,0.22)', flexShrink: 0 }} />
                                         <StatItem rawValue={stats.totalInstructors} label={t('banner.expertTutors', 'Expert Tutors')} inView={statsVisible} delay={400} />
                                     </>
                                 )}

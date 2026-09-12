@@ -3,6 +3,7 @@ import { hideOnError } from '../../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import VideoPlayer from '../../../components/VideoPlayer';
+import PdfCanvasViewer from '../../../components/PdfCanvasViewer';
 import courseService from '../../../services/api/course.service';
 import quizService from '../../../services/api/quiz.service';
 import {
@@ -40,6 +41,39 @@ const renderLessonHtml = (html: string): string =>
 
 const contentHasPdf = (html?: string | null): boolean => !!html && html.includes('sl-pdf-embed');
 
+/** Splits lesson HTML into plain HTML chunks and PDF markers (phones draw PDFs with pdf.js). */
+const splitLessonHtml = (html: string): { html?: string; pdfRaw?: string }[] => {
+  const parts: { html?: string; pdfRaw?: string }[] = [];
+  const marker = /<div class="sl-pdf-embed" data-pdf-url="([^"]+)"[^>]*>[\s\S]*?<\/div>/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = marker.exec(html)) !== null) {
+    if (m.index > last) parts.push({ html: html.slice(last, m.index) });
+    parts.push({ pdfRaw: m[1] });
+    last = m.index + m[0].length;
+  }
+  if (last < html.length) parts.push({ html: html.slice(last) });
+  return parts;
+};
+
+/** True on phones (< 768px). Desktop and tablets keep the original layout. */
+const PHONE_QUERY = '(max-width: 767.98px)';
+const useIsPhone = () => {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE_QUERY);
+    const onChange = () => setPhone(mq.matches);
+    onChange();
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else mq.addListener(onChange);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', onChange);
+      else mq.removeListener(onChange);
+    };
+  }, []);
+  return phone;
+};
+
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const DARK_BG    = '#0e0508';
 const SIDEBAR_BG = 'linear-gradient(180deg,#130710 0%,#1e0c13 55%,#2b0f1a 100%)';
@@ -68,6 +102,14 @@ const panelTitle: React.CSSProperties = {
   borderBottom: '2px solid rgba(197,151,62,0.12)',
 };
 
+/** Prev / Next buttons of the phone bottom bar. */
+const phoneNavBtn: React.CSSProperties = {
+  display:'inline-flex', alignItems:'center', justifyContent:'center', gap:7,
+  height:44, padding:'0 14px', borderRadius:12, cursor:'pointer',
+  border:'1px solid rgba(197,151,62,0.28)', background:'rgba(255,255,255,0.04)',
+  color:'#F5E6C8', fontWeight:700, fontSize:13.5,
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 const CourseWatch: React.FC = () => {
   const { t, i18n } = useTranslation()
@@ -75,6 +117,9 @@ const CourseWatch: React.FC = () => {
   const navigate       = useNavigate();
   const routes         = all_routes;
   const { user }       = useAppSelector(s => s.auth);
+  const isPhone        = useIsPhone();
+  const isRtl          = (i18n.language || '').startsWith('ar');
+  const [drawerOpen, setDrawerOpen] = useState(false);   // phones: lesson list drawer
 
   // Course state
   const [course,          setCourse]          = useState<Course | null>(null);
@@ -502,10 +547,30 @@ const CourseWatch: React.FC = () => {
 
   // ── Main layout ───────────────────────────────────────────────────────────
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:IVORY, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+    <div className="sl-cw-root" style={{ display:'flex', height: isPhone ? undefined : '100vh', overflow:'hidden', background:IVORY, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
 
       {/* ══════════ SIDEBAR ══════════ */}
-      <aside style={{
+      {/* Phones: the lesson list is a slide-in drawer over a dimmed backdrop */}
+      {isPhone && drawerOpen && (
+        <div
+          aria-hidden="true"
+          onClick={() => setDrawerOpen(false)}
+          style={{ position:'fixed', inset:0, zIndex:1190, background:'rgba(8,3,12,0.62)', backdropFilter:'blur(3px)', WebkitBackdropFilter:'blur(3px)', animation:'slCwFade .25s ease' }}
+        />
+      )}
+      <aside style={isPhone ? {
+        position: 'fixed', top: 0, bottom: 0, insetInlineStart: 0, zIndex: 1200,
+        width: 'min(88vw, 360px)',
+        background: SIDEBAR_BG,
+        display: 'flex', flexDirection: 'column', overflowY: 'auto',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        boxShadow: drawerOpen ? '0 0 60px rgba(0,0,0,0.6)' : 'none',
+        transform: drawerOpen ? 'translateX(0)' : `translateX(${isRtl ? '105%' : '-105%'})`,
+        visibility: drawerOpen ? 'visible' : 'hidden',
+        transition: drawerOpen
+          ? 'transform .32s cubic-bezier(.22,.8,.26,1)'
+          : 'transform .32s cubic-bezier(.22,.8,.26,1), visibility 0s linear .32s',
+      } : {
         width: 360, flexShrink: 0,
         background: SIDEBAR_BG,
         display: 'flex', flexDirection: 'column',
@@ -527,11 +592,11 @@ const CourseWatch: React.FC = () => {
               <span style={{ fontFamily:"'Playfair Display',serif", fontSize:14, fontWeight:800, color:WHITE, letterSpacing:'0.02em' }}>SARALÖWE</span>
             </Link>
             <button
-              onClick={() => navigate(-1)}
-              title={t('courseWatch.goBack', 'Go back')}
-              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'rgba(255,255,255,0.5)', transition:'all 0.2s' }}
+              onClick={() => (isPhone ? setDrawerOpen(false) : navigate(-1))}
+              title={isPhone ? t('common.close', 'Close') : t('courseWatch.goBack', 'Go back')}
+              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, width: isPhone ? 40 : 32, height: isPhone ? 40 : 32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'rgba(255,255,255,0.5)', transition:'all 0.2s' }}
             >
-              <i className="fa-solid fa-arrow-left" style={{ fontSize:12 }} />
+              <i className={`fa-solid ${isPhone ? 'fa-xmark' : 'fa-arrow-left'}`} style={{ fontSize: isPhone ? 16 : 12 }} />
             </button>
           </div>
 
@@ -598,7 +663,7 @@ const CourseWatch: React.FC = () => {
                   onClick={() => toggleModule(mod.id)}
                   style={{
                     display:'flex', alignItems:'center', gap:10,
-                    padding:'10px 12px', borderRadius:10, cursor:'pointer',
+                    padding: isPhone ? '13px 12px' : '10px 12px', borderRadius:10, cursor:'pointer',
                     background: isOpen ? 'rgba(197,151,62,0.07)' : 'transparent',
                     border:`1px solid ${isOpen ? 'rgba(197,151,62,0.14)' : 'transparent'}`,
                     transition:'all 0.2s',
@@ -634,11 +699,11 @@ const CourseWatch: React.FC = () => {
                         <div
                           key={lesson.id}
                           role="button"
-                          onClick={() => { if (!locked) doSelectLesson(lesson); }}
+                          onClick={() => { if (!locked) { doSelectLesson(lesson); if (isPhone) setDrawerOpen(false); } }}
                           title={locked ? t('courseWatch.completePrevFirst', 'Complete the previous lesson first') : lesson.title}
                           style={{
                             display:'flex', alignItems:'center', gap:10,
-                            padding:'8px 12px', borderRadius:8,
+                            padding: isPhone ? '12px 12px' : '8px 12px', borderRadius:8,
                             cursor: locked ? 'not-allowed' : 'pointer',
                             opacity: locked ? 0.4 : 1,
                             background: isAct ? `linear-gradient(135deg,rgba(197,151,62,0.16),rgba(197,151,62,0.06))` : 'transparent',
@@ -648,7 +713,7 @@ const CourseWatch: React.FC = () => {
                         >
                           <i className={`fa-solid ${icon}`} style={{ fontSize:14, color, flexShrink:0 }} />
                           <p style={{
-                            flex:1, margin:0, fontSize:12,
+                            flex:1, margin:0, fontSize: isPhone ? 13.5 : 12,
                             fontWeight: isAct ? 700 : 500,
                             color: isAct ? GOLD_L : done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.7)',
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
@@ -676,36 +741,53 @@ const CourseWatch: React.FC = () => {
         <div style={{
           height:56, background:`linear-gradient(135deg,#130710 0%,#1e0c13 60%,#2b0f1a 100%)`,
           borderBottom:`1px solid rgba(197,151,62,0.1)`,
-          display:'flex', alignItems:'center', padding:'0 24px',
+          display:'flex', alignItems:'center', padding: isPhone ? '0 12px' : '0 24px',
           gap:16, flexShrink:0, boxShadow:'0 2px 20px rgba(0,0,0,0.25)',
         }}>
+          {/* Phones: lessons drawer button with progress */}
+          {isPhone && (
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              aria-label={t('courseWatch.lessons', 'Lessons')}
+              style={{ display:'inline-flex', alignItems:'center', gap:7, height:38, padding:'0 12px', borderRadius:10, border:'1px solid rgba(197,151,62,0.35)', background:'linear-gradient(135deg,rgba(197,151,62,0.18),rgba(197,151,62,0.06))', color:GOLD_L, fontSize:12.5, fontWeight:800, cursor:'pointer', flexShrink:0 }}
+            >
+              <i className="fa-solid fa-list-ul" style={{ fontSize:13 }} />
+              {pct}%
+            </button>
+          )}
+
           {/* Course breadcrumb */}
-          <div style={{ flex:1, display:'flex', alignItems:'center', gap:8 }}>
-            <Link to={routes.homeone} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:5, transition:'color 0.2s' }}>
-              <i className="fa-solid fa-house" style={{ fontSize:11 }} />
-              {t('sharedComponents.breadcrumb.home', 'Home')}
-            </Link>
-            <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
-            <Link to={routes.studentCourses} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, transition:'color 0.2s' }}>{t('nav.myCourses', 'My Courses')}</Link>
-            <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
-            <span style={{ color:GOLD, fontSize:12, fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:260 }}>
+          <div style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:8 }}>
+            {!isPhone && (
+              <>
+                <Link to={routes.homeone} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:5, transition:'color 0.2s' }}>
+                  <i className="fa-solid fa-house" style={{ fontSize:11 }} />
+                  {t('sharedComponents.breadcrumb.home', 'Home')}
+                </Link>
+                <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
+                <Link to={routes.studentCourses} style={{ color:'rgba(255,255,255,0.3)', textDecoration:'none', fontSize:12, fontWeight:600, transition:'color 0.2s' }}>{t('nav.myCourses', 'My Courses')}</Link>
+                <i className="fa-solid fa-chevron-right" style={{ fontSize:9, color:'rgba(255,255,255,0.2)' }} />
+              </>
+            )}
+            <span style={{ color:GOLD, fontSize: isPhone ? 13 : 12, fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth: isPhone ? '100%' : 260 }}>
               {selectedLesson?.title ?? localCourse?.title ?? course?.title ?? ''}
             </span>
           </div>
 
           {/* User pill */}
           {user && (
-            <div style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 12px', borderRadius:20, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, padding: isPhone ? 4 : '6px 12px', borderRadius:20, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', flexShrink:0 }}>
               <div style={{ width:24, height:24, borderRadius:'50%', background:`linear-gradient(135deg,${BURG},${GOLD})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:WHITE }}>
                 {user.fullName?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <span style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.7)' }}>{user.fullName}</span>
+              {!isPhone && <span style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.7)' }}>{user.fullName}</span>}
             </div>
           )}
         </div>
 
         {/* ── Scrollable content ── */}
-        <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column' }}>
+        <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', paddingBottom: isPhone ? 'calc(68px + env(safe-area-inset-bottom))' : undefined }}>
 
           {lessonLoading ? (
             <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:14, minHeight:300 }}>
@@ -730,12 +812,28 @@ const CourseWatch: React.FC = () => {
                 {/* TEXT */}
                 {selectedLesson.contentType === 'TEXT' && (
                   <div style={contentHasPdf(lessonDetail?.textContent)
-                    ? { padding:'20px 24px', maxWidth:1200, margin:'0 auto', width:'100%' }
-                    : { padding:'32px 48px', maxWidth:820 }}>
+                    ? { padding: isPhone ? '12px 10px 16px' : '20px 24px', maxWidth:1200, margin:'0 auto', width:'100%' }
+                    : { padding: isPhone ? '24px 18px' : '32px 48px', maxWidth:820 }}>
                     {lessonDetail?.textContent ? (
-                      <div className="sl-cw-text-content" style={{ color:'rgba(255,255,255,0.85)', lineHeight:1.85, fontSize:15 }}
-                        dangerouslySetInnerHTML={{ __html: renderLessonHtml(lessonDetail.textContent) }}
-                      />
+                      isPhone && contentHasPdf(lessonDetail.textContent) ? (
+                        /* Phones can't show a PDF inside an iframe: draw its pages with pdf.js */
+                        <div className="sl-cw-text-content" style={{ color:'rgba(255,255,255,0.85)', lineHeight:1.8, fontSize:15 }}>
+                          {splitLessonHtml(lessonDetail.textContent).map((part, i) => part.pdfRaw ? (
+                            <PdfCanvasViewer
+                              key={`pdf-${i}`}
+                              url={getFileUrl(part.pdfRaw) ?? part.pdfRaw}
+                              title={selectedLesson.title}
+                              fallback={<div dangerouslySetInnerHTML={{ __html: renderLessonHtml(`<div class="sl-pdf-embed" data-pdf-url="${part.pdfRaw}"></div>`) }} />}
+                            />
+                          ) : (
+                            <div key={`html-${i}`} dangerouslySetInnerHTML={{ __html: part.html ?? '' }} />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="sl-cw-text-content" style={{ color:'rgba(255,255,255,0.85)', lineHeight:1.85, fontSize:15 }}
+                          dangerouslySetInnerHTML={{ __html: renderLessonHtml(lessonDetail.textContent) }}
+                        />
+                      )
                     ) : (
                       <p style={{ color:'rgba(255,255,255,0.3)', fontSize:14 }}>No content available.</p>
                     )}
@@ -744,7 +842,7 @@ const CourseWatch: React.FC = () => {
 
                 {/* QUIZ */}
                 {selectedLesson.contentType === 'QUIZ' && (
-                  <div style={{ padding:'44px 52px', textAlign:'center', background: quizPassed ? 'linear-gradient(135deg,rgba(45,95,63,0.12),rgba(45,95,63,0.04))' : 'linear-gradient(135deg,rgba(197,151,62,0.07),rgba(101,28,50,0.07))' }}>
+                  <div style={{ padding: isPhone ? '30px 18px' : '44px 52px', textAlign:'center', background: quizPassed ? 'linear-gradient(135deg,rgba(45,95,63,0.12),rgba(45,95,63,0.04))' : 'linear-gradient(135deg,rgba(197,151,62,0.07),rgba(101,28,50,0.07))' }}>
                     <div style={{ width:80, height:80, borderRadius:'50%', margin:'0 auto 18px', background: quizPassed ? 'rgba(74,222,128,0.1)' : 'rgba(197,151,62,0.1)', border:`2px solid ${quizPassed?'rgba(74,222,128,0.25)':'rgba(197,151,62,0.25)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
                       <i className={`fa-solid ${quizPassed?'fa-trophy':'fa-circle-question'}`} style={{ fontSize:34, color:quizPassed?'#4ADE80':GOLD }} />
                     </div>
@@ -818,34 +916,36 @@ const CourseWatch: React.FC = () => {
 
               {/* ── Lesson info bar ── */}
               <div style={{
-                background:WHITE, padding:'14px 28px', flexShrink:0,
+                background:WHITE, padding: isPhone ? '14px 16px' : '14px 28px', flexShrink:0,
                 borderBottom:`1px solid rgba(197,151,62,0.1)`,
                 display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12,
                 boxShadow:'0 2px 12px rgba(78,20,32,0.05)',
               }}>
-                <div style={{ minWidth:0 }}>
-                  <h5 style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:800, color:'#2C1810', margin:'0 0 3px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                <div style={{ minWidth:0, width: isPhone ? '100%' : undefined }}>
+                  <h5 style={{ fontFamily:"'Playfair Display',serif", fontSize: isPhone ? 16 : 17, fontWeight:800, color:'#2C1810', margin:'0 0 3px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace: isPhone ? 'normal' : 'nowrap', lineHeight: isPhone ? 1.35 : undefined }}>
                     {selectedLesson.title}
                   </h5>
                   <span style={{ fontSize:12, color:'#9A8080', fontWeight:600 }}>
                     {t('courseWatch.lessonProgress', { current: lessonIdx+1, total: totalLessons, defaultValue: 'Lesson {{current}} of {{total}}' })}
                   </span>
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', width: isPhone ? '100%' : undefined }}>
+                  {!isPhone && (<>
                   <button onClick={() => goTo(-1)} disabled={!hasPrev} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 16px', borderRadius:8, border:`1.5px solid rgba(197,151,62,0.2)`, background:'transparent', color:hasPrev?BURG:'#c4b5b5', fontWeight:700, fontSize:13, cursor:hasPrev?'pointer':'not-allowed', transition:'all 0.2s' }}>
                     <i className="fa-solid fa-chevron-left" style={{ fontSize:10 }} />{t('courseWatch.prev', 'Prev')}
                   </button>
                   <button onClick={() => goTo(1)} disabled={!hasNext} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 16px', borderRadius:8, border:`1.5px solid rgba(197,151,62,0.2)`, background:'transparent', color:hasNext?BURG:'#c4b5b5', fontWeight:700, fontSize:13, cursor:hasNext?'pointer':'not-allowed', transition:'all 0.2s' }}>
                     {t('courseWatch.next', 'Next')} <i className="fa-solid fa-chevron-right" style={{ fontSize:10 }} />
                   </button>
+                  </>)}
                   {!isDone && selectedLesson.contentType !== 'QUIZ' && (
-                    <button onClick={markComplete} disabled={markingDone} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:8, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', color:WHITE, fontWeight:700, fontSize:13, boxShadow:'0 4px 12px rgba(45,95,63,0.28)', opacity:markingDone?0.7:1, transition:'all 0.2s' }}>
+                    <button onClick={markComplete} disabled={markingDone} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', flex: isPhone ? 1 : undefined, gap:6, padding: isPhone ? '12px 18px' : '8px 18px', borderRadius:8, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', color:WHITE, fontWeight:700, fontSize:13, boxShadow:'0 4px 12px rgba(45,95,63,0.28)', opacity:markingDone?0.7:1, transition:'all 0.2s' }}>
                       {markingDone ? <div style={{ width:13, height:13, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.4)', borderTopColor:WHITE, animation:'spin 0.8s linear infinite' }} /> : <i className="fa-solid fa-circle-check" />}
                       {t('courseWatch.markComplete', 'Mark Complete')}
                     </button>
                   )}
                   {isDone && (
-                    <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background:'rgba(74,222,128,0.09)', border:'1px solid rgba(74,222,128,0.22)', color:'#15803D', fontSize:13, fontWeight:700 }}>
+                    <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', flex: isPhone ? 1 : undefined, gap:6, padding: isPhone ? '12px 16px' : '8px 16px', borderRadius:8, background:'rgba(74,222,128,0.09)', border:'1px solid rgba(74,222,128,0.22)', color:'#15803D', fontSize:13, fontWeight:700 }}>
                       <i className="fa-solid fa-circle-check" />{t('courseWatch.completed', 'Completed')}
                     </div>
                   )}
@@ -853,12 +953,12 @@ const CourseWatch: React.FC = () => {
               </div>
 
               {/* ── Tabs ── */}
-              <div style={{ background:IVORY, padding:'18px 28px 0', flexShrink:0, borderBottom:`1px solid rgba(197,151,62,0.08)` }}>
-                <div style={{ display:'inline-flex', gap:3, background:WHITE, borderRadius:10, padding:4, boxShadow:'0 2px 14px rgba(78,20,32,0.06)', border:`1px solid rgba(197,151,62,0.1)` }}>
+              <div style={{ background:IVORY, padding: isPhone ? '14px 12px 0' : '18px 28px 0', flexShrink:0, borderBottom:`1px solid rgba(197,151,62,0.08)` }}>
+                <div style={{ display: isPhone ? 'flex' : 'inline-flex', gap:3, background:WHITE, borderRadius:10, padding:4, boxShadow:'0 2px 14px rgba(78,20,32,0.06)', border:`1px solid rgba(197,151,62,0.1)` }}>
                   {(['overview','resources','assignments'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                      padding:'8px 22px', border:'none', borderRadius:7, cursor:'pointer',
-                      fontWeight:700, fontSize:13, textTransform:'capitalize',
+                      padding: isPhone ? '10px 6px' : '8px 22px', flex: isPhone ? 1 : undefined, border:'none', borderRadius:7, cursor:'pointer',
+                      fontWeight:700, fontSize: isPhone ? 12.5 : 13, textTransform:'capitalize',
                       background: activeTab===tab ? `linear-gradient(135deg,${BURG},${BURG_D})` : 'transparent',
                       color: activeTab===tab ? WHITE : '#7A6060',
                       boxShadow: activeTab===tab ? '0 4px 14px rgba(101,28,50,0.25)' : 'none',
@@ -881,7 +981,7 @@ const CourseWatch: React.FC = () => {
               </div>
 
               {/* ── Tab content ── */}
-              <div style={{ flex:1, padding:'24px 28px 40px', background:IVORY }}>
+              <div style={{ flex:1, padding: isPhone ? '16px 12px 28px' : '24px 28px 40px', background:IVORY }}>
 
                 {/* OVERVIEW */}
                 {activeTab === 'overview' && (
@@ -1085,7 +1185,7 @@ const CourseWatch: React.FC = () => {
                               {isSel && (() => {
                                 const v = getViewer(res);
                                 return (
-                                  <div style={{ marginTop:12, width:'80%', marginLeft:'auto', marginRight:'auto', borderRadius:12, overflow:'hidden', border:`1.5px solid rgba(101,28,50,0.15)`, boxShadow:'0 8px 30px rgba(78,20,32,0.1)', background:WHITE }}>
+                                  <div style={{ marginTop:12, width: isPhone ? '100%' : '80%', marginLeft:'auto', marginRight:'auto', borderRadius:12, overflow:'hidden', border:`1.5px solid rgba(101,28,50,0.15)`, boxShadow:'0 8px 30px rgba(78,20,32,0.1)', background:WHITE }}>
                                     {/* Toolbar */}
                                     <div style={{ padding:'10px 16px', background:'rgba(101,28,50,0.03)', borderBottom:'1px solid rgba(197,151,62,0.1)', display:'flex', alignItems:'center', gap:10 }}>
                                       <i className={`fa-solid ${fc.icon}`} style={{ color:fc.color, fontSize:14 }} />
@@ -1101,7 +1201,22 @@ const CourseWatch: React.FC = () => {
                                         <img src={v.url} alt={res.name} onError={hideOnError} style={{ maxWidth:'100%', maxHeight:520, borderRadius:8, objectFit:'contain' }} />
                                       </div>
                                     )}
-                                    {v.type==='pdf' && (
+                                    {v.type==='pdf' && isPhone && (
+                                      <div style={{ background:'#2a1a20', padding:10, minHeight:220 }}>
+                                        {pdfBlobLoading && (
+                                          <div style={{ display:'flex', justifyContent:'center', padding:'48px 0' }}>
+                                            <div style={{ width:40, height:40, borderRadius:'50%', border:'4px solid rgba(197,151,62,0.2)', borderTopColor:'#C5973E', animation:'spin 0.9s linear infinite' }} />
+                                          </div>
+                                        )}
+                                        {!pdfBlobLoading && pdfBlobError && (
+                                          <p style={{ textAlign:'center', color:'rgba(255,255,255,0.6)', fontWeight:700, fontSize:14, padding:'32px 0', margin:0 }}>Unable to load PDF</p>
+                                        )}
+                                        {!pdfBlobLoading && !pdfBlobError && pdfBlobUrl && (
+                                          <PdfCanvasViewer url={pdfBlobUrl} title={res.name} />
+                                        )}
+                                      </div>
+                                    )}
+                                    {v.type==='pdf' && !isPhone && (
                                       <div style={{ width:'100%', height:780, background:'#525659', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
                                         {pdfBlobLoading && (
                                           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
@@ -1178,16 +1293,53 @@ const CourseWatch: React.FC = () => {
         </div>
       </main>
 
+      {/* ══════════ PHONE BOTTOM BAR ══════════ */}
+      {isPhone && selectedLesson && (
+        <nav style={{
+          position:'fixed', left:0, right:0, bottom:0, zIndex:1100,
+          display:'grid', gridTemplateColumns:'1fr auto 1fr', alignItems:'center', gap:8,
+          padding:'10px 12px calc(10px + env(safe-area-inset-bottom))',
+          background:'linear-gradient(180deg,rgba(19,7,16,0.94),rgba(30,12,19,0.98))',
+          backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+          borderTop:'1px solid rgba(197,151,62,0.22)',
+          boxShadow:'0 -10px 30px rgba(0,0,0,0.35)',
+        }}>
+          <button type="button" onClick={() => goTo(-1)} disabled={!hasPrev} style={{ ...phoneNavBtn, justifySelf:'start', opacity: hasPrev ? 1 : 0.35 }}>
+            <i className="fa-solid fa-chevron-left" style={{ fontSize:11 }} />{t('courseWatch.prev', 'Prev')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            aria-label={t('courseWatch.lessons', 'Lessons')}
+            style={{ display:'inline-flex', alignItems:'center', gap:9, height:48, padding:'0 14px 0 6px', borderRadius:24, cursor:'pointer', border:'1px solid rgba(197,151,62,0.4)', background:'linear-gradient(135deg,rgba(197,151,62,0.22),rgba(101,28,50,0.35))', color:WHITE }}
+          >
+            <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+              <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3" />
+              <circle cx="18" cy="18" r="15" fill="none" stroke={pct === 100 ? '#4ADE80' : GOLD} strokeWidth="3" strokeLinecap="round"
+                strokeDasharray={`${(pct / 100) * 94.25} 94.25`} transform="rotate(-90 18 18)" />
+              <text x="18" y="21.5" textAnchor="middle" fontSize="9.5" fontWeight="800" fill={GOLD_L}>{pct}%</text>
+            </svg>
+            <span style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', lineHeight:1.15 }}>
+              <span style={{ fontSize:9.5, fontWeight:800, letterSpacing:'0.1em', textTransform:'uppercase', color:GOLD }}>{t('courseWatch.lessons', 'Lessons')}</span>
+              <span style={{ fontSize:13, fontWeight:800 }}>{lessonIdx + 1} / {totalLessons}</span>
+            </span>
+          </button>
+          <button type="button" onClick={() => goTo(1)} disabled={!hasNext} style={{ ...phoneNavBtn, justifySelf:'end', opacity: hasNext ? 1 : 0.35 }}>
+            {t('courseWatch.next', 'Next')}<i className="fa-solid fa-chevron-right" style={{ fontSize:11 }} />
+          </button>
+        </nav>
+      )}
+
       {/* ══════════ QUIZ OVERLAY ══════════ */}
       {quizOpen && (
-        <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(8,3,12,0.92)', backdropFilter:'blur(10px)', display:'flex', alignItems:'flex-start', justifyContent:'center', overflowY:'auto', padding:'28px 16px' }}>
+        <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(8,3,12,0.92)', backdropFilter:'blur(10px)', display:'flex', alignItems:'flex-start', justifyContent:'center', overflowY:'auto', padding: isPhone ? '10px 8px' : '28px 16px' }}>
           <div style={{ width:'100%', maxWidth:720, background:WHITE, borderRadius:20, boxShadow:'0 24px 80px rgba(0,0,0,0.5)', border:`1px solid rgba(197,151,62,0.15)`, overflow:'hidden', position:'relative' }}>
             {quizPhase !== 'quiz' && (
               <button onClick={closeQuiz} style={{ position:'absolute', top:14, right:14, zIndex:2, background:'rgba(107,29,42,0.06)', border:'1px solid rgba(107,29,42,0.12)', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:BURG }}>
                 <i className="fa-solid fa-xmark" style={{ fontSize:16 }} />
               </button>
             )}
-            <div style={{ padding:'30px 34px' }}>
+            <div style={{ padding: isPhone ? '22px 16px' : '30px 34px' }}>
 
               {quizPhase === 'loading' && (
                 <div style={{ textAlign:'center', padding:'56px 0' }}>

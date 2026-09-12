@@ -1,0 +1,140 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SARALÖWE — Mobile premium layer (phones only: iOS & Android)
+
+   EVERY rule in this file sits inside the phone breakpoint below, so screens
+   of 768px and wider (tablets, laptops, desktops) render exactly as before.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+
+  /* ── 1. No sideways scrolling ────────────────────────────────────────────
+     Phones widen the whole page to fit anything that sticks out (the header,
+     popups and every section then look shifted). `body { overflow-x: hidden }`
+     is not enough on mobile, so the app root clips instead. `clip` does not
+     create a scroll container, so window scrolling and position: sticky keep
+     working, and fixed popups are not affected. */
+  #root {
+    overflow-x: clip;
+  }
+  @supports not (overflow-x: clip) {
+    #root { overflow-x: hidden; }        /* iOS < 16 fallback */
+  }
+
+  /* ── 2. Scroll animations rise instead of sliding in from the sides ──────
+     AOS parks "fade-left/right" elements 100px off-screen until they animate,
+     which is what pushed the page wider. On phones they rise gently. */
+  [data-aos="fade-left"]:not(.aos-animate),
+  [data-aos="fade-right"]:not(.aos-animate),
+  [data-aos="fade-up-left"]:not(.aos-animate),
+  [data-aos="fade-up-right"]:not(.aos-animate),
+  [data-aos="fade-down-left"]:not(.aos-animate),
+  [data-aos="fade-down-right"]:not(.aos-animate),
+  [data-aos="slide-left"]:not(.aos-animate),
+  [data-aos="slide-right"]:not(.aos-animate) {
+    transform: translate3d(0, 24px, 0) !important;
+  }
+
+  /* ── 3. Bootstrap's wide gutters overflow the 12px container padding ───── */
+  .row.g-5,
+  .row.gx-5 {
+    --bs-gutter-x: 1.5rem;
+  }
+
+  /* ── Home: hero stats — one elegant row of three ───────────────────────── */
+  .sl-banner-stats {
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 0 !important;
+    width: 100%;
+    margin-top: 6px;
+    padding: 16px 0 14px;
+    border-top: 1px solid rgba(197, 145, 44, 0.2);
+    border-bottom: 1px solid rgba(197, 145, 44, 0.2);
+  }
+  .sl-banner-stats > div:not(.sl-banner-stats__divider) {
+    min-width: 0 !important;
+  }
+  .sl-banner-stats__divider {
+    justify-self: center;
+  }
+
+  /* ── Home: feature cards become a swipeable carousel (next card peeks in) ── */
+  .sl-feat { padding: 64px 0 56px; }
+  .sl-feat__header { margin-bottom: 30px; }
+  .sl-feat__cta { margin-top: 26px; }
+  .row.sl-feat-row {
+    --bs-gutter-x: 14px;
+    --bs-gutter-y: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+    padding: 6px 12px 18px;
+  }
+  .row.sl-feat-row::-webkit-scrollbar { display: none; }
+  .row.sl-feat-row > .sl-feat-col {
+    flex: 0 0 84%;
+    max-width: 84%;
+    scroll-snap-align: center;
+  }
+  .sl-feat-col .sl-feat-card { height: 100%; }
+
+  /* ── Home: certificate visual — keep its gold frame inside the screen ──── */
+  .sl-benefits-img-wrap {
+    width: calc(100% - 20px) !important;
+    margin-inline: 10px;
+  }
+  .sl-benefits-badge { inset-inline-end: -6px; }
+
+  /* ── Premium popup: a bottom sheet that slides up (native-app feel) ───── */
+  html body .sl-prem-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  html body .sl-prem-modal {
+    max-width: 100%;
+    border-radius: 26px 26px 0 0;
+    border-bottom: none;
+    padding: 2.1rem 1.35rem calc(1.4rem + env(safe-area-inset-bottom));
+    max-height: 92vh;
+    max-height: 92dvh;
+    overflow-y: auto;
+    animation: slSheetUp 0.42s cubic-bezier(0.22, 0.8, 0.26, 1);
+  }
+  html body .sl-prem-modal::before {
+    content: '';
+    position: absolute; top: 9px; left: 50%;
+    width: 42px; height: 4px; margin-left: -21px;
+    border-radius: 4px; background: rgba(197, 145, 44, 0.45);
+  }
+  @keyframes slSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  /* ── Course player ────────────────────────────────────────────────────────
+     100dvh follows the real visible height when the mobile address bar
+     shows/hides (100vh alone hides the bottom of the player on iOS). */
+  .sl-cw-root {
+    height: 100vh;
+    height: 100dvh;
+  }
+  @keyframes slCwFade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── 4. iOS / Android polish ─────────────────────────────────────────────
+     16px form text stops iOS Safari from zooming the page on focus. */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    -webkit-tap-highlight-color: rgba(197, 151, 62, 0.18);
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

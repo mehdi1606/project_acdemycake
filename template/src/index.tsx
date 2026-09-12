@@ -13,6 +13,8 @@ import store from './core/redux/store';
 import "../node_modules/@tabler/icons-webfont/dist/tabler-icons.css";
 import "../node_modules/@fortawesome/fontawesome-free/css/fontawesome.min.css";
 import "../node_modules/@fortawesome/fontawesome-free/css/all.min.css";
+// Phones only (max-width 767.98px) — loaded last so it wins; desktop is untouched.
+import "./style/css/mobile-premium.css";
 import "../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 import { App as AntdApp, notification } from 'antd';
 import PremiumPromoPopup from './feature-module/common/PremiumPromoPopup';

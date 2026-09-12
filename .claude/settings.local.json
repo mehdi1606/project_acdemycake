@@ -240,7 +240,13 @@
       "Bash(mkdir -p template/public/assets/img/ebooks)",
       "Bash(grep -v \"MuPDF error\\\\|^$\")",
       "Bash(PYTHONIOENCODING=utf-8 python fix_leftovers.py)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(grep -n \"position: *'absolute'\\\\|width: *'1[0-9][0-9]%'\\\\|right: *-\\\\|left: *-\\\\|width: *[0-9]\\\\{3,\\\\}\\\\b\\\\|minWidth\" section/banner.tsx)",
+      "Bash(curl -s -o /dev/null -w \"backend %{http_code}\\\\n\" --max-time 5 http://localhost:8080/api/v1/courses?page=0\\\\&size=1)",
+      "Bash(timeout 40 npm view pdfjs-dist@3.11.174 dist.tarball)",
+      "Bash(timeout 45 npm view pdfjs-dist@3.11.174 dist.tarball)",
+      "Bash(echo \"exit $?\")",
+      "Bash(tar -xzf pdfjs-dist-3.11.174.tgz package/build/pdf.min.js package/build/pdf.worker.min.js package/LICENSE)"
     ]
   }
 }

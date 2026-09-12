@@ -163,11 +163,11 @@ const WhyChooseUs: React.FC = () => {
           </div>
 
           {/* 6-card grid — 3 per row */}
-          <div className="row g-4">
+          <div className="row g-4 sl-feat-row">
             {L.boxes.map((box, i) => (
               <div
                 key={i}
-                className="col-lg-4 col-md-6"
+                className="col-lg-4 col-md-6 sl-feat-col"
                 data-aos="fade-up"
                 data-aos-delay={(i % 3) * 90}
                 data-aos-duration="700"
