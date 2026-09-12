@@ -123,6 +123,74 @@
   }
   @keyframes slCwFade { from { opacity: 0; } to { opacity: 1; } }
 
+  /* ── Course details: one column, sidebar card inline, bottom action bar ── */
+  .sl-cd-hero-grid,
+  .sl-cd-main-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 22px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  .sl-cd-sticky { position: static !important; }
+  body.sl-has-bottom-bar { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  body.sl-has-bottom-bar .back-to-top-icon { bottom: calc(92px + env(safe-area-inset-bottom)) !important; }
+
+  /* ── Cart & checkout: summary goes under the items ──────────────────────── */
+  .sl-cart-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  /* ── Dashboards (student / instructor / admin) ───────────────────────────
+     Tables scroll sideways inside their card instead of squashing columns. */
+  .luxury-main *:has(> table) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .luxury-main table {
+    width: max-content;
+    min-width: 100%;
+  }
+  .luxury-main table th { white-space: nowrap; }
+  .luxury-main table td { max-width: 280px; }
+
+  /* Dashboard pop-ups open as bottom sheets that fit the screen and scroll. */
+  .luxury-main [style*="position: fixed"][style*="inset: 0px"] {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  .luxury-main [style*="position: fixed"][style*="inset: 0px"] > div {
+    max-width: 100% !important;
+    max-height: 94vh;
+    max-height: 94dvh;
+    overflow-y: auto;
+    border-radius: 24px 24px 0 0 !important;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: slSheetUp 0.38s cubic-bezier(0.22, 0.8, 0.26, 1);
+  }
+
+  /* Instructor grading: student list on top, their work below. */
+  .lx-sub-panes {
+    flex-direction: column;
+    max-height: none !important;
+    min-height: 0 !important;
+  }
+  .lx-sub-list {
+    flex: 0 0 auto !important;
+    max-height: 36vh;
+    border-inline-end: none !important;
+    border-bottom: 1px solid rgba(107, 29, 42, 0.08);
+  }
+
+  /* WhatsApp button: smaller, clear of the iPhone home bar. */
+  .lx-whatsapp-fab {
+    width: 50px !important;
+    height: 50px !important;
+    bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+    inset-inline-end: 14px !important;
+  }
+  .lx-whatsapp-fab i { font-size: 26px !important; }
+
   /* ── 4. iOS / Android polish ─────────────────────────────────────────────
      16px form text stops iOS Safari from zooming the page on focus. */
   html {

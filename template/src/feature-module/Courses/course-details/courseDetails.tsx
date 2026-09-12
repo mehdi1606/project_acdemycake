@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useIsPhone from '../../../hooks/useIsPhone';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
@@ -81,6 +82,14 @@ const CourseDetails = () => {
   const [userReview,    setUserReview]    = useState<CourseReview | null>(null);
   /** True while an enrolled student still has an unmarked assignment (certificate withheld). */
   const [certPendingMark, setCertPendingMark] = useState(false);
+  const isPhone = useIsPhone();
+
+  // Phones get a fixed bottom action bar; keep the page end clear of it.
+  useEffect(() => {
+    if (!isPhone) return;
+    document.body.classList.add('sl-has-bottom-bar');
+    return () => document.body.classList.remove('sl-has-bottom-bar');
+  }, [isPhone]);
 
   useEffect(() => {
     if (!slug) return;
@@ -298,7 +307,7 @@ const CourseDetails = () => {
         </div>
 
         {/* Hero grid: info left, thumbnail right */}
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 48px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) min(420px,40%)', gap: 40, alignItems: 'center' }}>
+        <div className="sl-cd-hero-grid" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 48px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) min(420px,40%)', gap: 40, alignItems: 'center' }}>
 
           {/* LEFT */}
           <div>
@@ -427,7 +436,7 @@ const CourseDetails = () => {
 
       {/* BODY */}
       <div style={{ background: '#F2EFE8', paddingBottom: 80 }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px 0', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) min(360px,34%)', gap: 32, alignItems: 'start' }}>
+        <div className="sl-cd-main-grid" style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px 0', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) min(360px,34%)', gap: 32, alignItems: 'start' }}>
 
           {/* LEFT: Tabs */}
           <div style={{ minWidth: 0, overflow: 'hidden' }}>
@@ -800,7 +809,7 @@ const CourseDetails = () => {
 
           {/* RIGHT: Sticky sidebar */}
           <div style={{ minWidth: 0 }}>
-            <div style={{ position: 'sticky', top: 100 }}>
+            <div className="sl-cd-sticky" style={{ position: 'sticky', top: 100 }}>
               <div style={{
                 background: '#fff', borderRadius: 20, overflow: 'hidden',
                 boxShadow: '0 12px 60px rgba(78,20,32,0.12)',
@@ -1208,6 +1217,97 @@ const CourseDetails = () => {
         </div>
       </div>
 
+
+      {/* ══ Phones: fixed bottom action bar — price/status + the main action ══ */}
+      {isPhone && (() => {
+        const barBtn: React.CSSProperties = {
+          flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          height: 48, padding: '0 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
+          fontWeight: 800, fontSize: 14.5, color: '#fff', textDecoration: 'none', whiteSpace: 'nowrap',
+        };
+        const GOLD_BTN = 'linear-gradient(135deg,#C5912C,#A67825)';
+        const BURG_BTN = 'linear-gradient(135deg,#651C32,#8B2335)';
+        const loginBtn = (
+          <Link to={route.login} style={{ ...barBtn, background: BURG_BTN }}>
+            <i className="fa-solid fa-right-to-bracket" />{t('courseDetails.loginToEnroll', 'Login to Enroll')}
+          </Link>
+        );
+        const enrollBtn = (text: React.ReactNode, bg: string, icon: string) => (
+          <button onClick={handleEnroll} disabled={enrolling} style={{ ...barBtn, background: bg, opacity: enrolling ? 0.7 : 1 }}>
+            {enrolling ? <Spin size="small" /> : <i className={`fa-solid ${icon}`} />}{text}
+          </button>
+        );
+
+        let label: React.ReactNode;
+        let sub: React.ReactNode = null;
+        let action: React.ReactNode = null;
+
+        if (c.isEnrolled) {
+          label = t('courses.details.enrolled', 'You are Enrolled');
+          if (typeof c.enrollmentProgress === 'number') sub = `${t('courses.details.progress', 'Progress')} · ${c.enrollmentProgress}%`;
+          action = (
+            <Link to={`${route.courseWatch}/${c.slug}`} style={{ ...barBtn, background: 'linear-gradient(135deg,#047857,#059669)' }}>
+              <i className="fa-solid fa-play" />{t('courses.details.continueLearning', 'Continue Learning')}
+            </Link>
+          );
+        } else if (isInstructor) {
+          label = 'Instructor View';
+          action = (
+            <Link to={`${route.courseWatch}/${c.slug}`} style={{ ...barBtn, background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
+              <i className="fa-solid fa-eye" />Preview
+            </Link>
+          );
+        } else if (isAdmin) {
+          label = 'Admin Access';
+          action = enrollBtn('Access Course', BURG_BTN, 'fa-shield-halved');
+        } else if (isPlan) {
+          label = hasActiveSub ? 'Included in your Plan' : 'Subscription Required';
+          action = hasActiveSub
+            ? enrollBtn('Start Learning', GOLD_BTN, 'fa-graduation-cap')
+            : !isAuthenticated
+              ? loginBtn
+              : (
+                <Link to={route.pricingPlan} style={{ ...barBtn, background: GOLD_BTN }}>
+                  <i className="fa-solid fa-crown" />Subscribe
+                </Link>
+              );
+        } else if (isLiveMasterclass) {
+          label = seatsLeft !== null
+            ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+            : t('courseDetails.limitedPlaces', 'Limited places');
+          if (reservationHref) {
+            action = (
+              <a href={reservationHref} target="_blank" rel="noopener noreferrer" style={{ ...barBtn, background: 'linear-gradient(135deg,#25D366,#1da851)' }}>
+                <i className="fa-brands fa-whatsapp" style={{ fontSize: 18 }} />{t('courseDetails.reservePlace', 'Reserve my place')}
+              </a>
+            );
+          }
+        } else {
+          label = !c.requiresPurchase ? t('courseDetails.free', 'Free') : `${c.price} MAD`;
+          if (hasDiscount) sub = <del>{c.originalPrice} MAD</del>;
+          action = !isAuthenticated
+            ? loginBtn
+            : enrollBtn(!c.requiresPurchase ? t('home.featured.enrolFree', 'Enrol Free') : t('courses.details.enroll', 'Enroll Now'), BURG_BTN, 'fa-graduation-cap');
+        }
+
+        return (
+          <div style={{
+            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1030,
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '10px 14px calc(10px + env(safe-area-inset-bottom))',
+            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            borderTop: '1px solid rgba(197,145,44,0.24)', boxShadow: '0 -10px 34px rgba(78,20,32,0.14)',
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 800, fontSize: 17, color: '#2C1810', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
+                {label}
+              </div>
+              {sub && <div style={{ fontSize: 12, color: '#9A8080', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</div>}
+            </div>
+            {action}
+          </div>
+        );
+      })()}
     </div>
   );
 };

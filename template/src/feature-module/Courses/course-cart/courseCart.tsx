@@ -173,7 +173,7 @@ const CourseCart = () => {
             </Link>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 32, alignItems: 'start' }}>
+          <div className="sl-cart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 32, alignItems: 'start' }}>
 
             {/* ── Left: Items ── */}
             <div>
@@ -372,7 +372,7 @@ const CourseCart = () => {
             </div>
 
             {/* ── Right: Summary ── */}
-            <div style={{ position: 'sticky', top: 100 }}>
+            <div className="sl-cd-sticky" style={{ position: 'sticky', top: 100 }}>
               <div style={{
                 background: '#fff',
                 borderRadius: 20,

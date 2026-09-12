@@ -81,6 +81,7 @@ const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children 
         href="https://chat.whatsapp.com/GYeg9kfflBBLhInu1ghzJM"
         target="_blank"
         rel="noopener noreferrer"
+        className="lx-whatsapp-fab"
         aria-label="WhatsApp Group"
         title={t('common.whatsappGroup', 'Join our WhatsApp group')}
         style={{

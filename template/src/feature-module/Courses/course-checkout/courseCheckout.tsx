@@ -181,7 +181,7 @@ const CourseCheckout = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'start' }}>
+            <div className="sl-cart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'start' }}>
 
               {/* ── Left Column: Order details + CMI notice ── */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -346,7 +346,7 @@ const CourseCheckout = () => {
               </div>
 
               {/* ── Right Column: Order Summary ── */}
-              <div style={{ position: 'sticky', top: 100 }}>
+              <div className="sl-cd-sticky" style={{ position: 'sticky', top: 100 }}>
                 <div style={{
                   background: '#fff', borderRadius: 20,
                   boxShadow: '0 4px 24px rgba(0,0,0,0.08)',

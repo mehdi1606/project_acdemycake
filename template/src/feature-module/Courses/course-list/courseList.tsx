@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import PhoneCollapsible from '../../../components/PhoneCollapsible';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AOS from 'aos';
@@ -752,6 +753,7 @@ const CourseList: React.FC = () => {
 
             {/* Sidebar */}
             <div className="col-lg-3">
+              <PhoneCollapsible label={t('courseList.filters', 'Filters')} active={hasActiveFilters}>
               <SidebarFilter
                 categories={categories}
                 selectedCategory={selectedCategory}
@@ -761,6 +763,7 @@ const CourseList: React.FC = () => {
                 onClear={clearFilters}
                 hasActiveFilters={hasActiveFilters}
               />
+              </PhoneCollapsible>
             </div>
 
             {/* Course area */}

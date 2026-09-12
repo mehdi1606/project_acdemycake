@@ -674,10 +674,10 @@ const InstructorAssignment: React.FC = () => {
                 <span style={{ marginInlineStart: 'auto' }}>Total mark: <strong>{selected.totalMark}</strong></span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 420, maxHeight: '62vh' }}>
+              <div className="lx-sub-panes" style={{ display: 'flex', alignItems: 'stretch', minHeight: 420, maxHeight: '62vh' }}>
 
                 {/* ── Left: student list ── */}
-                <div style={{ flex: '0 0 258px', borderInlineEnd: '1px solid rgba(107,29,42,0.08)', display: 'flex', flexDirection: 'column', background: 'rgba(107,29,42,0.015)' }}>
+                <div className="lx-sub-list" style={{ flex: '0 0 258px', borderInlineEnd: '1px solid rgba(107,29,42,0.08)', display: 'flex', flexDirection: 'column', background: 'rgba(107,29,42,0.015)' }}>
                   <div style={{ padding: '12px 12px 8px' }}>
                     <input
                       type="text"
