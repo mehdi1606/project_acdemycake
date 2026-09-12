@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { hideOnError } from '../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Spin } from 'antd';
@@ -420,6 +421,7 @@ const CommunityPage: React.FC = () => {
                       <div style={{ marginTop: 10, marginBottom: 4 }}>
                         <img
                           src={getFileUrl(post.images[0]) ?? post.images[0]}
+                          onError={hideOnError}
                           alt="post"
                           style={{ maxHeight: 180, width: '100%', objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(101,28,50,0.08)' }}
                         />
@@ -587,6 +589,7 @@ const CommunityPage: React.FC = () => {
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <img
                     src={getFileUrl(formImageUrl) ?? formImageUrl}
+                    onError={hideOnError}
                     alt="preview"
                     style={{ maxHeight: 160, maxWidth: '100%', borderRadius: 10, objectFit: 'cover', border: '1.5px solid rgba(101,28,50,0.15)' }}
                   />

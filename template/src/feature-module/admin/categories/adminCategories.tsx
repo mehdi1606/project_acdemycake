@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { hideOnError } from '../../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 
 import { Modal, message, Spin, Input, Upload, Button } from 'antd';
@@ -247,6 +248,7 @@ const AdminCategories = () => {
                   {category.imageUrl ? (
                     <img
                       src={getFileUrl(category.imageUrl) ?? category.imageUrl}
+                      onError={hideOnError}
                       alt={category.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
@@ -393,6 +395,7 @@ const AdminCategories = () => {
               <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 4 }}>Current image:</p>
               <img
                 src={getFileUrl(editingCategory.imageUrl) ?? editingCategory.imageUrl}
+                onError={hideOnError}
                 alt="Current"
                 style={{ maxWidth: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 'var(--lx-radius)' }}
               />

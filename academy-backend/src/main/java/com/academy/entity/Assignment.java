@@ -35,6 +35,16 @@ public class Assignment extends BaseEntity {
     @Column(name = "instructions", columnDefinition = "TEXT")
     private String instructions;
 
+    // Arabic version. The plain fields above hold the English (default) text.
+    @Column(name = "title_ar", length = 255)
+    private String titleAr;
+
+    @Column(name = "description_ar", columnDefinition = "TEXT")
+    private String descriptionAr;
+
+    @Column(name = "instructions_ar", columnDefinition = "TEXT")
+    private String instructionsAr;
+
     @Column(name = "due_date")
     private LocalDate dueDate;
 

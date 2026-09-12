@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { fallbackTo } from '../../../core/common/imageFallback';
 import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -202,7 +203,7 @@ const InstructorDashboard = () => {
                                 }}
                               >
                                 {course.thumbnailUrl ? (
-                                  <img src={course.thumbnailUrl} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img src={course.thumbnailUrl} alt={course.title} onError={fallbackTo()} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
                                   <i className="isax isax-book" style={{ color: '#651C32', fontSize: 18 }} />
                                 )}

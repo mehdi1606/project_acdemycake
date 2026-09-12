@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { COURSE_PLACEHOLDER, fallbackTo } from '../../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
@@ -159,7 +160,8 @@ const AdminPendingCourses = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <img
-                          src={course.thumbnailUrl ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl) : '/assets/img/course/course-01.jpg'}
+                          src={course.thumbnailUrl ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl) : COURSE_PLACEHOLDER}
+                          onError={fallbackTo()}
                           alt=""
                           style={{ width: 56, height: 42, objectFit: 'cover', borderRadius: 'var(--lx-radius-sm)' }}
                         />

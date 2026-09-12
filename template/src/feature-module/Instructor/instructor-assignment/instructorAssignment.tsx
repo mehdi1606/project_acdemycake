@@ -5,6 +5,7 @@ import { instructorService, Assignment, AssignmentStatus } from '../../../servic
 import { Course, Submission } from '../../../services/api/types'
 import { assignmentService } from '../../../services/api/assignment.service'
 import { extractApiError } from '../../../services/api/error.utils'
+import { message } from 'antd'
 
 type ModalState = 'none' | 'add' | 'view' | 'edit' | 'delete' | 'submissions'
 
@@ -13,6 +14,9 @@ interface AssignmentForm {
   title: string
   description: string
   instructions: string
+  titleAr: string
+  descriptionAr: string
+  instructionsAr: string
   dueDate: string
   totalMark: string
   status: AssignmentStatus
@@ -23,6 +27,9 @@ const emptyForm = (): AssignmentForm => ({
   title: '',
   description: '',
   instructions: '',
+  titleAr: '',
+  descriptionAr: '',
+  instructionsAr: '',
   dueDate: '',
   totalMark: '100',
   status: 'DRAFT',
@@ -53,52 +60,176 @@ const StatusBadge: React.FC<{ status: AssignmentStatus }> = ({ status }) => (
   </span>
 )
 
+const TITLE_MAX = 255
+const TEXT_MAX = 5000
+
+type FormLang = 'en' | 'ar'
+const LANG_FIELDS: Record<FormLang, {
+  title: 'title' | 'titleAr'
+  description: 'description' | 'descriptionAr'
+  instructions: 'instructions' | 'instructionsAr'
+}> = {
+  en: { title: 'title', description: 'description', instructions: 'instructions' },
+  ar: { title: 'titleAr', description: 'descriptionAr', instructions: 'instructionsAr' },
+}
+
+const hasTitle = (f: AssignmentForm) => !!(f.title.trim() || f.titleAr.trim())
+const tooLong = (f: AssignmentForm) =>
+  f.title.length > TITLE_MAX || f.titleAr.length > TITLE_MAX ||
+  [f.description, f.descriptionAr, f.instructions, f.instructionsAr].some(v => v.length > TEXT_MAX)
+
+const toPayload = (f: AssignmentForm) => ({
+  // `title` is required server-side; an Arabic-only assignment reuses its Arabic title.
+  title: f.title.trim() || f.titleAr.trim(),
+  titleAr: f.titleAr.trim(),
+  description: f.description.trim(),
+  descriptionAr: f.descriptionAr.trim(),
+  instructions: f.instructions.trim(),
+  instructionsAr: f.instructionsAr.trim(),
+  dueDate: f.dueDate || undefined,
+  totalMark: parseInt(f.totalMark) || 100,
+  status: f.status,
+})
+
+/**
+ * Writing-assistant extensions (Grammarly etc.) inject overlays into text fields and can
+ * swallow keystrokes or pasted text while typing fast; these attributes opt the fields out.
+ */
+const NO_WRITING_ASSIST = { 'data-gramm': 'false', 'data-gramm_editor': 'false', 'data-enable-grammarly': 'false' }
+
+const FieldLabel: React.FC<{ text: string; value: string; max: number; required?: boolean }> = ({ text, value, max, required }) => {
+  const over = value.length > max
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
+      <label style={{ ...labelStyle, marginBottom: 0 }}>
+        {text} {required && <span style={{ color: '#8B2335' }}>*</span>}
+      </label>
+      <span style={{ fontSize: 11.5, fontWeight: 600, color: over ? '#dc2626' : 'var(--lx-text-muted)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+        {value.length.toLocaleString('en-US')} / {max.toLocaleString('en-US')}{over ? ' · too long' : ''}
+      </span>
+    </div>
+  )
+}
+
 interface FormFieldsProps {
   form: AssignmentForm
   courses: Course[]
   onChange: (field: keyof AssignmentForm, value: string) => void
 }
 
-const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChange }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-    <div>
-      <label style={labelStyle}>Course <span style={{ color: '#8B2335' }}>*</span></label>
-      <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.courseId} onChange={(e) => onChange('courseId', e.target.value)} required>
-        <option value="">Select a course</option>
-        {courses.map((c: Course) => (<option key={c.id} value={c.id}>{c.title}</option>))}
-      </select>
-    </div>
-    <div>
-      <label style={labelStyle}>Assignment Title <span style={{ color: '#8B2335' }}>*</span></label>
-      <input type="text" style={inputStyle} placeholder="Enter assignment title" value={form.title} onChange={(e) => onChange('title', e.target.value)} required />
-    </div>
-    <div>
-      <label style={labelStyle}>Description</label>
-      <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={3} placeholder="Enter description" value={form.description} onChange={(e) => onChange('description', e.target.value)} />
-    </div>
-    <div>
-      <label style={labelStyle}>Instructions</label>
-      <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={4} placeholder="Enter instructions" value={form.instructions} onChange={(e) => onChange('instructions', e.target.value)} />
-    </div>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChange }) => {
+  const [lang, setLang] = useState<FormLang>('en')
+  const keys = LANG_FIELDS[lang]
+  const rtl = lang === 'ar'
+  const dir = rtl ? 'rtl' : 'ltr'
+  const textStyle: React.CSSProperties = { ...inputStyle, textAlign: rtl ? 'right' : 'left', lineHeight: 1.6 }
+  const filled = (l: FormLang) => {
+    const k = LANG_FIELDS[l]
+    return !!(form[k.title].trim() || form[k.description].trim() || form[k.instructions].trim())
+  }
+  const L = rtl
+    ? { title: 'عنوان الواجب', description: 'الوصف', instructions: 'التعليمات', titlePh: 'اكتب عنوان الواجب', descPh: 'اكتب وصف الواجب', instrPh: 'اكتب التعليمات للطالب' }
+    : { title: 'Assignment Title', description: 'Description', instructions: 'Instructions', titlePh: 'Enter assignment title', descPh: 'Enter description', instrPh: 'Enter instructions' }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
-        <label style={labelStyle}>Total Mark</label>
-        <input type="number" style={inputStyle} min={1} max={1000} value={form.totalMark} onChange={(e) => onChange('totalMark', e.target.value)} />
-      </div>
-      <div>
-        <label style={labelStyle}>Due Date</label>
-        <input type="date" style={inputStyle} value={form.dueDate} onChange={(e) => onChange('dueDate', e.target.value)} />
-      </div>
-      <div>
-        <label style={labelStyle}>Status <span style={{ color: '#8B2335' }}>*</span></label>
-        <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.status} onChange={(e) => onChange('status', e.target.value as AssignmentStatus)}>
-          <option value="DRAFT">Draft</option>
-          <option value="PUBLISHED">Published</option>
+        <label style={labelStyle}>Course <span style={{ color: '#8B2335' }}>*</span></label>
+        <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.courseId} onChange={(e) => onChange('courseId', e.target.value)} required>
+          <option value="">Select a course</option>
+          {courses.map((c: Course) => (<option key={c.id} value={c.id}>{c.title}</option>))}
         </select>
       </div>
+
+      {/* Language tabs — the same assignment written in English and Arabic */}
+      <div>
+        <div role="tablist" style={{ display: 'inline-flex', gap: 4, padding: 4, borderRadius: 10, background: 'rgba(107,29,42,0.06)' }}>
+          {(['en', 'ar'] as FormLang[]).map(l => {
+            const active = l === lang
+            return (
+              <button
+                key={l}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setLang(l)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 18px', borderRadius: 8,
+                  border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                  background: active ? '#6B1D2A' : 'transparent', color: active ? '#fff' : 'var(--lx-text-mid)',
+                }}
+              >
+                {l === 'en' ? 'English' : 'العربية'}
+                <span
+                  title={filled(l) ? 'Written' : 'Empty'}
+                  style={{ width: 7, height: 7, borderRadius: '50%', background: filled(l) ? '#22c55e' : (active ? 'rgba(255,255,255,0.45)' : 'rgba(107,29,42,0.25)') }}
+                />
+              </button>
+            )
+          })}
+        </div>
+        <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: '6px 0 0', lineHeight: 1.5 }}>
+          Students see the language of their site (AR / EN). If one language is empty, the other is shown. A title is required in at least one language.
+        </p>
+      </div>
+
+      <div>
+        <FieldLabel text={L.title} value={form[keys.title]} max={TITLE_MAX} required />
+        <input
+          key={keys.title}
+          type="text" dir={dir} spellCheck autoComplete="off"
+          style={textStyle}
+          placeholder={L.titlePh}
+          value={form[keys.title]}
+          onChange={(e) => onChange(keys.title, e.target.value)}
+          {...NO_WRITING_ASSIST}
+        />
+      </div>
+      <div>
+        <FieldLabel text={L.description} value={form[keys.description]} max={TEXT_MAX} />
+        <textarea
+          key={keys.description}
+          dir={dir} spellCheck rows={4}
+          style={{ ...textStyle, resize: 'vertical' }}
+          placeholder={L.descPh}
+          value={form[keys.description]}
+          onChange={(e) => onChange(keys.description, e.target.value)}
+          {...NO_WRITING_ASSIST}
+        />
+      </div>
+      <div>
+        <FieldLabel text={L.instructions} value={form[keys.instructions]} max={TEXT_MAX} />
+        <textarea
+          key={keys.instructions}
+          dir={dir} spellCheck rows={6}
+          style={{ ...textStyle, resize: 'vertical' }}
+          placeholder={L.instrPh}
+          value={form[keys.instructions]}
+          onChange={(e) => onChange(keys.instructions, e.target.value)}
+          {...NO_WRITING_ASSIST}
+        />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
+        <div>
+          <label style={labelStyle}>Total Mark</label>
+          <input type="number" style={inputStyle} min={1} max={1000} value={form.totalMark} onChange={(e) => onChange('totalMark', e.target.value)} />
+        </div>
+        <div>
+          <label style={labelStyle}>Due Date</label>
+          <input type="date" style={inputStyle} value={form.dueDate} onChange={(e) => onChange('dueDate', e.target.value)} />
+        </div>
+        <div>
+          <label style={labelStyle}>Status <span style={{ color: '#8B2335' }}>*</span></label>
+          <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.status} onChange={(e) => onChange('status', e.target.value as AssignmentStatus)}>
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+          </select>
+        </div>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const isGraded = (s: Submission) => s.grade !== undefined && s.grade !== null
 
@@ -320,9 +451,14 @@ const InstructorAssignment: React.FC = () => {
     setSelected(a);
     setForm({
       courseId: a.courseId || '',
-      title: a.title || '',
+      // An Arabic-only assignment also stores its Arabic title in `title` (the column is
+      // required) — keep that copy out of the English tab.
+      title: a.titleAr && a.title === a.titleAr ? '' : (a.title || ''),
+      titleAr: a.titleAr || '',
       description: a.description || '',
+      descriptionAr: a.descriptionAr || '',
       instructions: a.instructions || '',
+      instructionsAr: a.instructionsAr || '',
       dueDate: a.dueDate ? a.dueDate.split('T')[0] : '',
       totalMark: String(a.totalMark ?? 100),
       status: a.status || 'DRAFT',
@@ -332,35 +468,29 @@ const InstructorAssignment: React.FC = () => {
   const openDelete = (a: Assignment) => { setSelected(a); setModal('delete'); }
   const closeModal = () => { setModal('none'); setSelected(null); }
 
+  const formValid = hasTitle(form) && !tooLong(form)
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.title.trim() || !form.courseId) return
+    if (!formValid || !form.courseId) return
     setSubmitting(true)
     try {
-      await instructorService.createAssignment({
-        courseId: form.courseId, title: form.title.trim(), description: form.description.trim(),
-        instructions: form.instructions.trim(), dueDate: form.dueDate || undefined,
-        totalMark: parseInt(form.totalMark) || 100, status: form.status,
-      })
+      await instructorService.createAssignment({ courseId: form.courseId, ...toPayload(form) })
       closeModal()
       fetchAssignments(0)
-    } catch { setError('Failed to create assignment.') }
+    } catch (err) { message.error(extractApiError(err, 'Failed to create assignment.')) }
     finally { setSubmitting(false) }
   }
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selected || !form.title.trim()) return
+    if (!selected || !formValid) return
     setSubmitting(true)
     try {
-      await instructorService.updateAssignment(selected.id, {
-        title: form.title.trim(), description: form.description.trim(),
-        instructions: form.instructions.trim(), dueDate: form.dueDate || undefined,
-        totalMark: parseInt(form.totalMark) || 100, status: form.status,
-      })
+      await instructorService.updateAssignment(selected.id, toPayload(form))
       closeModal()
       fetchAssignments(currentPage)
-    } catch { setError('Failed to update assignment.') }
+    } catch (err) { message.error(extractApiError(err, 'Failed to update assignment.')) }
     finally { setSubmitting(false) }
   }
 
@@ -459,13 +589,13 @@ const InstructorAssignment: React.FC = () => {
 
       {/* Add Modal */}
       {modal === 'add' && (
-        <GlassModal onClose={closeModal}>
+        <GlassModal maxWidth={700} onClose={closeModal}>
           <ModalHeader title="Add New Assignment" onClose={closeModal} />
           <form onSubmit={handleAdd}>
-            <div style={{ padding: 24 }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
+            <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Cancel</button>
-              <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !form.title.trim() || !form.courseId}>
+              <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !formValid || !form.courseId}>
                 {submitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : 'Create'}
               </button>
             </div>
@@ -477,18 +607,21 @@ const InstructorAssignment: React.FC = () => {
       {modal === 'view' && selected && (
         <GlassModal onClose={closeModal}>
           <ModalHeader title="Assignment Details" onClose={closeModal} />
-          <div style={{ padding: 24 }}>
+          <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}>
             {[
-              { label: 'Title', value: selected.title },
+              { label: 'Title', value: selected.titleAr && selected.title === selected.titleAr ? '—' : selected.title },
+              { label: 'Title (Arabic)', value: selected.titleAr || '—' },
               { label: 'Course', value: selected.courseTitle || '—' },
               { label: 'Description', value: selected.description || '—' },
+              { label: 'Description (Arabic)', value: selected.descriptionAr || '—' },
               { label: 'Instructions', value: selected.instructions || '—' },
+              { label: 'Instructions (Arabic)', value: selected.instructionsAr || '—' },
               { label: 'Due Date', value: formatDate(selected.dueDate) },
               { label: 'Total Mark', value: String(selected.totalMark ?? '—') },
             ].map((f) => (
               <div key={f.label} style={{ marginBottom: 16, padding: 14, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
                 <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{f.label}</p>
-                <p style={{ margin: 0, color: 'var(--lx-text)', whiteSpace: 'pre-wrap' }}>{f.value}</p>
+                <p dir="auto" style={{ margin: 0, color: 'var(--lx-text)', whiteSpace: 'pre-wrap' }}>{f.value}</p>
               </div>
             ))}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -505,13 +638,13 @@ const InstructorAssignment: React.FC = () => {
 
       {/* Edit Modal */}
       {modal === 'edit' && selected && (
-        <GlassModal onClose={closeModal}>
+        <GlassModal maxWidth={700} onClose={closeModal}>
           <ModalHeader title="Edit Assignment" onClose={closeModal} />
           <form onSubmit={handleEdit}>
-            <div style={{ padding: 24 }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
+            <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Cancel</button>
-              <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !form.title.trim()}>
+              <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !formValid}>
                 {submitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : 'Save Changes'}
               </button>
             </div>

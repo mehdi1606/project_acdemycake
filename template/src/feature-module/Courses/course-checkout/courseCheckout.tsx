@@ -12,6 +12,7 @@
  *  6. On success, callback page checks sl_checkout_queue and re-routes here if needed
  */
 import React, { useState } from 'react';
+import { fallbackTo } from '../../../core/common/imageFallback';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
@@ -224,7 +225,7 @@ const CourseCheckout = () => {
                         }}>
                           <div style={{ flexShrink: 0, width: 72, height: 52, borderRadius: 10, overflow: 'hidden', background: `${GOLD}15` }}>
                             {thumb ? (
-                              <img src={thumb} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={thumb} alt={item.title} onError={fallbackTo()} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <i className="isax isax-book-1" style={{ fontSize: 22, color: GOLD }} />

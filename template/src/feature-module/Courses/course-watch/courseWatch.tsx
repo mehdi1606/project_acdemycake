@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { hideOnError } from '../../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import VideoPlayer from '../../../components/VideoPlayer';
@@ -8,7 +9,7 @@ import {
   Assignment, Course, CourseLesson, CourseModule,
   LessonDetail, LessonResource, Quiz, QuizAttempt,
 } from '../../../services/api/types';
-import { assignmentService } from '../../../services/api/assignment.service';
+import { assignmentService, localizeAssignment } from '../../../services/api/assignment.service';
 import { all_routes } from '../../router/all_routes';
 import { getFileUrl } from '../../../environment';
 import { useAppSelector } from '../../../core/redux/hooks';
@@ -952,16 +953,17 @@ const CourseWatch: React.FC = () => {
                         )}
                         {assignments.map(a => {
                           const due = a.dueDate ? new Date(a.dueDate) : null;
+                          const text = localizeAssignment(a, i18n.language);
                           const overdue = due ? new Date() > new Date(due.getFullYear(), due.getMonth(), due.getDate(), 23, 59, 59) : false;
                           return (
                             <div key={a.id} style={{ ...panelStyle, padding:18 }}>
                               <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
                                 <div style={{ flex:1, minWidth:200 }}>
-                                  <h6 style={{ margin:'0 0 6px', fontFamily:"'Playfair Display',Georgia,serif", fontSize:15, fontWeight:800, color:'#2C1810' }}>
-                                    {a.title}
+                                  <h6 style={{ margin:'0 0 6px', fontFamily:"'Playfair Display',Georgia,serif", fontSize:15, fontWeight:800, color:'#2C1810' }} dir="auto">
+                                    {text.title}
                                   </h6>
-                                  {a.description && (
-                                    <p style={{ margin:'0 0 8px', fontSize:13, color:'#4b5563', lineHeight:1.6 }}>{a.description}</p>
+                                  {text.description && (
+                                    <p dir="auto" style={{ margin:'0 0 8px', fontSize:13, color:'#4b5563', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{text.description}</p>
                                   )}
                                   <div style={{ display:'flex', gap:14, flexWrap:'wrap', fontSize:12, color:'#7A6060' }}>
                                     <span>
@@ -1096,7 +1098,7 @@ const CourseWatch: React.FC = () => {
                                     {/* Content */}
                                     {v.type==='image' && (
                                       <div style={{ background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', minHeight:280, padding:16 }}>
-                                        <img src={v.url} alt={res.name} style={{ maxWidth:'100%', maxHeight:520, borderRadius:8, objectFit:'contain' }} />
+                                        <img src={v.url} alt={res.name} onError={hideOnError} style={{ maxWidth:'100%', maxHeight:520, borderRadius:8, objectFit:'contain' }} />
                                       </div>
                                     )}
                                     {v.type==='pdf' && (

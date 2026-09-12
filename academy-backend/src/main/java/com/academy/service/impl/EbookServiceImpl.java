@@ -83,7 +83,7 @@ public class EbookServiceImpl implements EbookService {
                 .stream()
                 .map(p -> {
                     EbookResponse r = EbookResponse.fromEntity(p.getEbook());
-                    r.setCoverUrl(fileStorageService.getFileUrl(p.getEbook().getCoverUrl()));
+                    r.setCoverUrl(resolveCover(p.getEbook().getCoverUrl()));
                     r.setIsOwned(true);
                     r.setPurchasedAt(p.getPurchasedAt());
                     return r;
@@ -177,9 +177,16 @@ public class EbookServiceImpl implements EbookService {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    /** Absolute URLs and frontend asset paths ("/assets/...") pass through; uploads get /files/. */
+    private String resolveCover(String cover) {
+        if (cover == null || cover.isBlank()) return null;
+        if (cover.startsWith("/") || cover.startsWith("http")) return cover;
+        return fileStorageService.getFileUrl(cover);
+    }
+
     private EbookResponse decorate(Ebook e, User user) {
         EbookResponse r = EbookResponse.fromEntity(e);
-        r.setCoverUrl(fileStorageService.getFileUrl(e.getCoverUrl()));
+        r.setCoverUrl(resolveCover(e.getCoverUrl()));
         if (user != null) {
             purchaseRepository.findByUserAndEbook(user, e).ifPresent(p -> {
                 r.setIsOwned(true);

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { hideOnError } from '../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Modal, Spin } from 'antd';
@@ -490,7 +491,7 @@ const CommunityPostDetail: React.FC = () => {
             {post.images && post.images.length > 0 && (
               <div className="d-flex flex-wrap gap-2 mt-3">
                 {post.images.map((img, i) => (
-                  <img key={i} src={getFileUrl(img) ?? img} alt={`attachment-${i}`}
+                  <img key={i} src={getFileUrl(img) ?? img} alt={`attachment-${i}`} onError={hideOnError}
                     style={{ maxHeight: 200, borderRadius: 8, objectFit: 'cover' }} />
                 ))}
               </div>
@@ -773,6 +774,7 @@ const CommunityPostDetail: React.FC = () => {
                         ) : (
                           <img
                             src={url}
+                            onError={hideOnError}
                             alt="achievement"
                             style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8, objectFit: 'contain', display: 'block', marginTop: comment.achievementText ? 8 : 0 }}
                           />
@@ -910,7 +912,7 @@ const CommunityPostDetail: React.FC = () => {
                 style={{ display: 'none' }} onChange={handleEditImageSelect} />
               {editImageUrl ? (
                 <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <img src={getFileUrl(editImageUrl) ?? editImageUrl} alt="preview"
+                  <img src={getFileUrl(editImageUrl) ?? editImageUrl} alt="preview" onError={hideOnError}
                     style={{ maxHeight: 160, maxWidth: '100%', borderRadius: 10, objectFit: 'cover', border: '1.5px solid rgba(101,28,50,0.15)' }} />
                   <button type="button" onClick={() => setEditImageUrl(null)}
                     style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>

@@ -97,6 +97,9 @@ public class AssignmentServiceImpl implements AssignmentService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .instructions(request.getInstructions())
+                .titleAr(blankToNull(request.getTitleAr()))
+                .descriptionAr(blankToNull(request.getDescriptionAr()))
+                .instructionsAr(blankToNull(request.getInstructionsAr()))
                 .dueDate(request.getDueDate())
                 .totalMark(request.getTotalMark() != null ? request.getTotalMark() : 100)
                 .status(request.getStatus() != null ? request.getStatus() : AssignmentStatus.DRAFT)
@@ -129,6 +132,10 @@ public class AssignmentServiceImpl implements AssignmentService {
         if (request.getTitle() != null) assignment.setTitle(request.getTitle());
         if (request.getDescription() != null) assignment.setDescription(request.getDescription());
         if (request.getInstructions() != null) assignment.setInstructions(request.getInstructions());
+        // An empty string clears a translation; null means "not sent" and leaves it unchanged.
+        if (request.getTitleAr() != null) assignment.setTitleAr(blankToNull(request.getTitleAr()));
+        if (request.getDescriptionAr() != null) assignment.setDescriptionAr(blankToNull(request.getDescriptionAr()));
+        if (request.getInstructionsAr() != null) assignment.setInstructionsAr(blankToNull(request.getInstructionsAr()));
         if (request.getDueDate() != null) assignment.setDueDate(request.getDueDate());
         if (request.getTotalMark() != null) assignment.setTotalMark(request.getTotalMark());
         if (request.getStatus() != null) assignment.setStatus(request.getStatus());
@@ -295,6 +302,10 @@ public class AssignmentServiceImpl implements AssignmentService {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /** Attach the current student's submission state so the course player can show it. */
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
     private AssignmentResponse withMySubmission(Assignment assignment, User student) {
         AssignmentResponse response = AssignmentResponse.fromEntity(assignment);
         assignmentSubmissionRepository.findByAssignmentAndStudent(assignment, student).ifPresentOrElse(s -> {

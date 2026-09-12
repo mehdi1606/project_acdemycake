@@ -133,6 +133,9 @@ export interface Assignment {
   title: string;
   description?: string;
   instructions?: string;
+  titleAr?: string;
+  descriptionAr?: string;
+  instructionsAr?: string;
   dueDate?: string;
   totalMark: number;
   status: AssignmentStatus;

@@ -99,3 +99,19 @@ class AssignmentService {
 }
 
 export const assignmentService = new AssignmentService();
+
+type LocalizableAssignment = Pick<Assignment, 'title' | 'titleAr' | 'description' | 'descriptionAr' | 'instructions' | 'instructionsAr'>;
+
+/**
+ * Assignment text in the viewer's UI language (Arabic or English).
+ * An empty translation falls back to the other language, so a student never sees a blank.
+ */
+export const localizeAssignment = (a: LocalizableAssignment, lang?: string) => {
+  const ar = (lang || '').toLowerCase().startsWith('ar');
+  const pick = (en?: string, arabic?: string) => (ar ? (arabic || en) : (en || arabic)) || '';
+  return {
+    title: pick(a.title, a.titleAr),
+    description: pick(a.description, a.descriptionAr),
+    instructions: pick(a.instructions, a.instructionsAr),
+  };
+};

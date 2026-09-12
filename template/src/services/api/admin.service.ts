@@ -125,8 +125,9 @@ class AdminService {
 
   // Create user (admin) — generates password and sends credentials email
   async createUser(data: { fullName: string; email: string; role: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' }): Promise<AdminUser> {
-    const response = await api.post<{ data: AdminUser; message: string }>('/admin/users', data);
-    return response.data.data;
+    // The axios interceptor already unwraps ApiResponse, so response.data is the user.
+    const response = await api.post<AdminUser>('/admin/users', data);
+    return response.data;
   }
 
   // Delete user

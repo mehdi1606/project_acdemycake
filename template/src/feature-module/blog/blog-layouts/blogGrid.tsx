@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { hideOnError } from '../../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
@@ -325,6 +326,7 @@ const PostModal: React.FC<{
                       >
                         <img
                           src={getFileUrl(img) ?? img}
+                          onError={hideOnError}
                           alt={`thumb-${i}`}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
@@ -633,6 +635,7 @@ const PostCard: React.FC<{
         <div style={{ position: 'relative', overflow: 'hidden', height: 200, flexShrink: 0 }}>
           <img
             src={getFileUrl(images[0]) ?? images[0]}
+            onError={hideOnError}
             alt={post.title}
             style={{ width: '100%', height: '100%', objectFit: 'cover',
               transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94)',

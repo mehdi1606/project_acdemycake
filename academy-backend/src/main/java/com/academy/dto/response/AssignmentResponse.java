@@ -23,6 +23,9 @@ public class AssignmentResponse {
     private String title;
     private String description;
     private String instructions;
+    private String titleAr;
+    private String descriptionAr;
+    private String instructionsAr;
     private LocalDate dueDate;
     private Integer totalMark;
     private AssignmentStatus status;
@@ -41,6 +44,9 @@ public class AssignmentResponse {
                 .title(assignment.getTitle())
                 .description(assignment.getDescription())
                 .instructions(assignment.getInstructions())
+                .titleAr(assignment.getTitleAr())
+                .descriptionAr(assignment.getDescriptionAr())
+                .instructionsAr(assignment.getInstructionsAr())
                 .dueDate(assignment.getDueDate())
                 .totalMark(assignment.getTotalMark())
                 .status(assignment.getStatus())

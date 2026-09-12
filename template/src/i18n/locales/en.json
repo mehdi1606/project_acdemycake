@@ -650,7 +650,8 @@
       "fileTooLarge": "File too large (max 10MB)",
       "backToCourse": "Back to course",
       "submittedBackToCourse": "Assignment submitted — you can continue the course.",
-      "certificateNote": "Your course certificate is issued once this assignment has been marked."
+      "certificateNote": "Your course certificate is issued once this assignment has been marked.",
+      "instructionsLabel": "Instructions"
     },
     "tickets": {
       "title": "Support Tickets",

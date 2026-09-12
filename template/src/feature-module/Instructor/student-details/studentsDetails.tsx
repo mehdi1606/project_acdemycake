@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { fallbackTo } from '../../../core/common/imageFallback';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams, Link } from 'react-router-dom'
@@ -163,6 +164,7 @@ const StudentsDetails = () => {
                               {course.courseThumbnail && (
                                 <img
                                   src={getFileUrl(course.courseThumbnail) ?? course.courseThumbnail}
+                                  onError={fallbackTo()}
                                   alt={course.courseTitle}
                                   className="card-img-top"
                                   style={{ height: 120, objectFit: 'cover' }}

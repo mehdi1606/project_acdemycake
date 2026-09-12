@@ -773,7 +773,8 @@
       "fileTooLarge": "الملف كبير جداً (بحد أقصى 10 ميغابايت)",
       "backToCourse": "العودة إلى الدورة",
       "submittedBackToCourse": "تم تسليم الواجب — يمكنك متابعة الدورة.",
-      "certificateNote": "تصدر شهادة الدورة بعد تقييم هذا الواجب."
+      "certificateNote": "تصدر شهادة الدورة بعد تقييم هذا الواجب.",
+      "instructionsLabel": "التعليمات"
     },
     "tickets": {
       "title": "تذاكر الدعم",

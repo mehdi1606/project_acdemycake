@@ -1,4 +1,5 @@
 import React from 'react';
+import { fallbackTo } from '../../../core/common/imageFallback';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
@@ -234,6 +235,7 @@ const CourseCart = () => {
                         {thumb ? (
                           <img
                             src={thumb}
+                            onError={fallbackTo()}
                             alt={item.title}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                           />

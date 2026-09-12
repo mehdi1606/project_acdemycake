@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { COURSE_PLACEHOLDER, fallbackTo } from '../../../core/common/imageFallback';
 import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import ReactApexChart from 'react-apexcharts';
@@ -227,7 +228,8 @@ const AdminDashboard = () => {
                             <td>
                               <div className="d-flex align-items-center gap-2">
                                 <img
-                                  src={item.course?.thumbnailUrl ? (getFileUrl(item.course.thumbnailUrl) ?? item.course.thumbnailUrl) : 'assets/img/course/course-01.jpg'}
+                                  src={item.course?.thumbnailUrl ? (getFileUrl(item.course.thumbnailUrl) ?? item.course.thumbnailUrl) : COURSE_PLACEHOLDER}
+                                  onError={fallbackTo()}
                                   alt=""
                                   style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                                 />

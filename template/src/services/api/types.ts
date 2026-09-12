@@ -753,6 +753,10 @@ export interface Assignment {
   title: string;
   description?: string;
   instructions?: string;
+  /** Arabic version; the plain fields hold the English (default) text. */
+  titleAr?: string;
+  descriptionAr?: string;
+  instructionsAr?: string;
   dueDate?: string;
   totalMark: number;
   status: AssignmentStatus;
@@ -768,6 +772,9 @@ export interface CreateAssignmentRequest {
   title: string;
   description?: string;
   instructions?: string;
+  titleAr?: string;
+  descriptionAr?: string;
+  instructionsAr?: string;
   dueDate?: string;
   totalMark?: number;
   status?: AssignmentStatus;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
-import { assignmentService } from '../../../services/api/assignment.service';
+import { assignmentService, localizeAssignment } from '../../../services/api/assignment.service';
 import { Assignment, Submission, SubmitAssignmentRequest } from '../../../services/api/types';
 import { extractApiError } from '../../../services/api/error.utils';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -26,7 +26,7 @@ const gradeColor = (grade: number, total: number) => {
 };
 
 const StudentAssignment = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // Deep link from the course player: ?assignment=<id>&course=<courseSlug>
@@ -210,7 +210,7 @@ const StudentAssignment = () => {
                 <div key={a.id} style={{ background: 'var(--lx-card)', border: '1px solid var(--lx-border)', borderRadius: 'var(--lx-radius)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lx-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</span>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lx-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} dir="auto">{localizeAssignment(a, i18n.language).title}</span>
                       <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: `${statusColor[a.status]}18`, color: statusColor[a.status] }}>{a.status}</span>
                     </div>
                     {a.courseTitle && <div style={{ fontSize: 12, color: 'var(--lx-text-light)', marginBottom: 4 }}>{a.courseTitle}</div>}
@@ -246,6 +246,8 @@ const StudentAssignment = () => {
   }
 
   // ── Submit / Result ────────────────────────────────────────────────────────
+  const loc = selected ? localizeAssignment(selected, i18n.language) : null;
+
   return (
     <LuxuryDashboardLayout>
       {/* Back */}
@@ -259,13 +261,13 @@ const StudentAssignment = () => {
 
       {selected && (
         <div style={{ background: 'var(--lx-card)', border: '1px solid var(--lx-border)', borderRadius: 'var(--lx-radius)', padding: '20px 24px', marginBottom: 24 }}>
-          <h5 style={{ margin: '0 0 8px', fontWeight: 700 }}>{selected.title}</h5>
+          <h5 dir="auto" style={{ margin: '0 0 8px', fontWeight: 700 }}>{loc?.title}</h5>
           {selected.courseTitle && <p style={{ margin: '0 0 8px', fontSize: 13, color: 'var(--lx-text-light)' }}>{selected.courseTitle}</p>}
-          {selected.description && <p style={{ margin: '0 0 8px', fontSize: 14 }}>{selected.description}</p>}
-          {selected.instructions && (
+          {loc?.description && <p dir="auto" style={{ margin: '0 0 8px', fontSize: 14, whiteSpace: 'pre-wrap' }}>{loc.description}</p>}
+          {loc?.instructions && (
             <div style={{ background: 'var(--lx-bg)', borderRadius: 8, padding: '12px 16px', fontSize: 13, marginTop: 12 }}>
-              <strong>Instructions:</strong>
-              <p style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{selected.instructions}</p>
+              <strong>{t('student.assignments.instructionsLabel', 'Instructions')}:</strong>
+              <p dir="auto" style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{loc.instructions}</p>
             </div>
           )}
           <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 13, color: 'var(--lx-text-light)' }}>
