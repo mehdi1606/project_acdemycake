@@ -42,6 +42,12 @@ public class StudentAssignmentController {
         return ResponseEntity.ok(ApiResponse.success(assignmentService.getStudentAssignmentsForCourse(courseId)));
     }
 
+    @GetMapping("/{assignmentId}")
+    @Operation(summary = "Get one published assignment of an enrolled course")
+    public ResponseEntity<ApiResponse<AssignmentResponse>> getAssignment(@PathVariable UUID assignmentId) {
+        return ResponseEntity.ok(ApiResponse.success(assignmentService.getStudentAssignmentById(assignmentId)));
+    }
+
     @PostMapping("/upload")
     @Operation(summary = "Upload an attachment for an assignment submission")
     public ResponseEntity<ApiResponse<String>> uploadSubmissionFile(@RequestParam("file") MultipartFile file) {

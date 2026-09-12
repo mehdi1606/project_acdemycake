@@ -89,6 +89,8 @@ const CourseWatch: React.FC = () => {
   const [markingDone,     setMarkingDone]     = useState(false);
   const [activeTab,       setActiveTab]       = useState<'overview'|'resources'|'assignments'>('overview');
   const [assignments,     setAssignments]     = useState<Assignment[]>([]);
+  /** Lessons can be finished, but the certificate waits until every assignment has a mark. */
+  const certPendingMark = assignments.some(a => a.mySubmissionStatus !== 'GRADED');
   const [courseComplete,  setCourseComplete]  = useState(false);
   const [showCertModal,   setShowCertModal]   = useState(false);
   const certShownRef       = useRef(false);   // popup shown once per session
@@ -566,7 +568,11 @@ const CourseWatch: React.FC = () => {
               <i className="fa-solid fa-trophy" style={{ color:GOLD, fontSize:18 }} />
               <div>
                 <p style={{ margin:0, fontWeight:800, fontSize:12, color:'#4ADE80' }}>{t('courseWatch.courseComplete', 'Course Complete!')}</p>
-                <p style={{ margin:0, fontSize:10, color:'rgba(74,222,128,0.65)' }}>{t('courseWatch.certificateGenerated', 'Certificate generated')}</p>
+                <p style={{ margin:0, fontSize:10, color: certPendingMark ? '#DEBB6B' : 'rgba(74,222,128,0.65)' }}>
+                  {certPendingMark
+                    ? t('courseWatch.certPendingBanner', 'Certificate after your assignment is marked')
+                    : t('courseWatch.certificateGenerated', 'Certificate generated')}
+                </p>
               </div>
             </div>
           )}
@@ -938,6 +944,12 @@ const CourseWatch: React.FC = () => {
                       </div>
                     ) : (
                       <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                        {certPendingMark && (
+                          <div style={{ ...panelStyle, padding:'12px 16px', display:'flex', alignItems:'center', gap:10, background:'rgba(197,151,62,0.08)', border:'1px solid rgba(197,151,62,0.25)', color:'#8a6516', fontSize:13, fontWeight:600 }}>
+                            <i className="fa-solid fa-award" style={{ color:GOLD, fontSize:16 }} />
+                            {t('courseWatch.certNeedsMark', 'Your certificate is issued once your assignment has been marked.')}
+                          </div>
+                        )}
                         {assignments.map(a => {
                           const due = a.dueDate ? new Date(a.dueDate) : null;
                           const overdue = due ? new Date() > new Date(due.getFullYear(), due.getMonth(), due.getDate(), 23, 59, 59) : false;
@@ -960,20 +972,38 @@ const CourseWatch: React.FC = () => {
                                       <i className="fa-solid fa-star" style={{ marginInlineEnd:5, color:GOLD }} />
                                       {a.totalMark} {t('courseWatch.marks', 'marks')}
                                     </span>
-                                    {overdue && (
+                                    {overdue && (a.mySubmissionStatus ?? 'NONE') === 'NONE' && (
                                       <span style={{ color:'#dc2626', fontWeight:700 }}>{t('courseWatch.overdue', 'Past due')}</span>
+                                    )}
+                                    {a.mySubmissionStatus === 'GRADED' ? (
+                                      <span style={{ color:'#16a34a', fontWeight:700 }}>
+                                        <i className="fa-solid fa-circle-check" style={{ marginInlineEnd:5 }} />
+                                        {t('courseWatch.statusGraded', 'Mark: {{grade}}/{{total}}', { grade: a.myGrade ?? 0, total: a.totalMark })}
+                                      </span>
+                                    ) : a.mySubmissionStatus === 'SUBMITTED' ? (
+                                      <span style={{ color:'#d97706', fontWeight:700 }}>
+                                        <i className="fa-regular fa-clock" style={{ marginInlineEnd:5 }} />
+                                        {t('courseWatch.statusAwaitingGrade', 'Awaiting mark')}
+                                      </span>
+                                    ) : (
+                                      <span style={{ color:'#7A6060', fontWeight:700 }}>
+                                        <i className="fa-regular fa-circle" style={{ marginInlineEnd:5 }} />
+                                        {t('courseWatch.statusNotSubmitted', 'Not submitted')}
+                                      </span>
                                     )}
                                   </div>
                                 </div>
                                 <Link
-                                  to={routes.studentAssignments}
+                                  to={`${routes.studentAssignments}?assignment=${a.id}&course=${encodeURIComponent(courseSlug ?? '')}`}
                                   style={{
                                     padding:'8px 18px', borderRadius:8, textDecoration:'none',
                                     background:`linear-gradient(135deg,${BURG},${BURG_D})`, color:WHITE,
                                     fontSize:12.5, fontWeight:700, whiteSpace:'nowrap',
                                   }}
                                 >
-                                  {t('courseWatch.openAssignment', 'Open & Submit')}
+                                  {(a.mySubmissionStatus ?? 'NONE') === 'NONE'
+                                    ? t('courseWatch.openAssignment', 'Open & Submit')
+                                    : t('courseWatch.viewSubmission', 'View submission')}
                                 </Link>
                               </div>
                             </div>
@@ -1316,10 +1346,12 @@ const CourseWatch: React.FC = () => {
             <div style={{ width:84, height:84, borderRadius:'50%', margin:'0 auto 18px', display:'flex', alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', boxShadow:'0 12px 30px rgba(45,95,63,0.32)' }}>
               <i className="fa-solid fa-trophy" style={{ fontSize:38, color:WHITE }} />
             </div>
-            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:800, color:BURG_D, margin:'0 0 8px' }}>{t('courseWatch.certReadyTitle', 'Congratulations! 🎉')}</h3>
-            <p style={{ color:'#7A6060', fontSize:14, lineHeight:1.7, margin:'0 0 24px' }}>{t('courseWatch.certReadyText', "You've completed the course — your certificate is ready.")}</p>
-            <button onClick={() => { setShowCertModal(false); navigate(routes.studentCertificates); }} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'13px 30px', borderRadius:12, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:15, boxShadow:'0 6px 20px rgba(197,151,62,0.3)' }}>
-              <i className="fa-solid fa-award" />{t('courseWatch.getCertificate', 'Get Your Certificate')}
+            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:800, color:BURG_D, margin:'0 0 8px' }}>{certPendingMark ? t('courseWatch.lessonsCompleteTitle', 'Lessons complete! 🎉') : t('courseWatch.certReadyTitle', 'Congratulations! 🎉')}</h3>
+            <p style={{ color:'#7A6060', fontSize:14, lineHeight:1.7, margin:'0 0 24px' }}>{certPendingMark
+              ? t('courseWatch.certPendingText', 'You finished all the lessons. Submit your assignment — your certificate is issued as soon as the instructor marks it.')
+              : t('courseWatch.certReadyText', "You've completed the course — your certificate is ready.")}</p>
+            <button onClick={() => { setShowCertModal(false); if (certPendingMark) setActiveTab('assignments'); else navigate(routes.studentCertificates); }} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'13px 30px', borderRadius:12, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:15, boxShadow:'0 6px 20px rgba(197,151,62,0.3)' }}>
+              <i className="fa-solid fa-award" />{certPendingMark ? t('courseWatch.goToAssignments', 'Go to assignments') : t('courseWatch.getCertificate', 'Get Your Certificate')}
             </button>
             <button onClick={() => setShowCertModal(false)} style={{ marginTop:8, width:'100%', padding:'10px', borderRadius:10, border:'none', background:'transparent', color:'#9A8080', fontWeight:600, fontSize:13, cursor:'pointer' }}>{t('courseWatch.maybeLater', 'Maybe later')}</button>
           </div>

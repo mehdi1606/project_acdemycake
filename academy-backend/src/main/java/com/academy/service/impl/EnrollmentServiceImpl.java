@@ -375,8 +375,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     enrollment.getUser().getEmail(),
                     enrollment.getCourse().getTitle());
         } catch (Exception e) {
-            log.error("Failed to auto-generate certificate for user: {} course: {}",
-                    enrollment.getUser().getEmail(), enrollment.getCourse().getTitle(), e);
+            // Expected while assignments are still unmarked — issued later, when graded.
+            log.warn("Certificate not issued yet for user: {} course: {} — reason: {}",
+                    enrollment.getUser().getEmail(), enrollment.getCourse().getTitle(), e.getMessage());
         }
     }
 

@@ -1,149 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
+import CourseCard from '../../../components/CourseCard';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { App } from 'antd';
 import { courseService } from '../../../services/api/course.service';
 import { CourseCategory as CourseCategoryType, Course } from '../../../services/api/types';
-import { getFileUrl } from '../../../environment';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { addToCart } from '../../../core/redux/cartSlice';
 import SubscriptionGate from '../../common/SubscriptionGate';
-import BadgeAvatar from '../../../components/BadgeAvatar';
-import { getBadgeFromRole } from '../../../config/badges';
-import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
-
-// ── Stars ─────────────────────────────────────────────────────────────────────
-const Stars: React.FC<{ rating: number }> = ({ rating }) => (
-  <>
-    {Array.from({ length: 5 }, (_, i) => (
-      <i key={i} className="fa-solid fa-star" style={{
-        color: i < Math.floor(rating) ? 'var(--sl-gold)' : 'rgba(197,145,44,0.22)',
-        fontSize: '0.65rem',
-      }} />
-    ))}
-  </>
-);
-
-// ── Course card (grid style matching home featured-course) ────────────────────
-const CourseCard: React.FC<{
-  course: Course;
-  inCart: boolean;
-  onCart: (c: Course) => void;
-  index: number;
-}> = ({ course, inCart, onCart, index }) => {
-  const { t, i18n } = useTranslation();
-  const route  = all_routes;
-  const localCourse = useLocalizedCourse(course, i18n.language);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = cardRef.current; if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top)  / rect.height - 0.5;
-    el.style.transition = 'transform 0.1s linear';
-    el.style.transform  = `perspective(900px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg) scale(1.03)`;
-  };
-  const handleMouseLeave = () => {
-    const el = cardRef.current; if (!el) return;
-    el.style.transition = 'transform 0.65s cubic-bezier(0.25,0.46,0.45,0.94)';
-    el.style.transform  = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
-  };
-
-  const thumb  = getFileUrl(course.thumbnailUrl) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
-  const avatar = getFileUrl(course.instructor?.avatarUrl) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
-
-  return (
-    <div
-      ref={cardRef}
-      className="sl-course-card sl-tilt-wrap"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      data-aos="fade-up"
-      data-aos-delay={String(index * 60)}
-      data-aos-duration="700"
-      style={{ position: 'relative' }}
-    >
-      {/* Image */}
-      <div className="sl-course-card__img">
-        <img src={thumb} alt={localCourse.title}
-          onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }} />
-        <div className="sl-course-card__img-overlay" />
-        <div className="sl-course-card__badge">{course.category ? getLocalizedCategory(course.category, i18n.language).name : 'Pastry Arts'}</div>
-        {course.isEnrolled && (
-          <span style={{
-            position: 'absolute', top: '0.75rem', right: '0.75rem',
-            background: 'rgba(29,60,52,0.9)', color: 'var(--sl-gold)',
-            fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
-            textTransform: 'uppercase', padding: '0.3rem 0.6rem', zIndex: 2,
-          }}>
-            <i className="fa-solid fa-check me-1" />{t('courseList.enrolled', 'Enrolled')}
-          </span>
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="sl-course-card__body">
-        <div className="sl-course-card__meta">
-          <Link to={`${route.instructorDetails}/${course.instructor?.id}`} className="sl-course-card__instructor">
-            <BadgeAvatar
-              avatarUrl={avatar}
-              name={course.instructor?.fullName}
-              badge={getBadgeFromRole('INSTRUCTOR')}
-              size="sm"
-            />
-            <span>{course.instructor?.fullName || 'Instructor'}</span>
-          </Link>
-          <span className="sl-course-card__category">{course.level?.replace('_', ' ') || 'All Levels'}</span>
-        </div>
-
-        <div className="sl-course-card__title">
-          <Link to={`${route.courseDetails}/${course.slug}`}>{localCourse.title}</Link>
-        </div>
-
-        <div className="sl-course-card__rating">
-          <span className="stars"><Stars rating={course.ratingAverage ?? 0} /></span>
-          <span>{(course.ratingAverage ?? 0).toFixed(1)}</span>
-          <span style={{ opacity: 0.5 }}>· {course.enrolledCount ?? 0} {t('common.students', 'students')}</span>
-        </div>
-
-        <div className="sl-course-card__footer">
-          <span className="sl-course-card__price">
-            {course.isEnrolled ? (
-              <span style={{ color: 'var(--sl-sage)', fontWeight: 700 }}>
-                <i className="fa-solid fa-check-circle me-1" />{t('courseList.owned', 'Owned')}
-              </span>
-            ) : !course.requiresPurchase ? t('courseList.free', 'Free') : `$${course.price ?? 0}`}
-          </span>
-          {course.isEnrolled ? (
-            <Link to={`${route.courseWatch}/${course.slug}`} className="sl-course-card__cta sl-btn-magnetic">
-              {t('courseList.continue', 'Continue')} <i className="isax isax-arrow-right-1" />
-            </Link>
-          ) : course.requiresPurchase ? (
-            <button
-              className="sl-course-card__cta sl-btn-magnetic"
-              onClick={() => onCart(course)}
-              style={{
-                background: inCart ? 'var(--sl-forest)' : 'var(--sl-burgundy)',
-                color: 'var(--sl-blush)', border: 'none', cursor: 'pointer',
-              }}
-            >
-              {inCart ? <><i className="fa-solid fa-check me-1" />{t('courseDetails.inCart', 'In Cart')}</> : t('courseDetails.addToCart', 'Add to Cart')}
-            </button>
-          ) : (
-            <Link to={`${route.courseDetails}/${course.slug}`} className="sl-course-card__cta sl-btn-magnetic">
-              {t('courseDetails.enrollFree', 'Enrol Free')} <i className="isax isax-arrow-right-1" />
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 const SkeletonCard: React.FC = () => (

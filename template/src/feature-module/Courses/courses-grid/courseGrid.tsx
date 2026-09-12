@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AOS from 'aos';
@@ -6,15 +6,12 @@ import 'aos/dist/aos.css';
 import { Slider, App } from 'antd';
 import type { SliderSingleProps } from 'antd';
 import { all_routes } from '../../router/all_routes';
+import CourseCard from '../../../components/CourseCard';
 import { courseService } from '../../../services/api/course.service';
 import { Course, CourseCategory, CourseLevel } from '../../../services/api/types';
 import { useAppSelector } from '../../../core/redux/hooks';
-import { getFileUrl } from '../../../environment';
 import SubscriptionGate from '../../common/SubscriptionGate';
-import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
-import BadgeAvatar from '../../../components/BadgeAvatar';
-import { getBadgeFromRole } from '../../../config/badges';
 
 const SORT_OPTIONS = (t: (key: string, fallback: string) => string) => [
   { label: t('courseList.newlyPublished', 'Newly Published'),   value: 'newest' },
@@ -30,284 +27,6 @@ const LEVELS_DATA: { value: CourseLevel; labelKey: string; labelFallback: string
   { value: 'ADVANCED',     labelKey: 'courseList.advanced',     labelFallback: 'Advanced' },
   { value: 'ALL_LEVELS',   labelKey: 'courseList.allLevels',    labelFallback: 'All Levels' },
 ];
-
-// ── Stars ─────────────────────────────────────────────────────────────────────
-const Stars: React.FC<{ rating: number }> = ({ rating }) => (
-  <>
-    {Array.from({ length: 5 }, (_, i) => (
-      <i
-        key={i}
-        className="fa-solid fa-star"
-        style={{ color: i < Math.floor(rating) ? 'var(--sl-gold)' : 'rgba(197,145,44,0.22)', fontSize: '0.6rem' }}
-      />
-    ))}
-  </>
-);
-
-// ── Grid Card ─────────────────────────────────────────────────────────────────
-interface CourseGridCardProps {
-  course: Course;
-  inWishlist: boolean;
-  isLoadingWishlist: boolean;
-  onWishlist: (id: string) => void;
-  getLevelDisplay: (level: CourseLevel) => string;
-  index: number;
-}
-
-const CourseGridCard: React.FC<CourseGridCardProps> = ({
-  course, inWishlist, isLoadingWishlist, onWishlist, getLevelDisplay, index,
-}) => {
-  const { t, i18n } = useTranslation();
-  const route  = all_routes;
-  const cardRef = useRef<HTMLDivElement>(null);
-  const localCourse = useLocalizedCourse(course, i18n.language);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const el = cardRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.transition = 'transform 0.12s linear';
-    el.style.transform = `perspective(1000px) rotateX(${-y * 4}deg) rotateY(${x * 6}deg) scale(1.02)`;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    el.style.transition = 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)';
-    el.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
-  }, []);
-
-  const thumb  = course.thumbnailUrl
-    ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl)
-    : `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
-
-  const avatar = course.instructor?.avatarUrl
-    ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl)
-    : `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
-
-  return (
-    <div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      data-aos="fade-up"
-      data-aos-delay={String(index * 60)}
-      data-aos-duration="700"
-      style={{
-        background: '#fff',
-        borderRadius: 14,
-        overflow: 'hidden',
-        boxShadow: '0 2px 16px rgba(78,20,32,0.07)',
-        border: '1px solid rgba(197,145,44,0.1)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        transition: 'box-shadow 0.3s ease',
-      }}
-      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(78,20,32,0.14)'; }}
-    >
-      {/* Thumbnail */}
-      <Link
-        to={`${route.courseDetails}/${course.slug}`}
-        style={{ position: 'relative', display: 'block', overflow: 'hidden', flexShrink: 0 }}
-      >
-        <img
-          src={thumb}
-          alt={localCourse.title}
-          onError={e => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }}
-          style={{
-            width: '100%', height: 190, objectFit: 'cover',
-            transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)',
-          }}
-          onMouseEnter={e => { (e.target as HTMLImageElement).style.transform = 'scale(1.06)'; }}
-          onMouseLeave={e => { (e.target as HTMLImageElement).style.transform = 'scale(1)'; }}
-        />
-        {/* Overlay gradient */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(78,20,32,0.5) 0%, transparent 55%)',
-          pointerEvents: 'none',
-        }} />
-
-        {/* Category badge */}
-        <span style={{
-          position: 'absolute', top: 12, left: 12,
-          background: 'rgba(78,20,32,0.85)',
-          backdropFilter: 'blur(8px)',
-          color: '#C5912C', fontSize: '0.6rem', fontWeight: 700,
-          letterSpacing: '0.15em', textTransform: 'uppercase',
-          padding: '4px 10px', borderRadius: 20,
-        }}>
-          {course.category ? getLocalizedCategory(course.category, i18n.language).name : 'Pastry Arts'}
-        </span>
-
-        {/* Wishlist button */}
-        <button
-          onClick={e => { e.preventDefault(); e.stopPropagation(); onWishlist(course.id); }}
-          disabled={isLoadingWishlist}
-          style={{
-            position: 'absolute', top: 10, right: 10,
-            width: 32, height: 32, borderRadius: '50%',
-            background: inWishlist ? '#651C32' : 'rgba(255,255,255,0.9)',
-            border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-          }}
-          aria-label={inWishlist ? t('courseList.removeFromWishlist', 'Remove from wishlist') : t('courseList.addToWishlist', 'Add to wishlist')}
-        >
-          <i
-            className={inWishlist ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}
-            style={{ fontSize: 13, color: inWishlist ? '#fff' : '#651C32' }}
-          />
-        </button>
-
-        {/* Premium / Enrolled labels */}
-        {course.requiresPurchase && (
-          <span style={{
-            position: 'absolute', bottom: 10, left: 12,
-            background: 'linear-gradient(135deg, #C5912C 0%, #DEBB6B 100%)',
-            color: '#4E1420', fontSize: '0.58rem', fontWeight: 700,
-            padding: '3px 10px', borderRadius: 20,
-            display: 'flex', alignItems: 'center', gap: 4,
-          }}>
-            <i className="isax isax-crown" style={{ fontSize: 10 }} /> {t('courseList.premium', 'Premium')}
-          </span>
-        )}
-        {course.isEnrolled && (
-          <span style={{
-            position: 'absolute', bottom: 10, left: 12,
-            background: 'rgba(26,127,75,0.9)',
-            color: '#fff', fontSize: '0.58rem', fontWeight: 700,
-            padding: '3px 10px', borderRadius: 20,
-            display: 'flex', alignItems: 'center', gap: 4,
-          }}>
-            <i className="fa-solid fa-check" style={{ fontSize: 9 }} /> {t('courseList.enrolled', 'Enrolled')}
-          </span>
-        )}
-      </Link>
-
-      {/* Card body */}
-      <div style={{ padding: '1rem 1.1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Instructor + Level */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-          <Link
-            to={`${route.instructorDetails}/${course.instructor?.id}`}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              textDecoration: 'none',
-            }}
-          >
-            <BadgeAvatar
-              avatarUrl={avatar}
-              name={course.instructor?.fullName}
-              badge={getBadgeFromRole('INSTRUCTOR')}
-              size="sm"
-            />
-            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(58,30,32,0.65)', fontFamily: 'var(--sl-font-body)' }}>
-              {course.instructor?.fullName || 'Instructor'}
-            </span>
-          </Link>
-          <span style={{
-            fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: '#651C32', background: 'rgba(101,28,50,0.07)',
-            padding: '3px 8px', borderRadius: 10,
-          }}>
-            {getLevelDisplay(course.level)}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3 style={{
-          fontFamily: '"Playfair Display", serif',
-          fontSize: '0.98rem', fontWeight: 600,
-          color: 'var(--sl-burgundy)', lineHeight: 1.45,
-          marginBottom: '0.5rem',
-          display: '-webkit-box', WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical', overflow: 'hidden',
-          flex: 1,
-        }}>
-          <Link to={`${route.courseDetails}/${course.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-            {localCourse.title}
-          </Link>
-        </h3>
-
-        {/* Gold divider */}
-        <div className="sl-gold-bar" style={{ margin: '0.7rem 0' }} />
-
-        {/* Stats */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.85rem' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Stars rating={course.ratingAverage ?? 0} />
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#C5912C', marginLeft: 3 }}>
-              {(course.ratingAverage ?? 0).toFixed(1)}
-            </span>
-            <span style={{ fontSize: '0.65rem', color: 'rgba(58,30,32,0.4)' }}>
-              ({course.ratingCount ?? 0})
-            </span>
-          </span>
-          <span style={{ color: 'rgba(197,145,44,0.4)', fontSize: '0.55rem' }}>✦</span>
-          <span style={{ fontSize: '0.68rem', color: 'rgba(58,30,32,0.5)', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <i className="isax isax-video-play" style={{ fontSize: 12 }} />
-            {course.lessonsCount ?? 0} {t('common.lessons', 'lessons')}
-          </span>
-        </div>
-
-        {/* Price + CTA */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            {course.isEnrolled ? (
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1A7F4B', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <i className="fa-solid fa-check-circle" /> {t('courseList.owned', 'Owned')}
-              </span>
-            ) : !course.requiresPurchase ? (
-              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1A7F4B' }}>{t('courseList.free', 'Free')}</span>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                <span style={{ fontFamily: '"Playfair Display", serif', fontSize: '1.1rem', fontWeight: 800, color: '#4E1420' }}>
-                  ${course.price ?? 0}
-                </span>
-                {course.originalPrice && course.originalPrice > (course.price ?? 0) && (
-                  <del style={{ fontSize: '0.75rem', color: 'rgba(58,30,32,0.35)' }}>${course.originalPrice}</del>
-                )}
-              </div>
-            )}
-          </div>
-
-          {course.isEnrolled ? (
-            <Link
-              to={`${route.courseWatch}/${course.slug}`}
-              style={{
-                padding: '7px 14px', borderRadius: 20, fontSize: '0.72rem',
-                fontWeight: 600, textDecoration: 'none',
-                background: 'linear-gradient(135deg, #C5912C 0%, #DEBB6B 100%)',
-                color: '#4E1420', boxShadow: '0 2px 8px rgba(197,145,44,0.3)',
-                display: 'flex', alignItems: 'center', gap: 4,
-              }}
-            >
-              {t('courseList.continue', 'Continue')} <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
-            </Link>
-          ) : (
-            <Link
-              to={`${route.courseDetails}/${course.slug}`}
-              style={{
-                padding: '7px 14px', borderRadius: 20, fontSize: '0.72rem',
-                fontWeight: 600, textDecoration: 'none',
-                background: 'linear-gradient(135deg, #4E1420 0%, #6B1D2A 100%)',
-                color: '#fff',
-                display: 'flex', alignItems: 'center', gap: 4,
-              }}
-            >
-              {t('courseGrid.view', 'View')} <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 const SkeletonGridCard: React.FC<{ index: number }> = ({ index }) => (
@@ -350,7 +69,7 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
   const toggle = (s: string) =>
     setOpen(p => { const n = new Set(p); if (n.has(s)) n.delete(s); else n.add(s); return n; });
 
-  const priceFormatter: NonNullable<SliderSingleProps['tooltip']>['formatter'] = v => `$${v}`;
+  const priceFormatter: NonNullable<SliderSingleProps['tooltip']>['formatter'] = v => `${v} MAD`;
 
   return (
     <aside className="sl-cl-sidebar" data-aos="fade-right" data-aos-duration="700">
@@ -413,8 +132,8 @@ const SidebarFilter: React.FC<SidebarFilterProps> = ({
               className="sl-cl-price-slider"
             />
             <div className="sl-cl-price-labels">
-              <span>{priceRange[0] === 0 ? t('courseList.free', 'Free') : `$${priceRange[0]}`}</span>
-              <span>{priceRange[1] >= 500 ? '$500+' : `$${priceRange[1]}`}</span>
+              <span>{priceRange[0] === 0 ? t('courseList.free', 'Free') : `${priceRange[0]} MAD`}</span>
+              <span>{priceRange[1] >= 500 ? '500+ MAD' : `${priceRange[1]} MAD`}</span>
             </div>
           </div>
         )}
@@ -718,7 +437,7 @@ const CourseGrid: React.FC = () => {
                     )}
                     {(priceRange[0] > 0 || priceRange[1] < 500) && (
                       <span className="sl-cl-chip">
-                        ${priceRange[0]}–{priceRange[1] >= 500 ? '500+' : `$${priceRange[1]}`}
+                        {priceRange[0]}–{priceRange[1] >= 500 ? '500+' : priceRange[1]} MAD
                         <button onClick={() => setPriceRange([0, 500])}>×</button>
                       </span>
                     )}
@@ -761,12 +480,12 @@ const CourseGrid: React.FC = () => {
                   <div className="row g-4">
                     {displayedCourses.map((course, i) => (
                       <div key={course.id} className="col-md-6 col-xl-4" style={{ display: 'flex' }}>
-                        <CourseGridCard
+                        <CourseCard
                           course={course}
                           inWishlist={isWishlisted(course)}
                           isLoadingWishlist={wishlistLoading.has(course.id)}
                           onWishlist={handleWishlist}
-                          getLevelDisplay={getLevelDisplay}
+                          levelLabel={getLevelDisplay}
                           index={i}
                         />
                       </div>

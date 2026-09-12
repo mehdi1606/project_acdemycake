@@ -1,4 +1,25 @@
 {
+  "courseTile": {
+    "masterclass": "Masterclass",
+    "live": "Live · Bespoke",
+    "course": "Course",
+    "instructor": "Instructor",
+    "includedInPremium": "Included in Premium",
+    "lessons": "{{n}} lessons",
+    "liveSession": "Live session",
+    "enrolled": "Enrolled",
+    "freeAccess": "Free access",
+    "continue": "Continue",
+    "access": "Access",
+    "reserve": "Reserve",
+    "addToCart": "Add to cart",
+    "inCart": "In cart",
+    "view": "View",
+    "loginForWishlist": "Please log in to use your wishlist",
+    "wishlistAdded": "Added to wishlist",
+    "wishlistRemoved": "Removed from wishlist",
+    "wishlistFailed": "Failed to update wishlist"
+  },
   "ebooks": {
     "eyebrow": "Digital Library",
     "title": "Our Exclusive Ebooks",
@@ -626,7 +647,10 @@
       "grade": "Grade",
       "attachment": "Attachment",
       "chooseFile": "Click to attach your file — PDF, DOC, DOCX or image (max 10MB)",
-      "fileTooLarge": "File too large (max 10MB)"
+      "fileTooLarge": "File too large (max 10MB)",
+      "backToCourse": "Back to course",
+      "submittedBackToCourse": "Assignment submitted — you can continue the course.",
+      "certificateNote": "Your course certificate is issued once this assignment has been marked."
     },
     "tickets": {
       "title": "Support Tickets",
@@ -1477,6 +1501,8 @@
   "courseDetails": {
     "shareProgress": "Share Your Progress",
     "reservePlace": "Reserve my place",
+    "liveIncludeSession": "Live bespoke session",
+    "liveIncludeWhatsapp": "Booked directly on WhatsApp",
     "placesLeft": "{{count}} places left",
     "limitedPlaces": "Limited places",
     "liveSeatsNote": "Reserve early — places are limited",
@@ -1602,6 +1628,15 @@
     "marks": "marks",
     "overdue": "Past due",
     "openAssignment": "Open & Submit",
+    "viewSubmission": "View submission",
+    "statusNotSubmitted": "Not submitted",
+    "statusAwaitingGrade": "Awaiting mark",
+    "statusGraded": "Mark: {{grade}}/{{total}}",
+    "certNeedsMark": "Your certificate is issued once your assignment has been marked.",
+    "certPendingBanner": "Certificate after your assignment is marked",
+    "lessonsCompleteTitle": "Lessons complete! 🎉",
+    "certPendingText": "You finished all the lessons. Submit your assignment — your certificate is issued as soon as the instructor marks it.",
+    "goToAssignments": "Go to assignments",
     "previewNotAvailable": "Preview not available for this file type",
     "selectLessonToBegin": "Select a lesson to begin",
     "closePreview": "Close preview",

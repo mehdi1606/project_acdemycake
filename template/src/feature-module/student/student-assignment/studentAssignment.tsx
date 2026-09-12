@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { assignmentService } from '../../../services/api/assignment.service';
 import { Assignment, Submission, SubmitAssignmentRequest } from '../../../services/api/types';
 import { extractApiError } from '../../../services/api/error.utils';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { message } from 'antd';
+import { all_routes } from '../../router/all_routes';
 
 const PAGE_SIZE = 10;
 
@@ -24,6 +27,12 @@ const gradeColor = (grade: number, total: number) => {
 
 const StudentAssignment = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Deep link from the course player: ?assignment=<id>&course=<courseSlug>
+  const deepLinkId = searchParams.get('assignment');
+  const returnCourse = searchParams.get('course');
+  const deepLinkHandled = useRef(false);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -32,7 +41,7 @@ const StudentAssignment = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Submit flow
-  const [activeTab, setActiveTab] = useState<ActiveTab>('list');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(deepLinkId ? 'submit' : 'list');
   const [selected, setSelected] = useState<Assignment | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [content, setContent] = useState('');
@@ -41,7 +50,7 @@ const StudentAssignment = () => {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [loadingSubmission, setLoadingSubmission] = useState(false);
+  const [loadingSubmission, setLoadingSubmission] = useState(!!deepLinkId);
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -103,6 +112,20 @@ const StudentAssignment = () => {
 
   const clearFile = () => { setFileUrl(''); setFileName(''); };
 
+  // Open the assignment the student clicked in the course player directly.
+  useEffect(() => {
+    if (!deepLinkId || deepLinkHandled.current) return;
+    deepLinkHandled.current = true;
+    assignmentService.getStudentAssignment(deepLinkId)
+      .then(a => openAssignment(a))
+      .catch(e => {
+        setActiveTab('list');
+        setLoadingSubmission(false);
+        setError(extractApiError(e, 'Failed to load assignment'));
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selected || !content.trim()) return;
@@ -114,6 +137,11 @@ const StudentAssignment = () => {
       const sub = await assignmentService.submitAssignment(selected.id, body);
       setSubmission(sub);
       setActiveTab('result');
+      // Came from the course player: go straight back so the student can finish the course.
+      if (returnCourse) {
+        message.success(t('student.assignments.submittedBackToCourse', 'Assignment submitted — you can continue the course.'));
+        navigate(`${all_routes.courseWatch}/${returnCourse}`);
+      }
     } catch (e) {
       setSubmitError(extractApiError(e, 'Submission failed'));
     } finally {
@@ -121,7 +149,14 @@ const StudentAssignment = () => {
     }
   };
 
-  const back = () => { setActiveTab('list'); setSelected(null); };
+  const back = () => {
+    if (returnCourse) {
+      navigate(`${all_routes.courseWatch}/${returnCourse}`);
+      return;
+    }
+    setActiveTab('list');
+    setSelected(null);
+  };
 
   // The student keeps the whole due day, so compare against 23:59:59 of that date —
   // this must match the backend, which accepts submissions until end of the due date.
@@ -216,7 +251,9 @@ const StudentAssignment = () => {
       {/* Back */}
       <div style={{ marginBottom: 20 }}>
         <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={back} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <i className="isax isax-arrow-left-2" />{t('student.assignments.backToList', 'Back to assignments')}
+          <i className="isax isax-arrow-left-2" />{returnCourse
+            ? t('student.assignments.backToCourse', 'Back to course')
+            : t('student.assignments.backToList', 'Back to assignments')}
         </button>
       </div>
 
@@ -234,6 +271,10 @@ const StudentAssignment = () => {
           <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 13, color: 'var(--lx-text-light)' }}>
             <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />{t('student.assignments.due', 'Due')}: {fmt(selected.dueDate)}</span>
             <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />{t('student.assignments.totalMarks', 'Total marks')}: {selected.totalMark}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(197,151,62,0.08)', border: '1px solid rgba(197,151,62,0.2)', fontSize: 13, color: '#8a6516' }}>
+            <i className="fa-solid fa-award" />
+            {t('student.assignments.certificateNote', 'Your course certificate is issued once this assignment has been marked.')}
           </div>
         </div>
       )}

@@ -8,9 +8,11 @@ import com.academy.dto.response.PageResponse;
 import com.academy.dto.response.SubmissionResponse;
 import com.academy.entity.Assignment;
 import com.academy.entity.AssignmentSubmission;
+import com.academy.entity.CourseEnrollment;
 import com.academy.entity.Course;
 import com.academy.entity.User;
 import com.academy.entity.enums.AssignmentStatus;
+import com.academy.entity.enums.NotificationType;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
@@ -20,6 +22,8 @@ import com.academy.repository.CourseEnrollmentRepository;
 import com.academy.repository.CourseRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.AssignmentService;
+import com.academy.service.CertificateService;
+import com.academy.service.NotificationService;
 import com.academy.service.FileStorageService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +33,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -49,6 +57,9 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final CourseEnrollmentRepository courseEnrollmentRepository;
     private final FileStorageService fileStorageService;
     private final UserService userService;
+    private final CertificateService certificateService;
+    private final NotificationService notificationService;
+    private final PlatformTransactionManager transactionManager;
 
     @Override
     public PageResponse<AssignmentResponse> getMyAssignments(int page, int size) {
@@ -158,8 +169,21 @@ public class AssignmentServiceImpl implements AssignmentService {
         User student = getCurrentUser();
         return assignmentRepository.findPublishedByEnrolledStudentAndCourse(student, courseId)
                 .stream()
-                .map(AssignmentResponse::fromEntity)
+                .map(a -> withMySubmission(a, student))
                 .toList();
+    }
+
+    @Override
+    public AssignmentResponse getStudentAssignmentById(UUID assignmentId) {
+        User student = getCurrentUser();
+        Assignment assignment = findAssignmentById(assignmentId);
+        if (assignment.getStatus() != AssignmentStatus.PUBLISHED) {
+            throw new ResourceNotFoundException("Assignment", "id", assignmentId);
+        }
+        if (!courseEnrollmentRepository.existsByUserAndCourse(student, assignment.getCourse())) {
+            throw new ForbiddenException("You are not enrolled in this course");
+        }
+        return withMySubmission(assignment, student);
     }
 
     @Override
@@ -260,10 +284,75 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         AssignmentSubmission saved = assignmentSubmissionRepository.save(submission);
         log.info("Submission {} graded by instructor: {}", submissionId, instructor.getEmail());
+
+        // This mark may complete the requirements for a withheld certificate. Issue it only
+        // after this transaction commits, so the certificate check can see the grade.
+        issueCertificateAfterCommit(saved.getStudent().getId(), saved.getAssignment().getCourse().getId());
+
         return SubmissionResponse.fromEntity(saved);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Attach the current student's submission state so the course player can show it. */
+    private AssignmentResponse withMySubmission(Assignment assignment, User student) {
+        AssignmentResponse response = AssignmentResponse.fromEntity(assignment);
+        assignmentSubmissionRepository.findByAssignmentAndStudent(assignment, student).ifPresentOrElse(s -> {
+            response.setMySubmissionStatus(s.getGrade() != null ? "GRADED" : "SUBMITTED");
+            response.setMyGrade(s.getGrade());
+        }, () -> response.setMySubmissionStatus("NONE"));
+        return response;
+    }
+
+    /**
+     * If the student already finished the course and this was the last missing mark,
+     * issue the certificate that was withheld and tell the student.
+     *
+     * Runs after commit because generateCertificate uses its own transaction, which
+     * could not see an uncommitted grade and would refuse again.
+     */
+    private void issueCertificateAfterCommit(UUID studentId, UUID courseId) {
+        Runnable issue = () -> {
+            try {
+                new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+                    User student = userService.findById(studentId);
+                    Course course = courseRepository.findById(courseId).orElse(null);
+                    if (course == null) return;
+                    CourseEnrollment enrollment = courseEnrollmentRepository
+                            .findByUserAndCourse(student, course).orElse(null);
+                    if (enrollment == null || !Boolean.TRUE.equals(enrollment.getIsCompleted())
+                            || enrollment.getCertificateId() != null) return;
+                    if (assignmentRepository.countUngradedPublishedForStudent(course, student) > 0) return;
+
+                    var certificate = certificateService.generateCertificate(student, course);
+                    enrollment.setCertificateId(certificate.getId());
+                    courseEnrollmentRepository.save(enrollment);
+
+                    notificationService.createNotification(
+                            student,
+                            "Your certificate is ready",
+                            "Your assignment for \"" + course.getTitle() + "\" has been marked. Your certificate is now available.",
+                            NotificationType.COURSE,
+                            "/student/student-certificates"
+                    );
+                    log.info("Certificate issued after grading: {} → {}", course.getTitle(), student.getEmail());
+                });
+            } catch (Exception e) {
+                log.warn("Certificate not issued after grading (course {}): {}", courseId, e.getMessage());
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    issue.run();
+                }
+            });
+        } else {
+            issue.run();
+        }
+    }
 
     private Assignment findAssignmentById(UUID id) {
         return assignmentRepository.findById(id)

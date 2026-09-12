@@ -270,13 +270,15 @@ const StudentCourse: React.FC = () => {
                           {t('student.certificates.download', 'View Certificate')}
                         </button>
                       ) : (
+                        // Completed but no certificate yet: it is withheld until the
+                        // course assignment has been marked by the instructor.
                         <Link
-                          to={all_routes.studentCertificates ?? '/student/certificates'}
+                          to={`${all_routes.courseWatch}/${enrollment.courseSlug}`}
                           className="lx-btn lx-btn-outline lx-btn-sm"
                           style={{ flex: 1, justifyContent: 'center' }}
                         >
-                          <i className="isax isax-medal" />
-                          {t('student.certificates.title', 'My Certificates')}
+                          <i className="isax isax-clock" />
+                          {t('courseWatch.certPendingBanner', 'Certificate after your assignment is marked')}
                         </Link>
                       )
                     ) : (

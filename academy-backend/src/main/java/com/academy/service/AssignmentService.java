@@ -30,6 +30,9 @@ public interface AssignmentService {
     /** Published assignments of a single course the student is enrolled in. */
     List<AssignmentResponse> getStudentAssignmentsForCourse(UUID courseId);
 
+    /** One published assignment of a course the student is enrolled in. */
+    AssignmentResponse getStudentAssignmentById(UUID assignmentId);
+
     SubmissionResponse submitAssignment(UUID assignmentId, SubmitAssignmentRequest request);
 
     SubmissionResponse getMySubmission(UUID assignmentId);

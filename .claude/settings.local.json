@@ -226,7 +226,16 @@
       "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/test_migration.py\")",
       "Bash(xargs echo \"  matches:\")",
       "Bash(node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json)",
-      "Bash(grep -E \"^src[/\\\\\\\\]\")"
+      "Bash(grep -E \"^src[/\\\\\\\\]\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/apply_shared_card.py\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/fix_coursegrid_currency.py\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/convert_featured.py\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/convert_listing_cards.py\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/cert_gate_backend.py\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/cert_gate_frontend.py\")",
+      "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/test_cert_gate.py\")",
+      "Bash(python cert_gate_pages.py)",
+      "Bash(npx eslint *)"
     ]
   }
 }

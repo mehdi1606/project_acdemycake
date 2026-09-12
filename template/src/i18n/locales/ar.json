@@ -1,4 +1,25 @@
 {
+  "courseTile": {
+    "masterclass": "ماستر كلاس",
+    "live": "مباشر · جلسة خاصة",
+    "course": "دورة",
+    "instructor": "المدرب",
+    "includedInPremium": "مشمول في العضوية المميزة",
+    "lessons": "{{n}} درس",
+    "liveSession": "جلسة مباشرة",
+    "enrolled": "مسجّل",
+    "freeAccess": "وصول مجاني",
+    "continue": "متابعة",
+    "access": "دخول",
+    "reserve": "احجز",
+    "addToCart": "أضف إلى السلة",
+    "inCart": "في السلة",
+    "view": "عرض",
+    "loginForWishlist": "يرجى تسجيل الدخول لاستخدام قائمة الرغبات",
+    "wishlistAdded": "تمت الإضافة إلى قائمة الرغبات",
+    "wishlistRemoved": "تمت الإزالة من قائمة الرغبات",
+    "wishlistFailed": "تعذر تحديث قائمة الرغبات"
+  },
   "ebooks": {
     "eyebrow": "المكتبة الرقمية",
     "title": "كتبنا الإلكترونية الحصرية",
@@ -749,7 +770,10 @@
       "grade": "الدرجة",
       "attachment": "مرفق",
       "chooseFile": "اضغط لإرفاق ملفك — PDF أو DOC أو صورة (بحد أقصى 10 ميغابايت)",
-      "fileTooLarge": "الملف كبير جداً (بحد أقصى 10 ميغابايت)"
+      "fileTooLarge": "الملف كبير جداً (بحد أقصى 10 ميغابايت)",
+      "backToCourse": "العودة إلى الدورة",
+      "submittedBackToCourse": "تم تسليم الواجب — يمكنك متابعة الدورة.",
+      "certificateNote": "تصدر شهادة الدورة بعد تقييم هذا الواجب."
     },
     "tickets": {
       "title": "تذاكر الدعم",
@@ -1634,6 +1658,8 @@
   "courseDetails": {
     "shareProgress": "شارك تقدمك",
     "reservePlace": "احجز مكاني",
+    "liveIncludeSession": "جلسة مباشرة خاصة",
+    "liveIncludeWhatsapp": "الحجز مباشرة عبر واتساب",
     "placesLeft": "{{count}} أماكن متبقية",
     "limitedPlaces": "أماكن محدودة",
     "liveSeatsNote": "احجز مبكراً — الأماكن محدودة",
@@ -1759,6 +1785,15 @@
     "marks": "نقطة",
     "overdue": "انتهى الموعد",
     "openAssignment": "افتح وسلّم",
+    "viewSubmission": "عرض التسليم",
+    "statusNotSubmitted": "لم يتم التسليم",
+    "statusAwaitingGrade": "في انتظار التقييم",
+    "statusGraded": "العلامة: {{grade}}/{{total}}",
+    "certNeedsMark": "تصدر شهادتك بعد تقييم واجبك.",
+    "certPendingBanner": "الشهادة بعد تقييم الواجب",
+    "lessonsCompleteTitle": "أكملت جميع الدروس! 🎉",
+    "certPendingText": "لقد أكملت جميع الدروس. سلّم واجبك — تصدر شهادتك فور تقييم المدرب له.",
+    "goToAssignments": "اذهب إلى الواجبات",
     "previewNotAvailable": "المعاينة غير متاحة لهذا النوع من الملفات",
     "selectLessonToBegin": "اختر درساً للبدء",
     "closePreview": "إغلاق المعاينة",

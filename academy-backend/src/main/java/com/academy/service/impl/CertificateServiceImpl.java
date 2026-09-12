@@ -8,6 +8,7 @@ import com.academy.entity.User;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
+import com.academy.repository.AssignmentRepository;
 import com.academy.repository.CertificateRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.CertificateService;
@@ -60,6 +61,7 @@ public class CertificateServiceImpl implements CertificateService {
 
     private final CertificateRepository certificateRepository;
     private final UserService userService;
+    private final AssignmentRepository assignmentRepository;
 
     @Value("${app.file.upload-dir:./uploads}")
     private String uploadDir;
@@ -150,6 +152,13 @@ public class CertificateServiceImpl implements CertificateService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Certificate", "user and course", null));
             return CertificateResponse.fromEntity(existing);
+        }
+
+        // A course with assignments is only certified once every published assignment has
+        // been marked for this student. Callers catch this and treat it as "not yet".
+        long unmarked = assignmentRepository.countUngradedPublishedForStudent(course, user);
+        if (unmarked > 0) {
+            throw new BadRequestException("Certificate withheld: " + unmarked + " assignment(s) not yet marked");
         }
 
         String certificateNumber = generateCertificateNumber();

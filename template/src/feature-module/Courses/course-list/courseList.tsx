@@ -5,6 +5,7 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { App } from 'antd';
 import { all_routes } from '../../router/all_routes';
+import { getCourseKind } from '../../../components/CourseCard';
 import { courseService } from '../../../services/api/course.service';
 import { Course, CourseCategory, CourseLevel } from '../../../services/api/types';
 import { useAppSelector } from '../../../core/redux/hooks';
@@ -98,10 +99,18 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
     ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl)
     : `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
 
+  // Same rules as the shared card: masterclass kinds get their own badge, price and CTA.
+  const kind = getCourseKind(course);
+  const seatCap = course.maxStudents;
+  const seatsLeft = kind === 'LIVE' && seatCap && seatCap > 0
+    ? Math.max(0, seatCap - (course.enrolledCount ?? 0))
+    : null;
+
   return (
     <div
       className="sl-cl-card sl-tilt-wrap"
       ref={cardRef}
+      style={kind === 'LIVE' ? { boxShadow: '0 0 0 1px rgba(37,211,102,0.35), 0 6px 24px rgba(29,168,81,0.10)' } : undefined}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       data-aos="fade-up"
@@ -130,11 +139,19 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
           <i className={inWishlist ? 'fa-solid fa-heart' : 'fa-regular fa-heart'} />
         </button>
 
-        {course.requiresPurchase && (
+        {kind === 'LIVE' ? (
+          <span className="sl-cl-card__label sl-cl-card__label--premium" style={{ background: 'linear-gradient(135deg, #1DA851 0%, #25D366 100%)', color: '#fff' }}>
+            <i className="fa-brands fa-whatsapp" /> {t('courseTile.live', 'Live · Bespoke')}
+          </span>
+        ) : kind === 'RECORDED' ? (
+          <span className="sl-cl-card__label sl-cl-card__label--premium">
+            <i className="isax isax-crown" /> {t('courseTile.masterclass', 'Masterclass')}
+          </span>
+        ) : course.requiresPurchase ? (
           <span className="sl-cl-card__label sl-cl-card__label--premium">
             <i className="isax isax-crown" /> {t('courseList.premium', 'Premium')}
           </span>
-        )}
+        ) : null}
         {course.isEnrolled && (
           <span className="sl-cl-card__label sl-cl-card__label--enrolled">
             <i className="fa-solid fa-check" /> {t('courseList.enrolled', 'Enrolled')}
@@ -183,31 +200,49 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
           </span>
           <span className="sl-cl-card__sep">✦</span>
           <span className="sl-cl-card__lessons">
-            <i className="isax isax-video-play" />
-            {course.lessonsCount ?? 0} {t('common.lessons', 'lessons')}
+            {kind === 'LIVE' ? (
+              <><i className="isax isax-video" style={{ color: '#1DA851' }} /> {t('courseTile.liveSession', 'Live session')}</>
+            ) : (
+              <><i className="isax isax-video-play" /> {course.lessonsCount ?? 0} {t('common.lessons', 'lessons')}</>
+            )}
           </span>
         </div>
 
         {/* Footer */}
         <div className="sl-cl-card__footer">
           <div className="sl-cl-card__price-wrap">
-            {course.isEnrolled ? (
+            {kind === 'LIVE' ? (
+              <span className="sl-cl-card__price sl-cl-card__price--current" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: seatsLeft === 0 ? '#DC2626' : undefined }}>
+                <i className="fa-solid fa-users" style={{ color: '#1DA851', fontSize: '0.8em' }} />
+                {seatsLeft !== null
+                  ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+                  : t('courseDetails.limitedPlaces', 'Limited places')}
+              </span>
+            ) : course.isEnrolled ? (
               <span className="sl-cl-card__price sl-cl-card__price--owned">
                 <i className="fa-solid fa-check-circle" /> {t('courseList.owned', 'Owned')}
               </span>
             ) : !course.requiresPurchase ? (
-              <span className="sl-cl-card__price sl-cl-card__price--free">{t('courseList.free', 'Free')}</span>
+              <span className="sl-cl-card__price sl-cl-card__price--free">{t('courseTile.includedInPremium', 'Included in Premium')}</span>
             ) : (
               <>
-                <span className="sl-cl-card__price sl-cl-card__price--current">${course.price ?? 0}</span>
+                <span className="sl-cl-card__price sl-cl-card__price--current">{course.price ?? 0} {course.currency || 'MAD'}</span>
                 {course.originalPrice && course.originalPrice > (course.price ?? 0) && (
-                  <del className="sl-cl-card__price sl-cl-card__price--original">${course.originalPrice}</del>
+                  <del className="sl-cl-card__price sl-cl-card__price--original">{course.originalPrice} {course.currency || 'MAD'}</del>
                 )}
               </>
             )}
           </div>
 
-          {course.isEnrolled ? (
+          {kind === 'LIVE' ? (
+            <Link
+              to={`${route.courseDetails}/${course.slug}`}
+              className="sl-btn-magnetic sl-cl-card__cta"
+              style={{ background: 'linear-gradient(135deg, #1DA851 0%, #25D366 100%)', color: '#fff', border: 'none' }}
+            >
+              <i className="fa-brands fa-whatsapp" /> {t('courseTile.reserve', 'Reserve')}
+            </Link>
+          ) : course.isEnrolled ? (
             <Link to={`${route.courseWatch}/${course.slug}`} className="sl-btn-gold sl-btn-magnetic sl-cl-card__cta">
               {t('courseList.continue', 'Continue')} <i className="isax isax-arrow-right-1" />
             </Link>

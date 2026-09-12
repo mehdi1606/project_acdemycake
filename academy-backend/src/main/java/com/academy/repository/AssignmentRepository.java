@@ -1,6 +1,7 @@
 package com.academy.repository;
 
 import com.academy.entity.Assignment;
+import com.academy.entity.Course;
 import com.academy.entity.User;
 import com.academy.entity.enums.AssignmentStatus;
 import org.springframework.data.domain.Page;
@@ -32,4 +33,13 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
            "ORDER BY a.dueDate ASC NULLS LAST, a.createdAt DESC")
     List<Assignment> findPublishedByEnrolledStudentAndCourse(@Param("student") User student,
                                                              @Param("courseId") UUID courseId);
+
+    /**
+     * Published assignments of a course this student has NOT yet been given a mark on.
+     * The course certificate is withheld while this is above zero.
+     */
+    @Query("SELECT COUNT(a) FROM Assignment a WHERE a.course = :course AND a.status = 'PUBLISHED' " +
+           "AND NOT EXISTS (SELECT s FROM AssignmentSubmission s " +
+           "WHERE s.assignment = a AND s.student = :student AND s.grade IS NOT NULL)")
+    long countUngradedPublishedForStudent(@Param("course") Course course, @Param("student") User student);
 }

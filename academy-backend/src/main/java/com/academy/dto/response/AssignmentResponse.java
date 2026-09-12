@@ -29,6 +29,10 @@ public class AssignmentResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    /** Student views only: NONE | SUBMITTED | GRADED for the current student. */
+    private String mySubmissionStatus;
+    private Integer myGrade;
+
     public static AssignmentResponse fromEntity(Assignment assignment) {
         return AssignmentResponse.builder()
                 .id(assignment.getId())

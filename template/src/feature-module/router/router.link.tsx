@@ -587,7 +587,9 @@ export const publicRoutes = [
   },
   {
     path: '/student/student-assignments',
-    element: <SubscriptionGuard><StudentAssignment /></SubscriptionGuard>,
+    // Assignments belong to courses the student is enrolled in (Plan or a bought
+    // masterclass). The backend already checks enrollment, so no subscription gate here.
+    element: <RoleGuard allowedRoles={['STUDENT']}><StudentAssignment /></RoleGuard>,
     route: Route,
   },
   {

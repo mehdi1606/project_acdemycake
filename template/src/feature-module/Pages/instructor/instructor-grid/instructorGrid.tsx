@@ -10,7 +10,7 @@ const InstructorGrid = () => {
   const { t } = useTranslation()
   const formatter: NonNullable<SliderSingleProps["tooltip"]>["formatter"] = (
     value
-  ) => `$${value}`;
+  ) => `${value} MAD`;
 
   const [selectedItems, setSelectedItems] = useState(Array(10).fill(false));
   const handleItemClick = (index: number) => {

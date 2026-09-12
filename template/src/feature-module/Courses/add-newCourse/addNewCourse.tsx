@@ -146,6 +146,7 @@ const AddNewCourse = () => {
       level: true,
       language: true,
       courseType: true,
+      masterclassFormat: true,
       shortDescription: true,
       description: true,
     }));
@@ -170,6 +171,10 @@ const AddNewCourse = () => {
 
     if (!formData.courseType) {
       newErrors.courseType = 'Please select a course type';
+    }
+
+    if (formData.courseType === 'MASTERCLASS' && !formData.masterclassFormat) {
+      newErrors.masterclassFormat = 'Please choose how this masterclass is delivered';
     }
 
     if (!formData.shortDescription.trim()) {
@@ -201,11 +206,25 @@ const AddNewCourse = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Validate Step 5 (Pricing)
+  // Validate Step 5 (Pricing) — one rule set per course type. The Submit button
+  // runs this same function, so no situation can bypass it.
   const validateStep5 = (): boolean => {
     const newErrors: Record<string, string> = {};
+    const isLive = formData.courseType === 'MASTERCLASS' && formData.masterclassFormat === 'LIVE';
 
-    // Only MASTERCLASS requires a price — PLAN courses are subscription-based (no individual payment)
+    if (isLive) {
+      // LIVE masterclass: booked on WhatsApp — no price, no expiry, only the seats.
+      const seats = Number(formData.maxStudents);
+      if (!formData.maxStudents.trim()) {
+        newErrors.maxStudents = 'Please enter how many places are available';
+      } else if (!Number.isInteger(seats) || seats < 1) {
+        newErrors.maxStudents = 'Places must be a whole number of at least 1';
+      }
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    }
+
+    // RECORDED masterclass: sold online, so a real price is required.
     if (formData.courseType === 'MASTERCLASS') {
       if (!formData.price.trim()) {
         newErrors.price = 'Please enter a course price';
@@ -224,6 +243,7 @@ const AddNewCourse = () => {
       }
     }
 
+    // PLAN and RECORDED both offer an access period.
     if (formData.expiryType === 'limited') {
       if (!formData.expiryMonths.trim()) {
         newErrors.expiryMonths = 'Please enter number of months';
@@ -261,7 +281,8 @@ const AddNewCourse = () => {
       case 5:
         // LIVE masterclass: no price, no expiry — only the number of places.
         if (skipCurriculum) {
-          return Boolean(formData.maxStudents && Number(formData.maxStudents) > 0);
+          const seats = Number(formData.maxStudents);
+          return Number.isInteger(seats) && seats >= 1;
         }
         // PLAN = subscription, no price required. MASTERCLASS = must set a price.
         if (formData.courseType === 'PLAN') {
@@ -423,6 +444,9 @@ const AddNewCourse = () => {
     if (!formData.courseType) {
       validationErrors.push('Please select a course type (Plan or Masterclass)');
     }
+    if (formData.courseType === 'MASTERCLASS' && !formData.masterclassFormat) {
+      validationErrors.push('Please choose how this masterclass is delivered (Recorded or Live)');
+    }
     if (!formData.shortDescription.trim() || formData.shortDescription.trim().length < 20) {
       validationErrors.push('Short description is required (min 20 characters)');
     }
@@ -431,28 +455,15 @@ const AddNewCourse = () => {
       validationErrors.push('Description is required (min 50 characters)');
     }
 
-    // A LIVE masterclass is not sold online — it only needs a seat count.
-    if (skipCurriculum && (!formData.maxStudents || Number(formData.maxStudents) <= 0)) {
-      validationErrors.push('Please enter how many places are available');
-    }
-
-    // Pricing validation (only if not free, and never for a LIVE masterclass)
-    if (!formData.isFree && !skipCurriculum) {
-      if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
-        validationErrors.push('Please enter a valid course price');
-      }
-      if (formData.hasDiscount) {
-        if (!formData.discountPrice || Number(formData.discountPrice) <= 0 || Number(formData.discountPrice) >= Number(formData.price)) {
-          validationErrors.push('Discount price must be greater than 0 and less than the regular price');
-        }
-      }
-      if (formData.expiryType === 'limited' && (!formData.expiryMonths || Number(formData.expiryMonths) <= 0)) {
-        validationErrors.push('Please enter a valid expiry period');
-      }
-    }
-
     if (validationErrors.length > 0) {
       message.error(validationErrors[0]);
+      return;
+    }
+
+    // Step-5 rules (seats for LIVE, price & discount for RECORDED, access period).
+    // This used to sit behind `!formData.isFree`, which is always false, so it never ran.
+    if (!validateStep5()) {
+      message.error('Please fill in all required fields correctly');
       return;
     }
 
@@ -895,6 +906,11 @@ const AddNewCourse = () => {
                                       {
                                         value: 'RECORDED',
                                         icon: 'isax isax-video-play',
+                                        accent: '#C5912C',
+                                        titleColor: '#9A6F1A',
+                                        tint: 'rgba(197,145,44,0.1)',
+                                        idleBorder: 'rgba(197,145,44,0.2)',
+                                        selectedBg: 'rgba(197,145,44,0.04)',
                                         title: t('addCourse.step1.recordedTitle', 'Recorded course'),
                                         sub: t('addCourse.step1.recordedSubtitle', 'Students pay online and watch the lessons'),
                                         bullets: [
@@ -904,7 +920,12 @@ const AddNewCourse = () => {
                                       },
                                       {
                                         value: 'LIVE',
-                                        icon: 'isax isax-video',
+                                        icon: 'fa-brands fa-whatsapp',
+                                        accent: '#1DA851',
+                                        titleColor: '#146C35',
+                                        tint: 'rgba(37,211,102,0.12)',
+                                        idleBorder: 'rgba(37,211,102,0.3)',
+                                        selectedBg: 'rgba(37,211,102,0.05)',
                                         title: t('addCourse.step1.liveTitle', 'Live — bespoke session'),
                                         sub: t('addCourse.step1.liveSubtitle', 'Students reserve a place on WhatsApp'),
                                         bullets: [
@@ -919,11 +940,12 @@ const AddNewCourse = () => {
                                           <div
                                             onClick={() => handleInputChange('masterclassFormat', opt.value)}
                                             style={{
-                                              border: `2px solid ${active ? '#C5912C' : 'rgba(197,145,44,0.2)'}`,
+                                              // Same box as the Plan / Masterclass cards above.
+                                              border: `2px solid ${active ? opt.accent : opt.idleBorder}`,
                                               borderRadius: 12,
-                                              padding: '16px 18px',
+                                              padding: '20px 22px',
                                               cursor: 'pointer',
-                                              background: active ? 'rgba(197,145,44,0.04)' : '#fff',
+                                              background: active ? opt.selectedBg : '#fff',
                                               transition: 'all 0.2s ease',
                                               position: 'relative',
                                               height: '100%',
@@ -931,28 +953,28 @@ const AddNewCourse = () => {
                                           >
                                             {active && (
                                               <span style={{
-                                                position: 'absolute', top: 10, right: 12,
-                                                width: 18, height: 18, borderRadius: '50%',
-                                                background: '#C5912C',
+                                                position: 'absolute', top: 12, right: 14,
+                                                width: 20, height: 20, borderRadius: '50%',
+                                                background: opt.accent,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                               }}>
-                                                <i className="fa-solid fa-check" style={{ fontSize: 9, color: '#fff' }} />
+                                                <i className="fa-solid fa-check" style={{ fontSize: 10, color: '#fff' }} />
                                               </span>
                                             )}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                                               <span style={{
-                                                width: 38, height: 38, borderRadius: 9,
-                                                background: 'rgba(197,145,44,0.1)',
+                                                width: 44, height: 44, borderRadius: 10,
+                                                background: opt.tint,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                                               }}>
-                                                <i className={opt.icon} style={{ fontSize: 19, color: '#C5912C' }} />
+                                                <i className={opt.icon} style={{ fontSize: 22, color: opt.accent }} />
                                               </span>
                                               <div>
-                                                <h6 style={{ margin: 0, fontWeight: 700, color: '#9A6F1A', fontSize: 14 }}>{opt.title}</h6>
-                                                <span style={{ fontSize: 11.5, color: 'rgba(58,30,32,0.55)' }}>{opt.sub}</span>
+                                                <h6 style={{ margin: 0, fontWeight: 700, color: opt.titleColor, fontSize: 15 }}>{opt.title}</h6>
+                                                <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>{opt.sub}</span>
                                               </div>
                                             </div>
-                                            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'rgba(58,30,32,0.65)', lineHeight: 1.7 }}>
+                                            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
                                               {opt.bullets.map((b, i) => <li key={i}>{b}</li>)}
                                             </ul>
                                           </div>
@@ -1659,11 +1681,14 @@ const AddNewCourse = () => {
                               <input
                                 type="number"
                                 min={1}
-                                className="form-control"
+                                className={`form-control ${errors.maxStudents ? 'is-invalid' : ''}`}
                                 placeholder={t('addCourse.step5.placesPlaceholder', 'e.g. 12')}
                                 value={formData.maxStudents}
                                 onChange={(e) => handleInputChange('maxStudents', e.target.value)}
                               />
+                              {errors.maxStudents && (
+                                <div className="invalid-feedback d-block">{errors.maxStudents}</div>
+                              )}
                               <p className="text-muted small mt-2 mb-0">
                                 {t('addCourse.step5.placesHint',
                                    'Shown to students as the number of seats for this live session.')}
@@ -1816,10 +1841,10 @@ const AddNewCourse = () => {
                             </small>
                             <button
                               type="button"
-                              className={`btn btn-secondary main-btn next_btns ${isSubmitting ? 'opacity-50' : ''}`}
-                              disabled={isSubmitting}
+                              className={`btn btn-secondary main-btn next_btns ${(isSubmitting || !isStepValid) ? 'opacity-50' : ''}`}
+                              disabled={isSubmitting || !isStepValid}
                               onClick={handleSubmitCourse}
-                              style={{ cursor: !isSubmitting ? 'pointer' : 'not-allowed' }}
+                              style={{ cursor: (!isSubmitting && isStepValid) ? 'pointer' : 'not-allowed' }}
                             >
                               {isSubmitting ? (
                                 <>

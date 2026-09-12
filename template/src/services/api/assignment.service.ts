@@ -73,6 +73,12 @@ class AssignmentService {
     return res.data;
   }
 
+  /** One published assignment of an enrolled course (deep link from the course player). */
+  async getStudentAssignment(assignmentId: string): Promise<Assignment> {
+    const res = await api.get<Assignment>(`/student/assignments/${assignmentId}`);
+    return res.data;
+  }
+
   /** Upload the student's answer file; returns the stored URL to put in `fileUrl`. */
   async uploadSubmissionFile(file: File): Promise<string> {
     const form = new FormData();

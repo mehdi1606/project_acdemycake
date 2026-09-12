@@ -16,6 +16,7 @@ import { addToWishlist, removeFromWishlist } from '../../../core/redux/courseSli
 import { addToCart } from '../../../core/redux/cartSlice';
 import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
+import { assignmentService } from '../../../services/api/assignment.service';
 
 const { Panel } = Collapse;
 const route = all_routes;
@@ -78,6 +79,8 @@ const CourseDetails = () => {
   const [reviewComment, setReviewComment] = useState('');
   const [submittingRev, setSubmittingRev] = useState(false);
   const [userReview,    setUserReview]    = useState<CourseReview | null>(null);
+  /** True while an enrolled student still has an unmarked assignment (certificate withheld). */
+  const [certPendingMark, setCertPendingMark] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -115,6 +118,16 @@ const CourseDetails = () => {
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
+
+  // The certificate is only issued once every assignment of the course has a mark.
+  useEffect(() => {
+    if (!course?.id || !course.isEnrolled || user?.role !== 'STUDENT') { setCertPendingMark(false); return; }
+    let cancelled = false;
+    assignmentService.getAssignmentsForCourse(course.id)
+      .then(list => { if (!cancelled) setCertPendingMark((list ?? []).some(a => a.mySubmissionStatus !== 'GRADED')); })
+      .catch(() => { if (!cancelled) setCertPendingMark(false); });
+    return () => { cancelled = true; };
+  }, [course?.id, course?.isEnrolled, user?.role]);
 
   const handleEnroll = useCallback(async () => {
     if (!isAuthenticated) { message.warning('Please login to enroll'); navigate(route.login); return; }
@@ -243,8 +256,8 @@ const CourseDetails = () => {
       )}`
     : null;
 
-  const thumb        = getFileUrl(c.thumbnailUrl) ?? 'assets/img/course/course-01.jpg';
-  const instrAvatar  = getFileUrl(c.instructor?.avatarUrl ?? instructor?.avatarUrl) ?? 'assets/img/user/user-01.jpg';
+  const thumb        = getFileUrl(c.thumbnailUrl) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
+  const instrAvatar  = getFileUrl(c.instructor?.avatarUrl ?? instructor?.avatarUrl) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
   const inCart       = cartItems.some((i) => i.id === c.id);
   const totalLessons = curriculum.reduce((s, m) => s + (m.lessons?.length ?? 0), 0);
   const quizLessons  = curriculum.reduce((s, m) => s + (m.lessons?.filter((l) => l.contentType === 'QUIZ').length ?? 0), 0);
@@ -256,7 +269,9 @@ const CourseDetails = () => {
     return { star, count: Math.round(c.ratingCount * pct / 100), pct };
   });
 
-  const TABS = ['overview', 'curriculum', 'instructor', 'reviews'] as const;
+  const ALL_TABS = ['overview', 'curriculum', 'instructor', 'reviews'] as const;
+  // A LIVE masterclass has no recorded lessons, so its Curriculum tab is hidden.
+  const TABS = ALL_TABS.filter((tab) => !(isLiveMasterclass && tab === 'curriculum'));
 
   /* ===== RENDER ===== */
   return (
@@ -379,7 +394,7 @@ const CourseDetails = () => {
               <img
                 src={thumb} alt={c.title}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg'; }}
+                onError={(e) => { const img = e.target as HTMLImageElement; if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; } }}
               />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(30,10,16,0.4) 0%,transparent 60%)', pointerEvents: 'none' }} />
               {c.previewVideoUrl && (
@@ -931,7 +946,18 @@ const CourseDetails = () => {
                 <div style={{ padding: '16px 18px' }}>
                   {c.isEnrolled ? (
                     <>
-                    {(c.enrollmentProgress ?? 0) >= 100 && (
+                    {(c.enrollmentProgress ?? 0) >= 100 && certPendingMark && (
+                      <Link to={`${route.courseWatch}/${c.slug}`} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                        width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 13,
+                        background: 'rgba(197,151,62,0.10)', color: '#8a6516', textDecoration: 'none',
+                        border: '1px solid rgba(197,151,62,0.35)', marginBottom: 10, boxSizing: 'border-box',
+                      }}>
+                        <i className="fa-regular fa-clock" style={{ fontSize: 14 }} />
+                        <span>{t('courseWatch.certPendingBanner', 'Certificate after your assignment is marked')}</span>
+                      </Link>
+                    )}
+                    {(c.enrollmentProgress ?? 0) >= 100 && !certPendingMark && (
                       <Link to={route.studentCertificates} style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                         width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 14,
@@ -1108,7 +1134,15 @@ const CourseDetails = () => {
                     {t('courses.details.courseIncludes', 'This course includes')}
                   </h6>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {[
+                    {(isLiveMasterclass ? [
+                      { icon: 'fa-video',              color: '#1DA851', text: t('courseDetails.liveIncludeSession', 'Live bespoke session') },
+                      { icon: 'fa-users',              color: '#C5973E', text: seatsLeft !== null
+                          ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+                          : t('courseDetails.limitedPlaces', 'Limited places') },
+                      { icon: 'fa-signal',             color: '#8B5CF6', text: levelLabel(c.level) },
+                      { icon: 'fa-globe',              color: '#10B981', text: c.language ?? 'English' },
+                      { icon: 'fa-brands fa-whatsapp', color: '#1DA851', text: t('courseDetails.liveIncludeWhatsapp', 'Booked directly on WhatsApp') },
+                    ] : [
                       { icon: 'fa-video',          color: '#3B82F6', text: `${fmtDuration(c.durationMinutes)} on-demand video` },
                       { icon: 'fa-file-lines',     color: '#6B7280', text: `${totalLessons} lessons · ${curriculum.length} modules` },
                       ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', color: '#F59E0B', text: `${quizLessons} quiz${quizLessons > 1 ? 'zes' : ''}` }] : []),
@@ -1117,10 +1151,10 @@ const CourseDetails = () => {
                       { icon: 'fa-infinity',       color: '#C5973E', text: t('courses.details.fullLifetimeAccess', 'Full lifetime access') },
                       { icon: 'fa-mobile-screen',  color: '#651C32', text: t('courses.details.accessOnMobile', 'Access on mobile and desktop') },
                       { icon: 'fa-certificate',    color: '#C5973E', text: t('courses.details.certificate', 'Certificate of completion') },
-                    ].map((item) => (
+                    ]).map((item) => (
                       <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#4b5563' }}>
                         <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <i className={`fa-solid ${item.icon}`} style={{ color: item.color, fontSize: 13 }} />
+                          <i className={item.icon.includes(' ') ? item.icon : `fa-solid ${item.icon}`} style={{ color: item.color, fontSize: 13 }} />
                         </div>
                         <span>{item.text}</span>
                       </div>

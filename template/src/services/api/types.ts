@@ -154,6 +154,8 @@ export interface Course {
   courseType?: 'PLAN' | 'MASTERCLASS';
   masterclassFormat?: 'RECORDED' | 'LIVE';
   reservationWhatsapp?: string;
+  /** Seat limit for a LIVE masterclass; null = unlimited. */
+  maxStudents?: number | null;
   isBeginner: boolean;
   durationMinutes: number;
   lessonsCount: number;
@@ -733,6 +735,8 @@ export interface CourseQueryParams extends PaginationParams {
   courseType?: 'PLAN' | 'MASTERCLASS';
   masterclassFormat?: 'RECORDED' | 'LIVE';
   reservationWhatsapp?: string;
+  /** Seat limit for a LIVE masterclass; null = unlimited. */
+  maxStudents?: number | null;
 }
 
 // ============================================
@@ -753,6 +757,9 @@ export interface Assignment {
   totalMark: number;
   status: AssignmentStatus;
   submissionsCount?: number;
+  /** Student views: the current student's submission state for this assignment. */
+  mySubmissionStatus?: 'NONE' | 'SUBMITTED' | 'GRADED';
+  myGrade?: number | null;
   createdAt: string;
 }
 
