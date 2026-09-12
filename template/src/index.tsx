@@ -15,7 +15,6 @@ import "../node_modules/@fortawesome/fontawesome-free/css/fontawesome.min.css";
 import "../node_modules/@fortawesome/fontawesome-free/css/all.min.css";
 import "../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 import { App as AntdApp, notification } from 'antd';
-import LaunchAnnouncementPopup from './feature-module/common/LaunchAnnouncementPopup';
 import PremiumPromoPopup from './feature-module/common/PremiumPromoPopup';
 
 // Global listener for background API errors (server errors, network failures)
@@ -40,7 +39,6 @@ root.render(
       <BrowserRouter basename={base_path}>
         <AntdApp>
           <ErrorBoundary>
-            <LaunchAnnouncementPopup />
             <PremiumPromoPopup />
             <ALLRoutes />
           </ErrorBoundary>

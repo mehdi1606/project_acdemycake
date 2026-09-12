@@ -224,7 +224,9 @@
       "Bash(python -c \"import psycopg2; print\\('psycopg2 ok'\\)\")",
       "Bash(python -c \"import psycopg2; print\\('psycopg2 now available'\\)\")",
       "Bash(python \"C:/Users/PC/AppData/Local/Temp/claude/C--Users-PC-Plateform/a0e361d7-de9f-40bb-89ae-c0d6178fbd89/scratchpad/test_migration.py\")",
-      "Bash(xargs echo \"  matches:\")"
+      "Bash(xargs echo \"  matches:\")",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json)",
+      "Bash(grep -E \"^src[/\\\\\\\\]\")"
     ]
   }
 }

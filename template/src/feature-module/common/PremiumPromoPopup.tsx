@@ -28,11 +28,8 @@ const PremiumPromoPopup: React.FC = () => {
             return Date.now() - Number(closedAt) >= RESHOW_INTERVAL_MS
         }
 
-        // Never stack on top of the launch announcement popup
-        const launchOpen = () => !!document.querySelector('.sl-launch-overlay')
-
         const tryShow = () => {
-            if (shouldShow() && !launchOpen()) setVisible(true)
+            if (shouldShow()) setVisible(true)
         }
 
         const initial = setTimeout(tryShow, INITIAL_DELAY_MS)
