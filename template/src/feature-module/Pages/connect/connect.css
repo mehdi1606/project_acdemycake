@@ -1,0 +1,395 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap');
+
+/* Link-in-bio page (/connect) — every rule is scoped under .sl-connect */
+
+.sl-connect {
+  --sl-wine: #700c2c;
+  --sl-wine-deep: #5b0925;
+  --sl-cream: #f8efeb;
+  --sl-cream-soft: #fff8f4;
+  --sl-gold: #d7aa35;
+  --sl-muted-wine: #9b858c;
+  --sl-hero-ink: #fff9f5;
+
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--sl-wine);
+  color: var(--sl-hero-ink);
+  text-align: left;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.sl-connect *,
+.sl-connect *::before,
+.sl-connect *::after {
+  box-sizing: border-box;
+}
+
+.sl-connect::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  background-image: var(--sl-pattern-image);
+  background-position: center top;
+  background-size: auto 920px;
+  background-repeat: repeat-y;
+  opacity: 0.16;
+  mix-blend-mode: screen;
+}
+
+.sl-connect::after {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  background: rgba(77, 0, 25, 0.08);
+}
+
+.sl-connect a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sl-connect__content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 780px);
+  margin: 0 auto;
+  padding: 38px 17px 40px;
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+
+.sl-connect__hero {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.sl-connect__logo {
+  width: 80px;
+  height: 80px;
+  padding: 2px;
+  overflow: hidden;
+  border: 1px solid rgba(222, 181, 92, 0.9);
+  border-radius: 50%;
+  background: var(--sl-cream);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.sl-connect__logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sl-connect__hero h1 {
+  margin: 20px 0 0;
+  color: var(--sl-hero-ink);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.65rem, 11vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: 0.17em;
+  line-height: 0.86;
+  text-indent: 0.17em;
+  text-transform: none;
+}
+
+.sl-connect__hero p {
+  margin: 13px 0 0;
+  color: rgba(255, 249, 245, 0.78);
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: clamp(0.66rem, 2.55vw, 0.85rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.sl-connect__ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 146px;
+  margin-top: 16px;
+}
+
+.sl-connect__ornament span {
+  display: block;
+  flex: 1;
+  height: 1px;
+  background: var(--sl-gold);
+  opacity: 0.85;
+}
+
+.sl-connect__ornament i {
+  display: block;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  background: var(--sl-gold);
+  transform: rotate(45deg);
+}
+
+/* ── Link cards ───────────────────────────────────── */
+
+.sl-connect__socials,
+.sl-connect__contact-list {
+  display: grid;
+  gap: 10px;
+}
+
+.sl-connect__socials {
+  margin-top: 25px;
+}
+
+.sl-connect__link,
+.sl-connect__card {
+  border-radius: 22px;
+  background: var(--sl-cream);
+  color: var(--sl-wine-deep);
+}
+
+.sl-connect a.sl-connect__link {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px 10px 13px;
+  color: var(--sl-wine-deep);
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.sl-connect__icon {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--sl-wine);
+  color: var(--sl-cream-soft);
+}
+
+.sl-connect__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sl-connect__copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sl-connect__label {
+  overflow: hidden;
+  color: var(--sl-muted-wine);
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sl-connect__value {
+  color: var(--sl-wine-deep);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.24rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.sl-connect__chevron {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  color: var(--sl-gold);
+}
+
+/* ── Contact ──────────────────────────────────────── */
+
+.sl-connect__contact {
+  margin-top: 21px;
+}
+
+.sl-connect__contact h2 {
+  margin: 0 0 17px 3px;
+  color: #e4bb54;
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  line-height: 1;
+}
+
+.sl-connect__card {
+  padding: 17px 13px 14px;
+}
+
+.sl-connect__phone {
+  margin: 0;
+  color: var(--sl-wine-deep);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.55rem, 6vw, 2rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.sl-connect__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.sl-connect a.sl-connect__btn {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  transition: transform 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.sl-connect a.sl-connect__btn--outline {
+  border: 1.5px solid var(--sl-wine-deep);
+  color: var(--sl-wine-deep);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sl-connect a.sl-connect__btn--filled {
+  border: 1.5px solid var(--sl-wine);
+  color: var(--sl-cream-soft);
+  background: var(--sl-wine);
+}
+
+/* ── Website + footer ─────────────────────────────── */
+
+.sl-connect__website {
+  margin-top: 10px;
+}
+
+.sl-connect__footer {
+  padding: 27px 0 3px;
+  text-align: center;
+}
+
+.sl-connect__footer p {
+  margin: 0;
+  color: rgba(255, 249, 245, 0.88);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1rem, 4.3vw, 1.35rem);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.sl-connect__footer strong {
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+/* ── States ───────────────────────────────────────── */
+
+.sl-connect a.sl-connect__link:hover,
+.sl-connect a.sl-connect__link:focus-visible {
+  background: var(--sl-cream-soft);
+  box-shadow: 0 7px 18px rgba(55, 0, 19, 0.12);
+  transform: translateY(-2px);
+  color: var(--sl-wine-deep);
+}
+
+.sl-connect a.sl-connect__btn:hover,
+.sl-connect a.sl-connect__btn:focus-visible {
+  transform: translateY(-1px);
+}
+
+.sl-connect a.sl-connect__btn--outline:hover,
+.sl-connect a.sl-connect__btn--outline:focus-visible {
+  background: var(--sl-wine);
+  color: var(--sl-cream-soft);
+}
+
+.sl-connect a.sl-connect__btn--filled:hover,
+.sl-connect a.sl-connect__btn--filled:focus-visible {
+  background: var(--sl-wine-deep);
+  color: var(--sl-cream-soft);
+}
+
+.sl-connect a.sl-connect__link:focus-visible,
+.sl-connect a.sl-connect__btn:focus-visible {
+  outline: 2px solid #e6bd5e;
+  outline-offset: 3px;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+
+@media (min-width: 481px) {
+  .sl-connect__content { padding: 56px 28px 58px; }
+  .sl-connect__logo { width: 104px; height: 104px; }
+  .sl-connect__hero h1 { margin-top: 23px; }
+  .sl-connect__socials { margin-top: 34px; gap: 14px; }
+  .sl-connect a.sl-connect__link {
+    min-height: 76px;
+    padding: 14px 26px 14px 20px;
+    gap: 17px;
+    border-radius: 25px;
+  }
+  .sl-connect__icon { width: 48px; height: 48px; flex-basis: 48px; }
+  .sl-connect__icon svg { width: 24px; height: 24px; }
+  .sl-connect__label { font-size: 0.75rem; }
+  .sl-connect__value { font-size: 1.55rem; }
+  .sl-connect__contact { margin-top: 30px; }
+  .sl-connect__contact h2 { margin-bottom: 20px; }
+  .sl-connect__contact-list { gap: 14px; }
+  .sl-connect__card { padding: 25px 24px 24px; border-radius: 25px; }
+  .sl-connect__actions { gap: 18px; margin-top: 21px; }
+  .sl-connect a.sl-connect__btn { min-height: 48px; border-radius: 18px; }
+  .sl-connect__website { margin-top: 14px; }
+  .sl-connect__footer { padding-top: 36px; }
+}
+
+@media (min-width: 901px) {
+  .sl-connect__content { padding-top: 72px; padding-bottom: 72px; }
+  .sl-connect::before { background-size: auto 1150px; }
+}
+
+@media (max-width: 350px) {
+  .sl-connect__content { padding-right: 14px; padding-left: 14px; }
+  .sl-connect__hero h1 { font-size: 2.35rem; letter-spacing: 0.13em; }
+  .sl-connect__hero p { font-size: 0.57rem; }
+  .sl-connect a.sl-connect__link { gap: 13px; padding-right: 14px; padding-left: 17px; }
+  .sl-connect__card { padding-right: 18px; padding-left: 18px; }
+  .sl-connect__actions { gap: 8px; }
+}
+
+/* Guard against global header/footer theme rules */
+.sl-connect .sl-connect__hero,
+.sl-connect .sl-connect__footer {
+  position: static;
+  background: none;
+  box-shadow: none;
+  z-index: auto;
+}

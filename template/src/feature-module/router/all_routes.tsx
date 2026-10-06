@@ -105,6 +105,7 @@ export const all_routes = {
     resetPassword: '/reset-password',
     setpassowrd: '/set-password',
     otp: '/otp',
+    connect: '/connect',
     lockscreen: '/lock-screen',
     privacyPolicy: "/pages/privacy-policy",
     termsConditions: "/terms-conditions",

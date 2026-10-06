@@ -124,6 +124,7 @@ const Error404                      = lazy(() => import("../auth/error/error-404
 const Error500                      = lazy(() => import("../auth/error/error-500/error500"));
 const ComingSoon                    = lazy(() => import("../auth/coming-soon/comingSoon"));
 const UnderConstruction             = lazy(() => import("../auth/underconstruction/underConstruction"));
+const Connect                       = lazy(() => import("../Pages/connect/connect"));
 
 const routes = all_routes;
 
@@ -677,6 +678,11 @@ export const publicRoutes = [
 ];
 
 export const authRoutes = [
+  {
+    path: routes.connect,
+    element: <Connect />,
+    route: Route,
+  },
   {
     path: routes.login,
     element: <Login />,

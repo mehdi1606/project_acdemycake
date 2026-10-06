@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '../../core/redux/hooks'
 import { all_routes } from '../router/all_routes'
@@ -11,13 +11,18 @@ const INITIAL_DELAY_MS = 2500
 const PremiumPromoPopup: React.FC = () => {
     const { i18n } = useTranslation()
     const { user, isAuthenticated } = useAppSelector(s => s.auth)
+    const { pathname } = useLocation()
     const [visible, setVisible] = useState(false)
     const isRtl = i18n.language === 'ar'
 
+    // Never on the standalone link-in-bio page (/connect)
+    const isHiddenRoute = pathname === all_routes.connect
+
     // Only guests and students WITHOUT an active premium plan should see this
     const isEligible =
-        !isAuthenticated ||
-        (user?.role === 'STUDENT' && user?.subscriptionStatus !== 'ACTIVE')
+        !isHiddenRoute &&
+        (!isAuthenticated ||
+        (user?.role === 'STUDENT' && user?.subscriptionStatus !== 'ACTIVE'))
 
     useEffect(() => {
         if (!isEligible) return
