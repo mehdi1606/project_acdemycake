@@ -89,9 +89,17 @@ public class VideoStorageServiceImpl implements VideoStorageService {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    /** Only real video formats; anything else (e.g. ".svg", odd characters) is refused. */
+    private static final java.util.Set<String> VIDEO_EXTENSIONS =
+            java.util.Set.of("mp4", "webm", "mov", "m4v", "ogv", "ogg", "mkv");
+
     private static String extractExtension(String filename) {
         if (filename == null || !filename.contains(".")) return "mp4";
-        return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+        String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+        if (!VIDEO_EXTENSIONS.contains(ext)) {
+            throw new BadRequestException("Unsupported video format. Allowed: " + VIDEO_EXTENSIONS);
+        }
+        return ext;
     }
 
     /**

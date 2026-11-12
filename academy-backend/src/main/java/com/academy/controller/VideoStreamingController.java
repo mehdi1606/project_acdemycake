@@ -129,20 +129,37 @@ public class VideoStreamingController {
         // ── Parse Range header ────────────────────────────────────────────────
         String rangeHeader   = request.getHeader(HttpHeaders.RANGE);
         long   rangeStart    = 0;
-        long   rangeEnd      = Math.min(totalSize - 1, DEFAULT_CHUNK - 1);
+        // No Range header: the whole file (a 200 must not be cut to the first chunk).
+        long   rangeEnd      = totalSize - 1;
         boolean isRange      = false;
 
         if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
             isRange = true;
-            String rangeValue = rangeHeader.substring(6);
-            String[] parts    = rangeValue.split("-");
-            rangeStart = Long.parseLong(parts[0].trim());
-            if (parts.length > 1 && !parts[1].isBlank()) {
-                rangeEnd = Long.parseLong(parts[1].trim());
-            } else {
-                rangeEnd = Math.min(totalSize - 1, rangeStart + DEFAULT_CHUNK - 1);
+            try {
+                String rangeValue = rangeHeader.substring(6).split(",")[0];
+                String[] parts    = rangeValue.split("-", -1);
+                if (parts[0].isBlank()) {
+                    // Suffix range "bytes=-N": the last N bytes.
+                    long n = Long.parseLong(parts[1].trim());
+                    rangeStart = Math.max(0, totalSize - n);
+                    rangeEnd   = totalSize - 1;
+                } else {
+                    rangeStart = Long.parseLong(parts[0].trim());
+                    if (parts.length > 1 && !parts[1].isBlank()) {
+                        rangeEnd = Long.parseLong(parts[1].trim());
+                    } else {
+                        rangeEnd = Math.min(totalSize - 1, rangeStart + DEFAULT_CHUNK - 1);
+                    }
+                    rangeEnd = Math.min(rangeEnd, totalSize - 1);
+                }
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                rangeStart = -1; // falls into the 416 below
             }
-            rangeEnd = Math.min(rangeEnd, totalSize - 1);
+            if (rangeStart < 0 || rangeStart >= totalSize || rangeEnd < rangeStart) {
+                return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
+                        .header(HttpHeaders.CONTENT_RANGE, "bytes */" + totalSize)
+                        .build();
+            }
         }
 
         long contentLength = rangeEnd - rangeStart + 1;
@@ -154,8 +171,10 @@ public class VideoStreamingController {
         headers.setContentType(MediaType.parseMediaType(
                 asset.getContentType() != null ? asset.getContentType() : "video/mp4"));
         headers.set(HttpHeaders.ACCEPT_RANGES,  "bytes");
-        headers.set(HttpHeaders.CONTENT_RANGE,
-                "bytes " + rangeStart + "-" + rangeEnd + "/" + totalSize);
+        if (isRange) {
+            headers.set(HttpHeaders.CONTENT_RANGE,
+                    "bytes " + rangeStart + "-" + rangeEnd + "/" + totalSize);
+        }
         headers.setContentLength(contentLength);
         headers.set(HttpHeaders.CACHE_CONTROL, "no-cache, no-store");
 

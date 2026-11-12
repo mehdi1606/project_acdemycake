@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
@@ -69,16 +70,15 @@ const StudentWishlist = () => {
   };
 
   const getThumbnail = (url?: string) =>
-    getFileUrl(url) ?? 'assets/img/course/course-01.jpg';
+    getFileUrl(url) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
 
   const getInstructorAvatar = (url?: string) =>
-    getFileUrl(url) ?? 'assets/img/user/user-02.jpg';
+    getFileUrl(url) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`;
 
   const formatPrice = (course: Course) => {
     if (!course.requiresPurchase) return 'Free';
     if (!course.price) return 'Free';
-    const symbol = course.currency === 'USD' ? '$' : course.currency || '$';
-    return `${symbol}${Number(course.price).toFixed(2)}`;
+    return formatMAD(course.price, course.currency);
   };
 
   return (
@@ -164,7 +164,7 @@ const StudentWishlist = () => {
                     src={getThumbnail(course.thumbnailUrl)}
                     alt={course.title}
                     style={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg'; }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }}
                   />
                 </Link>
                 <button
@@ -197,7 +197,7 @@ const StudentWishlist = () => {
                       src={getInstructorAvatar(course.instructor?.avatarUrl)}
                       alt=""
                       style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/user/user-02.jpg'; }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`; }}
                     />
                     <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
                       {course.instructor?.fullName || 'Instructor'}

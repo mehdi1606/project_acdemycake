@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Spin, message, Pagination, Select } from 'antd';
@@ -65,18 +66,7 @@ const AdminTransactions = () => {
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
   };
 
-  const formatCurrency = (amount: number, currency: string = 'MAD') => {
-    try {
-      return new Intl.NumberFormat('fr-MA', {
-        style: 'currency',
-        currency,
-        maximumFractionDigits: 2,
-      }).format(amount);
-    } catch {
-      // Fallback for unsupported currency codes
-      return `${amount.toFixed(2)} ${currency}`;
-    }
-  };
+  const formatCurrency = (amount: number, currency: string = 'MAD') => formatMAD(amount, currency);
 
   const filteredTransactions = (transactions || []).filter((tx: any) => {
     if (statusFilter && tx.status !== statusFilter) return false;
@@ -227,7 +217,7 @@ const AdminTransactions = () => {
                           }}
                         >
                           {transaction.status === 'REFUNDED' ? '-' : ''}
-                          {formatCurrency(transaction.amount || 0, transaction.currency || 'USD')}
+                          {formatCurrency(transaction.amount || 0, transaction.currency || 'MAD')}
                         </span>
                       </td>
                       <td>{getStatusBadge(transaction.status)}</td>

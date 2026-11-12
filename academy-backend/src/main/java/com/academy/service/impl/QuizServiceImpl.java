@@ -9,6 +9,7 @@ import com.academy.entity.enums.AttemptStatus;
 import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.QuestionType;
 import com.academy.entity.enums.QuizStatus;
+import com.academy.entity.enums.UserRole;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
@@ -303,7 +304,25 @@ public class QuizServiceImpl implements QuizService {
         if (quiz.getStatus() != QuizStatus.PUBLISHED) {
             throw new BadRequestException("This quiz is not available");
         }
+        requireCourseAccess(getCurrentUser(), quiz);
         return QuizResponse.fromEntityForStudent(quiz);
+    }
+
+    /** A quiz belongs to a course: only people with access to that course may take it. */
+    private void requireCourseAccess(User student, Quiz quiz) {
+        if (student.getRole() == UserRole.ADMIN) return;
+        if (quiz.getCourse() != null && !enrollmentService.hasAccess(student, quiz.getCourse())) {
+            throw new ForbiddenException("You must be enrolled in this course to take its quiz.");
+        }
+    }
+
+    /** Grace period after the time limit, for network latency on the auto-submit. */
+    private static final long SUBMIT_GRACE_SECONDS = 120;
+
+    private boolean isPastTimeLimit(QuizAttempt attempt, Quiz quiz) {
+        if (quiz.getDuration() == null || quiz.getDuration() <= 0 || attempt.getStartedAt() == null) return false;
+        return LocalDateTime.now().isAfter(
+                attempt.getStartedAt().plusMinutes(quiz.getDuration()).plusSeconds(SUBMIT_GRACE_SECONDS));
     }
 
     @Override
@@ -315,8 +334,23 @@ public class QuizServiceImpl implements QuizService {
         if (quiz.getStatus() != QuizStatus.PUBLISHED) {
             throw new BadRequestException("This quiz is not available");
         }
+        requireCourseAccess(student, quiz);
 
-        long attemptCount = quizAttemptRepository.countByQuizAndStudent(quiz, student);
+        // Resume an unfinished attempt that is still within its time limit (refreshing
+        // the page used to start a new attempt and burn one of the allowed tries).
+        var open = quizAttemptRepository.findTopByQuizAndStudentAndStatusOrderByStartedAtDesc(
+                quiz, student, AttemptStatus.STARTED);
+        if (open.isPresent() && !isPastTimeLimit(open.get(), quiz)) {
+            QuizAttempt resumed = open.get();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("attemptId", resumed.getId().toString());
+            result.put("startedAt", resumed.getStartedAt().toString());
+            result.put("endsAt", resumed.getStartedAt().plusMinutes(quiz.getDuration()).toString());
+            return result;
+        }
+
+        // Only submitted attempts count towards the limit.
+        long attemptCount = quizAttemptRepository.countByQuizAndStudentAndStatus(quiz, student, AttemptStatus.SUBMITTED);
         if (!Boolean.TRUE.equals(quiz.getAllowRetake()) && attemptCount > 0) {
             throw new BadRequestException("You have already attempted this quiz and retakes are not allowed");
         }
@@ -379,6 +413,9 @@ public class QuizServiceImpl implements QuizService {
         }
 
         Quiz quiz = findQuizById(attempt.getQuiz().getId());
+        if (isPastTimeLimit(attempt, quiz)) {
+            throw new BadRequestException("The time for this quiz is over");
+        }
 
         QuizQuestion question = quiz.getQuestions().stream()
                 .filter(q -> q.getId().equals(questionId))
@@ -394,10 +431,15 @@ public class QuizServiceImpl implements QuizService {
         Set<UUID> selectedSet = new HashSet<>(selectedOptionIds != null ? selectedOptionIds : List.of());
         boolean isCorrect = correctSet.equals(selectedSet);
 
+        // Never reveal the right options for a wrong answer: the student must
+        // find them. On a correct answer the "correct" options are exactly what
+        // they already selected, so nothing new is disclosed.
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("correct", isCorrect);
-        result.put("correctOptionIds", correctOptionIds.stream().map(UUID::toString).collect(Collectors.toList()));
-        result.put("explanation", question.getExplanation());
+        result.put("correctOptionIds", isCorrect
+                ? correctOptionIds.stream().map(UUID::toString).collect(Collectors.toList())
+                : List.of());
+        result.put("explanation", isCorrect ? question.getExplanation() : null);
         return result;
     }
 
@@ -418,8 +460,24 @@ public class QuizServiceImpl implements QuizService {
         int totalPoints = quiz.getTotalPoints();
         int score = 0;
 
-        if (!violated && answers != null && !answers.isEmpty()) {
-            for (Map<String, Object> answerMap : answers) {
+        // Submitted after the time limit (+ grace): no score.
+        boolean late = isPastTimeLimit(attempt, quiz);
+        if (late) {
+            log.warn("Attempt {} submitted after the time limit — not scored", attemptId);
+        }
+
+        // One answer per question (the last one sent wins) so repeating a
+        // known-correct answer cannot add points beyond the quiz total.
+        Map<String, Map<String, Object>> uniqueAnswers = new LinkedHashMap<>();
+        if (answers != null) {
+            for (Map<String, Object> a : answers) {
+                Object q = a.get("questionId");
+                if (q != null) uniqueAnswers.put(q.toString(), a);
+            }
+        }
+
+        if (!violated && !late && !uniqueAnswers.isEmpty()) {
+            for (Map<String, Object> answerMap : uniqueAnswers.values()) {
                 String qIdStr = (String) answerMap.get("questionId");
                 List<String> selIds = (List<String>) answerMap.get("selectedOptionIds");
                 if (qIdStr == null || selIds == null) continue;
@@ -451,7 +509,7 @@ public class QuizServiceImpl implements QuizService {
 
         double percentage = totalPoints > 0 ? (double) score / totalPoints * 100.0 : 0.0;
         double roundedPct = Math.round(percentage * 10.0) / 10.0;
-        boolean passed = !violated && percentage >= quiz.getPassingScore();
+        boolean passed = !violated && !late && percentage >= quiz.getPassingScore();
 
         attempt.setStatus(AttemptStatus.SUBMITTED);
         attempt.setScore(score);

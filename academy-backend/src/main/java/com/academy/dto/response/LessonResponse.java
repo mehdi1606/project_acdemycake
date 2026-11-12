@@ -2,6 +2,7 @@ package com.academy.dto.response;
 
 import com.academy.entity.CourseLesson;
 import com.academy.entity.enums.ContentType;
+import com.academy.security.FileUrlSigner;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -35,19 +36,41 @@ public class LessonResponse {
     private String textContent;
     private List<LessonResourceResponse> resources;
 
+    /**
+     * Outline only — no lesson text and no file links. Safe for public
+     * listings such as the course curriculum.
+     */
     public static LessonResponse fromEntity(CourseLesson lesson) {
+        return outline(lesson).build();
+    }
+
+    /**
+     * Full lesson including text and resource files. Only call this after the
+     * viewer's access to the course has been checked; file links are passed
+     * through {@code signer} so they expire.
+     */
+    public static LessonResponse withContent(CourseLesson lesson, FileUrlSigner signer) {
+        List<LessonResourceResponse> resources = parseResources(lesson.getResourcesJson());
+        resources.forEach(r -> r.setUrl(signer.sign(r.getUrl())));
+        return outline(lesson)
+                .textContent(signer.signReferencesIn(lesson.getTextContent()))
+                .resources(resources)
+                .build();
+    }
+
+    public static List<LessonResourceResponse> parseResources(String json) {
         List<LessonResourceResponse> resources = new ArrayList<>();
-        if (lesson.getResourcesJson() != null && !lesson.getResourcesJson().isBlank()) {
+        if (json != null && !json.isBlank()) {
             try {
-                resources = MAPPER.readValue(
-                        lesson.getResourcesJson(),
-                        new TypeReference<List<LessonResourceResponse>>() {}
-                );
+                resources = MAPPER.readValue(json, new TypeReference<List<LessonResourceResponse>>() {});
             } catch (Exception ignored) {
                 // Return empty list if JSON is malformed
             }
         }
+        return resources;
+    }
 
+    private static LessonResponseBuilder outline(CourseLesson lesson) {
         return LessonResponse.builder()
                 .id(lesson.getId())
                 .moduleId(lesson.getModule().getId())
@@ -59,9 +82,6 @@ public class LessonResponse {
                 .videoStatus(lesson.getVideoStatus())
                 .isPreview(lesson.getIsPreview())
                 .isPublished(lesson.getIsPublished())
-                .orderIndex(lesson.getOrderIndex())
-                .textContent(lesson.getTextContent())
-                .resources(resources)
-                .build();
+                .orderIndex(lesson.getOrderIndex());
     }
 }

@@ -12,7 +12,22 @@ type PasswordField = "password" | "confirmPassword";
 interface LocationState {
   registrationSuccess?: boolean;
   email?: string;
+  from?: string | { pathname?: string; search?: string; hash?: string };
 }
+
+/** Internal path the user was sent to login from (guards pass `{ from }`), or null. */
+const getRedirectFrom = (state: LocationState | null | undefined): string | null => {
+  const from = state?.from;
+  let path: string | undefined;
+  if (typeof from === "string") path = from;
+  else if (from && typeof from.pathname === "string") {
+    path = `${from.pathname}${from.search || ""}${from.hash || ""}`;
+  }
+  // Only same-app paths: must start with a single '/' (reject '//host' and absolute URLs).
+  if (!path || !path.startsWith("/") || path.startsWith("//")) return null;
+  if (path === all_routes.login) return null;
+  return path;
+};
 
 interface FieldErrors {
   email?: string;
@@ -44,8 +59,10 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState;
-  const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { isLoading, error, errorCode, isAuthenticated, user } = useAppSelector((state) => state.auth);
   const route = all_routes;
+  // Captured once: the registration-success effect below clears location.state.
+  const [redirectFrom] = useState<string | null>(() => getRedirectFrom(locationState));
 
   useEffect(() => {
     if (locationState?.registrationSuccess) {
@@ -62,11 +79,12 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "ADMIN") navigate(route.adminDashboard);
+      if (redirectFrom) navigate(redirectFrom, { replace: true });
+      else if (user.role === "ADMIN") navigate(route.adminDashboard);
       else if (user.role === "INSTRUCTOR") navigate(route.instructorDashboard);
       else navigate(route.studentDashboard);
     }
-  }, [isAuthenticated, user, navigate, route]);
+  }, [isAuthenticated, user, navigate, route, redirectFrom]);
 
   const togglePasswordVisibility = (field: PasswordField) => {
     setPasswordVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
@@ -99,7 +117,9 @@ const Login = () => {
   };
 
   /* Whether the current error is "email not verified" */
-  const isVerifyError = !!error && error.toLowerCase().includes('verify your email');
+  const isVerifyError =
+    errorCode === 'AUTH_008' || // backend ErrorCode.EMAIL_NOT_VERIFIED
+    (!!error && error.toLowerCase().includes('verify your email'));
 
   const handleResendVerification = async () => {
     if (!formData.email || resendState !== 'idle') return;

@@ -64,7 +64,7 @@ const Latestblog = () => {
                                             data-aos="fade-up"
                                         >
                                             <div className="blog-img-three">
-                                                <Link to={route.blogDetails}>
+                                                <Link to={route.blogGrid}>
                                                     <ImageWithBasePath
                                                         className="img-fluid"
                                                         alt="Img"

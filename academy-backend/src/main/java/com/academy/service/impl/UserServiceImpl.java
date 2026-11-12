@@ -42,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
     private final EmailService emailService;
+    private final com.academy.repository.RefreshTokenRepository refreshTokenRepository;
 
     private static final String PASSWORD_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -211,6 +212,8 @@ public class UserServiceImpl implements UserService {
         user.setBannedAt(LocalDateTime.now());
         user.setBanReason(reason);
         userRepository.save(user);
+        // End every session now (the access-token filter also refuses banned users).
+        refreshTokenRepository.revokeAllByUser(user);
 
         log.info("User banned: {} - Reason: {}", user.getEmail(), reason);
     }

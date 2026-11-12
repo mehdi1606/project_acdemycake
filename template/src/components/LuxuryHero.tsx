@@ -119,7 +119,7 @@ const LuxuryHero: React.FC<LuxuryHeroProps> = ({
                   className="main-image"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
-                      'assets/img/banner/banner-img.png';
+                      `${process.env.PUBLIC_URL}/assets/img/banner/banner-img.png`;
                   }}
                 />
 

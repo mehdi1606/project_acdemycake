@@ -33,4 +33,7 @@ public interface SubscriptionService {
     void sendExpiryReminders();
 
     SubscriptionResponse adminActivateSubscription(UUID userId);
+
+    /** Ends the user's subscription now (after a full refund). */
+    void revokeForRefund(com.academy.entity.User user);
 }

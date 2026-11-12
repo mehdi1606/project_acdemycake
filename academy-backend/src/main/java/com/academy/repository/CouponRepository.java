@@ -4,6 +4,9 @@ import com.academy.entity.Coupon;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -17,4 +20,9 @@ public interface CouponRepository extends JpaRepository<Coupon, UUID> {
     boolean existsByCode(String code);
 
     Page<Coupon> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    /** Atomic counter update — no lost increments under concurrent payments. */
+    @Modifying
+    @Query("UPDATE Coupon c SET c.usedCount = c.usedCount + 1 WHERE c.id = :id")
+    int incrementUsedCount(@Param("id") UUID id);
 }

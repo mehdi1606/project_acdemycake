@@ -31,6 +31,15 @@ public class InstructorController {
     private final EnrollmentService enrollmentService;
     private final CommunityService communityService;
     private final CertificateService certificateService;
+    private final MasterclassBookingService masterclassBookingService;
+
+    // ── LIVE masterclass reservations ────────────────────────────────────────
+    @GetMapping("/masterclasses/{courseId}/participants")
+    @Operation(summary = "Confirmed paid participants of one of my live masterclasses, with seat and revenue totals")
+    public ResponseEntity<ApiResponse<MasterclassParticipantsResponse>> getMasterclassParticipants(
+            @PathVariable UUID courseId) {
+        return ResponseEntity.ok(ApiResponse.success(masterclassBookingService.getParticipants(courseId)));
+    }
 
     @GetMapping("/dashboard")
     @Operation(summary = "Get instructor dashboard")

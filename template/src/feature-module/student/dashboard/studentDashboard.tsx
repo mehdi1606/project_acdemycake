@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import { Link } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -57,7 +58,7 @@ const StudentDashboard = () => {
         <div className="welcome-text">
           <p className="welcome-greeting">{t('student.dashboard.welcome', 'Good to see you again')}</p>
           <h4>{t('student.dashboard.welcomeBack', 'Welcome back')}, {firstName}!</h4>
-          <p>{t('student.dashboard.continueLearning', 'Continue your learning journey — you\'re doing great.')}</p>
+          <p>{t('student.dashboard.continueLearningSubtitle', 'Continue your learning journey — you\'re doing great.')}</p>
         </div>
         <div className="welcome-actions">
           <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
@@ -126,10 +127,10 @@ const StudentDashboard = () => {
               <div className="lx-course-card">
                 <div className="course-img-wrap">
                   <img
-                    src={getFileUrl(enr.courseThumbnail) ?? 'assets/img/course/course-01.jpg'}
+                    src={getFileUrl(enr.courseThumbnail) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`}
                     alt={enr.courseTitle}
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg';
+                      (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
                     }}
                   />
                   <div className="course-progress-bar">
@@ -196,7 +197,7 @@ const StudentDashboard = () => {
                       </span>
                     </div>
                     <div className="d-flex flex-column align-items-end gap-1">
-                      <span className="txn-amount">${txn.amount}</span>
+                      <span className="txn-amount">{formatMAD(txn.amount, txn.currency || undefined)}</span>
                       <span className={`lx-badge ${statusBadgeClass(txn.status)}`}>
                         {txn.status}
                       </span>

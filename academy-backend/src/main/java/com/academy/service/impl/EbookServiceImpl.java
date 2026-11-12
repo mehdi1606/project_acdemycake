@@ -65,7 +65,14 @@ public class EbookServiceImpl implements EbookService {
     public EbookResponse getBySlug(String slug) {
         Ebook ebook = ebookRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Ebook", "slug", slug));
-        return decorate(ebook, getCurrentUserOrNull());
+        User viewer = getCurrentUserOrNull();
+        // Unpublished ebooks are visible to admins only (and to people who already own them).
+        if (ebook.getStatus() != EbookStatus.PUBLISHED
+                && (viewer == null || (viewer.getRole() != com.academy.entity.enums.UserRole.ADMIN
+                        && !purchaseRepository.existsByUserAndEbook(viewer, ebook)))) {
+            throw new ResourceNotFoundException("Ebook", "slug", slug);
+        }
+        return decorate(ebook, viewer);
     }
 
     @Override
@@ -139,6 +146,23 @@ public class EbookServiceImpl implements EbookService {
     }
 
     // ── Purchase ─────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public void revokePurchase(User user, UUID ebookId) {
+        Ebook ebook = findById(ebookId);
+        purchaseRepository.findByUserAndEbook(user, ebook).ifPresent(p -> {
+            purchaseRepository.delete(p);
+            ebook.setPurchaseCount(Math.max(0, (ebook.getPurchaseCount() == null ? 0 : ebook.getPurchaseCount()) - 1));
+            ebookRepository.save(ebook);
+            log.info("Ebook {} access revoked for {} (refund)", ebookId, user.getEmail());
+        });
+    }
+
+    @Override
+    public boolean isOwnedBy(User user, UUID ebookId) {
+        return purchaseRepository.existsByUserAndEbook(user, findById(ebookId));
+    }
 
     @Override
     @Transactional

@@ -9,6 +9,7 @@ import {
   PublicInstructorProfile, CreateReviewRequest,
 } from '../../../services/api/types';
 import { getFileUrl } from '../../../environment';
+import { sanitizeHtml } from '../../../core/common/sanitizeHtml';
 import BadgeAvatar from '../../../components/BadgeAvatar';
 import { getBadgeFromRole } from '../../../config/badges';
 import { Spin, App, Rate, Collapse } from 'antd';
@@ -18,6 +19,7 @@ import { addToCart } from '../../../core/redux/cartSlice';
 import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 import { assignmentService } from '../../../services/api/assignment.service';
+import LiveMasterclassBooking, { liveSeatInfo, formatSessionDate, formatSessionTimeRange } from './LiveMasterclassBooking';
 
 const { Panel } = Collapse;
 const route = all_routes;
@@ -166,6 +168,12 @@ const CourseDetails = () => {
     } finally { setEnrolling(false); }
   }, [isAuthenticated, user, course, slug, message, navigate]);
 
+  /** Silent reload (fresh seat availability for a live masterclass). */
+  const refreshCourse = useCallback(() => {
+    if (!slug) return;
+    courseService.getCourseBySlug(slug).then(setCourse).catch(() => {});
+  }, [slug]);
+
   const handleWishlist = useCallback(async () => {
     if (!isAuthenticated) { message.warning('Please login to use wishlist'); navigate(route.login); return; }
     if (!course || wishlistBusy) return;
@@ -245,25 +253,20 @@ const CourseDetails = () => {
   const discountPct = hasDiscount ? Math.round(((c.originalPrice! - c.price!) / c.originalPrice!) * 100) : 0;
   const isAdmin       = isAuthenticated && user?.role === 'ADMIN';
   const isInstructor  = isAuthenticated && user?.role === 'INSTRUCTOR';
+  // Only the course owner gets the instructor preview; other instructors see the normal buyer view.
+  const isOwnInstructor = isInstructor && !!user?.id && c.instructor?.id === user.id;
   const _isStaff      = isAdmin || isInstructor;
   const hasActiveSub  = isAuthenticated && user?.subscriptionStatus === 'ACTIVE'
     && !!user?.subscriptionEndDate && new Date(user.subscriptionEndDate) > new Date();
   const isPlan        = c.courseType === 'PLAN' || !c.courseType;
   const isMasterclass = c.courseType === 'MASTERCLASS';
 
-  // A LIVE masterclass is bespoke: no online payment, the student books on WhatsApp.
-  const isLiveMasterclass = isMasterclass && (c as any).masterclassFormat === 'LIVE';
-  // Seats remaining for a live session; null when the instructor set no limit.
-  const seatCap   = (c as any).maxStudents as number | null | undefined;
-  const seatsLeft = seatCap && seatCap > 0
-    ? Math.max(0, seatCap - (c.enrolledCount ?? 0))
-    : null;
-  const reservationNumber = ((c as any).reservationWhatsapp || '').replace(/[^0-9]/g, '');
-  const reservationHref = isLiveMasterclass && reservationNumber
-    ? `https://wa.me/${reservationNumber}?text=${encodeURIComponent(
-        t('courseDetails.reserveMessage', 'Hello, I would like to reserve a place for the masterclass: {{title}}', { title: c.title })
-      )}`
-    : null;
+  // A LIVE masterclass is an in-person session: booked on WhatsApp or paid by card
+  // (see LiveMasterclassBooking).
+  const isLiveMasterclass = isMasterclass && c.masterclassFormat === 'LIVE';
+  // Seats remaining for a live session, as computed by the server (paid seats +
+  // in-progress card payments). Null when the instructor set no limit.
+  const { capacity: seatCap, remaining: seatsLeft } = liveSeatInfo(c);
 
   const thumb        = getFileUrl(c.thumbnailUrl) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
   const instrAvatar  = getFileUrl(c.instructor?.avatarUrl ?? instructor?.avatarUrl) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
@@ -353,12 +356,20 @@ const CourseDetails = () => {
             )}
 
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 18 }}>
-              {[
+              {(isLiveMasterclass ? [
+                // Live session: show when / where / availability instead of lesson stats.
+                ...(c.sessionDate ? [{ icon: 'fa-calendar-day', val: formatSessionDate(c.sessionDate, i18n.language || 'fr') ?? '' }] : []),
+                ...(formatSessionTimeRange(c) ? [{ icon: 'fa-clock', val: formatSessionTimeRange(c) as string }] : []),
+                ...(c.sessionLocation ? [{ icon: 'fa-location-dot', val: c.sessionLocation }] : []),
+                ...(seatsLeft !== null ? [{ icon: 'fa-users', val: seatsLeft > 0
+                    ? t('courseDetails.placesLeftOf', '{{count}} of {{capacity}} places left', { count: seatsLeft, capacity: seatCap })
+                    : t('liveBooking.status.full', 'Fully booked') }] : []),
+              ] : [
                 { icon: 'fa-book-open', val: `${totalLessons} ${t('common.lessons', 'lessons')}` },
                 { icon: 'fa-clock', val: fmtDuration(c.durationMinutes) },
                 { icon: 'fa-users', val: `${c.enrolledCount?.toLocaleString()} ${t('common.enrolled', 'Enrolled')}` },
                 ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', val: `${quizLessons} Quiz${quizLessons > 1 ? 'zes' : ''}` }] : []),
-              ].map((s, i) => (
+              ]).map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
                   <i className={`fa-solid ${s.icon}`} style={{ color: 'rgba(197,145,62,0.8)', fontSize: 13 }} />
                   <span>{s.val}</span>
@@ -483,7 +494,7 @@ const CourseDetails = () => {
                 <div style={cardStyle}>
                   <SectionTitle>{t('courses.details.overview', 'Overview')}</SectionTitle>
                   <div style={{ color: '#4b5563', lineHeight: 1.8, fontSize: 15, wordBreak: 'break-word', overflowWrap: 'break-word', overflow: 'hidden' }}
-                    dangerouslySetInnerHTML={{ __html: c.description || c.shortDescription || '' }} />
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(c.description || c.shortDescription || '') }} />
                 </div>
 
                 {c.whatYouWillLearn?.trim() && (
@@ -816,13 +827,26 @@ const CourseDetails = () => {
                 border: '1px solid rgba(197,145,44,0.12)',
               }}>
 
+                {isLiveMasterclass ? (
+                  /* LIVE masterclass: session details + WhatsApp / card booking */
+                  <LiveMasterclassBooking
+                    course={c}
+                    isAuthenticated={isAuthenticated}
+                    user={user as any}
+                    isInstructor={isInstructor}
+                    isAdmin={isAdmin}
+                    onRefresh={refreshCourse}
+                    onWishlist={handleWishlist}
+                    wishlistBusy={wishlistBusy}
+                  />
+                ) : (<>
                 {/* Price / status header */}
                 <div style={{
                   padding: '24px 22px 20px',
                   borderBottom: '1px solid rgba(197,145,44,0.08)',
                   background: c.isEnrolled
                     ? 'linear-gradient(145deg,#064e3b 0%,#065f46 60%,#047857 100%)'
-                    : isInstructor
+                    : isOwnInstructor
                     ? 'linear-gradient(145deg,#1e3a8a 0%,#1d4ed8 100%)'
                     : isAdmin
                     ? 'linear-gradient(145deg,#3b0a15 0%,#651C32 100%)'
@@ -872,7 +896,7 @@ const CourseDetails = () => {
                         </div>
                       )}
                     </div>
-                  ) : isInstructor ? (
+                  ) : isOwnInstructor ? (
                     <div>
                       <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(59,130,246,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                         <i className="fa-solid fa-chalkboard-teacher" style={{ fontSize: 24, color: '#3B82F6' }} />
@@ -906,22 +930,6 @@ const CourseDetails = () => {
                         <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>Subscribe to access all Plan courses</p>
                       </div>
                     )
-                  ) : isLiveMasterclass ? (
-                    /* Bespoke live session — no price, no date. Only the seats left. */
-                    <div>
-                      <span style={{
-                        fontFamily: "'Playfair Display',serif", fontSize: 34, fontWeight: 800,
-                        color: seatsLeft !== null && seatsLeft <= 0 ? '#DC2626' : '#2C1810',
-                      }}>
-                        {seatsLeft !== null
-                          ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
-                          : t('courseDetails.limitedPlaces', 'Limited places')}
-                      </span>
-                      <div style={{ fontSize: 12, color: '#9A8080', marginTop: 6 }}>
-                        <i className="fa-solid fa-users" style={{ marginInlineEnd: 6, color: '#C5912C' }} />
-                        {t('courseDetails.liveSeatsNote', 'Reserve early — places are limited')}
-                      </div>
-                    </div>
                   ) : isMasterclass ? (
                     !c.requiresPurchase ? (
                       <div>
@@ -988,7 +996,7 @@ const CourseDetails = () => {
                       <span>{t('courses.details.continueLearning', 'Continue Learning')}</span>
                     </Link>
                     </>
-                  ) : isInstructor ? (
+                  ) : isOwnInstructor ? (
                     /* Instructors: preview only — no enrollment */
                     <Link to={`${route.courseWatch}/${c.slug}`} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -1047,38 +1055,6 @@ const CourseDetails = () => {
                         </p>
                       </React.Fragment>
                     )
-                  ) : isLiveMasterclass ? (
-                    /* Bespoke live masterclass — booked through WhatsApp, not paid online */
-                    <React.Fragment>
-                      {reservationHref ? (
-                        <a
-                          href={reservationHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                            width: '100%', padding: '14px 18px', borderRadius: 12, boxSizing: 'border-box' as const,
-                            background: 'linear-gradient(135deg,#25D366,#1da851)', color: '#fff',
-                            fontWeight: 800, fontSize: 15, textDecoration: 'none',
-                            boxShadow: '0 6px 20px rgba(37,211,102,0.32)', marginBottom: 10,
-                          }}
-                        >
-                          <i className="fa-brands fa-whatsapp" style={{ fontSize: 19 }} />
-                          {t('courseDetails.reservePlace', 'Reserve my place')}
-                        </a>
-                      ) : (
-                        <div style={{
-                          padding: '12px 14px', borderRadius: 12, marginBottom: 10,
-                          background: 'rgba(197,145,44,0.07)', border: '1px solid rgba(197,145,44,0.2)',
-                          fontSize: 12.5, color: '#7A6060', textAlign: 'center',
-                        }}>
-                          {t('courseDetails.reserveUnavailable', 'Reservations are not open yet — please contact the academy.')}
-                        </div>
-                      )}
-                      <p style={{ fontSize: 11, color: '#9A8080', textAlign: 'center', margin: '0 0 10px' }}>
-                        {t('courseDetails.liveSessionNote', 'Live bespoke session — the date is agreed with you directly')}
-                      </p>
-                    </React.Fragment>
                   ) : (
                     <React.Fragment>
                       {!isAuthenticated ? (
@@ -1120,7 +1096,7 @@ const CourseDetails = () => {
                   )}
 
                   {/* Wishlist — not shown for instructors */}
-                  {!isInstructor && (
+                  {!isOwnInstructor && (
                     <button onClick={handleWishlist} disabled={wishlistBusy} style={{
                       width: '100%', padding: '11px 16px', borderRadius: 12,
                       border: `1.5px solid ${c.isWishlisted ? 'rgba(239,68,68,0.25)' : 'rgba(197,145,44,0.15)'}`,
@@ -1135,6 +1111,7 @@ const CourseDetails = () => {
                     </button>
                   )}
                 </div>
+                </>)}
 
                 {/* Course includes */}
                 <div style={{ padding: '0 18px 20px' }}>
@@ -1144,13 +1121,16 @@ const CourseDetails = () => {
                   </h6>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {(isLiveMasterclass ? [
-                      { icon: 'fa-video',              color: '#1DA851', text: t('courseDetails.liveIncludeSession', 'Live bespoke session') },
+                      { icon: 'fa-video',              color: '#1DA851', text: t('courseDetails.liveIncludeSessionV2', 'In-person live session with the instructor') },
                       { icon: 'fa-users',              color: '#C5973E', text: seatsLeft !== null
-                          ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+                          ? t('courseDetails.placesLeftOf', '{{count}} of {{capacity}} places left', { count: seatsLeft, capacity: seatCap })
                           : t('courseDetails.limitedPlaces', 'Limited places') },
                       { icon: 'fa-signal',             color: '#8B5CF6', text: levelLabel(c.level) },
                       { icon: 'fa-globe',              color: '#10B981', text: c.language ?? 'English' },
-                      { icon: 'fa-brands fa-whatsapp', color: '#1DA851', text: t('courseDetails.liveIncludeWhatsapp', 'Booked directly on WhatsApp') },
+                      ...(Number(c.price ?? 0) > 0
+                        ? [{ icon: 'fa-credit-card', color: '#651C32', text: t('courseDetails.liveIncludeCard', 'Secure online card payment') }]
+                        : []),
+                      { icon: 'fa-brands fa-whatsapp', color: '#1DA851', text: t('courseDetails.liveIncludeWhatsappV2', 'Questions & reservations on WhatsApp') },
                     ] : [
                       { icon: 'fa-video',          color: '#3B82F6', text: `${fmtDuration(c.durationMinutes)} on-demand video` },
                       { icon: 'fa-file-lines',     color: '#6B7280', text: `${totalLessons} lessons · ${curriculum.length} modules` },
@@ -1250,7 +1230,7 @@ const CourseDetails = () => {
               <i className="fa-solid fa-play" />{t('courses.details.continueLearning', 'Continue Learning')}
             </Link>
           );
-        } else if (isInstructor) {
+        } else if (isOwnInstructor) {
           label = 'Instructor View';
           action = (
             <Link to={`${route.courseWatch}/${c.slug}`} style={{ ...barBtn, background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
@@ -1272,16 +1252,23 @@ const CourseDetails = () => {
                 </Link>
               );
         } else if (isLiveMasterclass) {
-          label = seatsLeft !== null
-            ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
-            : t('courseDetails.limitedPlaces', 'Limited places');
-          if (reservationHref) {
-            action = (
-              <a href={reservationHref} target="_blank" rel="noopener noreferrer" style={{ ...barBtn, background: 'linear-gradient(135deg,#25D366,#1da851)' }}>
-                <i className="fa-brands fa-whatsapp" style={{ fontSize: 18 }} />{t('courseDetails.reservePlace', 'Reserve my place')}
-              </a>
-            );
+          // Phones: the booking panel (both options) sits below the content — jump to it.
+          label = c.isEnrolled
+            ? t('liveBooking.booked', 'Your place is confirmed')
+            : Number(c.price ?? 0) > 0 ? `${c.price} ${c.currency || 'MAD'}` : t('liveBooking.badge', 'Live masterclass');
+          if (seatsLeft !== null) {
+            sub = <span>{seatsLeft > 0
+              ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+              : t('liveBooking.status.full', 'Fully booked')}</span>;
           }
+          action = (
+            <button type="button"
+              onClick={() => document.getElementById('sl-live-booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              style={{ ...barBtn, border: 'none', cursor: 'pointer', background: c.isEnrolled ? 'linear-gradient(135deg,#047857,#065f46)' : 'linear-gradient(135deg,#25D366,#1da851)' }}>
+              <i className={c.isEnrolled ? 'fa-solid fa-circle-check' : 'isax isax-ticket'} />
+              {c.isEnrolled ? t('liveBooking.details', 'Details') : t('liveBooking.bookCta', 'Book my place')}
+            </button>
+          );
         } else {
           label = !c.requiresPurchase ? t('courseDetails.free', 'Free') : `${c.price} MAD`;
           if (hasDiscount) sub = <del>{c.originalPrice} MAD</del>;

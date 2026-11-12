@@ -766,15 +766,16 @@ const PricePlanning: React.FC = () => {
       setConfirmPlan(null);
       // Browser navigates away to the CMI hosted payment page — no return after this
       paymentService.submitCmiForm(cmiResp.gatewayUrl, cmiResp.formParams);
+      // Keep the button in its loading state while the browser navigates to CMI
+      // (resetting it here let users click Subscribe again mid-redirect).
     } catch (err: unknown) {
+      setSubscribing(null);
       const axiosErr = err as { response?: { data?: { message?: string } } };
       setConfirmPlan(null);
       Modal.error({
         title: t('pricing.error.title', 'Subscription Failed'),
         content: axiosErr.response?.data?.message || t('pricing.error.content', 'Failed to process subscription. Please try again.'),
       });
-    } finally {
-      setSubscribing(null);
     }
   };
 

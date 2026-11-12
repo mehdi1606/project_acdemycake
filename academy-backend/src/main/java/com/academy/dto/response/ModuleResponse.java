@@ -46,10 +46,21 @@ public class ModuleResponse {
 
         if (includeLessons && module.getLessons() != null) {
             builder.lessons(module.getLessons().stream()
-                    .map(LessonResponse::fromEntity)
+                    .map(LessonResponse::fromEntity)   // outline only
                     .collect(Collectors.toList()));
         }
 
         return builder.build();
+    }
+
+    /** Module with full lesson content — for the course owner / admin only. */
+    public static ModuleResponse withLessonContent(CourseModule module, com.academy.security.FileUrlSigner signer) {
+        ModuleResponse response = fromEntity(module, false);
+        if (module.getLessons() != null) {
+            response.setLessons(module.getLessons().stream()
+                    .map(l -> LessonResponse.withContent(l, signer))
+                    .collect(Collectors.toList()));
+        }
+        return response;
     }
 }

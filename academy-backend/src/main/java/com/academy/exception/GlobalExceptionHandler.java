@@ -162,7 +162,7 @@ public class GlobalExceptionHandler {
         log.warn("Login attempt with unverified account [{}]", request.getRequestURI());
         return build(HttpStatus.UNAUTHORIZED,
                 "Please verify your email address before logging in. Check your inbox for the verification link.",
-                ErrorCode.ACCOUNT_DISABLED,
+                ErrorCode.EMAIL_NOT_VERIFIED,
                 request);
     }
 
@@ -462,6 +462,20 @@ public class GlobalExceptionHandler {
      * Last-resort handler for any unhandled exception.
      * Logs the full stack trace; returns a safe generic message (no internals leaked).
      */
+    /** Missing upload part → 400 (was a 500). */
+    @ExceptionHandler(org.springframework.web.multipart.support.MissingServletRequestPartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingPart(
+            org.springframework.web.multipart.support.MissingServletRequestPartException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), ErrorCode.VALIDATION_FAILED, request);
+    }
+
+    /** Unknown URL → 404 (it used to fall through to the catch-all as a 500). */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResource(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex, HttpServletRequest request) {
+        return build(HttpStatus.NOT_FOUND, "Not found", ErrorCode.NOT_FOUND, request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneric(
             Exception ex, HttpServletRequest request) {

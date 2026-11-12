@@ -36,11 +36,13 @@ public class StudentAttemptController {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
 
-        Map<String, Object> result = quizService.checkAnswer(
-                attemptId,
-                UUID.fromString(request.getQuestionId()),
-                selectedUUIDs
-        );
+        UUID questionId;
+        try {
+            questionId = UUID.fromString(request.getQuestionId());
+        } catch (Exception e) {
+            throw new com.academy.exception.BadRequestException("A valid questionId is required");
+        }
+        Map<String, Object> result = quizService.checkAnswer(attemptId, questionId, selectedUUIDs);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 

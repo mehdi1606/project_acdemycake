@@ -154,7 +154,7 @@ const StudentRefferal: React.FC = () => {
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
                   Amount <span style={{ color: '#8B2335' }}>*</span>
                 </label>
-                <input type="number" style={inputStyle} placeholder="$" />
+                <input type="number" style={inputStyle} placeholder="MAD" />
                 <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--lx-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <i className="isax isax-info-circle" /> Minimum withdraw amount is $50
                 </p>

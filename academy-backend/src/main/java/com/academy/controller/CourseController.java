@@ -127,6 +127,7 @@ public class CourseController {
     @Operation(summary = "Get course by ID")
     public ResponseEntity<ApiResponse<CourseResponse>> getCourseById(@PathVariable UUID id) {
         CourseResponse response = courseService.getCourseById(id);
+        requireVisible(response);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -134,14 +135,32 @@ public class CourseController {
     @Operation(summary = "Get course by slug")
     public ResponseEntity<ApiResponse<CourseResponse>> getCourseBySlug(@PathVariable String slug) {
         CourseResponse response = courseService.getCourseBySlug(slug);
+        requireVisible(response);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/{id}/curriculum")
     @Operation(summary = "Get course curriculum")
     public ResponseEntity<ApiResponse<CurriculumResponse>> getCourseCurriculum(@PathVariable UUID id) {
+        requireVisible(courseService.getCourseById(id));
         CurriculumResponse response = courseService.getCourseCurriculum(id);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * Drafts, courses awaiting review and archived courses are visible only to
+     * their own instructor and to admins (they used to be readable by anyone
+     * who had the link).
+     */
+    private void requireVisible(CourseResponse course) {
+        if (course.getStatus() == com.academy.entity.enums.CourseStatus.PUBLISHED) return;
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UserPrincipal p) {
+            boolean admin = p.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+            boolean owner = course.getInstructor() != null && p.getId().equals(course.getInstructor().getId());
+            if (admin || owner) return;
+        }
+        throw new com.academy.exception.ResourceNotFoundException("Course", "id", course.getId());
     }
 
     @GetMapping("/{id}/my-progress")

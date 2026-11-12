@@ -484,7 +484,7 @@ const InstructorPlanSettings = () => {
                   {plan.name}
                 </h6>
                 <div style={{ marginBottom: 8 }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--lx-primary)', verticalAlign: 'top' }}>$</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--lx-primary)', verticalAlign: 'top' }}>MAD </span>
                   <span style={{ fontSize: 36, fontWeight: 800, color: 'var(--lx-primary)', lineHeight: 1 }}>
                     {isAnnual ? Math.round(plan.price * 10) : plan.price}
                   </span>

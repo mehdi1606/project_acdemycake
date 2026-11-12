@@ -89,6 +89,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
     {
       label: t('sidebar.finance', 'Finance'),
       items: [
+        { title: t('sidebar.masterclassReservations', 'Masterclass Reservations'), icon: 'isax isax-ticket', route: all_routes.instructorMasterclassReservations },
         { title: t('sidebar.earnings', 'Earnings'),    icon: 'isax isax-wallet',        route: all_routes.instructorEarning },
         { title: t('sidebar.statements', 'Statements'),icon: 'isax isax-document-text', route: all_routes.instructorStatements },
       ],

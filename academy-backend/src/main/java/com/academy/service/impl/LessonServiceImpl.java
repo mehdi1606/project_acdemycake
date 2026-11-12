@@ -62,6 +62,8 @@ public class LessonServiceImpl implements LessonService {
     private final VideoTokenService        videoTokenService;
     private final VideoAssetRepository     videoAssetRepository;
     private final ObjectMapper             objectMapper;
+    private final com.academy.security.FileUrlSigner fileUrlSigner;
+    private final com.academy.repository.QuizRepository quizRepository;
 
     @Value("${app.file.upload-dir}")
     private String uploadDir;
@@ -83,15 +85,48 @@ public class LessonServiceImpl implements LessonService {
         // Preview lessons are public; everything else requires enrolment or staff access
         if (!lesson.getIsPreview()) {
             User currentUser = getCurrentUser();
-            // Admin and ALL instructors (not just course owner) bypass access checks
-            boolean isStaff = currentUser.getRole() == UserRole.ADMIN
-                    || currentUser.getRole() == UserRole.INSTRUCTOR;
-            if (!isStaff && !enrollmentService.hasAccess(currentUser, course)) {
+            // hasAccess covers admins and the course's own instructor.
+            if (!enrollmentService.hasAccess(currentUser, course)) {
                 throw new ForbiddenException("You must be enrolled in this course to view its lessons.");
             }
         }
 
-        return LessonResponse.fromEntity(lesson);
+        return LessonResponse.withContent(lesson, fileUrlSigner);
+    }
+
+    /**
+     * A lesson with a published quiz is completed only by passing that quiz
+     * (QuizServiceImpl.submitAttempt), never by a manual "mark complete".
+     */
+    private void requireNotQuizGated(CourseLesson lesson) {
+        if (lesson.getContentType() != com.academy.entity.enums.ContentType.QUIZ) return;
+        quizRepository.findByLessonId(lesson.getId())
+                .filter(q -> q.getStatus() == com.academy.entity.enums.QuizStatus.PUBLISHED)
+                .ifPresent(q -> { throw new BadRequestException("Pass the quiz to complete this lesson."); });
+    }
+
+    /**
+     * The user's enrollment, created on the fly when they have access without one
+     * (a subscriber opening a plan course directly, or the course owner). Without
+     * this, saving progress failed with "Enrollment not found" and was rolled back.
+     */
+    private CourseEnrollment enrollmentFor(User user, Course course) {
+        // Not via getEnrollment + catch: an exception thrown through the transactional
+        // service marks the whole transaction rollback-only.
+        var existing = enrollmentService.findEnrollment(user, course);
+        if (existing.isPresent()) return existing.get();
+        boolean planCourse = course.getCourseType() == null
+                || course.getCourseType() == com.academy.entity.enums.CourseType.PLAN;
+        enrollmentService.enrollUserInCourse(user, course,
+                planCourse && user.hasActiveSubscription()
+                        ? com.academy.entity.enums.EnrollmentType.SUBSCRIPTION
+                        : com.academy.entity.enums.EnrollmentType.FREE);
+        return enrollmentService.getEnrollment(user, course);
+    }
+
+    /** Removes script / event handlers and stale file-link signatures before storing. */
+    private String cleanLessonHtml(String html) {
+        return fileUrlSigner.stripReferencesIn(com.academy.security.HtmlSanitizer.clean(html));
     }
 
     @Override
@@ -115,7 +150,7 @@ public class LessonServiceImpl implements LessonService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .contentType(request.getContentType())
-                .textContent(request.getTextContent())
+                .textContent(cleanLessonHtml(request.getTextContent()))
                 .isPreview(request.getIsPreview() != null ? request.getIsPreview() : false)
                 .orderIndex(request.getOrderIndex() != null ? request.getOrderIndex() : maxOrder + 1)
                 .isPublished(true)
@@ -125,7 +160,7 @@ public class LessonServiceImpl implements LessonService {
         lesson = lessonRepository.save(lesson);
         log.info("Lesson created: {} in module: {}", lesson.getTitle(), module.getTitle());
 
-        return LessonResponse.fromEntity(lesson);
+        return LessonResponse.withContent(lesson, fileUrlSigner);
     }
 
     @Override
@@ -144,7 +179,7 @@ public class LessonServiceImpl implements LessonService {
             lesson.setContentType(request.getContentType());
         }
         if (request.getTextContent() != null) {
-            lesson.setTextContent(request.getTextContent());
+            lesson.setTextContent(cleanLessonHtml(request.getTextContent()));
         }
         if (request.getIsPreview() != null) {
             lesson.setIsPreview(request.getIsPreview());
@@ -156,7 +191,7 @@ public class LessonServiceImpl implements LessonService {
         lesson = lessonRepository.save(lesson);
         log.info("Lesson updated: {}", lesson.getTitle());
 
-        return LessonResponse.fromEntity(lesson);
+        return LessonResponse.withContent(lesson, fileUrlSigner);
     }
 
     @Override
@@ -182,11 +217,17 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public void reorderLessons(UUID moduleId, List<UUID> lessonIds) {
+        if (lessonIds == null || lessonIds.stream().anyMatch(java.util.Objects::isNull)) {
+            throw new com.academy.exception.BadRequestException("Invalid list of ids");
+        }
         CourseModule module = moduleService.findById(moduleId);
         verifyInstructorAccess(module.getCourse());
 
         for (int i = 0; i < lessonIds.size(); i++) {
             CourseLesson lesson = findById(lessonIds.get(i));
+            if (!lesson.getModule().getId().equals(module.getId())) {
+                throw new BadRequestException("Lesson " + lesson.getId() + " does not belong to this module");
+            }
             lesson.setOrderIndex(i);
             lessonRepository.save(lesson);
         }
@@ -245,8 +286,7 @@ public class LessonServiceImpl implements LessonService {
         Course       course = lesson.getModule().getCourse();
 
         if (!lesson.getIsPreview()) {
-            boolean isStaff = user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR;
-            if (!isStaff && !enrollmentService.hasAccess(user, course)) {
+            if (!enrollmentService.hasAccess(user, course)) {
                 throw new ForbiddenException("You don't have access to this lesson");
             }
         }
@@ -292,12 +332,13 @@ public class LessonServiceImpl implements LessonService {
         progress.setWatchCount(progress.getWatchCount() + 1);
 
         if (Boolean.TRUE.equals(request.getMarkComplete())) {
+            requireNotQuizGated(lesson);
             progress.markComplete();
         }
 
         progressRepository.save(progress);
 
-        CourseEnrollment enrollment = enrollmentService.getEnrollment(user, course);
+        CourseEnrollment enrollment = enrollmentFor(user, course);
         enrollmentService.updateLastAccessed(enrollment.getId(), lessonId);
         enrollmentService.updateProgress(enrollment.getId());
     }
@@ -307,6 +348,7 @@ public class LessonServiceImpl implements LessonService {
     public void markComplete(UUID lessonId) {
         User user = getCurrentUser();
         CourseLesson lesson = findById(lessonId);
+        requireNotQuizGated(lesson);
         Course course = lesson.getModule().getCourse();
 
         if (!enrollmentService.hasAccess(user, course)) {
@@ -323,7 +365,7 @@ public class LessonServiceImpl implements LessonService {
         progress.markComplete();
         progressRepository.save(progress);
 
-        CourseEnrollment enrollment = enrollmentService.getEnrollment(user, course);
+        CourseEnrollment enrollment = enrollmentFor(user, course);
         enrollmentService.updateProgress(enrollment.getId());
 
         log.info("Lesson marked complete: {} by user: {}", lesson.getTitle(), user.getEmail());
@@ -332,7 +374,20 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public String getResourcesJson(UUID lessonId) {
         CourseLesson lesson = findById(lessonId);
-        return lesson.getResourcesJson();
+        // Same rule as the lesson itself: preview lessons are open, others need access.
+        if (!lesson.getIsPreview()) {
+            User user = getCurrentUser();
+            if (!enrollmentService.hasAccess(user, lesson.getModule().getCourse())) {
+                throw new ForbiddenException("You must be enrolled in this course to view its resources.");
+            }
+        }
+        List<LessonResourceResponse> resources = LessonResponse.parseResources(lesson.getResourcesJson());
+        resources.forEach(r -> r.setUrl(fileUrlSigner.sign(r.getUrl())));
+        try {
+            return objectMapper.writeValueAsString(resources);
+        } catch (Exception e) {
+            return "[]";
+        }
     }
 
     @Override
@@ -389,7 +444,7 @@ public class LessonServiceImpl implements LessonService {
         return LessonResourceResponse.builder()
                 .id(newId)
                 .name(displayName)
-                .url(relativePath)
+                .url(fileUrlSigner.sign(relativePath))
                 .type(ext)
                 .size(file.getSize())
                 .build();

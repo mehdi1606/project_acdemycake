@@ -11,24 +11,21 @@ const SettingsLinks = () => {
     <>
       <ul className="settings-nav d-flex align-items-center flex-wrap border bg-light-900 rounded">
         <li>
-          <Link to={route.studentSettings} className={`${location.pathname === '/student-settings' ? 'active' : ''}`}>
+          <Link to={route.studentSettings} className={`${location.pathname === route.studentSettings ? 'active' : ''}`}>
             Edit Profile
           </Link>
         </li>
         <li>
-          <Link to={route.studentChangePassword} className={`${location.pathname === '/student-change-password' ? 'active' : ''}`}>Security</Link>
+          <Link to={route.studentChangePassword} className={`${location.pathname === route.studentChangePassword ? 'active' : ''}`}>Security</Link>
         </li>
         <li>
-          <Link to={route.studentSocialProfile} className={`${location.pathname === '/student-social-profile' ? 'active' : ''}`}>Social Profiles</Link>
+          <Link to={route.studentSocialProfile} className={`${location.pathname === route.studentSocialProfile ? 'active' : ''}`}>Social Profiles</Link>
         </li>
         <li>
-          <Link to={route.studentLinkedAccounts} className={`${location.pathname === '/student-linked-accounts' ? 'active' : ''}`}>Linked Accounts</Link>
+          <Link to={route.studentLinkedAccounts} className={`${location.pathname === route.studentLinkedAccounts ? 'active' : ''}`}>Linked Accounts</Link>
         </li>
         <li>
-          <Link to={route.studentNotification} className={`${location.pathname === '/student-notifications' ? 'active' : ''}`}>Notifications</Link>
-        </li>
-        <li>
-          <Link to={route.studentBillingAddress} className={`${location.pathname === '/student-billing-address' ? 'active' : ''}`}>Billing Address</Link>
+          <Link to={route.studentNotification} className={`${location.pathname === route.studentNotification ? 'active' : ''}`}>Notifications</Link>
         </li>
       </ul>
     </>

@@ -21,6 +21,8 @@ import java.util.UUID;
 @Repository
 public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollment, UUID> {
 
+    boolean existsByCourse(com.academy.entity.Course course);
+
     Optional<CourseEnrollment> findByUserAndCourse(User user, Course course);
 
     boolean existsByUserAndCourse(User user, Course course);
@@ -59,6 +61,10 @@ public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollme
 
     @Query("SELECT COUNT(e) FROM CourseEnrollment e WHERE e.enrolledAt >= :since")
     long countEnrollmentsSince(@Param("since") LocalDateTime since);
+
+    /** Enrollments within [start, end) — one month of the admin chart. */
+    @Query("SELECT COUNT(e) FROM CourseEnrollment e WHERE e.enrolledAt >= :start AND e.enrolledAt < :end")
+    long countEnrollmentsBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query(value = "SELECT u FROM User u WHERE u.id IN " +
                    "(SELECT DISTINCT e.user.id FROM CourseEnrollment e WHERE e.course.instructor = :instructor)",

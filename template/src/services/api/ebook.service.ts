@@ -1,5 +1,5 @@
 import api from './axios.config';
-import { API_URL, ACCESS_TOKEN_KEY } from '../../environment';
+import { isAxiosError } from 'axios';
 
 export interface Ebook {
   id: string;
@@ -69,17 +69,23 @@ class EbookService {
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }
 
+  // Goes through the shared axios instance so an expired access token is
+  // refreshed transparently (raw fetch broke after the 15-min token expiry).
+  // The response interceptor only unwraps JSON objects with a `success` key,
+  // so the Blob is returned untouched.
   private async fetchBlob(path: string, language?: string): Promise<Blob> {
-    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-    const qs = language ? `?language=${encodeURIComponent(language)}` : '';
-    const res = await fetch(`${API_URL}${path}${qs}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!res.ok) {
-      if (res.status === 403) throw new Error('You have not purchased this ebook');
+    try {
+      const res = await api.get<Blob>(path, {
+        responseType: 'blob',
+        params: language ? { language } : undefined,
+      });
+      return res.data;
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.status === 403) {
+        throw new Error('You have not purchased this ebook');
+      }
       throw new Error('Could not open this ebook');
     }
-    return res.blob();
   }
 }
 

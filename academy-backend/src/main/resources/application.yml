@@ -33,6 +33,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_schema: public
+        # Load lazy collections/associations in batches instead of one query per row
+        # (course lists, enrollments, conversations…).
+        default_batch_fetch_size: 50
     open-in-view: false
 
   flyway:
@@ -146,7 +149,7 @@ payzone:
 # callbackUrl MUST be reachable from the internet (use ngrok in local dev)
 cmi:
   client-id:    ${CMI_CLIENT_ID:820010043}
-  store-key:    ${CMI_STORE_KEY:saralowe@CMI2026}
+  store-key:    ${CMI_STORE_KEY:}
   gateway-url:  ${CMI_GATEWAY_URL:https://chaabipayment.cmi.co.ma/fim/est3dgate}
   currency:     "504"                   # ISO 4217 numeric – 504 = MAD
   # callbackUrl  = CMI server-to-server (must be public; use ngrok locally for real CMI tests)

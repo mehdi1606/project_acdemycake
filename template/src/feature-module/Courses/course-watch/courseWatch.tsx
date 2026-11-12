@@ -13,6 +13,7 @@ import {
 import { assignmentService, localizeAssignment } from '../../../services/api/assignment.service';
 import { all_routes } from '../../router/all_routes';
 import { getFileUrl } from '../../../environment';
+import { sanitizeHtml, safePdfPath } from '../../../core/common/sanitizeHtml';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 
@@ -26,15 +27,22 @@ const fmtDuration = (seconds?: number) => {
 const flatLessons = (mods: CourseModule[]): CourseLesson[] =>
   mods.flatMap(m => m.lessons ?? []);
 
+/** The lesson PDF marker, whatever the attribute order (the sanitizer may reorder them). */
+const PDF_MARKER = () => /<div\b(?=[^>]*\bclass="sl-pdf-embed")[^>]*\bdata-pdf-url="([^"]+)"[^>]*>[\s\S]*?<\/div>/g;
+
 /* Replace instructor "display PDF as content" markers with an inline viewer
    (#toolbar=0 hides the browser PDF toolbar → no download/print buttons) */
 const renderLessonHtml = (html: string): string =>
-  html.replace(
-    /<div class="sl-pdf-embed" data-pdf-url="([^"]+)"[^>]*>[\s\S]*?<\/div>/g,
-    (_m, url) => {
-      const full = getFileUrl(url) ?? url;
+  // Sanitize first (removes script / handlers); the PDF iframe below is our own markup
+  // and only ever points at a validated API file path.
+  sanitizeHtml(html).replace(
+    PDF_MARKER(),
+    (_m, rawUrl) => {
+      const url = safePdfPath(rawUrl);
+      if (!url) return '';
+      const full = (getFileUrl(url) ?? url).replace(/&/g, '&amp;');
       return `<div style="border:1px solid rgba(197,151,62,0.35);border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,0.45);margin:4px 0;background:#3a3d40;">
-        <iframe src="${full}#toolbar=0&navpanes=0&view=FitH" title="Lesson PDF" style="width:100%;height:calc(100vh - 180px);min-height:560px;border:none;display:block;background:#3a3d40;" oncontextmenu="return false"></iframe>
+        <iframe src="${full}#toolbar=0&amp;navpanes=0&amp;view=FitH" title="Lesson PDF" style="width:100%;height:calc(100vh - 180px);min-height:560px;border:none;display:block;background:#3a3d40;" oncontextmenu="return false"></iframe>
       </div>`;
     }
   );
@@ -44,15 +52,16 @@ const contentHasPdf = (html?: string | null): boolean => !!html && html.includes
 /** Splits lesson HTML into plain HTML chunks and PDF markers (phones draw PDFs with pdf.js). */
 const splitLessonHtml = (html: string): { html?: string; pdfRaw?: string }[] => {
   const parts: { html?: string; pdfRaw?: string }[] = [];
-  const marker = /<div class="sl-pdf-embed" data-pdf-url="([^"]+)"[^>]*>[\s\S]*?<\/div>/g;
+  const marker = PDF_MARKER();
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = marker.exec(html)) !== null) {
-    if (m.index > last) parts.push({ html: html.slice(last, m.index) });
-    parts.push({ pdfRaw: m[1] });
+    if (m.index > last) parts.push({ html: sanitizeHtml(html.slice(last, m.index)) });
+    const pdf = safePdfPath(m[1]);
+    if (pdf) parts.push({ pdfRaw: pdf });
     last = m.index + m[0].length;
   }
-  if (last < html.length) parts.push({ html: html.slice(last) });
+  if (last < html.length) parts.push({ html: sanitizeHtml(html.slice(last)) });
   return parts;
 };
 

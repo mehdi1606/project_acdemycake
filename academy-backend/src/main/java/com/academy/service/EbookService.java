@@ -28,6 +28,12 @@ public interface EbookService {
      */
     Resource getEbookContent(UUID ebookId, String language, boolean countAsDownload);
 
+    /** True when the user already owns this ebook (used to refuse duplicate payments). */
+    boolean isOwnedBy(User user, UUID ebookId);
+
+    /** Removes ownership (after a full refund). */
+    void revokePurchase(User user, UUID ebookId);
+
     /** Recorded after a COMPLETED payment: grants access and notifies the buyer. */
     void grantPurchase(User user, UUID ebookId, String orderId,
                        java.math.BigDecimal amount, String currency);

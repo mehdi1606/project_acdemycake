@@ -8,7 +8,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -85,6 +87,19 @@ public class Course extends BaseEntity {
      */
     @Column(name = "max_students")
     private Integer maxStudents;
+
+    // ── LIVE masterclass session details (null for every other course) ───────
+    @Column(name = "session_date")
+    private LocalDate sessionDate;
+
+    @Column(name = "session_start_time")
+    private LocalTime sessionStartTime;
+
+    @Column(name = "session_end_time")
+    private LocalTime sessionEndTime;
+
+    @Column(name = "session_location", length = 500)
+    private String sessionLocation;
 
     @Column(name = "requires_purchase", nullable = false)
     @Builder.Default

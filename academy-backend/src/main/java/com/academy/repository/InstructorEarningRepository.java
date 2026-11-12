@@ -20,6 +20,9 @@ public interface InstructorEarningRepository extends JpaRepository<InstructorEar
 
     Page<InstructorEarning> findByInstructorOrderByCreatedAtDesc(User instructor, Pageable pageable);
 
+    /** Earnings created for one payment (sourceId = payment transaction id). */
+    java.util.List<InstructorEarning> findBySourceId(UUID sourceId);
+
     @Query("SELECT SUM(e.netAmount) FROM InstructorEarning e WHERE e.instructor = :instructor")
     BigDecimal sumTotalEarningsByInstructor(@Param("instructor") User instructor);
 

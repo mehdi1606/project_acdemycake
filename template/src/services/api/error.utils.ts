@@ -42,3 +42,18 @@ export function extractApiError(error: unknown, fallback = 'An unexpected error 
 
   return fallback;
 }
+
+
+/**
+ * Extracts the machine-readable backend error code (ApiResponse `errorCode`,
+ * e.g. "AUTH_008") from an Axios error, or null when absent.
+ */
+export function extractApiErrorCode(error: unknown): string | null {
+  if (error instanceof AxiosError) {
+    const data = error.response?.data;
+    if (data && typeof data === 'object' && typeof data.errorCode === 'string' && data.errorCode) {
+      return data.errorCode;
+    }
+  }
+  return null;
+}

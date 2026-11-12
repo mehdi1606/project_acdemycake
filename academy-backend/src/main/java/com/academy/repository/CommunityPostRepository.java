@@ -15,6 +15,15 @@ import java.util.UUID;
 @Repository
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, UUID> {
 
+    /** Atomic counter changes (no lost updates when people like/comment at the same time). */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE CommunityPost p SET p.likesCount = CASE WHEN COALESCE(p.likesCount, 0) + :d < 0 THEN 0 ELSE COALESCE(p.likesCount, 0) + :d END WHERE p.id = :id")
+    int addLikes(@Param("id") UUID id, @Param("d") int delta);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE CommunityPost p SET p.commentsCount = CASE WHEN COALESCE(p.commentsCount, 0) + :d < 0 THEN 0 ELSE COALESCE(p.commentsCount, 0) + :d END WHERE p.id = :id")
+    int addComments(@Param("id") UUID id, @Param("d") int delta);
+
     Page<CommunityPost> findByIsDeletedFalseOrderByIsPinnedDescCreatedAtDesc(Pageable pageable);
 
     Page<CommunityPost> findByPostTypeAndIsDeletedFalseOrderByIsPinnedDescCreatedAtDesc(PostType postType, Pageable pageable);

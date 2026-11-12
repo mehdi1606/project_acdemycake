@@ -9,7 +9,9 @@ import com.academy.entity.enums.CourseType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,6 +24,15 @@ import java.util.UUID;
 public interface CourseRepository extends JpaRepository<Course, UUID>, JpaSpecificationExecutor<Course> {
 
     Optional<Course> findBySlug(String slug);
+
+    /**
+     * Loads a course with a row-level write lock (SELECT … FOR UPDATE).
+     * Used to serialise seat bookings on a LIVE masterclass so two concurrent
+     * payments can never both take the last place.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM Course c WHERE c.id = :id")
+    Optional<Course> findByIdForUpdate(@Param("id") UUID id);
 
     boolean existsBySlug(String slug);
 
@@ -85,6 +96,11 @@ public interface CourseRepository extends JpaRepository<Course, UUID>, JpaSpecif
     @Query("SELECT COUNT(c) FROM Course c WHERE c.instructor = :instructor")
     long countByInstructor(@Param("instructor") User instructor);
 
-    @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED' AND c.isBeginner = true")
+    // Courses every subscriber is auto-enrolled in. Subscription-included (PLAN)
+    // courses only: a paid masterclass flagged "beginner" must never be handed to
+    // subscribers for free.
+    @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED' AND c.isBeginner = true " +
+           "AND (c.courseType IS NULL OR c.courseType = com.academy.entity.enums.CourseType.PLAN) " +
+           "AND c.requiresPurchase = false")
     List<Course> findAllPublishedBeginnerCourses();
 }

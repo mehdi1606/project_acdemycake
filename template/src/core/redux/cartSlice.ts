@@ -58,6 +58,17 @@ const cartSlice = createSlice({
       saveCart(state.items);
     },
   },
+  extraReducers: (builder) => {
+    // The cart is stored per device: empty it on logout so the next person
+    // using this browser doesn't see (or pay for) the previous user's cart.
+    builder.addMatcher(
+      (action) => action.type === 'auth/logout/fulfilled' || action.type === 'auth/logout/rejected',
+      (state) => {
+        state.items = [];
+        saveCart(state.items);
+      },
+    );
+  },
 });
 
 export const { addToCart, removeFromCart, clearCart } = cartSlice.actions;

@@ -32,7 +32,8 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 6,
 }
 
-const StudentSettings = () => {
+/** `links` replaces the student tab bar (the instructor Settings page reuses this form). */
+const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
   const { t } = useTranslation()
   const route = all_routes
   const dispatch = useAppDispatch()
@@ -129,7 +130,7 @@ const StudentSettings = () => {
         <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{t('student.settings.title', 'Settings')}</h5>
       </div>
 
-      <SettingsLinks />
+      {links ?? <SettingsLinks />}
 
       {/* Profile Form Card */}
       <div className="lx-card" style={{ marginBottom: 24 }}>

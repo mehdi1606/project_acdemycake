@@ -20,6 +20,7 @@ import com.academy.repository.AssignmentRepository;
 import com.academy.repository.AssignmentSubmissionRepository;
 import com.academy.repository.CourseEnrollmentRepository;
 import com.academy.repository.CourseRepository;
+import com.academy.security.FileUrlSigner;
 import com.academy.security.UserPrincipal;
 import com.academy.service.AssignmentService;
 import com.academy.service.CertificateService;
@@ -52,6 +53,7 @@ import java.util.UUID;
 public class AssignmentServiceImpl implements AssignmentService {
 
     private final AssignmentRepository assignmentRepository;
+    private final com.academy.security.FileUrlSigner fileUrlSigner;
     private final CourseRepository courseRepository;
     private final AssignmentSubmissionRepository assignmentSubmissionRepository;
     private final CourseEnrollmentRepository courseEnrollmentRepository;
@@ -200,7 +202,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         }
         // Size (10MB) and extension (pdf/doc/docx/images) are enforced by FileStorageService.
         String stored = fileStorageService.storeFile(file, "assignment-submissions");
-        return fileStorageService.getFileUrl(stored);
+        return fileUrlSigner.signUrl(fileStorageService.getFileUrl(stored));
     }
 
     @Override
@@ -233,12 +235,12 @@ public class AssignmentServiceImpl implements AssignmentService {
                 .assignment(assignment)
                 .student(student)
                 .content(request.getContent())
-                .fileUrl(request.getFileUrl())
+                .fileUrl(validatedFileUrl(request.getFileUrl()))
                 .build();
 
         AssignmentSubmission saved = assignmentSubmissionRepository.save(submission);
         log.info("Assignment {} submitted by student: {}", assignmentId, student.getEmail());
-        return SubmissionResponse.fromEntity(saved);
+        return toResponse(saved);
     }
 
     @Override
@@ -247,7 +249,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         Assignment assignment = findAssignmentById(assignmentId);
 
         return assignmentSubmissionRepository.findByAssignmentAndStudent(assignment, student)
-                .map(SubmissionResponse::fromEntity)
+                .map(this::toResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Submission", "assignmentId", assignmentId));
     }
 
@@ -264,7 +266,7 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"));
         Page<AssignmentSubmission> submissions = assignmentSubmissionRepository.findByAssignment(assignment, pageRequest);
-        return PageResponse.from(submissions, SubmissionResponse::fromEntity);
+        return PageResponse.from(submissions, this::toResponse);
     }
 
     @Override
@@ -296,10 +298,31 @@ public class AssignmentServiceImpl implements AssignmentService {
         // after this transaction commits, so the certificate check can see the grade.
         issueCertificateAfterCommit(saved.getStudent().getId(), saved.getAssignment().getCourse().getId());
 
-        return SubmissionResponse.fromEntity(saved);
+        return toResponse(saved);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Submission with a fresh, expiring link to its uploaded file (if any). */
+    private SubmissionResponse toResponse(AssignmentSubmission s) {
+        SubmissionResponse r = SubmissionResponse.fromEntity(s);
+        r.setFileUrl(fileUrlSigner.signUrl(r.getFileUrl()));
+        return r;
+    }
+
+    /**
+     * A submission link must be a normal web link (http/https) — never javascript:
+     * or data: (which would run in the instructor's browser). Our own upload links
+     * are stored without their signature.
+     */
+    private static String validatedFileUrl(String url) {
+        if (url == null || url.isBlank()) return null;
+        String u = url.trim();
+        if (!u.toLowerCase().startsWith("https://") && !u.toLowerCase().startsWith("http://")) {
+            throw new BadRequestException("The attachment must be a web link (http or https)");
+        }
+        return u.contains("/files/") ? FileUrlSigner.unsignUrl(u) : u;
+    }
 
     /** Attach the current student's submission state so the course player can show it. */
     private static String blankToNull(String value) {
@@ -325,7 +348,12 @@ public class AssignmentServiceImpl implements AssignmentService {
     private void issueCertificateAfterCommit(UUID studentId, UUID courseId) {
         Runnable issue = () -> {
             try {
-                new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+                // REQUIRES_NEW: in afterCommit the finished transaction is still bound,
+                // and REQUIRED would join it — the enrollment link and notification
+                // would then never be flushed.
+                TransactionTemplate tx = new TransactionTemplate(transactionManager);
+                tx.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                tx.executeWithoutResult(status -> {
                     User student = userService.findById(studentId);
                     Course course = courseRepository.findById(courseId).orElse(null);
                     if (course == null) return;

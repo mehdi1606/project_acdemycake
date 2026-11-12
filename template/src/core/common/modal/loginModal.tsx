@@ -5,6 +5,7 @@ import ImageWithBasePath from '../imageWithBasePath';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { login, clearError } from '../../redux/authSlice';
 import { message } from 'antd';
+import { all_routes } from '../../../feature-module/router/all_routes';
 
 const LoginModal = () => {
   const { t } = useTranslation()
@@ -65,7 +66,7 @@ const LoginModal = () => {
       if (result.role === 'INSTRUCTOR') {
         navigate('/instructor/instructor-dashboard');
       } else if (result.role === 'ADMIN') {
-        navigate('/admin/admin-dashboard');
+        navigate(all_routes.adminDashboard);
       } else {
         navigate('/student/student-dashboard');
       }

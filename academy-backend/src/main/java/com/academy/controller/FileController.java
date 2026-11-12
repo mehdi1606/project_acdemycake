@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.academy.security.FileUrlSigner;
+
 import java.net.MalformedURLException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -45,6 +49,12 @@ public class FileController {
         "ogg",  "video/ogg"
     );
 
+    private final FileUrlSigner fileUrlSigner;
+
+    public FileController(FileUrlSigner fileUrlSigner) {
+        this.fileUrlSigner = fileUrlSigner;
+    }
+
     @GetMapping("/**")
     public ResponseEntity<Resource> serveFile(HttpServletRequest request) {
         // Extract the relative path after /files/
@@ -52,6 +62,15 @@ public class FileController {
         String relativePath = requestUri.startsWith("/files/")
             ? requestUri.substring("/files/".length())
             : requestUri;
+        relativePath = URLDecoder.decode(relativePath, StandardCharsets.UTF_8);
+
+        // Paid course files: only reachable through a signed, expiring link that
+        // the API hands out after checking the viewer has access to the course.
+        boolean isProtected = FileUrlSigner.isProtected(relativePath);
+        if (isProtected && !fileUrlSigner.isValid(relativePath,
+                request.getParameter("exp"), request.getParameter("sig"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         try {
             Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -80,12 +99,18 @@ public class FileController {
                 ? "inline; filename=\"" + filename + "\""
                 : "attachment; filename=\"" + filename + "\"";
 
-            return ResponseEntity.ok()
+            ResponseEntity.BodyBuilder response = ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(mimeType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
-                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=3600")
-                .header("X-Frame-Options", "SAMEORIGIN")
-                .body(resource);
+                // Signed files must not be kept by shared caches.
+                .header(HttpHeaders.CACHE_CONTROL, isProtected ? "private, max-age=3600" : "public, max-age=3600")
+                .header("X-Content-Type-Options", "nosniff")
+                .header("X-Frame-Options", "SAMEORIGIN");
+            if ("svg".equals(extension)) {
+                // An uploaded SVG can contain script; this keeps it a plain image.
+                response.header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox");
+            }
+            return response.body(resource);
 
         } catch (MalformedURLException e) {
             return ResponseEntity.badRequest().build();

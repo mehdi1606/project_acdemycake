@@ -16,7 +16,7 @@ import { getBadgeFromRole } from '../../config/badges';
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 const avatar = (url?: string | null) =>
-  getFileUrl(url) ?? 'assets/img/user/user-02.jpg';
+  getFileUrl(url) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`;
 
 const formatTime = (iso?: string | null) => {
   if (!iso) return '';

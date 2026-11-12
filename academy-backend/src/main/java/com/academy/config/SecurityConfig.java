@@ -110,7 +110,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/auth/refresh-token").permitAll()
                         .requestMatchers("/api/v1/auth/logout").permitAll()
-                        .requestMatchers("/api/v1/auth/logout-all").permitAll()
+                        .requestMatchers("/api/v1/auth/logout-all").authenticated()
                         .requestMatchers("/api/v1/auth/verify-email").permitAll()
                         .requestMatchers("/api/v1/auth/resend-verification").permitAll()
                         .requestMatchers("/api/v1/auth/forgot-password").permitAll()
@@ -130,6 +130,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/callback").permitAll()
                         // Public transaction status polling — used by payment callback page even if JWT expired
                         .requestMatchers(HttpMethod.GET, "/api/v1/payments/cmi/status/*").permitAll()
+                        // Personal lists need a login (they used to fail with a 500 for guests)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/my-courses", "/api/v1/courses/wishlist").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                         // Ebook shop is browsable by anyone. ORDER MATTERS: the

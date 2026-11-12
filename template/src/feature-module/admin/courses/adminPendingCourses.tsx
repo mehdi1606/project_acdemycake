@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import { COURSE_PLACEHOLDER, fallbackTo } from '../../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
@@ -28,7 +29,7 @@ const levelBadge = (level: string) => {
 
 const formatCurrency = (amount: number | undefined) => {
   if (!amount) return 'Free';
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  return formatMAD(amount);
 };
 
 const AdminPendingCourses = () => {

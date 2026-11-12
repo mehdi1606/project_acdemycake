@@ -332,16 +332,17 @@ const AdminUsers: React.FC = () => {
                       </td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
-                          {user.subscriptionStatus !== 'ACTIVE' && (
-                            <button
-                              className="lx-btn lx-btn-outline lx-btn-sm"
-                              style={{ color: '#16a34a', borderColor: 'rgba(22,163,74,0.20)' }}
-                              onClick={() => setPlanModalUserId(String(user.id))}
-                              title={t('admin.users.activatePlan', 'Activate Yearly Plan')}
-                            >
-                              <i className="isax isax-crown-1" />
-                            </button>
-                          )}
+                          {/* Bank transfers: activate a year, or add a year to an active plan */}
+                          <button
+                            className="lx-btn lx-btn-outline lx-btn-sm"
+                            style={{ color: '#16a34a', borderColor: 'rgba(22,163,74,0.20)' }}
+                            onClick={() => setPlanModalUserId(String(user.id))}
+                            title={user.subscriptionStatus === 'ACTIVE'
+                              ? t('admin.users.extendPlan', 'Add 1 year (renewal)')
+                              : t('admin.users.activatePlan', 'Activate Yearly Plan')}
+                          >
+                            <i className={user.subscriptionStatus === 'ACTIVE' ? 'isax isax-calendar-add' : 'isax isax-crown-1'} />
+                          </button>
                           {user.isBanned ? (
                             <button
                               className="lx-btn lx-btn-outline lx-btn-sm"
@@ -583,14 +584,17 @@ const AdminUsers: React.FC = () => {
       )}
 
       {/* ── Activate Subscription Modal ── */}
-      {planModalUserId && (
+      {planModalUserId && (() => {
+        const planUser = users.find((u) => String(u.id) === planModalUserId);
+        const isRenewal = planUser?.subscriptionStatus === 'ACTIVE';
+        return (
         <GlassModal onClose={() => setPlanModalUserId(null)} maxWidth={420}>
           <div style={{
             padding: '20px 24px', borderBottom: '1px solid rgba(107,29,42,0.08)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-              {t('admin.users.activatePlan', 'Activate Yearly Plan')}
+              {isRenewal ? t('admin.users.extendPlan', 'Add 1 year (renewal)') : t('admin.users.activatePlan', 'Activate Yearly Plan')}
             </h5>
             <button
               type="button"
@@ -612,12 +616,16 @@ const AdminUsers: React.FC = () => {
                   {t('admin.users.yearlyPlan', 'Yearly Plan')}
                 </p>
                 <p style={{ margin: 0, fontSize: 12.5, color: 'var(--lx-text-muted)' }}>
-                  {t('admin.users.planDuration', 'Access for 1 year from today')}
+                  {isRenewal
+                    ? t('admin.users.planExtendDuration', 'One more year, added after the current end date')
+                    : t('admin.users.planDuration', 'Access for 1 year from today')}
                 </p>
               </div>
             </div>
             <p style={{ fontSize: 13.5, color: 'var(--lx-text-mid)', lineHeight: 1.6, margin: '0 0 6px' }}>
-              {t('admin.users.activateConfirm', 'This will activate a yearly subscription for this user without requiring payment. The user will get full access to all courses.')}
+              {isRenewal
+                ? t('admin.users.extendConfirm', 'Use this when the user has renewed by bank transfer. Their current access is kept and one year is added after it ends.')
+                : t('admin.users.activateConfirm', 'This will activate a yearly subscription for this user without requiring payment. The user will get full access to all courses.')}
             </p>
           </div>
           <div style={{
@@ -646,13 +654,14 @@ const AdminUsers: React.FC = () => {
               ) : (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <i className="isax isax-crown-1" />
-                  {t('admin.users.confirmActivate', 'Activate Plan')}
+                  {isRenewal ? t('admin.users.confirmExtend', 'Add 1 year') : t('admin.users.confirmActivate', 'Activate Plan')}
                 </span>
               )}
             </button>
           </div>
         </GlassModal>
-      )}
+        );
+      })()}
 
       {/* ── Ban User Modal ── */}
       <Modal

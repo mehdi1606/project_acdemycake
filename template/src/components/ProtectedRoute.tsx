@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../core/redux/hooks';
 import { UserRole } from '../services/api/types';
+import { all_routes } from '../feature-module/router/all_routes';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -37,11 +38,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
     // User doesn't have required role - redirect to appropriate dashboard
     if (user.role === 'INSTRUCTOR') {
-      return <Navigate to="/instructor/instructor-dashboard" replace />;
+      return <Navigate to={all_routes.instructorDashboard} replace />;
     } else if (user.role === 'ADMIN') {
-      return <Navigate to="/admin/admin-dashboard" replace />;
+      return <Navigate to={all_routes.adminDashboard} replace />;
     } else {
-      return <Navigate to="/student/student-dashboard" replace />;
+      return <Navigate to={all_routes.studentDashboard} replace />;
     }
   }
 

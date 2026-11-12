@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { all_routes } from '../../router/all_routes';
+import { instructorManageHref } from '../../router/courseLinks';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { instructorService } from '../../../services/api/instructor.service';
@@ -87,7 +89,7 @@ const InstructorCourseGrid = () => {
   };
 
   const getThumbnailUrl = (course: Course) =>
-    getFileUrl(course.thumbnailUrl) ?? 'assets/img/course/course-01.jpg';
+    getFileUrl(course.thumbnailUrl) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
 
   const formatDuration = (minutes: number) => {
     const h = Math.floor((minutes || 0) / 60);
@@ -359,7 +361,7 @@ const InstructorCourseGrid = () => {
                         transition: 'transform 0.5s ease',
                         transform: isHovered ? 'scale(1.06)' : 'scale(1)',
                       }}
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg'; }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`; }}
                     />
                   </Link>
 
@@ -393,10 +395,10 @@ const InstructorCourseGrid = () => {
                   }}>
                     {!course.requiresPurchase ? 'Free' : (
                       <>
-                        ${course.price}
+                        {formatMAD(course.price, course.currency)}
                         {course.originalPrice && course.originalPrice > (course.price || 0) && (
                           <del style={{ fontSize: 11, marginLeft: 5, color: 'var(--lx-text-soft)', fontWeight: 400 }}>
-                            ${course.originalPrice}
+                            {formatMAD(course.originalPrice, course.currency)}
                           </del>
                         )}
                       </>
@@ -498,7 +500,7 @@ const InstructorCourseGrid = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {/* Left: Manage CTA */}
                     <Link
-                      to={`${all_routes.instructorCourseManage}/${course.id}`}
+                      to={instructorManageHref(course)}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6,
                         padding: '7px 16px', borderRadius: 8,

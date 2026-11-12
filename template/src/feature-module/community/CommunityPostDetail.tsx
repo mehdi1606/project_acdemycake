@@ -31,7 +31,7 @@ const ACHIEVEMENT_ICONS = [
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-const avatarUrl = (url?: string) => getFileUrl(url) ?? 'assets/img/user/user-02.jpg';
+const avatarUrl = (url?: string) => getFileUrl(url) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`;
 
 const TYPE_LABELS: Record<PostType, string> = {
   DISCUSSION:   'Discussion',

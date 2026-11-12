@@ -58,7 +58,7 @@ public class PayZoneService {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("merchantId", merchantId);
             requestBody.put("orderId", orderId);
-            requestBody.put("amount", amount.multiply(BigDecimal.valueOf(100)).intValue());
+            requestBody.put("amount", amount.movePointRight(2).setScale(0, java.math.RoundingMode.HALF_UP).intValueExact());
             requestBody.put("currency", currency);
             requestBody.put("description", description);
             requestBody.put("customerEmail", customerEmail);
@@ -139,7 +139,7 @@ public class PayZoneService {
 
         String expectedSignature = generateSignature(callbackData);
 
-        if (!signature.equals(expectedSignature)) {
+        if (signature == null || !java.security.MessageDigest.isEqual(signature.getBytes(StandardCharsets.UTF_8), expectedSignature.getBytes(StandardCharsets.UTF_8))) {
             log.warn("Invalid callback signature for order: {}", orderId);
             return false;
         }
@@ -153,7 +153,7 @@ public class PayZoneService {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("merchantId", merchantId);
             requestBody.put("transactionId", transactionId);
-            requestBody.put("amount", amount.multiply(BigDecimal.valueOf(100)).intValue());
+            requestBody.put("amount", amount.movePointRight(2).setScale(0, java.math.RoundingMode.HALF_UP).intValueExact());
             requestBody.put("reason", reason);
 
             String signature = generateSignature(requestBody);
@@ -240,7 +240,7 @@ public class PayZoneService {
             byte[] hash = hmac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
             String computedSignature = Base64.getEncoder().encodeToString(hash);
 
-            return signature.equals(computedSignature);
+            return java.security.MessageDigest.isEqual(signature.getBytes(StandardCharsets.UTF_8), computedSignature.getBytes(StandardCharsets.UTF_8));
 
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.error("Failed to verify webhook signature: {}", e.getMessage());

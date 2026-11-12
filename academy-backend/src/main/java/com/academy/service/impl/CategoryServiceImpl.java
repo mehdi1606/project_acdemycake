@@ -130,9 +130,16 @@ public class CategoryServiceImpl implements CategoryService {
             }
             category.setName(request.getName());
             category.setSlug(newSlug);
+            // The old translations describe the old name: let them be re-translated.
+            category.setNameAr(null);
+            category.setNameEn(null);
         }
 
         if (request.getDescription() != null) {
+            if (!request.getDescription().equals(category.getDescription())) {
+                category.setDescriptionAr(null);
+                category.setDescriptionEn(null);
+            }
             category.setDescription(request.getDescription());
         }
 
@@ -197,6 +204,17 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Categories reordered");
     }
 
+    /**
+     * The translation, or null when none is available yet. TranslationService
+     * returns the original text on a cache miss (it translates in the background);
+     * storing that would freeze e.g. an English name in the Arabic field forever,
+     * because a non-blank field is never re-translated.
+     */
+    private String translatedOrNull(String text, String lang) {
+        String t = translationService.localize(text, lang);
+        return (t == null || t.isBlank() || t.equals(text)) ? null : t;
+    }
+
     private void populateTranslations(CourseCategory category) {
         String name = category.getName();
         String desc = category.getDescription();
@@ -205,23 +223,23 @@ public class CategoryServiceImpl implements CategoryService {
         if (isArabic) {
             category.setNameAr(name);
             if (category.getNameEn() == null || category.getNameEn().isBlank()) {
-                category.setNameEn(translationService.localize(name, "en"));
+                category.setNameEn(translatedOrNull(name, "en"));
             }
             if (desc != null && !desc.isBlank()) {
                 category.setDescriptionAr(desc);
                 if (category.getDescriptionEn() == null || category.getDescriptionEn().isBlank()) {
-                    category.setDescriptionEn(translationService.localize(desc, "en"));
+                    category.setDescriptionEn(translatedOrNull(desc, "en"));
                 }
             }
         } else {
             category.setNameEn(name);
             if (category.getNameAr() == null || category.getNameAr().isBlank()) {
-                category.setNameAr(translationService.localize(name, "ar"));
+                category.setNameAr(translatedOrNull(name, "ar"));
             }
             if (desc != null && !desc.isBlank()) {
                 category.setDescriptionEn(desc);
                 if (category.getDescriptionAr() == null || category.getDescriptionAr().isBlank()) {
-                    category.setDescriptionAr(translationService.localize(desc, "ar"));
+                    category.setDescriptionAr(translatedOrNull(desc, "ar"));
                 }
             }
         }

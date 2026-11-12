@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 
 import { CourseLevel, Language } from '../../../core/common/selectOption/json/selectOption';
@@ -12,7 +12,7 @@ import { Chips, ChipsChangeEvent } from "primereact/chips";
 import { message, Modal, Spin } from 'antd';
 import { courseService } from '../../../services/api/course.service';
 import { instructorService } from '../../../services/api/instructor.service';
-import { CourseCategory as CourseCategoryType, CourseLevel as CourseLevelType } from '../../../services/api/types';
+import { Course, CourseCategory as CourseCategoryType, CourseLevel as CourseLevelType } from '../../../services/api/types';
 import { translateCourseContent, LangCode } from '../../../services/api/translation.service';
 
 interface Lesson { id: string; name: string; isPreview: boolean; }
@@ -46,7 +46,48 @@ interface CourseFormData {
   discountPrice: string;
   expiryType: 'lifetime' | 'limited';
   expiryMonths: string;
+  // Step 5 - LIVE masterclass session
+  sessionDate: string;       // yyyy-MM-dd
+  sessionStartTime: string;  // HH:mm
+  sessionEndTime: string;    // HH:mm
+  sessionLocation: string;
 }
+
+/** Today as yyyy-MM-dd in the browser's local time zone (for the date input's min). */
+const todayIso = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+/**
+ * Validation rules for a LIVE masterclass session (seats, price, date, times, venue).
+ * Shared by the step check, the Next button and the final submit so nothing can bypass it.
+ */
+const validateLiveSessionFields = (f: Pick<CourseFormData,
+  'maxStudents' | 'price' | 'sessionDate' | 'sessionStartTime' | 'sessionEndTime' | 'sessionLocation'>,
+  /** When editing, the already-saved date is accepted even if it has passed. */
+  savedDate?: string) => {
+  const errs: Record<string, string> = {};
+  const seats = Number(f.maxStudents);
+  if (!f.maxStudents.trim()) errs.maxStudents = 'Please enter the maximum number of participants';
+  else if (!Number.isInteger(seats) || seats < 1) errs.maxStudents = 'Capacity must be a whole number of at least 1';
+  else if (seats > 10000) errs.maxStudents = 'Capacity looks too large';
+
+  if (!f.price.trim()) errs.price = 'Please enter the price per participant (0 = WhatsApp reservation only)';
+  else if (isNaN(Number(f.price)) || Number(f.price) < 0) errs.price = 'Please enter a valid price';
+
+  if (!f.sessionDate) errs.sessionDate = 'Please choose the date of the session';
+  else if (f.sessionDate < todayIso() && f.sessionDate !== savedDate) errs.sessionDate = 'The date cannot be in the past';
+
+  if (!f.sessionStartTime) errs.sessionStartTime = 'Please choose a start time';
+  if (!f.sessionEndTime) errs.sessionEndTime = 'Please choose an end time';
+  else if (f.sessionStartTime && f.sessionEndTime <= f.sessionStartTime) errs.sessionEndTime = 'End time must be after start time';
+
+  if (!f.sessionLocation.trim()) errs.sessionLocation = 'Please enter the location';
+  else if (f.sessionLocation.trim().length < 3) errs.sessionLocation = 'Location is too short';
+  else if (f.sessionLocation.trim().length > 500) errs.sessionLocation = 'Location must be at most 500 characters';
+  return errs;
+};
 
 const AddNewCourse = () => {
   const { t } = useTranslation()
@@ -63,6 +104,19 @@ const AddNewCourse = () => {
   }>({});
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // ── Edit mode (?edit=<courseId>) ─────────────────────────────────────────
+  // The "Edit" action of My Courses links here. Without this the form opened
+  // blank and submitting created a duplicate course.
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEdit = !!editId;
+  const [loadingEdit, setLoadingEdit] = useState(isEdit);
+  const [editError, setEditError] = useState('');
+  const [savedSessionDate, setSavedSessionDate] = useState<string | undefined>(undefined);
+  /** Payload of the course as loaded; only fields that differ from it are sent on save. */
+  const originalPayloadRef = useRef<Record<string, unknown> | null>(null);
+  const [needSnapshot, setNeedSnapshot] = useState(false);
   const customChip = (item: string) => {
     return (
       <div>
@@ -125,6 +179,10 @@ const AddNewCourse = () => {
     discountPrice: '',
     expiryType: 'lifetime',
     expiryMonths: '',
+    sessionDate: '',
+    sessionStartTime: '',
+    sessionEndTime: '',
+    sessionLocation: '',
   });
 
   /** A LIVE masterclass is a bespoke session — there is no curriculum to build. */
@@ -213,15 +271,12 @@ const AddNewCourse = () => {
     const isLive = formData.courseType === 'MASTERCLASS' && formData.masterclassFormat === 'LIVE';
 
     if (isLive) {
-      // LIVE masterclass: booked on WhatsApp — no price, no expiry, only the seats.
-      const seats = Number(formData.maxStudents);
-      if (!formData.maxStudents.trim()) {
-        newErrors.maxStudents = 'Please enter how many places are available';
-      } else if (!Number.isInteger(seats) || seats < 1) {
-        newErrors.maxStudents = 'Places must be a whole number of at least 1';
-      }
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
+      // LIVE masterclass: seats, price per participant, date, times and venue. No expiry.
+      const liveErrors = validateLiveSessionFields(formData, savedSessionDate);
+      setTouched(prev => ({ ...prev, maxStudents: true, price: true, sessionDate: true,
+        sessionStartTime: true, sessionEndTime: true, sessionLocation: true }));
+      setErrors(liveErrors);
+      return Object.keys(liveErrors).length === 0;
     }
 
     // RECORDED masterclass: sold online, so a real price is required.
@@ -279,10 +334,9 @@ const AddNewCourse = () => {
       case 4:
         return true; // Additional info is optional
       case 5:
-        // LIVE masterclass: no price, no expiry — only the number of places.
+        // LIVE masterclass: seats, price, date, times and venue — no expiry.
         if (skipCurriculum) {
-          const seats = Number(formData.maxStudents);
-          return Number.isInteger(seats) && seats >= 1;
+          return Object.keys(validateLiveSessionFields(formData, savedSessionDate)).length === 0;
         }
         // PLAN = subscription, no price required. MASTERCLASS = must set a price.
         if (formData.courseType === 'PLAN') {
@@ -299,7 +353,7 @@ const AddNewCourse = () => {
       default:
         return false;
     }
-  }, [currentStep, formData]);
+  }, [currentStep, formData, skipCurriculum, savedSessionDate]);
 
   const handleNext = () => {
     let isValid = false;
@@ -342,6 +396,12 @@ const AddNewCourse = () => {
 
   // Handle input change
   const handleInputChange = (field: keyof CourseFormData, value: any) => {
+    // The type / delivery format of an existing course is fixed: switching it
+    // after students have paid would change what they bought.
+    if (isEdit && (field === 'courseType' || field === 'masterclassFormat')) {
+      message.info(t('addCourse.edit.typeLocked', 'The course type cannot be changed after creation.'));
+      return;
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
   };
@@ -424,6 +484,127 @@ const AddNewCourse = () => {
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false)
 
+  /** Request body built from the current form state (create and edit share it). */
+  const buildCoursePayload = (): Record<string, unknown> => {
+    const isMasterclass = formData.courseType === 'MASTERCLASS';
+    const isPlan = formData.courseType === 'PLAN';
+    return {
+      title: formData.title,
+      shortDescription: formData.shortDescription,
+      description: formData.description,
+      categoryId: formData.category,
+      level: formData.level as CourseLevelType,
+      language: formData.language || 'fr',
+      courseType: formData.courseType,
+      // Only a masterclass carries a delivery format (RECORDED or LIVE).
+      masterclassFormat: isMasterclass ? (formData.masterclassFormat || 'RECORDED') : undefined,
+      // Seat limit only applies to a LIVE masterclass.
+      maxStudents: skipCurriculum && formData.maxStudents ? parseInt(formData.maxStudents, 10) : undefined,
+      // PLAN = subscription access, price=0, no purchase required
+      // LIVE masterclass = price per participant (paid by card; 0 = WhatsApp reservation only)
+      // RECORDED masterclass = paid individually, use entered price
+      price: isPlan
+        ? 0
+        : skipCurriculum
+          ? parseFloat(formData.price || '0')
+          : (formData.hasDiscount ? parseFloat(formData.discountPrice) : parseFloat(formData.price || '0')),
+      originalPrice: isMasterclass && !skipCurriculum && formData.hasDiscount ? parseFloat(formData.price) : undefined,
+      // LIVE masterclass session details
+      ...(skipCurriculum ? {
+        sessionDate: formData.sessionDate,
+        sessionStartTime: formData.sessionStartTime,
+        sessionEndTime: formData.sessionEndTime,
+        sessionLocation: formData.sessionLocation.trim(),
+      } : {}),
+      requiresPurchase: isMasterclass,
+      requirements: formData.requirements.filter(r => r.trim() !== '').join('\n'),
+      whatYouWillLearn: formData.learningObjectives.filter(o => o.trim() !== '').join('\n'),
+      tags: Array.isArray(value1) ? value1.join(',') : (value1 || ''),
+      // Translation fields
+      titleEn: translations.titleEn,
+      descriptionEn: translations.descriptionEn,
+      titleAr: translations.titleAr,
+      titleFr: translations.titleFr,
+      descriptionAr: translations.descriptionAr,
+      descriptionFr: translations.descriptionFr,
+    };
+  };
+
+  // ── Edit mode: load the course and pre-fill every step ──────────────────
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Load from the instructor's own list: it is not cached and is limited
+        // to courses this instructor owns.
+        let found: Course | undefined;
+        for (let page = 0; page < 10 && !found; page++) {
+          const resp = await instructorService.getMyCourses(page, 50);
+          found = (resp.content ?? []).find((c) => c.id === editId);
+          if (resp.last || !resp.content?.length) break;
+        }
+        if (cancelled) return;
+        if (!found) { setEditError(t('addCourse.edit.notFound', 'Course not found, or it is not one of your courses.')); return; }
+        const c = found;
+        const hasDiscount = !!c.originalPrice && Number(c.originalPrice) > Number(c.price ?? 0);
+        const lines = (s?: string) => { const a = (s || '').split('\n').filter((x) => x.trim() !== ''); return a.length ? a : ['']; };
+        // The API returns the English title/description when one exists; the form
+        // treats that as the main text, exactly like when the course was created.
+        const title = c.titleEn || c.title || '';
+        const description = c.descriptionEn || c.description || '';
+        setFormData((prev) => ({
+          ...prev,
+          title,
+          category: c.category?.id ? String(c.category.id) : '',
+          level: c.level || '',
+          language: c.language || '',
+          courseType: c.courseType || 'PLAN',
+          masterclassFormat: c.masterclassFormat || '',
+          shortDescription: c.shortDescription || '',
+          description,
+          learningObjectives: lines(c.whatYouWillLearn),
+          requirements: lines(c.requirements),
+          thumbnail: null,
+          thumbnailPreview: c.thumbnailUrl || '',
+          price: hasDiscount ? String(c.originalPrice) : (c.price != null ? String(c.price) : ''),
+          hasDiscount,
+          discountPrice: hasDiscount ? String(c.price) : '',
+          maxStudents: c.maxStudents ? String(c.maxStudents) : '',
+          sessionDate: c.sessionDate || '',
+          sessionStartTime: (c.sessionStartTime || '').slice(0, 5),
+          sessionEndTime: (c.sessionEndTime || '').slice(0, 5),
+          sessionLocation: c.sessionLocation || '',
+        }));
+        setValue(description);
+        setDescriptionAr(c.descriptionAr || '');
+        setTranslations({
+          titleEn: title, descriptionEn: description,
+          titleAr: c.titleAr || undefined, titleFr: c.titleFr || undefined,
+          descriptionAr: c.descriptionAr || undefined,
+        });
+        setValue1(c.tags ? c.tags.split(',').map((x) => x.trim()).filter(Boolean) : []);
+        setSavedSessionDate(c.sessionDate || undefined);
+        setCreatedCourseId(c.id);
+        setNeedSnapshot(true);
+      } catch (e: any) {
+        if (!cancelled) setEditError(e?.response?.data?.message || t('addCourse.edit.loadError', 'Could not load this course.'));
+      } finally {
+        if (!cancelled) setLoadingEdit(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
+
+  // Snapshot the loaded values once React has applied them.
+  useEffect(() => {
+    if (!needSnapshot) return;
+    originalPayloadRef.current = buildCoursePayload();
+    setNeedSnapshot(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needSnapshot]);
+
   // Submit course to backend
   const handleSubmitCourse = async () => {
     // Validate all required fields
@@ -467,56 +648,43 @@ const AddNewCourse = () => {
       return;
     }
 
+    if (isSubmitting) return; // no double submit
     setIsSubmitting(true);
     try {
-      // Prepare the course data - match backend CreateCourseRequest fields
-      const isMasterclass = formData.courseType === 'MASTERCLASS';
-      const isPlan = formData.courseType === 'PLAN';
-      const courseData = {
-        title: formData.title,
-        shortDescription: formData.shortDescription,
-        description: formData.description,
-        categoryId: formData.category,
-        level: formData.level as CourseLevelType,
-        language: formData.language || 'fr',
-        courseType: formData.courseType,
-        // Only a masterclass carries a delivery format (RECORDED or LIVE).
-        masterclassFormat: isMasterclass ? (formData.masterclassFormat || 'RECORDED') : undefined,
-        // Seat limit only applies to a LIVE (bespoke) masterclass.
-        maxStudents: skipCurriculum && formData.maxStudents ? parseInt(formData.maxStudents, 10) : undefined,
-        // PLAN = subscription access, price=0, no purchase required
-        // LIVE masterclass = booked on WhatsApp, never sold online, so price stays 0
-        // RECORDED masterclass = paid individually, use entered price
-        price: (isPlan || skipCurriculum)
-          ? 0
-          : (formData.hasDiscount ? parseFloat(formData.discountPrice) : parseFloat(formData.price || '0')),
-        originalPrice: isMasterclass && !skipCurriculum && formData.hasDiscount ? parseFloat(formData.price) : undefined,
-        requiresPurchase: isMasterclass,
-        requirements: formData.requirements.filter(r => r.trim() !== '').join('\n'),
-        whatYouWillLearn: formData.learningObjectives.filter(o => o.trim() !== '').join('\n'),
-        tags: Array.isArray(value1) ? value1.join(',') : (value1 || ''),
-        // Translation fields — populated by "Auto-translate" button
-        // titleEn/descriptionEn are only sent when the course is authored in AR or FR
-        titleEn: translations.titleEn,
-        descriptionEn: translations.descriptionEn,
-        titleAr: translations.titleAr,
-        titleFr: translations.titleFr,
-        descriptionAr: translations.descriptionAr,
-        descriptionFr: translations.descriptionFr,
-      };
+      const courseData = buildCoursePayload();
 
-
-      // Create the course
-      const createdCourse = await instructorService.createCourse(courseData);
-      setCreatedCourseId(createdCourse.id);
+      let courseId: string;
+      if (isEdit && editId) {
+        // Send only what changed, so untouched fields (e.g. the stored title,
+        // which also drives the URL slug) are never overwritten.
+        const original = originalPayloadRef.current || {};
+        const changes: Record<string, unknown> = {};
+        Object.entries(courseData).forEach(([k, v]) => {
+          if (v !== undefined && JSON.stringify(v) !== JSON.stringify(original[k])) changes[k] = v;
+        });
+        if (Object.keys(changes).length === 0 && !formData.thumbnail) {
+          message.info(t('addCourse.edit.noChanges', 'No changes to save.'));
+          return;
+        }
+        if (Object.keys(changes).length > 0) {
+          await instructorService.updateCourse(editId, changes as any);
+        }
+        courseId = editId;
+      } else {
+        const createdCourse = await instructorService.createCourse(courseData as any);
+        courseId = createdCourse.id;
+      }
+      setCreatedCourseId(courseId);
 
       // Upload thumbnail if provided
       if (formData.thumbnail) {
         try {
-          await instructorService.uploadThumbnail(createdCourse.id, formData.thumbnail);
+          await instructorService.uploadThumbnail(courseId, formData.thumbnail);
         } catch (thumbError) {
           console.error('Thumbnail upload failed:', thumbError);
-          message.warning('Course created, but thumbnail upload failed. You can add it later.');
+          message.warning(isEdit
+            ? 'Changes saved, but the image upload failed. Please try again.'
+            : 'Course created, but thumbnail upload failed. You can add it later.');
         }
       }
 
@@ -524,8 +692,9 @@ const AddNewCourse = () => {
       setShowSuccessModal(true);
 
     } catch (error: any) {
-      console.error('Failed to create course:', error);
-      message.error(error.response?.data?.message || 'Failed to create course. Please try again.');
+      console.error(isEdit ? 'Failed to update course:' : 'Failed to create course:', error);
+      message.error(error.response?.data?.message
+        || (isEdit ? 'Failed to save your changes. Please try again.' : 'Failed to create course. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -561,11 +730,28 @@ const AddNewCourse = () => {
     <LuxuryDashboardLayout>
       {/* Page title */}
       <div className="lx-section-header mb-4">
-        <h5 className="section-title">{t('addCourse.pageTitle')}</h5>
+        <h5 className="section-title">
+          {isEdit ? t('addCourse.edit.pageTitle', 'Edit course') : t('addCourse.pageTitle')}
+        </h5>
       </div>
 
+      {isEdit && (loadingEdit || editError) && (
+        <div className="lx-card mb-4">
+          <div className="lx-card-body text-center py-5">
+            {loadingEdit ? <Spin /> : (
+              <>
+                <p style={{ color: '#8B2335', marginBottom: 12 }}>{editError}</p>
+                <Link to={route.instructorCourse} className="lx-btn lx-btn-outline lx-btn-sm">
+                  {t('addCourse.edit.back', 'Back to my courses')}
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Course add */}
-      <div>
+      <div style={isEdit && (loadingEdit || editError) ? { display: 'none' } : undefined}>
         <div className="container-fluid px-0">
             <div className="row">
               <div className="col-lg-10 mx-auto">
@@ -926,11 +1112,11 @@ const AddNewCourse = () => {
                                         tint: 'rgba(37,211,102,0.12)',
                                         idleBorder: 'rgba(37,211,102,0.3)',
                                         selectedBg: 'rgba(37,211,102,0.05)',
-                                        title: t('addCourse.step1.liveTitle', 'Live — bespoke session'),
-                                        sub: t('addCourse.step1.liveSubtitle', 'Students reserve a place on WhatsApp'),
+                                        title: t('addCourse.step1.liveTitleV2', 'Live — in-person session'),
+                                        sub: t('addCourse.step1.liveSubtitleV2', 'A dated session with limited places'),
                                         bullets: [
-                                          t('addCourse.step1.liveBullet1', 'No lessons to prepare — the session is live'),
-                                          t('addCourse.step1.liveBullet2', 'Students open a WhatsApp chat to book'),
+                                          t('addCourse.step1.liveBullet1V2', 'You set the date, time, location, capacity and price'),
+                                          t('addCourse.step1.liveBullet2V2', 'Students pay by card or reserve on WhatsApp'),
                                         ],
                                       },
                                     ].map((opt) => {
@@ -1648,8 +1834,8 @@ const AddNewCourse = () => {
                               style={{ background: 'rgba(37,211,102,0.07)', border: '1px solid rgba(37,211,102,0.25)' }}>
                               <i className="fa-brands fa-whatsapp" style={{ fontSize: 18, color: '#1da851' }} />
                               <span style={{ fontSize: 13, color: '#146c35', fontWeight: 500 }}>
-                                {t('addCourse.step5.liveBanner',
-                                   'Live bespoke masterclass — no online payment. Students reserve on WhatsApp, so only the number of places is needed.')}
+                                {t('addCourse.step5.liveBannerV2',
+                                   'Live masterclass — set the session details, capacity and price. Students can reserve on WhatsApp or pay online by card; only confirmed card payments take a place.')}
                               </span>
                             </div>
                           ) : formData.courseType === 'MASTERCLASS' ? (
@@ -1671,30 +1857,123 @@ const AddNewCourse = () => {
                           ) : null}
                         </div>
                         <div>
-                          {/* LIVE masterclass — seats only. No price, no discount, no expiry. */}
-                          {skipCurriculum && (
-                            <div className="input-block mb-3" style={{ maxWidth: 320 }}>
-                              <label className="form-label">
-                                {t('addCourse.step5.placesLimit', 'Places available')}
-                                <span className="text-danger ms-1">*</span>
-                              </label>
-                              <input
-                                type="number"
-                                min={1}
-                                className={`form-control ${errors.maxStudents ? 'is-invalid' : ''}`}
-                                placeholder={t('addCourse.step5.placesPlaceholder', 'e.g. 12')}
-                                value={formData.maxStudents}
-                                onChange={(e) => handleInputChange('maxStudents', e.target.value)}
-                              />
-                              {errors.maxStudents && (
-                                <div className="invalid-feedback d-block">{errors.maxStudents}</div>
-                              )}
-                              <p className="text-muted small mt-2 mb-0">
-                                {t('addCourse.step5.placesHint',
-                                   'Shown to students as the number of seats for this live session.')}
-                              </p>
-                            </div>
-                          )}
+                          {/* LIVE masterclass — session schedule, venue, capacity and price per participant. */}
+                          {skipCurriculum && (() => {
+                            // Show errors as the instructor types, once a field was touched.
+                            const liveErrs = { ...validateLiveSessionFields(formData, savedSessionDate), ...errors };
+                            const err = (k: string) => (touched[k] || errors[k]) ? liveErrs[k] : undefined;
+                            const seats = Number(formData.maxStudents);
+                            const price = Number(formData.price);
+                            return (
+                              <div className="row g-3 mb-2">
+                                <div className="col-12">
+                                  <h6 className="mb-0" style={{ fontWeight: 700, color: '#4E1420' }}>
+                                    <i className="isax isax-calendar-1 me-2" style={{ color: '#1da851' }} />
+                                    {t('addCourse.live.sessionTitle', 'Session')}
+                                  </h6>
+                                </div>
+                                <div className="col-md-4">
+                                  <label className="form-label">
+                                    {t('addCourse.live.date', 'Date')}<span className="text-danger ms-1">*</span>
+                                  </label>
+                                  <input
+                                    type="date"
+                                    min={todayIso()}
+                                    className={`form-control ${err('sessionDate') ? 'is-invalid' : ''}`}
+                                    value={formData.sessionDate}
+                                    onChange={(e) => handleInputChange('sessionDate', e.target.value)}
+                                  />
+                                  {err('sessionDate') && <div className="invalid-feedback d-block">{err('sessionDate')}</div>}
+                                </div>
+                                <div className="col-6 col-md-4">
+                                  <label className="form-label">
+                                    {t('addCourse.live.startTime', 'Start time')}<span className="text-danger ms-1">*</span>
+                                  </label>
+                                  <input
+                                    type="time"
+                                    className={`form-control ${err('sessionStartTime') ? 'is-invalid' : ''}`}
+                                    value={formData.sessionStartTime}
+                                    onChange={(e) => handleInputChange('sessionStartTime', e.target.value)}
+                                  />
+                                  {err('sessionStartTime') && <div className="invalid-feedback d-block">{err('sessionStartTime')}</div>}
+                                </div>
+                                <div className="col-6 col-md-4">
+                                  <label className="form-label">
+                                    {t('addCourse.live.endTime', 'End time')}<span className="text-danger ms-1">*</span>
+                                  </label>
+                                  <input
+                                    type="time"
+                                    className={`form-control ${err('sessionEndTime') ? 'is-invalid' : ''}`}
+                                    value={formData.sessionEndTime}
+                                    onChange={(e) => handleInputChange('sessionEndTime', e.target.value)}
+                                  />
+                                  {err('sessionEndTime') && <div className="invalid-feedback d-block">{err('sessionEndTime')}</div>}
+                                </div>
+                                <div className="col-12">
+                                  <label className="form-label">
+                                    {t('addCourse.live.location', 'Location')}<span className="text-danger ms-1">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    maxLength={500}
+                                    className={`form-control ${err('sessionLocation') ? 'is-invalid' : ''}`}
+                                    placeholder={t('addCourse.live.locationPlaceholder', 'e.g. SARALÖWE Studio, 12 Rue Example, Casablanca')}
+                                    value={formData.sessionLocation}
+                                    onChange={(e) => handleInputChange('sessionLocation', e.target.value)}
+                                  />
+                                  {err('sessionLocation') && <div className="invalid-feedback d-block">{err('sessionLocation')}</div>}
+                                </div>
+
+                                <div className="col-12 mt-4">
+                                  <h6 className="mb-0" style={{ fontWeight: 700, color: '#4E1420' }}>
+                                    <i className="isax isax-people me-2" style={{ color: '#1da851' }} />
+                                    {t('addCourse.live.capacityTitle', 'Capacity & price')}
+                                  </h6>
+                                </div>
+                                <div className="col-md-6">
+                                  <label className="form-label">
+                                    {t('addCourse.live.capacity', 'Maximum participants')}<span className="text-danger ms-1">*</span>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    step={1}
+                                    className={`form-control ${err('maxStudents') ? 'is-invalid' : ''}`}
+                                    placeholder={t('addCourse.step5.placesPlaceholder', 'e.g. 20')}
+                                    value={formData.maxStudents}
+                                    onChange={(e) => handleInputChange('maxStudents', e.target.value)}
+                                  />
+                                  {err('maxStudents') && <div className="invalid-feedback d-block">{err('maxStudents')}</div>}
+                                </div>
+                                <div className="col-md-6">
+                                  <label className="form-label">
+                                    {t('addCourse.live.price', 'Price per participant (MAD)')}<span className="text-danger ms-1">*</span>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step="0.01"
+                                    className={`form-control ${err('price') ? 'is-invalid' : ''}`}
+                                    placeholder={t('addCourse.live.pricePlaceholder', 'e.g. 300')}
+                                    value={formData.price}
+                                    onChange={(e) => handleInputChange('price', e.target.value)}
+                                  />
+                                  {err('price') && <div className="invalid-feedback d-block">{err('price')}</div>}
+                                </div>
+                                {Number.isInteger(seats) && seats >= 1 && formData.price.trim() !== '' && !isNaN(price) && price >= 0 && (
+                                  <div className="col-12">
+                                    <div className="p-3 rounded-3" style={{ background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)', fontSize: 13, color: '#146c35' }}>
+                                      <i className="isax isax-info-circle me-2" />
+                                      {price > 0
+                                        ? t('addCourse.live.summaryPaid', '{{seats}} places at {{price}} MAD. Available places start at {{seats}} and decrease only when a card payment is confirmed (max. revenue {{total}} MAD).',
+                                            { seats, price, total: (seats * price).toLocaleString() })
+                                        : t('addCourse.live.summaryFree', '{{seats}} places. With a price of 0, students can only reserve on WhatsApp — online card payment is disabled.', { seats })}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
 
                           {/* Price fields — only for a RECORDED masterclass (PLAN = subscription; LIVE = booked on WhatsApp) */}
                           {formData.courseType === 'MASTERCLASS' && !skipCurriculum && (
@@ -1849,10 +2128,10 @@ const AddNewCourse = () => {
                               {isSubmitting ? (
                                 <>
                                   <Spin size="small" className="me-2" />
-                                  {t('addCourse.step5.creatingCourse')}
+                                  {isEdit ? t('addCourse.edit.saving', 'Saving…') : t('addCourse.step5.creatingCourse')}
                                 </>
                               ) : (
-                                t('addCourse.step5.submitCourse')
+                                isEdit ? t('addCourse.edit.save', 'Save changes') : t('addCourse.step5.submitCourse')
                               )}
                             </button>
                           </div>
@@ -2088,10 +2367,14 @@ const AddNewCourse = () => {
           <div className="text-success mb-3" style={{ fontSize: '48px' }}>
             <i className="fa-solid fa-circle-check" />
           </div>
-          <h4 className="mb-2">{t('addCourse.success.congratulations')}</h4>
-          <h5 className="mb-3">{t('addCourse.success.courseCreated')}</h5>
+          <h4 className="mb-2">{isEdit ? t('addCourse.edit.savedTitle', 'Saved') : t('addCourse.success.congratulations')}</h4>
+          <h5 className="mb-3">{isEdit ? t('addCourse.edit.saved', 'Your changes have been saved') : t('addCourse.success.courseCreated')}</h5>
           <p className="text-muted mb-4">
-            {t('addCourse.success.courseCreatedDesc')}
+            {isEdit
+              ? t('addCourse.edit.savedDesc', 'Students now see the updated information.')
+              : skipCurriculum
+              ? t('addCourse.success.liveCreatedDesc', 'Your live masterclass has been submitted for review. Once published, students can book by card or on WhatsApp, and paid participants appear under Masterclass Reservations.')
+              : t('addCourse.success.courseCreatedDesc')}
           </p>
           <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
             <button
@@ -2104,7 +2387,19 @@ const AddNewCourse = () => {
               <i className="fa-solid fa-arrow-left me-1" />
               {t('addCourse.success.backToDashboard')}
             </button>
-            {createdCourseId && (
+            {createdCourseId && skipCurriculum && (
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate(`${route.instructorMasterclassReservations}?course=${createdCourseId}`);
+                }}
+              >
+                {t('addCourse.success.viewReservations', 'View reservations')}
+                <i className="fa-solid fa-arrow-right ms-1" />
+              </button>
+            )}
+            {createdCourseId && !skipCurriculum && (
               <button
                 className="btn btn-primary"
                 onClick={() => {

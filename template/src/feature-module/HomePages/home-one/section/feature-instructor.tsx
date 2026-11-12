@@ -5,7 +5,7 @@ import { all_routes } from '../../../router/all_routes'
 
 const Featureinstructor = () => {
   const { t } = useTranslation()
-  const avatarSrc = 'assets/img/avatar/avatar1.jpeg'
+  const avatarSrc = `${process.env.PUBLIC_URL}/assets/img/avatar/avatar1.jpeg`
 
   const STATS = [
     { icon: 'isax isax-medal-star',    value: '15+',      label: t('home.instructor.yearsExperience', 'Years of\nExperience')  },

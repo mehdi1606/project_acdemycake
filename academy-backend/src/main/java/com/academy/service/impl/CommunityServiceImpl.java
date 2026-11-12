@@ -89,10 +89,10 @@ public class CommunityServiceImpl implements CommunityService {
 
         // Only instructors/admins may create CHALLENGE posts; students can only reply.
         // Enforced here too so the rule holds even if the request bypasses the UI.
-        if (request.getPostType() == PostType.CHALLENGE
+        if ((request.getPostType() == PostType.CHALLENGE || request.getPostType() == PostType.ANNOUNCEMENT)
                 && currentUser.getRole() != UserRole.INSTRUCTOR
                 && currentUser.getRole() != UserRole.ADMIN) {
-            throw new ForbiddenException("Only instructors can create challenge posts");
+            throw new ForbiddenException("Only instructors can create challenge or announcement posts");
         }
 
         String imagesJson = null;
@@ -144,10 +144,10 @@ public class CommunityServiceImpl implements CommunityService {
         }
         if (request.getPostType() != null) {
             // Students cannot promote a post to CHALLENGE via update either.
-            if (request.getPostType() == PostType.CHALLENGE
+            if ((request.getPostType() == PostType.CHALLENGE || request.getPostType() == PostType.ANNOUNCEMENT)
                     && currentUser.getRole() != UserRole.INSTRUCTOR
                     && currentUser.getRole() != UserRole.ADMIN) {
-                throw new ForbiddenException("Only instructors can create challenge posts");
+                throw new ForbiddenException("Only instructors can create challenge or announcement posts");
             }
             post.setPostType(request.getPostType());
         }
@@ -190,8 +190,7 @@ public class CommunityServiceImpl implements CommunityService {
                 .build();
         postLikeRepository.save(like);
 
-        post.incrementLikesCount();
-        postRepository.save(post);
+        postRepository.addLikes(post.getId(), 1);
 
         // Notify post owner
         if (!post.getUser().getId().equals(currentUser.getId())) {
@@ -215,8 +214,7 @@ public class CommunityServiceImpl implements CommunityService {
                 .orElseThrow(() -> new BadRequestException("You have not liked this post"));
 
         postLikeRepository.delete(like);
-        post.decrementLikesCount();
-        postRepository.save(post);
+        postRepository.addLikes(post.getId(), -1);
     }
 
     @Override
@@ -317,8 +315,7 @@ public class CommunityServiceImpl implements CommunityService {
                 .build();
 
         comment = commentRepository.save(comment);
-        post.incrementCommentsCount();
-        postRepository.save(post);
+        postRepository.addComments(post.getId(), 1);
 
         log.info("Comment created: {} on post: {} by user: {}", comment.getId(), postId, currentUser.getEmail());
 
@@ -367,9 +364,9 @@ public class CommunityServiceImpl implements CommunityService {
         comment.setIsDeleted(true);
         commentRepository.save(comment);
 
-        CommunityPost post = comment.getPost();
-        post.decrementCommentsCount();
-        postRepository.save(post);
+        // The comment and its visible replies disappear from the thread together.
+        int hiddenReplies = commentRepository.findByParentCommentAndIsDeletedFalse(comment).size();
+        postRepository.addComments(comment.getPost().getId(), -(1 + hiddenReplies));
 
         log.info("Comment deleted: {}", commentId);
     }
@@ -392,8 +389,7 @@ public class CommunityServiceImpl implements CommunityService {
                 .build();
         commentLikeRepository.save(like);
 
-        comment.incrementLikesCount();
-        commentRepository.save(comment);
+        commentRepository.addLikes(comment.getId(), 1);
     }
 
     @Override
@@ -406,8 +402,7 @@ public class CommunityServiceImpl implements CommunityService {
                 .orElseThrow(() -> new BadRequestException("You have not liked this comment"));
 
         commentLikeRepository.delete(like);
-        comment.decrementLikesCount();
-        commentRepository.save(comment);
+        commentRepository.addLikes(comment.getId(), -1);
     }
 
     @Override

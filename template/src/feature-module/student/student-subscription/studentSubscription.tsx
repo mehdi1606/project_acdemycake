@@ -221,7 +221,7 @@ const StudentSubscription: React.FC = () => {
                       <h6 className="fw-bold mb-1">{plan.name}</h6>
                       <div className="fs-22 fw-bold mb-1" style={{ color: 'var(--lx-gold)' }}>
                         {plan.currency} {plan.price}
-                        <span className="fs-13 fw-normal text-muted ms-1">/ year</span>
+                        <span className="fs-13 fw-normal text-muted ms-1">{String(plan.billingPeriod || plan.planId).toLowerCase().startsWith('month') ? '/ month' : '/ year'}</span>
                       </div>
                       {plan.description && (
                         <p className="text-muted fs-13 mb-3">{plan.description}</p>

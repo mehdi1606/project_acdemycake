@@ -1,13 +1,15 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, LoginRequest, RegisterRequest } from '../../services/api/types';
 import authService from '../../services/api/auth.service';
-import { extractApiError } from '../../services/api/error.utils';
+import { extractApiError, extractApiErrorCode } from '../../services/api/error.utils';
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  /** Machine-readable backend error code of the last auth error (e.g. AUTH_008 = email not verified). */
+  errorCode: string | null;
 }
 
 const initialState: AuthState = {
@@ -15,17 +17,25 @@ const initialState: AuthState = {
   isAuthenticated: authService.isAuthenticated(),
   isLoading: false,
   error: null,
+  errorCode: null,
 };
 
 // Async thunks
-export const login = createAsyncThunk(
+export const login = createAsyncThunk<
+  User,
+  LoginRequest,
+  { rejectValue: string; rejectedMeta: { errorCode: string | null } }
+>(
   'auth/login',
-  async (credentials: LoginRequest, { rejectWithValue }) => {
+  async (credentials, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials);
       return response.user;
     } catch (error: unknown) {
-      return rejectWithValue(extractApiError(error, 'Login failed. Please try again.'));
+      return rejectWithValue(
+        extractApiError(error, 'Login failed. Please try again.'),
+        { errorCode: extractApiErrorCode(error) },
+      );
     }
   }
 );
@@ -64,6 +74,7 @@ const authSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
+      state.errorCode = null;
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
@@ -81,16 +92,19 @@ const authSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.errorCode = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
+        state.errorCode = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload as string;
+        state.error = (action.payload as string) ?? action.error.message ?? null;
+        state.errorCode = action.meta.errorCode ?? null;
       });
 
     // Register (requires email verification - no auto-login)

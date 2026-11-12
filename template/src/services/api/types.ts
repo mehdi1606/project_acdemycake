@@ -156,6 +156,15 @@ export interface Course {
   reservationWhatsapp?: string;
   /** Seat limit for a LIVE masterclass; null = unlimited. */
   maxStudents?: number | null;
+  /** LIVE masterclass session: yyyy-MM-dd, HH:mm[:ss], venue. */
+  sessionDate?: string | null;
+  sessionStartTime?: string | null;
+  sessionEndTime?: string | null;
+  sessionLocation?: string | null;
+  /** Confirmed paid seats (LIVE masterclass with a seat limit). */
+  seatsTaken?: number | null;
+  /** Seats still bookable (capacity − paid − in-progress card payments). */
+  seatsRemaining?: number | null;
   isBeginner: boolean;
   durationMinutes: number;
   lessonsCount: number;
@@ -737,6 +746,41 @@ export interface CourseQueryParams extends PaginationParams {
   reservationWhatsapp?: string;
   /** Seat limit for a LIVE masterclass; null = unlimited. */
   maxStudents?: number | null;
+}
+
+// ============================================
+// Live masterclass reservations (instructor)
+// ============================================
+
+export interface MasterclassParticipant {
+  reservationId: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  amount: number;
+  currency: string;
+  paymentStatus: 'COMPLETED' | 'REFUNDED';
+  bookingStatus: 'CONFIRMED' | 'CANCELLED';
+  reservedAt: string;
+}
+
+export interface MasterclassParticipants {
+  courseId: string;
+  title: string;
+  slug: string;
+  sessionDate?: string | null;
+  sessionStartTime?: string | null;
+  sessionEndTime?: string | null;
+  sessionLocation?: string | null;
+  price: number;
+  currency: string;
+  capacity?: number | null;
+  confirmedParticipants: number;
+  pendingHolds: number;
+  remainingPlaces?: number | null;
+  totalRevenue: number;
+  participants: MasterclassParticipant[];
 }
 
 // ============================================

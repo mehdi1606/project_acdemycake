@@ -1,5 +1,5 @@
 import React, { lazy } from "react";
-import { Route } from "react-router";
+import { Navigate, Route } from "react-router";
 import { all_routes } from "./all_routes";
 import SubscriptionGuard from "../common/SubscriptionGuard";
 import RoleGuard from "../common/RoleGuard";
@@ -10,14 +10,10 @@ const CourseGrid                    = lazy(() => import("../Courses/courses-grid
 const CourseList                    = lazy(() => import("../Courses/course-list/courseList"));
 const MasterclassPage               = lazy(() => import("../Courses/masterclass/masterclassPage"));
 const CourseCategory                = lazy(() => import("../Courses/course-category/courseCategory"));
-const CourseCategoryTwo             = lazy(() => import("../Courses/course-category-two/courseCategoryTwo"));
-const CourseCategoryThree           = lazy(() => import("../Courses/course-category-three/courseCategoryThree"));
-const CourseResume                  = lazy(() => import("../Courses/course-resume/courseResume"));
 const CourseWatch                   = lazy(() => import("../Courses/course-watch/courseWatch"));
 const CourseCart                    = lazy(() => import("../Courses/course-cart/courseCart"));
 const CourseCheckout                = lazy(() => import("../Courses/course-checkout/courseCheckout"));
 const CourseDetails                 = lazy(() => import("../Courses/course-details/courseDetails"));
-const CourseDetailsTwo              = lazy(() => import("../Courses/course-details-2/courseDetailsTwo"));
 const AddNewCourse                  = lazy(() => import("../Courses/add-newCourse/addNewCourse"));
 const CourseManage                  = lazy(() => import("../Instructor/instructor-course/CourseManage"));
 
@@ -32,6 +28,7 @@ const InstructorQuiz                = lazy(() => import("../Instructor/instructo
 const InstructorQuizResult          = lazy(() => import("../Instructor/instructor-quiz-result/instructorQuizResult"));
 const InstructorQuizQuestions       = lazy(() => import("../Instructor/instructor-quiz-question/instructorQuizQuestions"));
 const InstructorEarning             = lazy(() => import("../Instructor/instructor-earning/instructorEarning"));
+const InstructorMasterclassReservations = lazy(() => import("../Instructor/instructor-masterclass-reservations/instructorMasterclassReservations"));
 const InstructorStatement           = lazy(() => import("../Instructor/instructor-statement/instructorStatement"));
 const InstructorMessage             = lazy(() => import("../Instructor/instructor-message/instructorMessage"));
 const InstructorWishlist            = lazy(() => import("../Instructor/instructor-wishlist/instructorWishlist"));
@@ -45,7 +42,6 @@ const InstructorSocialprofileSettings = lazy(() => import("../Instructor/instruc
 const InstructorLinkedAccounts      = lazy(() => import("../Instructor/instructor-settings/instructor-linked-accounts/instructorLinkedAccounts"));
 const InstructorNotification        = lazy(() => import("../Instructor/instructor-settings/instructor-notification/instructorNotification"));
 const InstructorIntegrations        = lazy(() => import("../Instructor/instructor-settings/instructor-integrations/instructorIntegrations"));
-const InstructorWithdraw            = lazy(() => import("../Instructor/instructor-settings/instructor-withdraw/instructorWithdraw"));
 const StudentGrid                   = lazy(() => import("../Instructor/student-grid/studentGrid"));
 const StudentList                   = lazy(() => import("../Instructor/student-list/studentList"));
 const StudentsDetails               = lazy(() => import("../Instructor/student-details/studentsDetails"));
@@ -73,7 +69,6 @@ const StudentChangePassword         = lazy(() => import("../student/student-sett
 const StudentSocialProfile          = lazy(() => import("../student/student-settings/student-social-profile/studentSocialProfile"));
 const StudentLinkedAccounts         = lazy(() => import("../student/student-settings/student-linked-accounts/studentLinkedAccounts"));
 const StudentNotification           = lazy(() => import("../student/student-settings/student-notifications/studentNotification"));
-const StudentBillingAddress         = lazy(() => import("../student/student-settings/student-billing-address/studentBillingAddress"));
 
 const AdminDashboard                = lazy(() => import("../admin/dashboard/adminDashboard"));
 const AdminUsers                    = lazy(() => import("../admin/users/adminUsers"));
@@ -89,14 +84,6 @@ const AdminReports                  = lazy(() => import("../admin/reports/adminR
 const AdminCoupons                  = lazy(() => import("../admin/coupons/adminCoupons"));
 
 const BlogGrid                      = lazy(() => import("../blog/blog-layouts/blogGrid"));
-const BlogGrid2                     = lazy(() => import("../blog/blog-layouts/blogGrid2"));
-const BlogGrid3                     = lazy(() => import("../blog/blog-layouts/blogGrid3"));
-const BlogCarousal                  = lazy(() => import("../blog/blog-layouts/blogCarousal"));
-const BlogMasonry                   = lazy(() => import("../blog/blog-layouts/blogMasonry"));
-const BlogLeftSidebar               = lazy(() => import("../blog/blog-layouts/blogLeftSidebar"));
-const BlogRightSidebar              = lazy(() => import("../blog/blog-layouts/blogRightSidebar"));
-const BlogDetailsLeftSidebar        = lazy(() => import("../blog/blog-details/blogDetailsLeftSidebar"));
-const BlogDetailsRightSidebar       = lazy(() => import("../blog/blog-details/blogDetailsRightSidebar"));
 const CommunityPage                 = lazy(() => import("../community/CommunityPage"));
 const CommunityPostDetail           = lazy(() => import("../community/CommunityPostDetail"));
 const InstructorGrid                = lazy(() => import("../Pages/instructor/instructor-grid/instructorGrid"));
@@ -104,9 +91,7 @@ const InstructorList                = lazy(() => import("../Pages/instructor/ins
 const InstructorDetails             = lazy(() => import("../Pages/instructor/instructor-details/instructor-details"));
 const AboutUs                       = lazy(() => import("../Pages/about-us/aboutUs"));
 const ContactUs                     = lazy(() => import("../Pages/contact-us/contactUs"));
-const Notification                  = lazy(() => import("../Pages/notification/notification"));
 const BecomeInstructor              = lazy(() => import("../Pages/become-instructor/becomeInstructor"));
-const Testimonials                  = lazy(() => import("../Pages/testimonials/testimonials"));
 const PricePlanning                 = lazy(() => import("../Pages/price-planning/pricePlanning"));
 const PaymentCallback               = lazy(() => import("../Pages/payment-callback/paymentCallback"));
 const Faq                           = lazy(() => import("../Pages/faq/faq"));
@@ -117,13 +102,8 @@ const Register                      = lazy(() => import("../auth/register/regist
 const VerifyEmail                   = lazy(() => import("../auth/verify-email/verifyEmail"));
 const ForgortPassword               = lazy(() => import("../auth/forgot-password/forgortPassword"));
 const ResetPassword                 = lazy(() => import("../auth/reset-password/resetPassword"));
-const SetPassword                   = lazy(() => import("../auth/set-password/setPassword"));
-const Otp                           = lazy(() => import("../auth/otp/otp"));
-const LockScreen                    = lazy(() => import("../auth/lock-screen/lockScreen"));
 const Error404                      = lazy(() => import("../auth/error/error-404/error400"));
 const Error500                      = lazy(() => import("../auth/error/error-500/error500"));
-const ComingSoon                    = lazy(() => import("../auth/coming-soon/comingSoon"));
-const UnderConstruction             = lazy(() => import("../auth/underconstruction/underConstruction"));
 const Connect                       = lazy(() => import("../Pages/connect/connect"));
 
 const routes = all_routes;
@@ -160,21 +140,6 @@ export const publicRoutes = [
     route: Route,
   },
   {
-    path: routes.courseCategory2,
-    element: <CourseCategoryTwo />,
-    route: Route,
-  },
-  {
-    path: routes.courseCategory3,
-    element: <CourseCategoryThree />,
-    route: Route,
-  },
-  {
-    path: routes.courseResume,
-    element: <CourseResume />,
-    route: Route,
-  },
-  {
     path: `${routes.courseWatch}/:courseSlug`,
     element: <SubscriptionGuard><CourseWatch /></SubscriptionGuard>,
     route: Route,
@@ -191,7 +156,7 @@ export const publicRoutes = [
   },
   {
     path: routes.addNewCourse,
-    element: <AddNewCourse />,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><AddNewCourse /></RoleGuard>,
     route: Route,
   },
   {
@@ -250,6 +215,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.instructorMasterclassReservations,
+    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorMasterclassReservations /></RoleGuard>,
+    route: Route,
+  },
+  {
     path: routes.instructorStatements,
     element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorStatement  /></RoleGuard>,
     route: Route,
@@ -291,7 +261,8 @@ export const publicRoutes = [
   },
   {
     path: routes.instructorWithdraw,
-    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorWithdraw  /></RoleGuard>,
+    // Old template withdraw form (no handler): the real payout flow is on the Earnings page.
+    element: <Navigate to={routes.instructorsettings} replace />,
     route: Route,
   },
   {
@@ -335,11 +306,6 @@ export const publicRoutes = [
     route: Route,
   },
   {
-    path: routes.courseDetails2,
-    element: <CourseDetailsTwo />,
-    route: Route,
-  },
-  {
     path: routes.studentDashboard,
     element: <SubscriptionGuard><StudentDashboard /></SubscriptionGuard>,
     route: Route,
@@ -350,48 +316,8 @@ export const publicRoutes = [
     route: Route,
   },
   {
-    path: routes.blogGrid2,
-    element: <BlogGrid2 />,
-    route: Route,
-  },
-  {
-    path: routes.blogGrid3,
-    element: <BlogGrid3 />,
-    route: Route,
-  },
-  {
-    path: routes.blogCarousal,
-    element: <BlogCarousal />,
-    route: Route,
-  },
-  {
-    path: routes.blogMasonry,
-    element: <BlogMasonry />,
-    route: Route,
-  },
-  {
-    path: routes.blogLeftSidebar,
-    element: <BlogLeftSidebar />,
-    route: Route,
-  },
-  {
-    path: routes.blogRightSidebar,
-    element: <BlogRightSidebar />,
-    route: Route,
-  },
-  {
-    path: routes.blogDetailsLeftSidebar,
-    element: <BlogDetailsLeftSidebar />,
-    route: Route,
-  },
-  {
-    path: routes.blogDetailsRightSidebar,
-    element: <BlogDetailsRightSidebar />,
-    route: Route,
-  },
-  {
     path: routes.instructorGrid,
-    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorGrid  /></RoleGuard>,
+    element: <InstructorGrid />,
     route: Route,
   },
   {
@@ -401,7 +327,7 @@ export const publicRoutes = [
   },
   {
     path: `${routes.instructorDetails}/:instructorId`,
-    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><InstructorDetails  /></RoleGuard>,
+    element: <InstructorDetails />,
     route: Route,
   },
   {
@@ -415,18 +341,8 @@ export const publicRoutes = [
     route: Route,
   },
   {
-    path: routes.notification,
-    element: <Notification />,
-    route: Route,
-  },
-  {
     path: routes.becomeAnInstructor,
-    element: <RoleGuard allowedRoles={['INSTRUCTOR', 'ADMIN']}><BecomeInstructor  /></RoleGuard>,
-    route: Route,
-  },
-  {
-    path: routes.testimonials,
-    element: <Testimonials />,
+    element: <BecomeInstructor />,
     route: Route,
   },
   {
@@ -551,7 +467,8 @@ export const publicRoutes = [
   },
   {
     path: routes.studentBillingAddress,
-    element: <SubscriptionGuard><StudentBillingAddress /></SubscriptionGuard>,
+    // Old template page with hard-coded addresses: redirect to profile settings.
+    element: <Navigate to={routes.studentSettings} replace />,
     route: Route,
   },
   {
@@ -709,21 +626,6 @@ export const authRoutes = [
     route: Route,
   },
   {
-    path: routes.setpassowrd,
-    element: <SetPassword />,
-    route: Route,
-  },
-  {
-    path: routes.otp,
-    element: <Otp />,
-    route: Route,
-  },
-  {
-    path: routes.lockscreen,
-    element: <LockScreen />,
-    route: Route,
-  },
-  {
     path: routes.Error404,
     element: <Error404 />,
     route: Route,
@@ -734,13 +636,9 @@ export const authRoutes = [
     route: Route,
   },
   {
-    path: routes.underconstruction,
-    element: <UnderConstruction />,
-    route: Route,
-  },
-  {
-    path: routes.comingSoon,
-    element: <ComingSoon />,
+    // Catch-all: any unknown URL shows the 404 page.
+    path: '*',
+    element: <Error404 />,
     route: Route,
   },
 ];

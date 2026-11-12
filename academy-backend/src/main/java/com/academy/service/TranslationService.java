@@ -50,8 +50,16 @@ public class TranslationService {
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(6)).build();
     private final ObjectMapper json = new ObjectMapper();
-    private final Map<String, String> memCache = new ConcurrentHashMap<>();
-    private final ExecutorService pool = Executors.newFixedThreadPool(2);
+    // Bounded: the cache evicts old entries, the queue drops work when full (the
+    // text simply gets translated on a later read), and a text already queued is
+    // not queued again on every read.
+    private final Map<String, String> memCache = com.github.benmanes.caffeine.cache.Caffeine.newBuilder()
+            .maximumSize(50_000).<String, String>build().asMap();
+    private final java.util.Set<String> inFlight = ConcurrentHashMap.newKeySet();
+    private final ExecutorService pool = new java.util.concurrent.ThreadPoolExecutor(
+            2, 2, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
+            new java.util.concurrent.ArrayBlockingQueue<>(1_000),
+            new java.util.concurrent.ThreadPoolExecutor.DiscardPolicy());
 
     // ── Public API ──────────────────────────────────────────────────────────────
 
@@ -86,7 +94,19 @@ public class TranslationService {
         }
 
         // Miss → translate in the background; return the original for now.
-        pool.submit(() -> translateAndStore(text, hash, source, target));
+        if (inFlight.add(memKey)) {
+            try {
+                pool.execute(() -> {
+                    try {
+                        translateAndStore(text, hash, source, target);
+                    } finally {
+                        inFlight.remove(memKey);
+                    }
+                });
+            } catch (Exception e) {
+                inFlight.remove(memKey);
+            }
+        }
         return text;
     }
 

@@ -22,6 +22,31 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 
     Optional<PaymentTransaction> findByPayzoneOrderId(String orderId);
 
+    /** Committed status read straight from the database (bypasses the loaded entity). */
+    @Query("SELECT t.status FROM PaymentTransaction t WHERE t.id = :id")
+    PaymentStatus findStatusById(@Param("id") UUID id);
+
+    /**
+     * Seats held by card payments that are still in progress: PENDING course
+     * purchases of this course whose hold has not expired, made by anyone
+     * other than {@code excludedUser} (a user's own retry never blocks them).
+     */
+    @Query("SELECT COUNT(t) FROM PaymentTransaction t " +
+           "WHERE t.referenceId = :courseId AND t.transactionType = 'COURSE_PURCHASE' " +
+           "AND t.status = com.academy.entity.enums.PaymentStatus.PENDING " +
+           "AND t.expiresAt > :now AND t.user <> :excludedUser")
+    long countActiveSeatHoldsExcludingUser(@Param("courseId") UUID courseId,
+                                           @Param("now") LocalDateTime now,
+                                           @Param("excludedUser") User excludedUser);
+
+    /** Same as above, counting every user's holds (used for public availability). */
+    @Query("SELECT COUNT(t) FROM PaymentTransaction t " +
+           "WHERE t.referenceId = :courseId AND t.transactionType = 'COURSE_PURCHASE' " +
+           "AND t.status = com.academy.entity.enums.PaymentStatus.PENDING " +
+           "AND t.expiresAt > :now")
+    long countActiveSeatHolds(@Param("courseId") UUID courseId,
+                              @Param("now") LocalDateTime now);
+
     Page<PaymentTransaction> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
     Page<PaymentTransaction> findByStatusOrderByCreatedAtDesc(PaymentStatus status, Pageable pageable);

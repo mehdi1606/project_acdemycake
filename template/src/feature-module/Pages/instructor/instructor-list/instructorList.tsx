@@ -5,11 +5,12 @@ import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout'
 import adminService from '../../../../services/api/admin.service';
 import { AdminUser, PaginatedResponse } from '../../../../services/api/types';
 import { getFileUrl } from '../../../../environment';
+import { all_routes } from '../../../router/all_routes';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 const avatarSrc = (url?: string) =>
-  getFileUrl(url) ?? 'assets/img/user/user-02.jpg';
+  getFileUrl(url) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`;
 
 const initials = (name: string) =>
   name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
@@ -105,7 +106,7 @@ const InstructorCard: React.FC<CardProps> = ({ instructor, t, lang, onBanToggle 
             src={avatarSrc(instructor.avatarUrl)}
             alt={instructor.fullName}
             style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--lx-gold)' }}
-            onError={(e) => { (e.target as HTMLImageElement).src = 'assets/img/user/user-02.jpg'; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`; }}
           />
         ) : (
           <div style={{
@@ -188,7 +189,7 @@ const InstructorCard: React.FC<CardProps> = ({ instructor, t, lang, onBanToggle 
 
         {/* View Profile */}
         <Link
-          to={`/instructor-details/${instructor.id}`}
+          to={`${all_routes.instructorDetails}/${instructor.id}`}
           style={{
             display: 'block', width: '100%', textAlign: 'center',
             background: 'linear-gradient(135deg, var(--lx-primary) 0%, var(--lx-primary-dark) 100%)',

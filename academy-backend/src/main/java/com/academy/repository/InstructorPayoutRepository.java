@@ -22,4 +22,10 @@ public interface InstructorPayoutRepository extends JpaRepository<InstructorPayo
 
     @Query("SELECT SUM(p.amount) FROM InstructorPayout p WHERE p.instructor = :instructor AND p.status = 'COMPLETED'")
     BigDecimal sumCompletedPayoutsByInstructor(@Param("instructor") User instructor);
+
+    /** Payouts asked for but not paid yet — they reserve part of the pending balance. */
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM InstructorPayout p WHERE p.instructor = :instructor " +
+           "AND p.status IN (com.academy.entity.enums.PayoutStatus.PENDING, " +
+           "com.academy.entity.enums.PayoutStatus.REQUESTED, com.academy.entity.enums.PayoutStatus.PROCESSING)")
+    BigDecimal sumOpenPayoutsByInstructor(@Param("instructor") User instructor);
 }

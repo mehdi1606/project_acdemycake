@@ -174,17 +174,8 @@ public class CouponServiceImpl implements CouponService {
             throw new BadRequestException("You have already used coupon '" + normalizedCode + "'");
         }
 
-        // Record the usage
-        CouponUsage usage = CouponUsage.builder()
-                .coupon(coupon)
-                .user(user)
-                .usedAt(LocalDateTime.now())
-                .build();
-        couponUsageRepository.save(usage);
-
-        // Increment usage count
-        coupon.setUsedCount(coupon.getUsedCount() + 1);
-        couponRepository.save(coupon);
+        // Nothing is recorded here: a checkout can still fail or be abandoned.
+        // The usage is recorded by recordUsage() once the payment succeeds.
 
         // Calculate final price
         BigDecimal discountAmount = originalPrice
@@ -196,5 +187,23 @@ public class CouponServiceImpl implements CouponService {
                 normalizedCode, user.getEmail(), originalPrice, finalPrice);
 
         return finalPrice;
+    }
+
+    @Override
+    @Transactional
+    public void recordUsage(String code, User user) {
+        if (code == null || code.isBlank()) return;
+        String normalizedCode = code.trim().toUpperCase();
+        couponRepository.findByCode(normalizedCode).ifPresent(coupon -> {
+            // Paid already — never fail here; just make sure it's counted once.
+            if (couponUsageRepository.existsByCouponAndUser(coupon, user)) return;
+            couponUsageRepository.save(CouponUsage.builder()
+                    .coupon(coupon)
+                    .user(user)
+                    .usedAt(LocalDateTime.now())
+                    .build());
+            couponRepository.incrementUsedCount(coupon.getId()); // atomic, no lost updates
+            log.info("Coupon {} usage recorded for user {}", normalizedCode, user.getEmail());
+        });
     }
 }

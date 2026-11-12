@@ -56,6 +56,7 @@ public class InstructorServiceImpl implements InstructorService {
 
     private final InstructorEarningRepository earningRepository;
     private final InstructorPayoutRepository payoutRepository;
+    private final com.academy.repository.UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
     private final UserService userService;
@@ -211,15 +212,25 @@ public class InstructorServiceImpl implements InstructorService {
     @Transactional
     public PayoutResponse requestPayout(RequestPayoutRequest request) {
         User instructor = getCurrentInstructor();
+        // Lock the instructor row so two simultaneous requests are checked one after the other.
+        userRepository.findByIdForUpdate(instructor.getId());
 
         BigDecimal pendingAmount = getPendingEarnings();
+        BigDecimal alreadyRequested = payoutRepository.sumOpenPayoutsByInstructor(instructor);
+        BigDecimal available = pendingAmount.subtract(alreadyRequested != null ? alreadyRequested : BigDecimal.ZERO)
+                .max(BigDecimal.ZERO);
+
+        if (request.getAmount() == null || request.getAmount().signum() <= 0) {
+            throw new BadRequestException("Please enter a valid amount");
+        }
 
         if (request.getAmount().compareTo(minimumPayoutAmount) < 0) {
             throw new BadRequestException("Minimum payout amount is " + minimumPayoutAmount + " MAD");
         }
 
-        if (request.getAmount().compareTo(pendingAmount) > 0) {
-            throw new BadRequestException("Requested amount exceeds available pending earnings");
+        if (request.getAmount().compareTo(available) > 0) {
+            throw new BadRequestException("Requested amount exceeds your available balance ("
+                    + available + " MAD after payouts already requested)");
         }
 
         InstructorPayout payout = InstructorPayout.builder()

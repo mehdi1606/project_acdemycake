@@ -61,7 +61,7 @@ public class AdminContactController {
     @Operation(summary = "Mark a contact message as read")
     public ResponseEntity<ApiResponse<ContactMessageResponse>> markRead(@PathVariable UUID id) {
         ContactMessage msg = contactMessageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
+                .orElseThrow(() -> new com.academy.exception.ResourceNotFoundException("Message not found"));
         msg.setRead(true);
         contactMessageRepository.save(msg);
         return ResponseEntity.ok(ApiResponse.success("Marked as read", ContactMessageResponse.fromEntity(msg)));

@@ -12,6 +12,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Data
@@ -42,6 +44,19 @@ public class CreateCourseRequest {
 
     /** Seat limit for a LIVE masterclass; null = unlimited. */
     private Integer maxStudents;
+
+    /** LIVE masterclass only: day of the session (yyyy-MM-dd). */
+    private LocalDate sessionDate;
+
+    /** LIVE masterclass only: start time (HH:mm). */
+    private LocalTime sessionStartTime;
+
+    /** LIVE masterclass only: end time (HH:mm). */
+    private LocalTime sessionEndTime;
+
+    /** LIVE masterclass only: venue / address. */
+    @Size(max = 500, message = "Location must be at most 500 characters")
+    private String sessionLocation;
 
     private Boolean requiresPurchase = false;
 

@@ -33,6 +33,10 @@ export const getFileUrl = (path?: string | null): string | undefined => {
   // Encode each path segment individually so spaces, parentheses and other
   // special characters in filenames don't break the URL, while preserving
   // the folder slashes.
-  const encoded = path.split('/').map(seg => encodeURIComponent(seg)).join('/');
-  return `${API_BASE_URL}/files/${encoded}`;
+  // A signed link ("lesson-resources/x.pdf?exp=…&sig=…") keeps its query string as is.
+  const q = path.indexOf('?');
+  const filePath = q >= 0 ? path.slice(0, q) : path;
+  const query = q >= 0 ? path.slice(q) : '';
+  const encoded = filePath.split('/').map(seg => encodeURIComponent(seg)).join('/');
+  return `${API_BASE_URL}/files/${encoded}${query}`;
 };

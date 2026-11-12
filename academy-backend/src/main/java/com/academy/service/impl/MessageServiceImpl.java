@@ -112,7 +112,7 @@ public class MessageServiceImpl implements MessageService {
 
         // Send real-time notification via WebSocket
         messagingTemplate.convertAndSendToUser(
-                receiver.getId().toString(),
+                receiver.getEmail(),   // STOMP user name = principal name = email
                 "/queue/messages",
                 response
         );

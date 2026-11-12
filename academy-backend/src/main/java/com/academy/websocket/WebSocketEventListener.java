@@ -30,11 +30,24 @@ public class WebSocketEventListener {
         if (user != null) {
             String sessionId = headerAccessor.getSessionId();
             onlineUsers.put(sessionId, user.getName());
+            sessionUserIds.put(sessionId, publicId(user));
             log.info("User connected: {} - Session: {}", user.getName(), sessionId);
 
+            // Broadcast the user id, never the email (the topic is visible to every client).
             messagingTemplate.convertAndSend("/topic/presence",
-                    Map.of("user", user.getName(), "status", "online"));
+                    Map.of("userId", publicId(user), "status", "online"));
         }
+    }
+
+    /** Ids of connected users per session (what presence broadcasts). */
+    private final Map<String, String> sessionUserIds = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static String publicId(Principal user) {
+        if (user instanceof org.springframework.security.core.Authentication auth
+                && auth.getPrincipal() instanceof com.academy.security.UserPrincipal up) {
+            return up.getId().toString();
+        }
+        return "";
     }
 
     @EventListener
@@ -42,12 +55,13 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = headerAccessor.getSessionId();
         String username = onlineUsers.remove(sessionId);
+        String userId = sessionUserIds.remove(sessionId);
 
         if (username != null) {
             log.info("User disconnected: {} - Session: {}", username, sessionId);
 
             messagingTemplate.convertAndSend("/topic/presence",
-                    Map.of("user", username, "status", "offline"));
+                    Map.of("userId", userId != null ? userId : "", "status", "offline"));
         }
     }
 

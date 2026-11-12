@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import CourseCard from '../../../components/CourseCard';
 import AOS from 'aos';
@@ -32,6 +32,7 @@ const SkeletonCard: React.FC = () => (
 // ── Main page ─────────────────────────────────────────────────────────────────
 const CourseCategory = () => {
   const { t, i18n } = useTranslation()
+  const { slug } = useParams<{ slug?: string }>();
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
@@ -54,10 +55,18 @@ const CourseCategory = () => {
 
   useEffect(() => {
     courseService.getCategories()
-      .then(cats => { if (cats.length > 0) { setCategories(cats); setActiveTab(cats[0].id); } })
+      .then(cats => {
+        if (cats.length > 0) {
+          setCategories(cats);
+          // /course/course-category/:slug opens that category; otherwise the first one.
+          const fromSlug = slug ? cats.find(c => c.slug === slug || c.id === slug) : undefined;
+          setCurrentPage(0);
+          setActiveTab((fromSlug ?? cats[0]).id);
+        }
+      })
       .catch(() => {})
       .finally(() => setCatLoading(false));
-  }, []);
+  }, [slug]);
 
   const fetchCourses = useCallback(async (categoryId: string, page: number) => {
     if (!categoryId) return;
@@ -71,9 +80,15 @@ const CourseCategory = () => {
     finally { setCourseLoading(false); }
   }, []);
 
-  useEffect(() => { if (activeTab) { setCurrentPage(0); fetchCourses(activeTab, 0); } }, [activeTab, fetchCourses]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { if (activeTab) fetchCourses(activeTab, currentPage); }, [currentPage]);
+  // Single fetch per (tab, page). Switching tab resets the page in the click handler,
+  // so a tab change no longer triggers two requests.
+  useEffect(() => { if (activeTab) fetchCourses(activeTab, currentPage); }, [activeTab, currentPage, fetchCourses]);
+
+  const selectTab = (id: string) => {
+    if (id === activeTab) return;
+    setCurrentPage(0);
+    setActiveTab(id);
+  };
 
   const handleCart = (course: Course) => {
     if (cartItems.some(i => i.id === course.id)) { message.info(t('courseCategory.alreadyInCart', 'Already in cart')); return; }
@@ -155,7 +170,7 @@ const CourseCategory = () => {
                 return (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveTab(cat.id)}
+                  onClick={() => selectTab(cat.id)}
                   style={{
                     padding: '8px 20px',
                     fontFamily: 'var(--sl-font-body)',

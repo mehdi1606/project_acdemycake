@@ -61,19 +61,26 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public boolean isEnrolled(User user, Course course) {
-        return enrollmentRepository.existsByUserAndCourse(user, course);
+        // A switched-off or expired enrollment does not count: the user must be
+        // able to buy / subscribe again and get access back.
+        return enrollmentRepository.findByUserAndCourse(user, course)
+                .map(CourseEnrollment::isAccessible)
+                .orElse(false);
     }
 
     @Override
     public boolean hasAccess(User user, Course course) {
-        // Admin and instructors always have full access — no subscription or purchase needed
-        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR) {
+        // Admins see everything; an instructor has free access to their OWN courses only.
+        // (Any other instructor's paid course is bought or subscribed to like a student.)
+        if (isAdminOrOwner(user, course)) {
             return true;
         }
 
-        // PLAN course: an active subscription is enough (even without an explicit enrollment record)
-        if (com.academy.entity.enums.CourseType.PLAN.equals(course.getCourseType())
-                && user.hasActiveSubscription()) {
+        // PLAN course (NULL = legacy PLAN): an active subscription is enough
+        // (even without an explicit enrollment record)
+        boolean planCourse = course.getCourseType() == null
+                || com.academy.entity.enums.CourseType.PLAN.equals(course.getCourseType());
+        if (planCourse && user.hasActiveSubscription()) {
             return true;
         }
 
@@ -81,6 +88,19 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         return enrollmentRepository.findByUserAndCourse(user, course)
                 .map(CourseEnrollment::isAccessible)
                 .orElse(false);
+    }
+
+    /** Admin, or the instructor who owns this course. */
+    private boolean isAdminOrOwner(User user, Course course) {
+        if (user.getRole() == UserRole.ADMIN) return true;
+        return user.getRole() == UserRole.INSTRUCTOR
+                && course.getInstructor() != null
+                && course.getInstructor().getId().equals(user.getId());
+    }
+
+    @Override
+    public java.util.Optional<CourseEnrollment> findEnrollment(User user, Course course) {
+        return enrollmentRepository.findByUserAndCourse(user, course);
     }
 
     @Override
@@ -95,14 +115,19 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         User user = getCurrentUser();
         Course course = courseService.findById(courseId);
 
-        // ── Admin / Instructor: instant free access, no checks ──────────────
-        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.INSTRUCTOR) {
+        // ── Admin / course owner: instant free access, no checks ────────────
+        if (isAdminOrOwner(user, course)) {
             if (isEnrolled(user, course)) {
                 return EnrollmentResponse.fromEntity(getEnrollment(user, course));
             }
             return EnrollmentResponse.fromEntity(
                     createEnrollment(user, course, EnrollmentType.FREE, null)
             );
+        }
+
+        // ── Only approved courses can be joined ──────────────────────────────
+        if (course.getStatus() != com.academy.entity.enums.CourseStatus.PUBLISHED) {
+            throw new BadRequestException("This course is not available");
         }
 
         // ── Student duplicate-enroll guard ───────────────────────────────────
@@ -185,9 +210,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         List<Course> beginnerCourses = courseRepository.findAllPublishedBeginnerCourses();
 
         for (Course course : beginnerCourses) {
-            if (!isEnrolled(user, course)) {
-                createEnrollment(user, course, EnrollmentType.SUBSCRIPTION, user.getSubscriptionEndDate());
-            }
+            // Also runs on renewal: re-activates switched-off enrollments and moves
+            // the expiry of existing subscription enrollments to the new end date.
+            createEnrollment(user, course, EnrollmentType.SUBSCRIPTION, user.getSubscriptionEndDate());
         }
 
         log.info("Enrolled user {} in {} beginner courses", user.getEmail(), beginnerCourses.size());
@@ -233,7 +258,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             // Compute live progress percentage
             BigDecimal liveProgress = totalLessons > 0
                     ? BigDecimal.valueOf(completedLessons)
-                            .divide(BigDecimal.valueOf(totalLessons), 2, RoundingMode.HALF_UP)
+                            .divide(BigDecimal.valueOf(totalLessons), 2, RoundingMode.DOWN) /* never show 100% before the last lesson */
                             .multiply(BigDecimal.valueOf(100))
                     : BigDecimal.ZERO;
 
@@ -263,6 +288,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     @Override
     public PageResponse<EnrollmentResponse> getCourseStudents(UUID courseId, int page, int size) {
         Course course = courseService.findById(courseId);
+        // Only the course's own instructor (or an admin) may list its students.
+        if (!isAdminOrOwner(getCurrentUser(), course)) {
+            throw new ForbiddenException("You can only view students of your own courses");
+        }
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "enrolledAt"));
         Page<CourseEnrollment> enrollments = enrollmentRepository.findByCourse(course, pageRequest);
         return PageResponse.from(enrollments, EnrollmentResponse::fromEntity);
@@ -298,7 +327,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         );
 
         BigDecimal progress = BigDecimal.valueOf(completedLessons)
-                .divide(BigDecimal.valueOf(totalLessons), 2, RoundingMode.HALF_UP)
+                .divide(BigDecimal.valueOf(totalLessons), 2, RoundingMode.DOWN) /* never show 100% before the last lesson */
                 .multiply(BigDecimal.valueOf(100));
 
         enrollment.setProgressPercentage(progress);
@@ -310,9 +339,15 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         // The progress percentage above is already derived from the authoritative lesson_progress
         // count, so this field is redundant and safe to leave as-is / null.
 
-        if (completedLessons == totalLessons && !enrollment.getIsCompleted()) {
-            enrollment.setIsCompleted(true);
-            enrollment.setCompletedAt(LocalDateTime.now());
+        // Also retried while a completed course still has no certificate (it may have
+        // been withheld for an unmarked assignment that was later graded, removed or
+        // unpublished) — otherwise the certificate would stay missing forever.
+        if (completedLessons == totalLessons
+                && (!Boolean.TRUE.equals(enrollment.getIsCompleted()) || enrollment.getCertificateId() == null)) {
+            if (!Boolean.TRUE.equals(enrollment.getIsCompleted())) {
+                enrollment.setIsCompleted(true);
+                enrollment.setCompletedAt(LocalDateTime.now());
+            }
 
             // Save completion status first — independent of certificate generation
             enrollmentRepository.save(enrollment);
@@ -446,6 +481,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         User student = userService.findById(studentId);
 
         List<CourseEnrollment> enrollments = enrollmentRepository.findByInstructorAndStudent(instructor, student);
+        // Only students enrolled in one of this instructor's courses (admins see all):
+        // otherwise any user's name and email could be read by guessing their id.
+        if (enrollments.isEmpty() && instructor.getRole() != UserRole.ADMIN) {
+            throw new ResourceNotFoundException("Student not found");
+        }
 
         double avgProgress = enrollments.stream()
                 .mapToDouble(e -> e.getProgressPercentage() != null
@@ -484,6 +524,36 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
     private CourseEnrollment createEnrollment(User user, Course course, EnrollmentType type, LocalDateTime expiresAt) {
+        // One row per user+course (unique constraint). If the user had an enrollment
+        // that was switched off (subscription expired, refund) or has expired, bring
+        // it back with the new access type instead of skipping — otherwise people who
+        // pay again get no access.
+        java.util.Optional<CourseEnrollment> existing = enrollmentRepository.findByUserAndCourse(user, course);
+        if (existing.isPresent()) {
+            CourseEnrollment e = existing.get();
+            boolean wasAccessible = e.isAccessible();
+            boolean wasInactive = !Boolean.TRUE.equals(e.getIsActive());
+            // Never turn lifetime access (bought or free) into time-limited subscription access.
+            boolean keepLifetimePurchase = (e.getEnrollmentType() == EnrollmentType.PURCHASE
+                    || e.getEnrollmentType() == EnrollmentType.FREE)
+                    && type == EnrollmentType.SUBSCRIPTION && wasAccessible;
+            e.setIsActive(true);
+            if (!keepLifetimePurchase) {
+                e.setEnrollmentType(type);
+                e.setExpiresAt(expiresAt);
+            }
+            e = enrollmentRepository.save(e);
+            if (wasInactive) {
+                course.incrementEnrollmentCount();
+                courseRepository.save(course);
+            }
+            if (!wasAccessible) {
+                emailService.sendCourseEnrollmentConfirmation(user, course.getTitle());
+                log.info("User {} re-enrolled in course {} via {}", user.getEmail(), course.getTitle(), type);
+            }
+            return e;
+        }
+
         CourseEnrollment enrollment = CourseEnrollment.builder()
                 .user(user)
                 .course(course)

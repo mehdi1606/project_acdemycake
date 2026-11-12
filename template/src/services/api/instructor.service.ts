@@ -10,6 +10,7 @@ import {
   PayoutRequest,
   PaginatedResponse,
   CourseLevel,
+  MasterclassParticipants,
 } from './types';
 
 interface CreateCourseRequest {
@@ -27,6 +28,14 @@ interface CreateCourseRequest {
   whatYouWillLearn?: string;
   targetAudience?: string;
   tags?: string;
+  courseType?: string;
+  masterclassFormat?: string;
+  maxStudents?: number;
+  // LIVE masterclass session
+  sessionDate?: string;
+  sessionStartTime?: string;
+  sessionEndTime?: string;
+  sessionLocation?: string;
 }
 
 interface UpdateCourseRequest extends Partial<CreateCourseRequest> {}
@@ -179,6 +188,12 @@ class InstructorService {
     const response = await api.get<PaginatedResponse<Course>>('/instructor/courses', {
       params: { page, size },
     });
+    return response.data;
+  }
+
+  // Confirmed paid participants + seat / revenue totals of one LIVE masterclass
+  async getMasterclassParticipants(courseId: string): Promise<MasterclassParticipants> {
+    const response = await api.get<MasterclassParticipants>(`/instructor/masterclasses/${courseId}/participants`);
     return response.data;
   }
 

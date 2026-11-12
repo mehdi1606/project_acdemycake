@@ -67,14 +67,10 @@ public class AuthServiceImpl implements AuthService {
 
         emailService.sendVerificationEmail(user, verificationToken);
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user);
-        String refreshToken = createRefreshToken(user, null);
-
         log.info("New user registered: {}", user.getEmail());
 
-        return AuthResponse.of(accessToken, refreshToken,
-                jwtTokenProvider.getAccessTokenExpirationMs() / 1000,
-                UserResponse.fromEntity(user));
+        // No tokens until the email address is verified (the user logs in afterwards).
+        return AuthResponse.of(null, null, 0L, UserResponse.fromEntity(user));
     }
     @Transactional
     public AuthResponse registerAdmin(RegisterRequest request) {
@@ -148,6 +144,9 @@ public class AuthServiceImpl implements AuthService {
         if (user.getIsBanned()) {
             throw new UnauthorizedException("Your account has been banned");
         }
+        if (Boolean.TRUE.equals(user.getIsDeleted()) || !Boolean.TRUE.equals(user.getIsEmailVerified())) {
+            throw new UnauthorizedException("This account cannot be used");
+        }
 
         refreshToken.setIsRevoked(true);
         refreshTokenRepository.save(refreshToken);
@@ -203,11 +202,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void resendVerificationEmail(String email) {
-        User user = userRepository.findByEmail(email.toLowerCase())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        if (user.getIsEmailVerified()) {
-            throw new BadRequestException("Email is already verified");
+        // Same answer whether or not the address exists / is verified, so this
+        // endpoint can't be used to find out who has an account.
+        User user = userRepository.findByEmail(email.toLowerCase()).orElse(null);
+        if (user == null || Boolean.TRUE.equals(user.getIsEmailVerified())) {
+            log.info("Verification e-mail not re-sent (unknown or already verified address)");
+            return;
         }
 
         String verificationToken = UUID.randomUUID().toString();

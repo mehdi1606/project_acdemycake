@@ -201,7 +201,7 @@ public class NotificationServiceImpl implements NotificationService {
     private void sendWebSocketNotification(User user, NotificationResponse notification) {
         try {
             messagingTemplate.convertAndSendToUser(
-                    user.getId().toString(),
+                    user.getEmail(),   // STOMP user name = principal name = email
                     "/queue/notifications",
                     notification
             );

@@ -85,12 +85,12 @@ const Topcourses = () => {
     if (resolvedUrl) return resolvedUrl;
     // Default category icons
     const defaultIcons = [
-      'assets/img/category/icons/icon-6.svg',
-      'assets/img/category/icons/icon-7.svg',
-      'assets/img/category/icons/icon-8.svg',
-      'assets/img/category/icons/icon-9.svg',
-      'assets/img/category/icons/icon-10.svg',
-      'assets/img/category/icons/icon-11.svg',
+      `${process.env.PUBLIC_URL}/assets/img/category/icons/icon-6.svg`,
+      `${process.env.PUBLIC_URL}/assets/img/category/icons/icon-7.svg`,
+      `${process.env.PUBLIC_URL}/assets/img/category/icons/icon-8.svg`,
+      `${process.env.PUBLIC_URL}/assets/img/category/icons/icon-9.svg`,
+      `${process.env.PUBLIC_URL}/assets/img/category/icons/icon-10.svg`,
+      `${process.env.PUBLIC_URL}/assets/img/category/icons/icon-11.svg`,
     ];
     // Use hash of category id string for consistent icon selection
     const hash = category.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -149,7 +149,7 @@ const Topcourses = () => {
                     src={getCategoryIcon(category)}
                     alt={getLocalizedCategory(category, i18n.language).name}
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'assets/img/category/icons/icon-6.svg';
+                      (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/category/icons/icon-6.svg`;
                     }}
                     style={{ width: '60px', height: '60px' }}
                   />

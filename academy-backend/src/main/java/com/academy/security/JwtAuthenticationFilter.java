@@ -56,6 +56,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UUID userId = tokenProvider.getUserIdFromToken(jwt);
                     UserDetails userDetails = userDetailsService.loadUserById(userId);
 
+                    // A token alone is not enough: the account must still be verified
+                    // and not banned (bans take effect immediately, not after expiry).
+                    if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
+                        log.warn("Rejected token for disabled/banned account [{}]", request.getRequestURI());
+                        request.setAttribute(JwtAuthenticationEntryPoint.JWT_ERROR_CODE_ATTR,
+                                ErrorCode.TOKEN_INVALID.getCode());
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails, null, userDetails.getAuthorities());

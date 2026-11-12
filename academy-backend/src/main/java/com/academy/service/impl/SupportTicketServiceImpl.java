@@ -290,7 +290,13 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("SupportTicket", "id", id));
     }
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     private String generateTicketNumber() {
+        // Serialise "max + 1" across concurrent requests (lock released at commit),
+        // otherwise two tickets opened at the same moment got the same number (409).
+        entityManager.createNativeQuery("SELECT pg_advisory_xact_lock(740211)").getSingleResult();
         int next = ticketRepository.findMaxTicketSequence().orElse(0) + 1;
         return String.format("TKT-%04d", next);
     }

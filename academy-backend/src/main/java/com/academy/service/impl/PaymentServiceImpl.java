@@ -5,6 +5,7 @@ import com.academy.dto.response.PaymentResponse;
 import com.academy.dto.response.PaymentTransactionResponse;
 import com.academy.entity.Course;
 import com.academy.entity.CoursePurchase;
+import com.academy.entity.InstructorEarning;
 import com.academy.entity.PaymentTransaction;
 import com.academy.entity.User;
 import com.academy.entity.enums.EarningSourceType;
@@ -53,6 +54,9 @@ public class PaymentServiceImpl implements PaymentService {
     private final EmailService emailService;
     private final UserService userService;
     private final PayZoneService payZoneService;
+    private final MasterclassBookingService masterclassBookingService;
+    private final com.academy.repository.UserRepository userRepository;
+    private final com.academy.repository.InstructorEarningRepository instructorEarningRepository;
 
     @Override
     @Transactional
@@ -61,6 +65,10 @@ public class PaymentServiceImpl implements PaymentService {
         Course course = courseService.findById(courseId);
 
         // Check if course requires purchase
+        // Only approved (published) courses can be bought.
+        if (course.getStatus() != com.academy.entity.enums.CourseStatus.PUBLISHED) {
+            throw new BadRequestException("This course is not available for purchase");
+        }
         if (!course.getRequiresPurchase()) {
             throw new BadRequestException("This course does not require purchase");
         }
@@ -68,6 +76,12 @@ public class PaymentServiceImpl implements PaymentService {
         // Check if user already owns the course
         if (enrollmentService.isUserEnrolled(user, course)) {
             throw new BadRequestException("You already have access to this course");
+        }
+
+        // Seat-limited live sessions are only sold through the CMI checkout, which
+        // holds the seat and can decline capture when the session is full.
+        if (masterclassBookingService.isLiveMasterclass(course)) {
+            throw new BadRequestException("Live masterclasses are paid through the card checkout.");
         }
 
         String orderId = "CRS-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -153,6 +167,18 @@ public class PaymentServiceImpl implements PaymentService {
             return;
         }
 
+        // Serialise everything that settles money for this user (duplicate or
+        // concurrent callbacks, two checkouts paid at once), then re-read the
+        // committed status: only a PENDING order can be settled. A success
+        // message for a FAILED / CANCELLED / REFUNDED order (a replay) is ignored,
+        // and the CMI handler then does not capture the card.
+        userRepository.findByIdForUpdate(transaction.getUser().getId());
+        PaymentStatus committed = transactionRepository.findStatusById(transaction.getId());
+        if (committed != PaymentStatus.PENDING) {
+            log.warn("Callback '{}' ignored for order {} in status {}", status, orderId, committed);
+            return;
+        }
+
         switch (status.toUpperCase()) {
             case "SUCCESS", "COMPLETED" -> {
                 // ── SUBSCRIPTION ────────────────────────────────────────────────
@@ -170,6 +196,32 @@ public class PaymentServiceImpl implements PaymentService {
                     subscriptionService.processSuccessfulPayment(orderId, transactionId);
 
                 } else if ("COURSE_PURCHASE".equals(transaction.getTransactionType())) {
+                    // Load the buyer now: the confirmation e-mail is sent on an @Async
+                    // thread, and a still-lazy User proxy initialised from that thread
+                    // shares this Hibernate session and corrupts it (rolling back the
+                    // whole confirmation).
+                    org.hibernate.Hibernate.initialize(transaction.getUser());
+                    // LIVE masterclass: take the seat under a row lock. If the session
+                    // filled up (or this is a duplicate payment) the booking is refused,
+                    // the transaction is CANCELLED and the CMI handler does not capture.
+                    String refusal = checkLiveMasterclassSeat(transaction);
+                    if (ALREADY_PROCESSED.equals(refusal)) {
+                        log.warn("Transaction settled concurrently, skipping: {}", orderId);
+                        return;
+                    }
+                    if (refusal != null) {
+                        refuseLiveMasterclassBooking(transaction, transactionId, refusal);
+                        return;
+                    }
+                    // Any course: a second payment for a course already bought (two
+                    // checkouts open at once) is not captured.
+                    Course purchased = courseService.findById(transaction.getReferenceId());
+                    if (coursePurchaseRepository.existsByUserAndCourseAndStatus(
+                            transaction.getUser(), purchased, PaymentStatus.COMPLETED)) {
+                        refuseDuplicate(transaction, transactionId,
+                                "You already own \"" + purchased.getTitle() + "\". The extra payment was not captured.");
+                        return;
+                    }
                     // For course purchases the lifecycle is managed here.
                     // processCoursePaymentSuccess uses the in-memory entity for
                     // transactionId, so set the fields before calling it.
@@ -180,6 +232,11 @@ public class PaymentServiceImpl implements PaymentService {
                     processCoursePaymentSuccess(transaction);
 
                 } else if ("EBOOK_PURCHASE".equals(transaction.getTransactionType())) {
+                    if (ebookService.isOwnedBy(transaction.getUser(), transaction.getReferenceId())) {
+                        refuseDuplicate(transaction, transactionId,
+                                "You already own this ebook. The extra payment was not captured.");
+                        return;
+                    }
                     // Same lifecycle as a course purchase: mark paid, then grant
                     // ownership. grantPurchase also notifies the buyer in-app.
                     transaction.setStatus(PaymentStatus.COMPLETED);
@@ -272,6 +329,19 @@ public class PaymentServiceImpl implements PaymentService {
         return PaymentTransactionResponse.fromEntity(transaction, courseName);
     }
 
+    /** True when a COMPLETED payment did not produce what was bought. */
+    private boolean isEffectMissing(PaymentTransaction t) {
+        User user = t.getUser();
+        return switch (t.getTransactionType() == null ? "" : t.getTransactionType()) {
+            case "SUBSCRIPTION" -> !user.hasActiveSubscription();
+            case "COURSE_PURCHASE" -> courseRepository.findById(t.getReferenceId())
+                    .map(c -> !coursePurchaseRepository.existsByUserAndCourseAndStatus(user, c, PaymentStatus.COMPLETED))
+                    .orElse(false);
+            case "EBOOK_PURCHASE" -> !ebookService.isOwnedBy(user, t.getReferenceId());
+            default -> false;
+        };
+    }
+
     @Override
     @Transactional
     public void adminForceReprocessPayment(String orderId) {
@@ -279,6 +349,19 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "orderId", orderId));
 
         String savedTxnId = transaction.getPayzoneTransactionId();
+
+        // Only re-run orders that were really paid. A FAILED (declined), CANCELLED
+        // (never captured) or REFUNDED order must not grant access; and a COMPLETED
+        // order is re-run only when its effect is missing, so reprocessing can never
+        // hand out a free extra year or a free course.
+        PaymentStatus st = transaction.getStatus();
+        if (st != PaymentStatus.PENDING && st != PaymentStatus.COMPLETED) {
+            throw new BadRequestException("This payment was not successful (" + st + ") and cannot be reprocessed. "
+                    + "For a bank transfer, use Users → Activate plan instead.");
+        }
+        if (st == PaymentStatus.COMPLETED && !isEffectMissing(transaction)) {
+            throw new BadRequestException("This payment has already been applied — nothing to reprocess.");
+        }
 
         // Reset to PENDING so the COMPLETED guards in processPaymentCallback and
         // subscriptionService.processSuccessfulPayment won't block execution.
@@ -311,25 +394,35 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BadRequestException("Can only refund completed transactions");
         }
 
+        if (amount == null || amount.signum() <= 0) {
+            throw new BadRequestException("Refund amount must be greater than zero");
+        }
         if (amount.compareTo(transaction.getAmount()) > 0) {
             throw new BadRequestException("Refund amount cannot exceed original transaction amount");
         }
+        boolean fullRefund = amount.compareTo(transaction.getAmount()) == 0;
 
-        // Process refund via PayZone
-        PaymentResponse refundResponse = payZoneService.processRefund(
-                transaction.getPayzoneTransactionId(),
-                amount,
-                reason
-        );
-
-        transaction.setStatus(PaymentStatus.REFUNDED);
-        transactionRepository.save(transaction);
-
-        // If this was a course purchase, revoke access
-        if ("COURSE_PURCHASE".equals(transaction.getTransactionType()) && transaction.getReferenceId() != null) {
-            Course course = courseService.findById(transaction.getReferenceId());
-            enrollmentService.revokeEnrollment(transaction.getUser(), course);
+        // Money back through the gateway that took it. PayZone orders have a payment
+        // URL; CMI orders are refunded in the CMI back office — here we only record it.
+        if (transaction.getPaymentUrl() != null) {
+            payZoneService.processRefund(transaction.getPayzoneTransactionId(), amount, reason);
+        } else {
+            log.info("CMI order {} — refund of {} to be issued in the CMI back office", transaction.getPayzoneOrderId(), amount);
         }
+
+        if (!fullRefund) {
+            // Partial refund (goodwill): the purchase stays valid.
+            transaction.setErrorMessage("Partially refunded " + amount + " " + transaction.getCurrency() + ": " + reason);
+            transactionRepository.save(transaction);
+        } else {
+            transaction.setStatus(PaymentStatus.REFUNDED);
+            transactionRepository.save(transaction);
+            revokeRefundedPurchase(transaction, amount, reason);
+        }
+
+        // The instructor's share of the refunded amount is reversed (a negative earning,
+        // so it is deducted even if the original earning was already paid out).
+        reverseInstructorEarnings(transaction, amount);
 
         // Notify user
         notificationService.createNotification(
@@ -342,6 +435,105 @@ public class PaymentServiceImpl implements PaymentService {
 
         log.info("Refund processed: transaction={}, amount={}, reason={}",
                 transactionId, amount, reason);
+    }
+
+    /** Full refund: whatever was bought stops being accessible. */
+    private void revokeRefundedPurchase(PaymentTransaction transaction, BigDecimal amount, String reason) {
+        User user = transaction.getUser();
+        switch (transaction.getTransactionType() == null ? "" : transaction.getTransactionType()) {
+            case "COURSE_PURCHASE" -> {
+                Course course = courseService.findById(transaction.getReferenceId());
+                enrollmentService.revokeEnrollment(user, course);
+                // The purchase no longer counts (frees a live masterclass seat, allows buying again).
+                coursePurchaseRepository.findByUserAndCourseAndStatus(user, course, PaymentStatus.COMPLETED)
+                        .ifPresent(p -> {
+                            p.setStatus(PaymentStatus.REFUNDED);
+                            p.setRefundedAt(LocalDateTime.now());
+                            p.setRefundAmount(amount);
+                            p.setRefundReason(reason);
+                            coursePurchaseRepository.save(p);
+                        });
+                masterclassBookingService.evictCourseCachesAfterCommit();
+            }
+            case "EBOOK_PURCHASE" -> ebookService.revokePurchase(user, transaction.getReferenceId());
+            case "SUBSCRIPTION" -> subscriptionService.revokeForRefund(user);
+            default -> { }
+        }
+    }
+
+    private void reverseInstructorEarnings(PaymentTransaction transaction, BigDecimal refunded) {
+        for (InstructorEarning e : instructorEarningRepository.findBySourceId(transaction.getId())) {
+            if (e.getNetAmount() == null || e.getNetAmount().signum() <= 0) continue; // skip reversals
+            BigDecimal share = transaction.getAmount().signum() == 0 ? BigDecimal.ZERO
+                    : refunded.divide(transaction.getAmount(), 6, java.math.RoundingMode.HALF_UP);
+            instructorEarningRepository.save(InstructorEarning.builder()
+                    .instructor(e.getInstructor())
+                    .sourceType(e.getSourceType())
+                    .sourceId(e.getSourceId())
+                    .courseId(e.getCourseId())
+                    .amount(e.getAmount().multiply(share).negate().setScale(2, java.math.RoundingMode.HALF_UP))
+                    .platformFee(e.getPlatformFee() == null ? BigDecimal.ZERO
+                            : e.getPlatformFee().multiply(share).negate().setScale(2, java.math.RoundingMode.HALF_UP))
+                    .netAmount(e.getNetAmount().multiply(share).negate().setScale(2, java.math.RoundingMode.HALF_UP))
+                    .currency(e.getCurrency())
+                    .description("Refund of order " + transaction.getPayzoneOrderId())
+                    .build());
+        }
+    }
+
+    /**
+     * For a LIVE masterclass, locks the course row and returns the reason the
+     * booking must be refused, or null when the seat can be taken. Other courses
+     * always return null (unchanged behaviour).
+     */
+    private String checkLiveMasterclassSeat(PaymentTransaction transaction) {
+        Course course = courseService.findById(transaction.getReferenceId());
+        if (!masterclassBookingService.isLiveMasterclass(course)) {
+            return null;
+        }
+        Course locked = masterclassBookingService.lockCourse(course.getId());
+        // A concurrent duplicate callback for the same order may have completed it
+        // while we waited for the lock: re-read the committed status.
+        PaymentStatus current = transactionRepository.findStatusById(transaction.getId());
+        if (current != PaymentStatus.PENDING) {
+            return ALREADY_PROCESSED;
+        }
+        return masterclassBookingService.refusalReasonForConfirmation(locked, transaction.getUser());
+    }
+
+    /** Marks a duplicate purchase CANCELLED (the card is then not captured) and tells the buyer. */
+    private void refuseDuplicate(PaymentTransaction transaction, String authCode, String message) {
+        transaction.setStatus(PaymentStatus.CANCELLED);
+        transaction.setPayzoneTransactionId(authCode);
+        transaction.setErrorMessage("DUPLICATE: " + message);
+        transactionRepository.save(transaction);
+        notificationService.createNotification(transaction.getUser(), "Duplicate payment not charged",
+                message, com.academy.entity.enums.NotificationType.PAYMENT, null);
+        log.warn("Duplicate purchase refused — order={} reason={}", transaction.getPayzoneOrderId(), message);
+    }
+
+    /** Sentinel: the order was settled by another callback while we waited for the lock. */
+    private static final String ALREADY_PROCESSED = "ALREADY_PROCESSED";
+
+    private void refuseLiveMasterclassBooking(PaymentTransaction transaction, String authCode, String reason) {
+        transaction.setStatus(PaymentStatus.CANCELLED);
+        transaction.setPayzoneTransactionId(authCode);
+        transaction.setErrorMessage(reason);
+        transactionRepository.save(transaction);
+        masterclassBookingService.evictCourseCachesAfterCommit();
+
+        Course course = courseService.findById(transaction.getReferenceId());
+        notificationService.createNotification(
+                transaction.getUser(),
+                "Masterclass booking not confirmed",
+                reason.startsWith("DUPLICATE")
+                        ? "You already have a place in " + course.getTitle() + ". The extra payment was not captured."
+                        : course.getTitle() + " was fully booked before your payment completed. Your card was not charged.",
+                com.academy.entity.enums.NotificationType.PAYMENT,
+                "/course/course-details/" + course.getSlug()
+        );
+        log.warn("LIVE masterclass booking refused — order={} course={} reason={}",
+                transaction.getPayzoneOrderId(), course.getId(), reason);
     }
 
     private void processCoursePaymentSuccess(PaymentTransaction transaction) {
@@ -370,6 +562,11 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Enroll user in course
         enrollmentService.enrollUserInCourse(user, course, true);
+
+        // A confirmed LIVE masterclass seat changes the displayed availability.
+        if (masterclassBookingService.isLiveMasterclass(course)) {
+            masterclassBookingService.evictCourseCachesAfterCommit();
+        }
 
         // Create instructor earning
         instructorService.createEarning(

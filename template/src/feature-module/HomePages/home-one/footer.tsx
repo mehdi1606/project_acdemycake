@@ -74,16 +74,16 @@ const Footer = () => {
                                 <ul className="sl-footer__links">
                                     <li><Link to={route.courseList}>{t('footer.allCourses', 'All Courses')}</Link></li>
                                     <li><Link to={route.masterclass}>{t('footer.masterclasses', 'Masterclasses')}</Link></li>
-                                    <li><Link to={route.instructorList}>{t('footer.instructors', 'Instructors')}</Link></li>
+                                    <li><Link to={route.instructorGrid}>{t('footer.instructors', 'Instructors')}</Link></li>
                                     <li><Link to={route.pricingPlan}>{t('footer.pricing', 'Pricing')}</Link></li>
-                                    <li><Link to={route.courseGrid}>{t('student.certificates.title', 'Certificates')}</Link></li>
+                                    <li><Link to={route.studentCertificates}>{t('student.certificates.title', 'Certificates')}</Link></li>
                                 </ul>
                             </div>
                             <div className="col-6 col-md-4">
                                 <div className="sl-footer__heading">{t('footer.academy', 'Academy')}</div>
                                 <ul className="sl-footer__links">
                                     <li><Link to={route.about_us}>{t('footer.about', 'About Us')}</Link></li>
-                                    <li><Link to={route.instructorList}>{t('footer.ourArtists', 'Our Artists')}</Link></li>
+                                    <li><Link to={route.instructorGrid}>{t('footer.ourArtists', 'Our Artists')}</Link></li>
                                     <li><Link to={route.blogGrid}>{t('footer.journal', 'Journal')}</Link></li>
                                     <li><Link to={route.FAQ}>{t('footer.faq', 'FAQs')}</Link></li>
                                     <li><Link to={route.contactUs}>{t('footer.contact', 'Contact')}</Link></li>

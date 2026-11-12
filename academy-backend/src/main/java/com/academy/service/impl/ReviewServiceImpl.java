@@ -40,6 +40,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final CourseService courseService;
     private final UserService userService;
+    private final com.academy.service.EnrollmentService enrollmentService;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     @Override
     public PageResponse<ReviewResponse> getCourseReviews(UUID courseId, int page, int size) {
@@ -72,7 +74,12 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BadRequestException("You have already reviewed this course");
         }
 
-        // Check if user is enrolled in the course
+        // Only people who can take the course (enrolled, bought, or subscribed to a
+        // plan course) may review it — otherwise anyone could rate any course.
+        if (currentUser.getRole() != com.academy.entity.enums.UserRole.ADMIN
+                && !enrollmentService.hasAccess(currentUser, course)) {
+            throw new com.academy.exception.ForbiddenException("Only students of this course can review it");
+        }
         boolean isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
 
         CourseReview review = CourseReview.builder()
@@ -193,6 +200,11 @@ public class ReviewServiceImpl implements ReviewService {
         course.setRatingCount((int) reviewCount);
 
         courseRepository.save(course);
+        // Cached course cards/details carry the rating: refresh them.
+        for (String name : java.util.List.of(com.academy.config.CacheConfig.COURSES, com.academy.config.CacheConfig.COURSE_DETAIL)) {
+            org.springframework.cache.Cache cache = cacheManager.getCache(name);
+            if (cache != null) cache.clear();
+        }
         log.info("Course rating updated: {} average: {} count: {}", courseId, averageRating, reviewCount);
     }
 

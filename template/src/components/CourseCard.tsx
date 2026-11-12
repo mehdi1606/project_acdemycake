@@ -18,7 +18,7 @@ import { getLocalizedCategory } from '../hooks/useLocalizedCategory';
  *
  *   PLAN      – subscription course, burgundy accent, "Included in Premium"
  *   RECORDED  – same layout as a plan course + gold "Masterclass" badge + MAD price
- *   LIVE      – bespoke session booked on WhatsApp: green accent, seats left, Reserve
+ *   LIVE      – in-person session (WhatsApp or card booking): green accent, date, price, seats left
  */
 
 // Absolute on purpose: a relative "assets/..." path breaks on nested routes such as
@@ -98,9 +98,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const shadowHover =
     kind === 'LIVE' ? '0 12px 40px rgba(29,168,81,0.20)' : '0 12px 40px rgba(78,20,32,0.14)';
 
+  // Seats left come from the server (paid seats + in-progress card payments).
   const seatCap = course.maxStudents;
   const seatsLeft =
-    kind === 'LIVE' && seatCap && seatCap > 0 ? Math.max(0, seatCap - (course.enrolledCount ?? 0)) : null;
+    kind === 'LIVE' && seatCap && seatCap > 0
+      ? (typeof course.seatsRemaining === 'number' ? course.seatsRemaining : seatCap)
+      : null;
+  const livePrice = kind === 'LIVE' ? Number(course.price ?? 0) : 0;
+  const liveDate = kind === 'LIVE' && course.sessionDate
+    ? (() => {
+        const [y, m, d] = course.sessionDate!.split('-').map(Number);
+        return new Date(y, m - 1, d).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' });
+      })()
+    : null;
   const hasDiscount =
     kind !== 'LIVE' && !!course.originalPrice && course.originalPrice > (course.price ?? 0);
   const discountPct = hasDiscount ? Math.round((1 - (course.price ?? 0) / course.originalPrice!) * 100) : 0;
@@ -191,12 +201,21 @@ const CourseCard: React.FC<CourseCardProps> = ({
     );
   } else if (kind === 'LIVE') {
     priceBlock = (
-      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: seatsLeft === 0 ? '#DC2626' : BURG_D, display: 'flex', alignItems: 'center', gap: 5 }}>
-        <i className="fa-solid fa-users" style={{ fontSize: 11, color: WA }} />
-        {seatsLeft !== null
-          ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
-          : t('courseDetails.limitedPlaces', 'Limited places')}
-      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {livePrice > 0 && (
+          <span style={{ fontFamily: '"Playfair Display", serif', fontSize: '1.05rem', fontWeight: 800, color: BURG_D }}>
+            {livePrice} {currency}
+          </span>
+        )}
+        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: seatsLeft === 0 ? '#DC2626' : 'rgba(58,30,32,0.7)', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <i className="fa-solid fa-users" style={{ fontSize: 10, color: WA }} />
+          {seatsLeft === 0
+            ? t('liveBooking.status.full', 'Fully booked')
+            : seatsLeft !== null
+              ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+              : t('courseDetails.limitedPlaces', 'Limited places')}
+        </span>
+      </div>
     );
   } else if (isStaff && kind === 'RECORDED') {
     priceBlock = (
@@ -234,7 +253,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
         to={detailsHref}
         style={{ ...pill, background: `linear-gradient(135deg, ${WA} 0%, ${WA_L} 100%)`, color: '#fff', boxShadow: '0 2px 8px rgba(29,168,81,0.3)' }}
       >
-        <i className="fa-brands fa-whatsapp" style={{ fontSize: 13 }} /> {t('courseTile.reserve', 'Reserve')}
+        <i className={course.isEnrolled ? 'fa-solid fa-circle-check' : 'isax isax-ticket'} style={{ fontSize: 13 }} />
+        {course.isEnrolled ? t('courseTile.booked', 'Booked') : t('courseTile.reserve', 'Reserve')}
       </Link>
     );
   } else if (course.isEnrolled) {
@@ -426,7 +446,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <span style={{ color: 'rgba(197,145,44,0.4)', fontSize: '0.55rem' }}>✦</span>
           <span style={{ fontSize: '0.7rem', color: 'rgba(58,30,32,0.5)', display: 'flex', alignItems: 'center', gap: 4 }}>
             {kind === 'LIVE' ? (
-              <><i className="isax isax-video" style={{ fontSize: 12, color: WA }} /> {t('courseTile.liveSession', 'Live session')}</>
+              <><i className={liveDate ? 'isax isax-calendar-1' : 'isax isax-video'} style={{ fontSize: 12, color: WA }} /> {liveDate ?? t('courseTile.liveSession', 'Live session')}</>
             ) : (
               <><i className="isax isax-video-play" style={{ fontSize: 12 }} /> {t('courseTile.lessons', '{{n}} lessons', { n: course.lessonsCount ?? 0 })}</>
             )}

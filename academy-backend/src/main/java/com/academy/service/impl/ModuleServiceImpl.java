@@ -32,6 +32,7 @@ public class ModuleServiceImpl implements ModuleService {
     private final CourseModuleRepository moduleRepository;
     private final CourseService courseService;
     private final UserService userService;
+    private final com.academy.security.FileUrlSigner fileUrlSigner;
 
     @Override
     public CourseModule findById(UUID id) {
@@ -42,8 +43,10 @@ public class ModuleServiceImpl implements ModuleService {
     @Override
     public List<ModuleResponse> getModulesByCourse(UUID courseId) {
         Course course = courseService.findById(courseId);
+        // Full lesson content is for the course's own instructor (or an admin) only.
+        verifyInstructorAccess(course);
         return moduleRepository.findByCourseOrderByOrderIndexAsc(course).stream()
-                .map(m -> ModuleResponse.fromEntity(m, true))
+                .map(m -> ModuleResponse.withLessonContent(m, fileUrlSigner))
                 .collect(Collectors.toList());
     }
 
@@ -120,11 +123,17 @@ public class ModuleServiceImpl implements ModuleService {
     @Override
     @Transactional
     public void reorderModules(UUID courseId, List<UUID> moduleIds) {
+        if (moduleIds == null || moduleIds.stream().anyMatch(java.util.Objects::isNull)) {
+            throw new com.academy.exception.BadRequestException("Invalid list of ids");
+        }
         Course course = courseService.findById(courseId);
         verifyInstructorAccess(course);
 
         for (int i = 0; i < moduleIds.size(); i++) {
             CourseModule module = findById(moduleIds.get(i));
+            if (!module.getCourse().getId().equals(course.getId())) {
+                throw new com.academy.exception.BadRequestException("Module " + module.getId() + " does not belong to this course");
+            }
             module.setOrderIndex(i);
             moduleRepository.save(module);
         }

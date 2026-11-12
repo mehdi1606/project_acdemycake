@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import { fallbackTo } from '../../../core/common/imageFallback';
 import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
@@ -7,6 +8,7 @@ import ReactApexChart from 'react-apexcharts';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import PredefinedDateRanges from '../../../core/common/range-picker/datePicker';
 import { all_routes } from '../../router/all_routes';
+import { instructorManageHref } from '../../router/courseLinks';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { instructorService } from '../../../services/api/instructor.service';
 import { InstructorDashboard as InstructorDashboardType, Course } from '../../../services/api/types';
@@ -56,7 +58,7 @@ const InstructorDashboard = () => {
     plotOptions: { bar: { borderRadius: 6, horizontal: false } },
     series: [{ name: 'Earnings ($)', data: chartData.data }],
     xaxis:  { categories: chartData.categories, labels: { style: { colors: '#8B6D75', fontSize: '12px' } } },
-    yaxis:  { labels: { offsetX: -10, style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => `$${v}` } },
+    yaxis:  { labels: { offsetX: -10, style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => formatMAD(v) } },
     grid:   { borderColor: 'rgba(101,28,50,0.08)', strokeDashArray: 4 },
     legend: { show: false },
     dataLabels: { enabled: false },
@@ -76,10 +78,10 @@ const InstructorDashboard = () => {
   const stats = [
     { label: t('instructor.dashboard.totalStudents', 'Total Students'),     value: dashboardData?.totalStudents,        icon: 'isax isax-people',     color: 'gold'  },
     { label: t('instructor.dashboard.totalCourses', 'Total Courses'),      value: dashboardData?.totalCourses,         icon: 'isax isax-book',       color: 'rose'  },
-    { label: t('instructor.dashboard.totalEarnings', 'Total Earnings'),     value: `$${dashboardData?.totalEarnings?.toFixed(2) ?? '0.00'}`, icon: 'isax isax-wallet', color: 'sage'  },
-    { label: t('instructor.earnings.pendingPayout', 'Pending Payout'),     value: `$${dashboardData?.pendingPayout?.toFixed(2) ?? '0.00'}`, icon: 'isax isax-wallet-money', color: 'amber' },
+    { label: t('instructor.dashboard.totalEarnings', 'Total Earnings'),     value: formatMAD(dashboardData?.totalEarnings), icon: 'isax isax-wallet', color: 'sage'  },
+    { label: t('instructor.earnings.pendingPayout', 'Pending Payout'),     value: formatMAD(dashboardData?.pendingPayout), icon: 'isax isax-wallet-money', color: 'amber' },
     { label: t('common.rating', 'Average Rating'),     value: dashboardData?.averageRating?.toFixed(1) ?? '0.0',        icon: 'isax isax-star',   color: 'gold'  },
-    { label: t('instructor.dashboard.recentEnrollments', 'Recent Enrollments'), value: dashboardData?.recentEnrollments?.length ?? 0,            icon: 'isax isax-user-add', color: 'slate' },
+    { label: t('instructor.dashboard.recentEnrollmentsLast10', 'Recent enrollments (last 10)'), value: dashboardData?.recentEnrollments?.length ?? 0,            icon: 'isax isax-user-add', color: 'slate' },
   ];
 
   const instructorBadge = getBadgeForUser(user?.role || 'INSTRUCTOR', 0);
@@ -226,7 +228,7 @@ const InstructorDashboard = () => {
                           </td>
                           <td>
                             <Link
-                              to={`${all_routes.instructorCourseManage}/${course.id}`}
+                              to={instructorManageHref(course)}
                               className="lx-btn lx-btn-outline lx-btn-sm"
                             >
                               {t('instructor.courses.manage', 'Manage')}

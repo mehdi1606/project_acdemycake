@@ -16,6 +16,11 @@ import java.util.UUID;
 @Repository
 public interface CommunityCommentRepository extends JpaRepository<CommunityComment, UUID> {
 
+    /** Atomic like counter change. */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE CommunityComment c SET c.likesCount = CASE WHEN COALESCE(c.likesCount, 0) + :d < 0 THEN 0 ELSE COALESCE(c.likesCount, 0) + :d END WHERE c.id = :id")
+    int addLikes(@Param("id") UUID id, @Param("d") int delta);
+
     @Query("SELECT c FROM CommunityComment c WHERE c.post = :post AND c.parentComment IS NULL AND c.isDeleted = false ORDER BY c.createdAt ASC")
     Page<CommunityComment> findTopLevelCommentsByPost(@Param("post") CommunityPost post, Pageable pageable);
 

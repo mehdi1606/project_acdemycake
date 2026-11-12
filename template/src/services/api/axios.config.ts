@@ -15,18 +15,24 @@ const emitGlobalError = (msg: string) => {
 // Prevents multiple simultaneous token-refresh calls when several requests
 // arrive with a 401 at the same time (race condition).
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+interface RefreshSubscriber {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}
+let refreshSubscribers: RefreshSubscriber[] = [];
 
-const subscribeTokenRefresh = (cb: (token: string) => void) => {
-  refreshSubscribers.push(cb);
+const subscribeTokenRefresh = (subscriber: RefreshSubscriber) => {
+  refreshSubscribers.push(subscriber);
 };
 
 const onTokenRefreshed = (newToken: string) => {
-  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers.forEach((s) => s.resolve(newToken));
   refreshSubscribers = [];
 };
 
-const onRefreshFailed = () => {
+// Reject every request queued during the refresh, otherwise they hang forever.
+const onRefreshFailed = (error: unknown) => {
+  refreshSubscribers.forEach((s) => s.reject(error));
   refreshSubscribers = [];
 };
 
@@ -74,14 +80,17 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    // Unwrap backend ApiResponse { success, message, data }
+    // Unwrap backend ApiResponse { success, message, data }.
+    // The backend omits null fields, so "no data" arrives as { success, timestamp }
+    // without a "data" key: callers must then get null, not the wrapper object
+    // (which used to make e.g. "no subscription" render as a fake YEARLY plan).
     if (
       response.data &&
       typeof response.data === 'object' &&
       'success' in response.data &&
-      'data' in response.data
+      ('data' in response.data || 'timestamp' in response.data)
     ) {
-      response.data = response.data.data;
+      response.data = 'data' in response.data ? response.data.data : null;
     }
     return response;
   },
@@ -109,16 +118,17 @@ api.interceptors.response.use(
     if (isRefreshing) {
       // Another refresh is already in flight — queue this request
       return new Promise((resolve, reject) => {
-        subscribeTokenRefresh((newToken) => {
-          originalRequest._retry = true;
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          }
-          resolve(api(originalRequest));
+        subscribeTokenRefresh({
+          resolve: (newToken) => {
+            originalRequest._retry = true;
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            }
+            resolve(api(originalRequest));
+          },
+          // Also handle the case where refresh ultimately fails
+          reject,
         });
-        // Also handle the case where refresh ultimately fails
-        const unsub = () => reject(new Error('Token refresh failed'));
-        refreshSubscribers.push(unsub as never);
       });
     }
 
@@ -136,7 +146,7 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       isRefreshing = false;
-      onRefreshFailed();
+      onRefreshFailed(refreshError);
       clearAuthAndRedirect();
       return Promise.reject(refreshError);
     }
@@ -173,9 +183,9 @@ apiMultipart.interceptors.response.use(
       response.data &&
       typeof response.data === 'object' &&
       'success' in response.data &&
-      'data' in response.data
+      ('data' in response.data || 'timestamp' in response.data)
     ) {
-      response.data = response.data.data;
+      response.data = 'data' in response.data ? response.data.data : null;
     }
     return response;
   },
@@ -194,15 +204,16 @@ apiMultipart.interceptors.response.use(
 
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        subscribeTokenRefresh((newToken) => {
-          originalRequest._retry = true;
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          }
-          resolve(apiMultipart(originalRequest));
+        subscribeTokenRefresh({
+          resolve: (newToken) => {
+            originalRequest._retry = true;
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            }
+            resolve(apiMultipart(originalRequest));
+          },
+          reject,
         });
-        const unsub = () => reject(new Error('Token refresh failed'));
-        refreshSubscribers.push(unsub as never);
       });
     }
 
@@ -220,7 +231,7 @@ apiMultipart.interceptors.response.use(
       return apiMultipart(originalRequest);
     } catch (refreshError) {
       isRefreshing = false;
-      onRefreshFailed();
+      onRefreshFailed(refreshError);
       clearAuthAndRedirect();
       return Promise.reject(refreshError);
     }

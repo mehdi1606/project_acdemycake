@@ -18,7 +18,8 @@
     "loginForWishlist": "Please log in to use your wishlist",
     "wishlistAdded": "Added to wishlist",
     "wishlistRemoved": "Removed from wishlist",
-    "wishlistFailed": "Failed to update wishlist"
+    "wishlistFailed": "Failed to update wishlist",
+    "booked": "Booked"
   },
   "ebooks": {
     "eyebrow": "Digital Library",
@@ -214,7 +215,8 @@
     "coupons": "Coupons",
     "siteSettings": "Site Settings",
     "expand": "Expand",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "masterclassReservations": "Masterclass Reservations"
   },
   "auth": {
     "comingSoon": {
@@ -560,7 +562,12 @@
       "myProgress": "My Progress",
       "upcomingQuiz": "Upcoming Quiz",
       "recentActivity": "Recent Activity",
-      "startLearning": "Start Learning"
+      "startLearning": "Start Learning",
+      "welcomeBack": "Welcome back",
+      "continueLearningSubtitle": "Continue your learning journey — you're doing great.",
+      "activeCourses": "Active Courses",
+      "recentInvoices": "Recent Invoices",
+      "coursePurchase": "Course Purchase"
     },
     "courses": {
       "title": "My Courses",
@@ -760,7 +767,9 @@
       "coursePerformance": "Course Performance",
       "publishedCourses": "Published Courses",
       "draftCourses": "Draft Courses",
-      "monthlyRevenue": "Monthly Revenue"
+      "monthlyRevenue": "Monthly Revenue",
+      "recentEnrollmentsLast10": "Recent enrollments (last 10)",
+      "welcomeSubtitle": "Manage your courses, track student progress, and grow your impact."
     },
     "courses": {
       "title": "My Courses",
@@ -788,7 +797,10 @@
       "saveAsDraft": "Save as Draft",
       "publishCourse": "Publish Course",
       "coursePublished": "Course published successfully",
-      "courseSaved": "Course saved successfully"
+      "courseSaved": "Course saved successfully",
+      "noDate": "No date set",
+      "placesLeft": "{{count}}/{{capacity}} places left",
+      "deleteConfirm": "Are you sure you want to delete this course? This action cannot be undone."
     },
     "quiz": {
       "title": "Quiz Management",
@@ -925,7 +937,18 @@
       "credentialsSent": "The account was created and login credentials were sent to",
       "createAnother": "Create Another",
       "creating": "Creating…",
-      "createAndSend": "Create & Send Email"
+      "createAndSend": "Create & Send Email",
+      "subscriptionActivated": "Yearly subscription activated successfully",
+      "extendPlan": "Add 1 year (renewal)",
+      "activatePlan": "Activate Yearly Plan",
+      "yearlyPlan": "Yearly Plan",
+      "planExtendDuration": "One more year, added after the current end date",
+      "planDuration": "Access for 1 year from today",
+      "extendConfirm": "Use this when the user has renewed by bank transfer. Their current access is kept and one year is added after it ends.",
+      "activateConfirm": "This will activate a yearly subscription for this user without requiring payment. The user will get full access to all courses.",
+      "activating": "Activating...",
+      "confirmExtend": "Add 1 year",
+      "confirmActivate": "Activate Plan"
     },
     "courses": {
       "title": "Course Management",
@@ -1553,7 +1576,12 @@
     "enrollToReview": "Enroll to write a review.",
     "accessAllContent": "Access to all course content",
     "inCart": "In Cart",
-    "tags": "Tags"
+    "tags": "Tags",
+    "placesLeftOf": "{{count}} of {{capacity}} places left",
+    "liveIncludeSessionV2": "In-person live session with the instructor",
+    "liveIncludeCard": "Secure online card payment",
+    "liveIncludeWhatsappV2": "Questions & reservations on WhatsApp",
+    "loginToEnroll": "Login to Enroll"
   },
   "quiz": {
     "questions": "{{n}} questions",
@@ -1811,7 +1839,19 @@
     "and": "and",
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
-    "backToCart": "Back to Cart"
+    "backToCart": "Back to Cart",
+    "onlyFree": "These courses are free — open each course page to enroll.",
+    "paymentFailed": "Payment initiation failed. Please try again.",
+    "yourCourses": "Your Courses",
+    "by": "by",
+    "secureGateway": "Secured by CMI Chaabi Payment",
+    "cmiTitle": "CMI Chaabi Secure Payment",
+    "cmiDesc": "You will be redirected to the CMI Chaabi secure payment page to enter your card details. We do not store or process your card information.",
+    "multiCourseInfo": "You have {{count}} courses. Each course is processed in a separate secure transaction. Starting with: \"{{title}}\".",
+    "chargedNow": "Charged now",
+    "onePerPayment": "Courses are paid one at a time: this payment is for \"{{title}}\". You will come back here to pay the next {{count}} course(s).",
+    "redirecting": "Redirecting to payment…",
+    "proceedToPayment": "Proceed to Secure Payment"
   },
   "about": {
     "hero": {
@@ -2004,7 +2044,66 @@
       "subtitle": "Your payment is being processed",
       "description": "This may take a few minutes. We'll notify you once confirmed.",
       "backToHome": "Back to Home"
-    }
+    },
+    "planAnnual": "Annual",
+    "planTrimester": "Trimester",
+    "planMonthly": "Monthly",
+    "msgFailedNoCharge": "Your payment was not completed. No charge has been made to your card.",
+    "msgReceivedPending": "Your payment was received. Your access will activate automatically once the provider confirms it.",
+    "msgNoReference": "No payment reference found. If you just completed a payment, please check your student dashboard.",
+    "msgNotCompleted": "Payment was not completed. No charge has been made.",
+    "msgWaitingPlace": "We're still waiting for confirmation from the payment provider. Your place is held and will be confirmed automatically once the payment is verified.",
+    "msgWaitingAccess": "We're still waiting for confirmation from the payment provider. Your access will be activated automatically once the payment is confirmed.",
+    "msgUnreachable": "Unable to reach the server. Please check your dashboard in a few minutes.",
+    "typeSubscription": "Subscription",
+    "typeCoursePurchase": "Course purchase",
+    "typeEbook": "Ebook",
+    "orderDetails": "Order details",
+    "reference": "Reference",
+    "item": "Item",
+    "masterclassBooking": "Masterclass booking",
+    "amountLabel": "Amount",
+    "confirmingTitle": "Confirming Your Payment…",
+    "confirmingDesc": "Please keep this page open. We're waiting for confirmation from the payment provider. This usually takes a few seconds.",
+    "stepSubmitted": "Payment submitted",
+    "stepAwaiting": "Awaiting confirmation",
+    "stepPlace": "Place confirmation",
+    "stepCourse": "Course access",
+    "stepEbook": "Ebook access",
+    "stepSubscription": "Subscription activation",
+    "mcScript": "Your place is",
+    "mcTitle": "Confirmed",
+    "theMasterclass": "the masterclass",
+    "viewMasterclass": "View masterclass",
+    "myDashboard": "My Dashboard",
+    "paymentConfirmed": "Payment confirmed",
+    "courseUnlocked": "Course Unlocked",
+    "courseUnlockedDesc": "Your course is now in your library. You can start learning right away.",
+    "goToMyCourses": "Go to my courses",
+    "ebookReady": "Ebook Ready",
+    "ebookReadyDesc": "Your ebook has been added to your library. You can read or download it now.",
+    "openMyEbooks": "Open my ebooks",
+    "welcomeTo": "Welcome to",
+    "brandName": "SARALÖWE Academy",
+    "fullAccessYearly": "You have full access to all courses, Masterclasses, and the community.",
+    "fullAccess": "You have full access to all courses and the community.",
+    "checkVideos": "All course videos unlocked",
+    "checkDashboard": "Student dashboard ready",
+    "checkCertificate": "Certificate programme enabled",
+    "checkAllMasterclasses": "All Masterclasses included",
+    "checkIndividualMasterclass": "Individual masterclass purchase available",
+    "startLearning": "Start Learning",
+    "bookingNotConfirmed": "Booking Not Confirmed",
+    "paymentNotCompleted": "Payment Not Completed",
+    "tryAgainBtn": "Try Again",
+    "backToHomeBtn": "Back to Home",
+    "paymentPending": "Payment Pending",
+    "checkMySubscription": "Check My Subscription",
+    "back": "Back",
+    "needHelp": "Need help?",
+    "contactSupportLink": "Contact support",
+    "mcDesc": "Payment verified — you are registered for <0>{{title}}</0>. A confirmation has been sent to your email.",
+    "subActive": "Your <0>{{plan}}</0> subscription is now active."
   },
   "studentPages": {
     "profileCard": {
@@ -2380,7 +2479,11 @@
       "addNewItem": "Add New Item",
       "featuredCourse": "Check this for featured course",
       "allFieldsCompleted": "All required fields completed",
-      "fillRequiredFields": "Please fill all required fields"
+      "fillRequiredFields": "Please fill all required fields",
+      "liveTitleV2": "Live — in-person session",
+      "liveSubtitleV2": "A dated session with limited places",
+      "liveBullet1V2": "You set the date, time, location, capacity and price",
+      "liveBullet2V2": "Students pay by card or reserve on WhatsApp"
     },
     "step2": {
       "title": "Course Media",
@@ -2448,7 +2551,9 @@
       "readyToSubmit": "Ready to submit",
       "completeAllFields": "Complete all required fields",
       "creatingCourse": "Creating Course...",
-      "submitCourse": "Submit Course"
+      "submitCourse": "Submit Course",
+      "liveBannerV2": "Live masterclass — set the session details, capacity and price. Students can reserve on WhatsApp or pay online by card; only confirmed card payments take a place.",
+      "placesPlaceholder": "e.g. 20"
     },
     "modals": {
       "topic": {
@@ -2482,11 +2587,40 @@
       "courseCreated": "Course Created Successfully",
       "courseCreatedDesc": "Your course has been created. You can now add modules and lessons to it.",
       "backToDashboard": "Back to Dashboard",
-      "addModules": "Add Modules & Lessons"
+      "addModules": "Add Modules & Lessons",
+      "liveCreatedDesc": "Your live masterclass has been submitted for review. Once published, students can book by card or on WhatsApp, and paid participants appear under Masterclass Reservations.",
+      "viewReservations": "View reservations"
     },
     "nav": {
       "next": "Next",
       "prev": "Prev"
+    },
+    "edit": {
+      "typeLocked": "The course type cannot be changed after creation.",
+      "notFound": "Course not found, or it is not one of your courses.",
+      "loadError": "Could not load this course.",
+      "noChanges": "No changes to save.",
+      "pageTitle": "Edit course",
+      "back": "Back to my courses",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "savedTitle": "Saved",
+      "saved": "Your changes have been saved",
+      "savedDesc": "Students now see the updated information."
+    },
+    "live": {
+      "sessionTitle": "Session",
+      "date": "Date",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "location": "Location",
+      "locationPlaceholder": "e.g. SARALÖWE Studio, 12 Rue Example, Casablanca",
+      "capacityTitle": "Capacity & price",
+      "capacity": "Maximum participants",
+      "price": "Price per participant (MAD)",
+      "pricePlaceholder": "e.g. 300",
+      "summaryPaid": "{{seats}} places at {{price}} MAD. Available places start at {{seats}} and decrease only when a card payment is confirmed (max. revenue {{total}} MAD).",
+      "summaryFree": "{{seats}} places. With a price of 0, students can only reserve on WhatsApp — online card payment is disabled."
     }
   },
   "badges": {
@@ -2558,5 +2692,103 @@
       "skip": "Skip to my badge",
       "done": "Got it!"
     }
+  },
+  "liveBooking": {
+    "wa": {
+      "intro": "Hello, I would like to reserve a place for the masterclass \"{{title}}\".",
+      "date": "Date: {{date}}",
+      "time": "Time: {{time}}",
+      "location": "Location: {{location}}",
+      "price": "Price: {{price}} {{currency}}",
+      "instructor": "Instructor: {{name}}",
+      "name": "My name: {{name}}",
+      "email": "My email: {{email}}"
+    },
+    "full": "This masterclass is full.",
+    "payError": "Could not start the payment. Please try again.",
+    "loginFirst": "Please log in to pay online.",
+    "confirmTitle": "Pay {{price}} {{currency}} by card?",
+    "confirmBody": "You will be redirected to the secure CMI payment page. Your place is held for 30 minutes and confirmed once the payment is verified.",
+    "confirmOk": "Continue to payment",
+    "status": {
+      "past": "Session over",
+      "full": "Fully booked",
+      "few": "Few places left",
+      "open": "Booking open"
+    },
+    "badge": "Live masterclass",
+    "perParticipant": "participant",
+    "onRequest": "Reservation on WhatsApp",
+    "noPlaces": "No places left",
+    "placesLeft": "{{count}} of {{capacity}} places left",
+    "capacity": "Capacity {{capacity}}",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+    "instructor": "Instructor",
+    "adminView": "Admin view",
+    "instructorView": "Instructor view",
+    "paidCount": "{{count}} confirmed paid participant(s)",
+    "manage": "View reservations",
+    "booked": "Your place is confirmed",
+    "bookedSub": "Payment received — see you at the session!",
+    "contact": "Contact the academy",
+    "optionCard": "Pay online by card",
+    "redirecting": "Redirecting to secure payment…",
+    "payNow": "Book now · {{price}} {{currency}}",
+    "cardNote": "Secure payment by CMI. Your place is confirmed only after the payment is verified. If the session fills up first, your card is not charged.",
+    "optionWa": "Reserve through WhatsApp",
+    "waNote": "Chat with the academy to ask questions or arrange your booking. A WhatsApp request does not reserve a place until it is confirmed.",
+    "details": "Details",
+    "bookCta": "Book my place"
+  },
+  "mcRes": {
+    "listError": "Could not load your masterclasses.",
+    "loadError": "Could not load reservations.",
+    "title": "Masterclass reservations",
+    "subtitle": "Participants who paid by card and were confirmed by the payment provider.",
+    "select": "Select a masterclass",
+    "none": "No live masterclass yet.",
+    "noneHint": "Create a masterclass, choose the \"Live\" format, and set its date, capacity and price.",
+    "create": "Create a masterclass",
+    "viewPage": "View page",
+    "stat": {
+      "participants": "Confirmed participants",
+      "participantsSub": "Paid & verified",
+      "capacity": "Maximum capacity",
+      "filled": "{{pct}}% filled",
+      "remaining": "Remaining places",
+      "holds": "{{count}} payment(s) in progress",
+      "remainingSub": "Still bookable",
+      "revenue": "Total revenue",
+      "revenueSub": "Confirmed payments only"
+    },
+    "unlimited": "Unlimited",
+    "participants": "Participants",
+    "search": "Search name, email, phone",
+    "empty": "No confirmed participants yet.",
+    "emptyHint": "Participants appear here as soon as their card payment is verified. WhatsApp requests are handled directly with the student.",
+    "col": {
+      "name": "Participant",
+      "phone": "Phone",
+      "amount": "Amount",
+      "payment": "Payment",
+      "booking": "Booking",
+      "date": "Reserved on"
+    },
+    "paid": "Paid",
+    "refunded": "Refunded",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled"
+  },
+  "instructorGrid": {
+    "title": "Instructors",
+    "error": "Could not load instructors. Please try again later.",
+    "empty": "No instructors yet.",
+    "courses": "{{count}} courses",
+    "students": "{{count}} students"
+  },
+  "checkout": {
+    "cmiWarning": "You will be redirected to the CMI Chaabi payment page. Do not refresh or close that page — simply complete your payment and wait to be brought back here automatically."
   }
 }

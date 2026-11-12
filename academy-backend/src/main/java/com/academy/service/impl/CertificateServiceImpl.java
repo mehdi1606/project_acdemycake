@@ -148,7 +148,7 @@ public class CertificateServiceImpl implements CertificateService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CertificateResponse generateCertificate(User user, Course course) {
         if (certificateRepository.existsByUserAndCourse(user, course)) {
-            Certificate existing = certificateRepository.findByUserAndCourse(user, course)
+            Certificate existing = certificateRepository.findFirstByUserAndCourseOrderByIssuedAtAsc(user, course)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Certificate", "user and course", null));
             return CertificateResponse.fromEntity(existing);

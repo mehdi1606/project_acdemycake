@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import { Spin } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { useTranslation } from 'react-i18next';
@@ -75,10 +76,10 @@ const InstructorPayout = () => {
               <div style={{ flex: 1 }}>
                 <h6 style={{ margin: '0 0 4px', fontSize: 13, opacity: 0.8 }}>Pending Payout Balance</h6>
                 <h4 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 700 }}>
-                  ${dashboardData?.pendingPayout?.toFixed(2) ?? '0.00'}
+                  {formatMAD(dashboardData?.pendingPayout)}
                 </h4>
                 <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>
-                  Total Earnings: ${dashboardData?.totalEarnings?.toFixed(2) ?? '0.00'}
+                  Total Earnings: {formatMAD(dashboardData?.totalEarnings)}
                 </p>
               </div>
               <button className="lx-btn" onClick={() => setShowWithdraw(true)} style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', flexShrink: 0 }}>
@@ -150,7 +151,7 @@ const InstructorPayout = () => {
                     <div>
                       <p style={{ margin: '0 0 4px', fontSize: 12, color: 'var(--lx-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Withdrawal Balance</p>
                       <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-                        ${dashboardData?.pendingPayout?.toFixed(2) ?? '0.00'}
+                        {formatMAD(dashboardData?.pendingPayout)}
                       </h6>
                     </div>
                     <div>
@@ -162,7 +163,7 @@ const InstructorPayout = () => {
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
                       Amount <span style={{ color: '#8B2335' }}>*</span>
                     </label>
-                    <input type="text" style={inputStyle} defaultValue="$ " />
+                    <input type="text" style={inputStyle} defaultValue="MAD " />
                     <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--lx-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <i className="isax isax-info-circle" style={{ fontSize: 14 }} /> Minimum withdraw amount is $50
                     </p>

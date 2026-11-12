@@ -20,6 +20,9 @@ public interface EnrollmentService {
 
     CourseEnrollment getEnrollment(User user, Course course);
 
+    /** Same as getEnrollment, but empty instead of throwing (no transaction rollback). */
+    java.util.Optional<CourseEnrollment> findEnrollment(User user, Course course);
+
     EnrollmentResponse enrollUser(UUID courseId);
 
     void enrollUserInCourse(User user, Course course, EnrollmentType type);

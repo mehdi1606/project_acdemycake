@@ -239,7 +239,7 @@ public class AdminServiceImpl implements AdminService {
             // Per-month realised revenue from CMI payments (COMPLETED only, within the window)
             BigDecimal revenue = transactionRepository.sumAmountByStatusBetween(
                     PaymentStatus.COMPLETED, monthStart, monthEnd);
-            long enrollments = enrollmentRepository.countEnrollmentsSince(monthStart);
+            long enrollments = enrollmentRepository.countEnrollmentsBetween(monthStart, monthEnd);
 
             history.add(DashboardResponse.MonthlyRevenue.builder()
                     .month(monthStart.format(formatter))

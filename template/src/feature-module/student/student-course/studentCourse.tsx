@@ -105,7 +105,7 @@ const StudentCourse: React.FC = () => {
   const completedCount = (enrollments || []).filter((e: Enrollment) => e.isCompleted).length;
 
   const getThumbnail = (thumbnail?: string) =>
-    getFileUrl(thumbnail) ?? 'assets/img/course/course-01.jpg';
+    getFileUrl(thumbnail) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
 
   const tabs: { key: FilterTab; label: string; count: number }[] = [
     { key: 'all', label: t('student.courses.all', 'All'), count: allCount },
@@ -207,7 +207,7 @@ const StudentCourse: React.FC = () => {
                       src={getThumbnail(enrollment.courseThumbnail)}
                       alt={enrollment.courseTitle}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg';
+                        (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
                       }}
                     />
                   </Link>

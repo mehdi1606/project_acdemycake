@@ -14,6 +14,7 @@ import com.academy.repository.PaymentTransactionRepository;
 import com.academy.service.CouponService;
 import com.academy.service.EnrollmentService;
 import com.academy.service.EbookService;
+import com.academy.service.MasterclassBookingService;
 import com.academy.service.PaymentService;
 import com.academy.service.SettingsService;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +29,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -59,11 +62,11 @@ import java.util.UUID;
  *   - Build string: escaped_val1|...|escaped_valN|escaped_storeKey
  *   - SHA-512 digest → raw bytes → Base64
  *
- *  INCOMING / CALLBACK (CMI → merchant, handleCmiCallback):
- *   - CMI includes HASHPARAMSVAL in the callback POST — the pre-concatenated escaped values
- *   - Verify: HASH == Base64(SHA-512(HASHPARAMSVAL + "|" + storeKey))
- *   - Falls back to sort-all-params if HASHPARAMSVAL is absent
- *   (Equivalent to PHP: base64_encode(pack('H*', hash('sha512', $hashParamsVal . '|' . $storeKey))))
+ *  INCOMING / CALLBACK (CMI → merchant, handleCmiCallback) — see verifyCallbackSignature:
+ *   - Same ver3 algorithm over ALL posted params (except HASH / encoding), or
+ *   - HASH == Base64(SHA-512(HASHPARAMSVAL + "|" + storeKey)) when HASHPARAMSVAL is
+ *     proven to be built from this request's own fields (incl. oid + ProcReturnCode).
+ *   - Unsigned or mismatching callbacks are rejected ("FAILURE"); there is no bypass.
  */
 @Slf4j
 @Service
@@ -77,19 +80,7 @@ public class CmiPaymentService {
     private final CouponService               couponService;
     private final SettingsService             settingsService;
     private final EbookService                ebookService;
-
-    /**
-     * The exact parameter names we put into buildFormParams (case-insensitive).
-     * CMI's callback hash is computed over ONLY these original params —
-     * not the extra response params CMI appends (ProcReturnCode, AuthCode, etc.).
-     * Used when HASHPARAMSVAL is absent (CMI test env behaviour).
-     */
-    private static final Set<String> ORIGINAL_FORM_PARAM_NAMES = Set.of(
-            "clientid", "oid", "amount", "currency",
-            "okurl", "failurl", "callbackurl", "shopurl",
-            "storetype", "trantype", "hashalgorithm",
-            "lang", "rnd", "email", "billtoname", "tel", "refreshtime"
-    );
+    private final MasterclassBookingService   masterclassBookingService;
 
     // ── Config ───────────────────────────────────────────────────────────────
     @Value("${cmi.client-id}")   private String clientId;
@@ -128,6 +119,11 @@ public class CmiPaymentService {
                 throw new BadRequestException("Coupons are only valid for the Annual plan");
             }
             price = couponService.applyCoupon(couponCode, user, price);
+            if (price.signum() <= 0) {
+                // A card payment of 0.00 is refused by CMI; full-discount access is
+                // granted by an admin (Users → Activate plan) instead.
+                throw new BadRequestException("This coupon covers the full price — please contact support to activate your plan.");
+            }
         }
 
         String orderId = planPrefix + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -141,6 +137,7 @@ public class CmiPaymentService {
                 .currency(subscriptionCurrency)
                 .status(PaymentStatus.PENDING)
                 .expiresAt(LocalDateTime.now().plusHours(1))
+                .couponCode(couponCode != null && !couponCode.isBlank() ? couponCode.trim().toUpperCase() : null)
                 .build()
         );
 
@@ -159,11 +156,24 @@ public class CmiPaymentService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
 
+        // Only approved (published) courses can be bought.
+        if (course.getStatus() != com.academy.entity.enums.CourseStatus.PUBLISHED) {
+            throw new BadRequestException("This course is not available for purchase");
+        }
         if (!course.getRequiresPurchase()) {
             throw new BadRequestException("This course does not require purchase");
         }
         if (enrollmentService.isUserEnrolled(user, course)) {
             throw new BadRequestException("You already have access to this course");
+        }
+
+        // LIVE masterclass: lock the course row, then check price / date / seats.
+        // The PENDING transaction saved below holds a seat for a limited time, so
+        // concurrent buyers can never outnumber the places left.
+        boolean liveMasterclass = masterclassBookingService.isLiveMasterclass(course);
+        if (liveMasterclass) {
+            course = masterclassBookingService.lockCourse(courseId);
+            masterclassBookingService.assertCanStartCardPayment(course, user);
         }
 
         String orderId = "CRS-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -177,9 +187,16 @@ public class CmiPaymentService {
                 .amount(course.getPrice())
                 .currency("MAD")
                 .status(PaymentStatus.PENDING)
-                .expiresAt(LocalDateTime.now().plusHours(1))
+                .expiresAt(liveMasterclass
+                        ? LocalDateTime.now().plusMinutes(MasterclassBookingService.SEAT_HOLD_MINUTES)
+                        : LocalDateTime.now().plusHours(1))
                 .build()
         );
+
+        if (liveMasterclass) {
+            // Displayed availability now includes this hold.
+            masterclassBookingService.evictCourseCachesAfterCommit();
+        }
 
         Map<String, String> formParams = buildFormParams(orderId, course.getPrice(), user);
         return CmiInitiateResponse.builder()
@@ -236,7 +253,9 @@ public class CmiPaymentService {
      * @param params  All POST params sent by CMI (flat key→value map)
      * @return "ACTION=POSTAUTH", "APPROVED", or "FAILURE" as plain text
      */
-    @Transactional
+    // No outer transaction: settlement (processPaymentCallback) commits on its own, so a
+    // failure inside it rolls back cleanly and CMI gets the plain-text "FAILURE"
+    // instead of an HTTP 500 from an "unexpected rollback" at commit time.
     public String handleCmiCallback(Map<String, String> params) {
         log.info("CMI callback received — oid={} ProcReturnCode={} paramKeys={}",
                 params.get("oid"), params.get("ProcReturnCode"), params.keySet());
@@ -255,52 +274,49 @@ public class CmiPaymentService {
                 return "FAILURE";
             }
 
-            // 2. Find HASHPARAMSVAL — CMI always includes this for ver3 callbacks.
-            //    The correct callback verification is:
-            //      SHA-512(HASHPARAMSVAL + "|" + storeKey) → Base64 == HASH
-            //    CMI uses HASHPARAMSVAL (not a re-sorted full-param hash) for callback integrity.
-            String hashParamsVal = params.entrySet().stream()
-                    .filter(e -> e.getKey().equalsIgnoreCase("hashparamsval"))
-                    .map(Map.Entry::getValue)
-                    .findFirst()
-                    .orElse(null);
-
-            log.debug("CMI callback hash fields — HASHPARAMSVAL_present={} HASH_prefix={}",
-                    hashParamsVal != null,
-                    receivedHash.length() > 8 ? receivedHash.substring(0, 8) + "…" : receivedHash);
-
-            if (hashParamsVal != null) {
-                // ── Production path: verify hash using HASHPARAMSVAL ──────────────
-                String computedHash = computeCallbackHash(hashParamsVal);
-                if (!computedHash.equals(receivedHash)) {
-                    log.error("CMI callback HASH mismatch — oid={} received={} computed={}",
-                            params.get("oid"),
-                            receivedHash.length() > 12 ? receivedHash.substring(0, 12) + "…" : receivedHash,
-                            computedHash.length() > 12 ? computedHash.substring(0, 12) + "…" : computedHash);
-                    return "FAILURE";
-                }
-                log.info("CMI callback HASH verified OK (HASHPARAMSVAL) — oid={}", params.get("oid"));
-            } else {
-                // ── Test environment: CMI does not send HASHPARAMSVAL ─────────────
-                // Without HASHPARAMSVAL we cannot reconstruct CMI's hash input —
-                // the callback includes ~50 extra response params whose inclusion
-                // in the hash is unknown without the pre-computed value field.
-                // In production, CMI always sends HASHPARAMSVAL and full verification applies.
-                // Here we accept the callback if the orderId exists as PENDING in our DB
-                // (verified below via transactionRepository). The UUID-based orderId
-                // makes guessing a valid PENDING id computationally infeasible.
-                log.warn("CMI callback HASHPARAMSVAL absent — skipping hash check (test env). oid={}",
-                        params.get("oid"));
+            // 2. Verify the signature. A callback is only trusted when its HASH
+            //    covers the fields we act on (oid, ProcReturnCode, amount); an
+            //    unsigned or partially-signed callback is never accepted.
+            String verifiedBy = verifyCallbackSignature(params, receivedHash);
+            if (verifiedBy == null) {
+                log.error("CMI callback REJECTED — invalid or unsigned HASH. oid={} keys={}",
+                        params.get("oid"), params.keySet());
+                return "FAILURE";
             }
+            log.info("CMI callback HASH verified ({}) — oid={}", verifiedBy, params.get("oid"));
 
-            // 2. Check return code
+            // 3. Check return code
             String procReturnCode = params.getOrDefault("ProcReturnCode", "");
             String oid            = params.getOrDefault("oid", "");
             String authCode       = params.getOrDefault("AuthCode", "");
 
+            if (transactionRepository.findByPayzoneOrderId(oid).isEmpty()) {
+                log.error("CMI callback for unknown order — oid={} — not capturing", oid);
+                return "APPROVED";
+            }
+
+            // 4. The signed amount must equal what we charged for this order.
+            if ("00".equals(procReturnCode) && !amountMatches(oid, params.get("amount"))) {
+                log.error("CMI callback amount mismatch — oid={} callbackAmount={} — not capturing",
+                        oid, params.get("amount"));
+                return "APPROVED";
+            }
+
             if ("00".equals(procReturnCode)) {
                 // 3. Process successful payment
                 paymentService.processPaymentCallback(oid, "SUCCESS", authCode);
+
+                // Capture the pre-authorised amount only when the order really
+                // completed. It may have been refused (masterclass full, item
+                // already owned) or ignored (order no longer pending — a replay);
+                // then "APPROVED" acknowledges without debiting the card.
+                boolean bookingRefused = transactionRepository.findByPayzoneOrderId(oid)
+                        .map(t -> t.getStatus() != PaymentStatus.COMPLETED)
+                        .orElse(true);
+                if (bookingRefused) {
+                    log.warn("CMI payment authorised but booking refused — not capturing. oid={}", oid);
+                    return "APPROVED";
+                }
                 log.info("CMI payment SUCCESS — oid={} authCode={}", oid, authCode);
                 return "ACTION=POSTAUTH";
             } else {
@@ -328,7 +344,8 @@ public class CmiPaymentService {
 
         params.put("clientid",      clientId);
         params.put("oid",           orderId);
-        params.put("amount",        String.format("%.2f", amount));
+        // Locale.ROOT: always "300.00", never "300,00" on a French-locale server.
+        params.put("amount",        String.format(Locale.ROOT, "%.2f", amount));
         params.put("currency",      currency);          // 504 = MAD
         params.put("okUrl",         okUrl);
         params.put("failUrl",       failUrl);
@@ -394,6 +411,100 @@ public class CmiPaymentService {
     }
 
     /**
+     * Verifies the HASH of a CMI server-to-server callback.
+     *
+     * Accepted forms (both bind the fields we act on):
+     *  1. CMI "ver3" callback hash — the official CMI sample: every POSTed
+     *     parameter except HASH and encoding, sorted case-insensitively, values
+     *     escaped and joined with "|", then the store key; Base64(SHA-512).
+     *     Since oid, ProcReturnCode and amount are among the posted values,
+     *     none of them can be altered without breaking the hash.
+     *  2. HASHPARAMS / HASHPARAMSVAL — only when HASHPARAMSVAL is exactly the
+     *     concatenation of the values of the fields named in HASHPARAMS (so the
+     *     signed string really describes this request) and HASHPARAMS covers
+     *     oid and ProcReturnCode.
+     *
+     * Anything else — including a callback with no usable signature — is
+     * rejected. There is deliberately no "test mode" bypass.
+     *
+     * @return a short label of the method that verified it, or null when rejected
+     */
+    String verifyCallbackSignature(Map<String, String> params, String receivedHash)
+            throws NoSuchAlgorithmException {
+        if (receivedHash == null || receivedHash.isBlank() || storeKey == null || storeKey.isBlank()) {
+            return null;
+        }
+
+        // 1. Full-parameter ver3 hash (CMI's documented callback algorithm).
+        TreeMap<String, String> sorted = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for (Map.Entry<String, String> e : params.entrySet()) {
+            String v = e.getValue() == null ? "" : e.getValue();
+            if (v.endsWith("\n")) v = v.substring(0, v.length() - 1); // CMI sample strips one trailing newline
+            sorted.put(e.getKey(), v);
+        }
+        if (constantTimeEquals(computeHash(sorted), receivedHash)) {
+            return "ver3-all-params";
+        }
+
+        // 2. HASHPARAMS + HASHPARAMSVAL, bound to the actual request values.
+        String hashParams    = getIgnoreCase(params, "hashparams");
+        String hashParamsVal = getIgnoreCase(params, "hashparamsval");
+        if (hashParams != null && hashParamsVal != null) {
+            List<String> names = new ArrayList<>();
+            for (String n : hashParams.split(":")) {
+                if (!n.isBlank()) names.add(n.trim());
+            }
+            boolean coversCriticalFields = names.stream().anyMatch(n -> n.equalsIgnoreCase("oid"))
+                    && names.stream().anyMatch(n -> n.equalsIgnoreCase("ProcReturnCode"));
+            if (coversCriticalFields) {
+                StringBuilder rebuiltPlain = new StringBuilder();
+                StringBuilder rebuiltEscaped = new StringBuilder();
+                for (int i = 0; i < names.size(); i++) {
+                    String v = getIgnoreCase(params, names.get(i));
+                    if (v == null) v = "";
+                    rebuiltPlain.append(v);
+                    if (i > 0) rebuiltEscaped.append('|');
+                    rebuiltEscaped.append(escapeValue(v));
+                }
+                boolean valMatchesRequest = hashParamsVal.equals(rebuiltPlain.toString())
+                        || hashParamsVal.equals(rebuiltEscaped.toString());
+                if (valMatchesRequest && constantTimeEquals(computeCallbackHash(hashParamsVal), receivedHash)) {
+                    return "hashparamsval";
+                }
+            }
+        }
+        return null;
+    }
+
+    /** The signed callback amount must equal the transaction amount (tolerates "300,00"). */
+    private boolean amountMatches(String oid, String callbackAmount) {
+        if (callbackAmount == null || callbackAmount.isBlank()) {
+            // Not posted at all: the signature already covers every posted field.
+            log.warn("CMI callback without amount — relying on signature only. oid={}", oid);
+            return true;
+        }
+        try {
+            BigDecimal paid = new BigDecimal(callbackAmount.trim().replace(',', '.'));
+            return transactionRepository.findByPayzoneOrderId(oid)
+                    .map(t -> t.getAmount() != null && t.getAmount().compareTo(paid) == 0)
+                    .orElse(false);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static String getIgnoreCase(Map<String, String> params, String key) {
+        for (Map.Entry<String, String> e : params.entrySet()) {
+            if (e.getKey().equalsIgnoreCase(key)) return e.getValue();
+        }
+        return null;
+    }
+
+    private static boolean constantTimeEquals(String a, String b) {
+        return MessageDigest.isEqual(a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
      * Computes the CMI callback hash using HASHPARAMSVAL.
      *
      * CMI's callback integrity check (ver3):
@@ -409,27 +520,6 @@ public class CmiPaymentService {
         MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
         byte[] digest = sha512.digest(hashInput.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(digest);
-    }
-
-    /**
-     * Fallback hash for CMI callbacks that arrive without HASHPARAMSVAL.
-     *
-     * CMI computes the callback HASH using only the parameters that were in the
-     * original payment form — not the extra response params it appends
-     * (ProcReturnCode, AuthCode, HostRefNum, Response, TransId, etc.).
-     * We filter the callback params to the known original set before hashing.
-     */
-    private String computeCallbackHashFromOriginalParams(Map<String, String> params)
-            throws NoSuchAlgorithmException {
-        TreeMap<String, String> filtered = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            if (ORIGINAL_FORM_PARAM_NAMES.contains(entry.getKey().toLowerCase())) {
-                filtered.put(entry.getKey(), entry.getValue());
-            }
-        }
-        log.debug("CMI callback original-params hash — using {} params: {}",
-                filtered.size(), filtered.keySet());
-        return computeHash(filtered);
     }
 
     /** Escapes a CMI parameter value: \ → \\   |  → \| */

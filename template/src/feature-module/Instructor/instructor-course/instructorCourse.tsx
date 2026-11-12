@@ -3,6 +3,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
+import { instructorManageHref } from '../../router/courseLinks';
 import Table from '../../../core/common/dataTable/index';
 import { instructorService } from '../../../services/api/instructor.service';
 import { Course } from '../../../services/api/types';
@@ -93,7 +94,7 @@ const InstructorCourse = () => {
   };
 
   const getThumbnailUrl = (course: Course) =>
-    getFileUrl(course.thumbnailUrl) ?? 'assets/img/course/course-01.jpg';
+    getFileUrl(course.thumbnailUrl) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { cls: string; label: string }> = {
@@ -121,10 +122,13 @@ const InstructorCourse = () => {
     Lessons: course.lessonsCount || 0,
     Duration: course.durationMinutes || 0,
     Students: course.enrolledCount || 0,
-    Price: !course.requiresPurchase ? 'Free' : `$${course.price || 0}`,
+    Price: !course.requiresPurchase ? 'Free' : `${course.price || 0} ${course.currency || 'MAD'}`,
     Ratings: Number(course.ratingAverage ?? 0).toFixed(1),
     Status: course.status,
     slug: course.slug,
+    // Needed so "Manage" sends a live masterclass to its reservations.
+    courseType: course.courseType,
+    masterclassFormat: course.masterclassFormat,
   }));
 
   const columns = [
@@ -133,7 +137,7 @@ const InstructorCourse = () => {
       dataIndex: 'CourseName',
       render: (text: string, record: any) => {
         const courseObj = courses.find((c) => c.id === record.id);
-        const imgUrl = courseObj ? getThumbnailUrl(courseObj) : 'assets/img/course/course-01.jpg';
+        const imgUrl = courseObj ? getThumbnailUrl(courseObj) : `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Link to={`${all_routes.courseDetails}/${record.slug}`}>
@@ -146,7 +150,7 @@ const InstructorCourse = () => {
                   objectFit: 'cover', flexShrink: 0,
                 }}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'assets/img/course/course-01.jpg';
+                  (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
                 }}
               />
             </Link>
@@ -157,6 +161,25 @@ const InstructorCourse = () => {
               >
                 {text}
               </Link>
+              {record.masterclassFormat === 'LIVE' ? (
+                // Live session: when it happens and how many places are left.
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, fontSize: 12, color: 'var(--lx-text-muted)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <i className="isax isax-calendar-1" style={{ fontSize: 13 }} />
+                    {courseObj?.sessionDate || t('instructor.courses.noDate', 'No date set')}
+                  </span>
+                  {courseObj?.maxStudents ? (
+                    <>
+                      <span style={{ color: 'rgba(107, 29, 42, 0.15)' }}>|</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <i className="isax isax-ticket" style={{ fontSize: 13 }} />
+                        {t('instructor.courses.placesLeft', '{{count}}/{{capacity}} places left',
+                          { count: courseObj.seatsRemaining ?? courseObj.maxStudents, capacity: courseObj.maxStudents })}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+              ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, fontSize: 12, color: 'var(--lx-text-muted)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <i className="isax isax-video-circle" style={{ fontSize: 13 }} />
@@ -168,6 +191,7 @@ const InstructorCourse = () => {
                   {formatDuration(record.Duration)}
                 </span>
               </div>
+              )}
             </div>
           </div>
         );
@@ -219,7 +243,7 @@ const InstructorCourse = () => {
       render: (_: any, record: any) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {[
-            { to: `${all_routes.instructorCourseManage}/${record.id}`, icon: 'isax-setting-2', title: 'Manage' },
+            { to: instructorManageHref(record), icon: 'isax-setting-2', title: 'Manage' },
             { to: `${all_routes.addNewCourse}?edit=${record.id}`, icon: 'isax-edit-2', title: 'Edit' },
           ].map((a) => (
             <Link

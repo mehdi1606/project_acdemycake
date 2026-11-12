@@ -12,6 +12,7 @@ import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.MasterclassFormat;
 import com.academy.entity.enums.UserRole;
 import com.academy.exception.BadRequestException;
+import com.academy.security.HtmlSanitizer;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.repository.CourseEnrollmentRepository;
@@ -62,6 +63,10 @@ public class CourseServiceImpl implements CourseService {
     private final FileStorageService fileStorageService;
     private final com.academy.service.TranslationService translationService;
     private final SettingsService settingsService;
+    private final com.academy.service.MasterclassBookingService masterclassBookingService;
+    private final com.academy.service.NotificationService notificationService;
+    private final com.academy.repository.CoursePurchaseRepository coursePurchaseRepository;
+    private final com.academy.repository.CertificateRepository certificateRepository;
     private final Slugify slugify = Slugify.builder().build();
 
     @Override
@@ -71,7 +76,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.COURSE_DETAIL, key = "#id")
+    // The response is localised (title/description) — the language is part of the key.
+    @Cacheable(value = CacheConfig.COURSE_DETAIL, key = "#id + '-' + T(org.springframework.context.i18n.LocaleContextHolder).getLocale().getLanguage()")
     public CourseResponse getCourseById(UUID id) {
         Course course = findById(id);
         return buildResponse(course);
@@ -86,7 +92,9 @@ public class CourseServiceImpl implements CourseService {
         try {
             User user = getCurrentUserSafe();
             if (user != null) {
-                boolean enrolled = courseEnrollmentRepository.existsByUserAndCourse(user, course);
+                // A switched-off / expired enrollment is not "enrolled" (the user can buy again).
+                boolean enrolled = courseEnrollmentRepository.findByUserAndCourse(user, course)
+                        .map(com.academy.entity.CourseEnrollment::isAccessible).orElse(false);
                 response.setIsEnrolled(enrolled);
                 if (enrolled) {
                     courseEnrollmentRepository.findByUserAndCourse(user, course).ifPresent(e ->
@@ -144,7 +152,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.COURSES, key = "'popular-' + #page + '-' + #size")
+    @Cacheable(value = CacheConfig.COURSES, key = "'popular-' + #page + '-' + #size + '-' + T(org.springframework.context.i18n.LocaleContextHolder).getLocale().getLanguage()")
     public PageResponse<CourseResponse> getPopularCourses(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Course> courses = courseRepository.findPopularCourses(pageRequest);
@@ -152,7 +160,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.COURSES, key = "'latest-' + #page + '-' + #size")
+    @Cacheable(value = CacheConfig.COURSES, key = "'latest-' + #page + '-' + #size + '-' + T(org.springframework.context.i18n.LocaleContextHolder).getLocale().getLanguage()")
     public PageResponse<CourseResponse> getLatestCourses(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Course> courses = courseRepository.findLatestCourses(pageRequest);
@@ -197,7 +205,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.PLATFORM_STATS}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public CourseResponse createCourse(CreateCourseRequest request) {
         User instructor = getCurrentUser();
 
@@ -215,13 +223,17 @@ public class CourseServiceImpl implements CourseService {
         Course course = Course.builder()
                 .title(request.getTitle())
                 .slug(slug)
-                .description(request.getDescription())
+                .description(HtmlSanitizer.clean(request.getDescription()))
                 .shortDescription(request.getShortDescription())
                 .instructor(instructor)
                 .isBeginner(request.getIsBeginner() != null ? request.getIsBeginner() : false)
                 .courseType(request.getCourseType() != null ? request.getCourseType() : com.academy.entity.enums.CourseType.PLAN)
                 .masterclassFormat(resolveMasterclassFormat(request.getCourseType(), request.getMasterclassFormat()))
                 .maxStudents(request.getMaxStudents())
+                .sessionDate(request.getSessionDate())
+                .sessionStartTime(request.getSessionStartTime())
+                .sessionEndTime(request.getSessionEndTime())
+                .sessionLocation(trimToNull(request.getSessionLocation()))
                 // Masterclass always requires individual purchase
                 .requiresPurchase(com.academy.entity.enums.CourseType.MASTERCLASS.equals(request.getCourseType()) ? true
                         : (request.getRequiresPurchase() != null ? request.getRequiresPurchase() : false))
@@ -235,11 +247,11 @@ public class CourseServiceImpl implements CourseService {
                 .targetAudience(request.getTargetAudience())
                 .tags(request.getTags())
                 .titleEn(request.getTitleEn())
-                .descriptionEn(request.getDescriptionEn())
+                .descriptionEn(HtmlSanitizer.clean(request.getDescriptionEn()))
                 .titleAr(request.getTitleAr())
                 .titleFr(request.getTitleFr())
-                .descriptionAr(request.getDescriptionAr())
-                .descriptionFr(request.getDescriptionFr())
+                .descriptionAr(HtmlSanitizer.clean(request.getDescriptionAr()))
+                .descriptionFr(HtmlSanitizer.clean(request.getDescriptionFr()))
                 .build();
 
         if (request.getCategoryId() != null) {
@@ -247,6 +259,8 @@ public class CourseServiceImpl implements CourseService {
             course.setCategory(category);
         }
 
+        // A new LIVE masterclass must describe its session completely.
+        validateLiveSession(course, true, null);
         course = courseRepository.saveAndFlush(course);
         // Proactively translate so the catalogue is ready in both languages immediately.
         translationService.prewarm(course.getTitle());
@@ -259,10 +273,11 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public CourseResponse updateCourse(UUID id, UpdateCourseRequest request) {
         Course course = findById(id);
         verifyInstructorAccess(course);
+        java.time.LocalDate previousSessionDate = course.getSessionDate();
 
         if (request.getTitle() != null) {
             course.setTitle(request.getTitle());
@@ -275,7 +290,7 @@ public class CourseServiceImpl implements CourseService {
             }
         }
         if (request.getDescription() != null) {
-            course.setDescription(request.getDescription());
+            course.setDescription(HtmlSanitizer.clean(request.getDescription()));
         }
         if (request.getShortDescription() != null) {
             course.setShortDescription(request.getShortDescription());
@@ -289,6 +304,18 @@ public class CourseServiceImpl implements CourseService {
         }
         if (request.getMaxStudents() != null) {
             course.setMaxStudents(request.getMaxStudents());
+        }
+        if (request.getSessionDate() != null) {
+            course.setSessionDate(request.getSessionDate());
+        }
+        if (request.getSessionStartTime() != null) {
+            course.setSessionStartTime(request.getSessionStartTime());
+        }
+        if (request.getSessionEndTime() != null) {
+            course.setSessionEndTime(request.getSessionEndTime());
+        }
+        if (request.getSessionLocation() != null) {
+            course.setSessionLocation(trimToNull(request.getSessionLocation()));
         }
         if (request.getCourseType() != null) {
             course.setCourseType(request.getCourseType());
@@ -329,7 +356,7 @@ public class CourseServiceImpl implements CourseService {
             course.setTitleEn(request.getTitleEn());
         }
         if (request.getDescriptionEn() != null) {
-            course.setDescriptionEn(request.getDescriptionEn());
+            course.setDescriptionEn(HtmlSanitizer.clean(request.getDescriptionEn()));
         }
         if (request.getTitleAr() != null) {
             course.setTitleAr(request.getTitleAr());
@@ -338,13 +365,25 @@ public class CourseServiceImpl implements CourseService {
             course.setTitleFr(request.getTitleFr());
         }
         if (request.getDescriptionAr() != null) {
-            course.setDescriptionAr(request.getDescriptionAr());
+            course.setDescriptionAr(HtmlSanitizer.clean(request.getDescriptionAr()));
         }
         if (request.getDescriptionFr() != null) {
-            course.setDescriptionFr(request.getDescriptionFr());
+            course.setDescriptionFr(HtmlSanitizer.clean(request.getDescriptionFr()));
+        }
+
+        // Older live masterclasses may still lack session details, so an update
+        // does not demand them — but whatever is set must be consistent.
+        validateLiveSession(course, false, previousSessionDate);
+        if (masterclassBookingService.isSeatLimited(course)) {
+            long paid = masterclassBookingService.countConfirmedSeats(course);
+            if (course.getMaxStudents() < paid) {
+                throw new BadRequestException("Capacity cannot be lower than the " + paid
+                        + " participants who have already paid");
+            }
         }
 
         course = courseRepository.save(course);
+        notifyAdminsOfPublishedEdit(course);
         translationService.prewarm(course.getTitle());
         translationService.prewarm(course.getShortDescription());
         translationService.prewarm(course.getDescription());
@@ -355,6 +394,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public String uploadThumbnail(UUID courseId, MultipartFile file) {
         Course course = findById(courseId);
         verifyInstructorAccess(course);
@@ -374,12 +414,18 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public void deleteCourse(UUID id) {
         Course course = findById(id);
         verifyInstructorAccess(course);
 
-        if (course.getEnrolledCount() > 0) {
-            throw new BadRequestException("Cannot delete a course with enrolled students");
+        // Check the real records (the enrolled counter can be 0 after refunds while
+        // purchases/certificates still reference the course — the delete then failed
+        // with a misleading database error).
+        if (course.getEnrolledCount() > 0 || courseEnrollmentRepository.existsByCourse(course)
+                || coursePurchaseRepository.existsByCourse(course)
+                || certificateRepository.existsByCourse(course)) {
+            throw new BadRequestException("This course has students, purchases or certificates and cannot be deleted. Archive it instead.");
         }
 
         courseRepository.delete(course);
@@ -395,6 +441,7 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public void forceDeleteCourse(UUID id) {
         Course course = findById(id);                  // 404 if it doesn't exist
         String title = course.getTitle();
@@ -431,9 +478,20 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public void publishCourse(UUID id) {
         Course course = findById(id);
         verifyInstructorAccess(course);
+
+        // A LIVE masterclass has no recorded lessons: it is ready for review once
+        // its session (date, times, venue, capacity) is fully described.
+        if (masterclassBookingService.isLiveMasterclass(course)) {
+            validateLiveSession(course, true, null); // also refuses a session already in the past
+            course.setStatus(CourseStatus.PENDING_REVIEW);
+            courseRepository.save(course);
+            log.info("Live masterclass submitted for review: {}", course.getTitle());
+            return;
+        }
 
         if (course.getModules().isEmpty()) {
             throw new BadRequestException("Cannot publish a course without modules");
@@ -453,6 +511,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public void archiveCourse(UUID id) {
         Course course = findById(id);
         verifyInstructorAccess(course);
@@ -464,6 +523,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public void approveCourse(UUID id) {
         Course course = findById(id);
 
@@ -475,6 +535,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.COURSES, CacheConfig.COURSE_DETAIL, CacheConfig.PLATFORM_STATS}, allEntries = true)
     public void rejectCourse(UUID id, String reason) {
         Course course = findById(id);
 
@@ -541,7 +602,7 @@ public class CourseServiceImpl implements CourseService {
     public java.util.List<FeaturedInstructorResponse> getFeaturedInstructors(int limit) {
         // Get instructors with most published courses
         PageRequest pageRequest = PageRequest.of(0, limit);
-        java.util.List<User> instructors = userRepository.findByRole(UserRole.INSTRUCTOR, pageRequest).getContent();
+        java.util.List<User> instructors = userRepository.findByRoleAndIsDeletedFalse(UserRole.INSTRUCTOR, pageRequest).getContent(); // deleted instructors are not "featured"
 
         return instructors.stream().map(instructor -> {
             long courseCount = courseRepository.countByInstructor(instructor);
@@ -642,8 +703,92 @@ public class CourseServiceImpl implements CourseService {
         // academy number. Left blank when the admin has not configured one yet.
         if (MasterclassFormat.LIVE.equals(course.getMasterclassFormat())) {
             response.setReservationWhatsapp(settingsService.getMasterclassWhatsappNumber());
+            // Live seat availability: only confirmed paid seats and active card-payment
+            // holds count — never page views, WhatsApp clicks or failed payments.
+            if (masterclassBookingService.isSeatLimited(course)) {
+                response.setSeatsTaken((int) masterclassBookingService.countConfirmedSeats(course));
+                response.setSeatsRemaining(masterclassBookingService.remainingSeats(course));
+            }
         }
         return response;
+    }
+
+    /** Largest value the price columns (NUMERIC(10,2)) can hold. */
+    private static final BigDecimal MAX_PRICE = new BigDecimal("99999999.99");
+    private static final int MAX_CAPACITY = 10_000;
+
+    /**
+     * Rejects inconsistent LIVE masterclass session data. No-op for other courses.
+     *
+     * @param requireComplete true when the session must be fully described
+     *                        (new masterclass, or submission for review)
+     * @param previousDate    the date stored before this change (null for a new course);
+     *                        a past date is only refused when it is being set now
+     */
+    private void validateLiveSession(Course course, boolean requireComplete, java.time.LocalDate previousDate) {
+        if (!masterclassBookingService.isLiveMasterclass(course)) return;
+
+        if (requireComplete) {
+            if (course.getMaxStudents() == null) {
+                throw new BadRequestException("Please set the maximum number of participants");
+            }
+            if (course.getSessionDate() == null || course.getSessionStartTime() == null
+                    || course.getSessionEndTime() == null) {
+                throw new BadRequestException("Please set the date, start time and end time of the session");
+            }
+            if (course.getSessionLocation() == null || course.getSessionLocation().isBlank()) {
+                throw new BadRequestException("Please set the location of the session");
+            }
+        }
+        if (course.getMaxStudents() != null && course.getMaxStudents() < 1) {
+            throw new BadRequestException("Capacity must be at least 1 participant");
+        }
+        if (course.getMaxStudents() != null && course.getMaxStudents() > MAX_CAPACITY) {
+            throw new BadRequestException("Capacity cannot exceed " + MAX_CAPACITY + " participants");
+        }
+        if (course.getPrice() != null && course.getPrice().signum() < 0) {
+            throw new BadRequestException("Price must be positive");
+        }
+        if (course.getPrice() != null && course.getPrice().compareTo(MAX_PRICE) > 0) {
+            throw new BadRequestException("Price is too high");
+        }
+        if (course.getSessionStartTime() != null && course.getSessionEndTime() != null
+                && !course.getSessionEndTime().isAfter(course.getSessionStartTime())) {
+            throw new BadRequestException("End time must be after start time");
+        }
+        if (course.getSessionDate() != null
+                && !course.getSessionDate().equals(previousDate)
+                && course.getSessionDate().isBefore(java.time.LocalDate.now())) {
+            throw new BadRequestException("The session date cannot be in the past");
+        }
+    }
+
+    /**
+     * A published course stays online while it is edited (a live masterclass must
+     * not disappear because its venue changed), but admins are told about every
+     * instructor edit so they can re-check the content and price.
+     */
+    private void notifyAdminsOfPublishedEdit(Course course) {
+        if (course.getStatus() != CourseStatus.PUBLISHED) return;
+        User editor = getCurrentUserSafe();
+        if (editor == null || editor.getRole() == UserRole.ADMIN) return;
+        try {
+            for (User admin : userRepository.findByRole(UserRole.ADMIN)) {
+                notificationService.createNotification(admin,
+                        "Published course edited",
+                        editor.getFullName() + " edited the published course \"" + course.getTitle() + "\". Please review it.",
+                        com.academy.entity.enums.NotificationType.COURSE,
+                        "/course/course-details/" + course.getSlug());
+            }
+        } catch (Exception e) {
+            log.warn("Could not notify admins of edit to course {}: {}", course.getId(), e.getMessage());
+        }
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     /**

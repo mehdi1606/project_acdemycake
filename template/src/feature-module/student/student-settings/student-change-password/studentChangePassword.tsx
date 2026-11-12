@@ -46,7 +46,8 @@ const calcStrength = (v: string): StrengthLevel => {
   return 'heavy';
 };
 
-const StudentChangePassword = () => {
+/** `links` replaces the student tab bar (the instructor Security page reuses this form). */
+const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
   const { t } = useTranslation();
   const { user } = useAppSelector((s) => s.auth);
 
@@ -90,7 +91,7 @@ const StudentChangePassword = () => {
       <div className="lx-section-header" style={{ marginBottom: 20 }}>
         <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.settings.title', 'Settings')}</h5>
       </div>
-      <SettingsLinks />
+      {links ?? <SettingsLinks />}
 
       <div className="lx-card">
         <div className="lx-card-body">

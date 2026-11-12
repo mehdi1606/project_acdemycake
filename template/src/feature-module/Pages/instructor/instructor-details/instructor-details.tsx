@@ -65,7 +65,7 @@ const InstructorDetails = () => {
     try { return JSON.parse(raw); } catch { return {}; }
   };
 
-  const avatarUrl = getFileUrl(instructor?.avatarUrl) ?? 'assets/img/user/user-61.jpg';
+  const avatarUrl = getFileUrl(instructor?.avatarUrl) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-61.jpg`;
   const social = parseSocial(instructor?.socialLinks);
   const bioText = instructor?.bio ?? '';
 

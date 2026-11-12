@@ -19,6 +19,11 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, UUID> 
 
     long countByQuizAndStudent(Quiz quiz, User student);
 
+    long countByQuizAndStudentAndStatus(Quiz quiz, User student, com.academy.entity.enums.AttemptStatus status);
+
+    java.util.Optional<QuizAttempt> findTopByQuizAndStudentAndStatusOrderByStartedAtDesc(
+            Quiz quiz, User student, com.academy.entity.enums.AttemptStatus status);
+
     Optional<QuizAttempt> findByIdAndStudent(UUID id, User student);
 
     /** Returns all attempts a student made on a quiz, newest first */

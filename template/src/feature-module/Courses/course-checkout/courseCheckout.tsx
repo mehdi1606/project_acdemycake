@@ -40,10 +40,13 @@ const CourseCheckout = () => {
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const { items } = useAppSelector((s) => s.cart);
 
-  const subtotal   = items.reduce((sum, item) => sum + (item.price ?? 0), 0);
-  const savedTotal = items.reduce((s, i) => s + ((i.originalPrice ?? i.price) - i.price), 0);
-  const tax        = parseFloat((subtotal * 0.2).toFixed(2));
-  const total      = parseFloat((subtotal + tax).toFixed(2));
+  // Only paid items go through card checkout (free courses are enrolled from their page).
+  const payable    = items.filter((i) => (i.price ?? 0) > 0);
+  const subtotal   = payable.reduce((sum, item) => sum + (item.price ?? 0), 0);
+  const savedTotal = payable.reduce((s, i) => s + Math.max(0, (i.originalPrice ?? i.price) - i.price), 0);
+  // CMI charges one course per payment, at its price (prices are final — no tax is
+  // added on top). With several courses the buyer comes back here for the next one.
+  const chargedNow = payable.length > 0 ? (payable[0].price ?? 0) : 0;
 
   const [processing, setProcessing] = useState(false);
 
@@ -55,15 +58,17 @@ const CourseCheckout = () => {
       navigate(route.login);
       return;
     }
-    if (items.length === 0) {
-      message.error(t('courseCart.empty', 'Your cart is empty'));
+    if (payable.length === 0) {
+      message.error(items.length === 0
+        ? t('courseCart.empty', 'Your cart is empty')
+        : t('courseCheckout.onlyFree', 'These courses are free — open each course page to enroll.'));
       return;
     }
 
     setProcessing(true);
     try {
-      // Take the first course in the cart; store the rest in a queue
-      const [firstItem, ...remainingItems] = items;
+      // Take the first paid course; store the rest in a queue
+      const [firstItem, ...remainingItems] = payable;
 
       const cmiResp = await paymentService.initiateCmiCourse(firstItem.id);
       sessionStorage.setItem('sl_pending_txn_id', cmiResp.transactionId);
@@ -380,25 +385,30 @@ const CourseCheckout = () => {
                           <span style={{ color: '#4caf50', fontWeight: 600, fontSize: 13 }}>-{savedTotal.toFixed(2)} MAD</span>
                         </div>
                       )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#666', fontSize: 13 }}>{t('courseCheckout.tva', 'TVA (20%)')}</span>
-                        <span style={{ color: DARK, fontWeight: 600, fontSize: 13 }}>{tax.toFixed(2)} MAD</span>
-                      </div>
                     </div>
 
                     {/* Divider */}
                     <div style={{ height: 1, background: '#f0ebe6', margin: '12px 0 16px' }} />
 
-                    {/* Total */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                      <span style={{ fontWeight: 700, color: DARK, fontSize: 16 }}>{t('courseCart.total', 'Total')}</span>
+                    {/* Amount charged by this payment */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: payable.length > 1 ? 8 : 20 }}>
+                      <span style={{ fontWeight: 700, color: DARK, fontSize: 16 }}>
+                        {payable.length > 1 ? t('courseCheckout.chargedNow', 'Charged now') : t('courseCart.total', 'Total')}
+                      </span>
                       <span style={{
                         fontFamily: "'Playfair Display', Georgia, serif",
                         fontWeight: 800, color: GOLD, fontSize: 22,
                       }}>
-                        {total.toFixed(2)} MAD
+                        {chargedNow.toFixed(2)} MAD
                       </span>
                     </div>
+                    {payable.length > 1 && (
+                      <p style={{ fontSize: 12, color: '#666', margin: '0 0 20px', lineHeight: 1.5 }}>
+                        {t('courseCheckout.onePerPayment',
+                          'Courses are paid one at a time: this payment is for "{{title}}". You will come back here to pay the next {{count}} course(s).',
+                          { title: payable[0].title, count: payable.length - 1 })}
+                      </p>
+                    )}
 
                     {/* Guarantee */}
                     <div style={{

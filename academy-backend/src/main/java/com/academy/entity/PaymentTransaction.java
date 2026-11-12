@@ -84,4 +84,8 @@ public class PaymentTransaction {
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+
+    /** Coupon applied at checkout; its usage is recorded only when the payment succeeds. */
+    @Column(name = "coupon_code", length = 50)
+    private String couponCode;
 }

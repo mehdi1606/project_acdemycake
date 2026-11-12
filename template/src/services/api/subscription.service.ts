@@ -103,15 +103,6 @@ class SubscriptionService {
     return response.data;
   }
 
-  // Verify payment callback
-  async verifyPayment(transactionId: string, status: string): Promise<boolean> {
-    const response = await api.post<{ success: boolean }>('/payments/verify', {
-      transactionId,
-      status,
-    });
-    return response.data.success;
-  }
-
   // Check if user has access to a specific course
   async hasAccessToCourse(courseId: number): Promise<{ hasAccess: boolean; reason: string }> {
     try {

@@ -1,7 +1,6 @@
 import api from './axios.config';
 import {
   Quiz,
-  QuizQuestion,
   QuizAttempt,
   QuizResult,
   CreateQuizRequest,
@@ -20,12 +19,6 @@ class QuizService {
     const response = await api.get<PaginatedResponse<Quiz>>('/instructor/quizzes', {
       params: { page, size },
     });
-    return response.data;
-  }
-
-  // Get quizzes for a specific course
-  async getCourseQuizzes(courseId: number): Promise<Quiz[]> {
-    const response = await api.get<Quiz[]>(`/instructor/courses/${courseId}/quizzes`);
     return response.data;
   }
 
@@ -65,32 +58,6 @@ class QuizService {
   }
 
   // ============================================
-  // Quiz Questions Management
-  // ============================================
-
-  // Add question to quiz
-  async addQuestion(quizId: string, question: Omit<QuizQuestion, 'id'>): Promise<QuizQuestion> {
-    const response = await api.post<QuizQuestion>(`/instructor/quizzes/${quizId}/questions`, question);
-    return response.data;
-  }
-
-  // Update question
-  async updateQuestion(questionId: number, question: Partial<QuizQuestion>): Promise<QuizQuestion> {
-    const response = await api.put<QuizQuestion>(`/instructor/questions/${questionId}`, question);
-    return response.data;
-  }
-
-  // Delete question
-  async deleteQuestion(questionId: number): Promise<void> {
-    await api.delete(`/instructor/questions/${questionId}`);
-  }
-
-  // Reorder questions
-  async reorderQuestions(quizId: string, questionIds: number[]): Promise<void> {
-    await api.put(`/instructor/quizzes/${quizId}/questions/reorder`, { questionIds });
-  }
-
-  // ============================================
   // Quiz Results & Analytics (for instructors)
   // ============================================
 
@@ -104,23 +71,6 @@ class QuizService {
       `/instructor/quizzes/${quizId}/attempts`,
       { params: { page, size } }
     );
-    return response.data;
-  }
-
-  // Get quiz statistics
-  async getQuizStats(quizId: string): Promise<{
-    totalAttempts: number;
-    averageScore: number;
-    passRate: number;
-    averageTimeSpent: number;
-    questionStats: {
-      questionId: number;
-      questionText: string;
-      correctRate: number;
-      averagePoints: number;
-    }[];
-  }> {
-    const response = await api.get(`/instructor/quizzes/${quizId}/stats`);
     return response.data;
   }
 
@@ -204,22 +154,10 @@ class QuizService {
     return response.data;
   }
 
-  // Get my quiz attempts for a course
-  async getMyAttempts(courseId: number): Promise<QuizAttempt[]> {
-    const response = await api.get<QuizAttempt[]>(`/student/courses/${courseId}/quiz-attempts`);
-    return response.data;
-  }
-
   // Get all my attempts for a specific quiz (newest first)
   async getMyQuizAttempts(quizId: string): Promise<QuizAttempt[]> {
     const response = await api.get<QuizAttempt[]>(`/student/quizzes/${quizId}/my-attempts`);
     return response.data ?? [];
-  }
-
-  // Get specific attempt result
-  async getAttemptResult(attemptId: number): Promise<QuizResult> {
-    const response = await api.get<QuizResult>(`/student/attempts/${attemptId}/result`);
-    return response.data;
   }
 }
 

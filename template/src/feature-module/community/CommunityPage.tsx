@@ -14,7 +14,7 @@ import { useAppSelector } from '../../core/redux/hooks';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-const avatarUrl = (url?: string) => getFileUrl(url) ?? 'assets/img/user/user-02.jpg';
+const avatarUrl = (url?: string) => getFileUrl(url) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`;
 
 const TYPE_BADGE: Record<PostType, string> = {
   DISCUSSION:   'primary',

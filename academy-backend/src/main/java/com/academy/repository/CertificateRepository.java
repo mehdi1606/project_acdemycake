@@ -16,9 +16,14 @@ import java.util.UUID;
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate, UUID> {
 
+    boolean existsByCourse(com.academy.entity.Course course);
+
     Optional<Certificate> findByCertificateNumber(String certificateNumber);
 
     Optional<Certificate> findByUserAndCourse(User user, Course course);
+
+    /** Tolerates old duplicate rows (returns the first one issued). */
+    Optional<Certificate> findFirstByUserAndCourseOrderByIssuedAtAsc(User user, Course course);
 
     Page<Certificate> findByUserOrderByIssuedAtDesc(User user, Pageable pageable);
 

@@ -42,7 +42,7 @@ const UserDropdown: React.FC = () => {
     );
   }
 
-  const avatarUrl = getFileUrl(user.avatarUrl) ?? 'assets/img/user/user-01.jpg';
+  const avatarUrl = getFileUrl(user.avatarUrl) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
 
   const isInstructor = user.role === 'INSTRUCTOR';
   const isAdmin = user.role === 'ADMIN';
@@ -60,7 +60,7 @@ const UserDropdown: React.FC = () => {
             alt={user.fullName}
             className="img-fluid rounded-circle"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = 'assets/img/user/user-01.jpg';
+              (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
             }}
           />
         </span>
@@ -73,7 +73,7 @@ const UserDropdown: React.FC = () => {
               alt={user.fullName}
               className="img-fluid rounded-circle"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'assets/img/user/user-01.jpg';
+                (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
               }}
             />
           </div>
@@ -145,7 +145,7 @@ const UserDropdown: React.FC = () => {
               <li>
                 <Link
                   className="dropdown-item d-inline-flex align-items-center rounded fw-medium"
-                  to="/admin/admin-dashboard"
+                  to={all_routes.adminDashboard}
                 >
                   <i className="isax isax-chart me-2" />
                   Admin Dashboard

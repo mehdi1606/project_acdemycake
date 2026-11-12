@@ -53,6 +53,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final PayZoneService payZoneService;
     private final CouponService couponService;
     private final SettingsService settingsService;
+    private final org.springframework.transaction.PlatformTransactionManager transactionManager;
 
     @Value("${app.subscription.currency}")
     private String currency;
@@ -136,6 +137,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                 .currency(currency)
                 .status(PaymentStatus.PENDING)
                 .expiresAt(LocalDateTime.now().plusHours(1))
+                .couponCode(couponCode != null && !couponCode.isBlank() ? couponCode.trim().toUpperCase() : null)
                 .build();
 
         transaction = transactionRepository.save(transaction);
@@ -176,7 +178,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public void cancelSubscription() {
         User user = getCurrentUser();
 
-        Subscription subscription = subscriptionRepository.findByUserAndStatus(user, SubscriptionStatus.ACTIVE)
+        // findTop…: older data may hold two ACTIVE rows; a plain Optional finder would throw.
+        Subscription subscription = subscriptionRepository
+                .findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.ACTIVE)
                 .orElseThrow(() -> new ResourceNotFoundException("No active subscription found"));
 
         subscription.setCancelAtPeriodEnd(true);
@@ -199,8 +203,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public SubscriptionResponse reactivateSubscription() {
         User user = getCurrentUser();
 
+        // Cancelling only sets cancelAtPeriodEnd on the ACTIVE subscription (its status
+        // stays ACTIVE until the period ends), so that is what "undo cancel" looks for.
+        // A legacy CANCELLED row is still accepted.
         Subscription subscription = subscriptionRepository
-                .findByUserAndStatus(user, SubscriptionStatus.CANCELLED)
+                .findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.ACTIVE)
+                .filter(s -> Boolean.TRUE.equals(s.getCancelAtPeriodEnd()))
+                .or(() -> subscriptionRepository.findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.CANCELLED))
                 .orElseThrow(() -> new ResourceNotFoundException("No cancelled subscription found"));
 
         if (subscription.getCurrentPeriodEnd().isBefore(LocalDateTime.now())) {
@@ -256,44 +265,76 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         transactionRepository.save(transaction);
 
         User user = transaction.getUser();
+
+        // Plan type from the orderId prefix encoded during checkout
+        boolean monthly = orderId.startsWith("SUB-MON");
+        Subscription subscription = grantSubscriptionTime(user, monthly ? "MONTHLY" : "YEARLY",
+                monthly ? 1 : 0, monthly ? 0 : 1,
+                transaction.getAmount(), transaction.getCurrency(), payzoneTransactionId);
+
+        // The coupon is consumed only now that the payment has succeeded.
+        couponService.recordUsage(transaction.getCouponCode(), user);
+
+        emailService.sendSubscriptionConfirmation(user);
+
+        log.info("Subscription activated for user: {} until {}", user.getEmail(), subscription.getCurrentPeriodEnd());
+    }
+
+    /**
+     * Adds a paid (or admin-granted) period to a user's subscription.
+     *
+     * If the user still has an active subscription, the new period starts when the
+     * current one ends and the existing ACTIVE row is extended — so a renewal paid
+     * early (online or by bank transfer), or a second checkout paid by mistake,
+     * adds time instead of being lost, and there is only ever one ACTIVE row.
+     * Otherwise a new subscription starts now.
+     */
+    private Subscription grantSubscriptionTime(User user, String planType, int months, int years,
+                                               BigDecimal amount, String txnCurrency, String paymentRef) {
         LocalDateTime now = LocalDateTime.now();
+        Optional<Subscription> current = subscriptionRepository
+                .findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.ACTIVE)
+                .filter(s -> s.getCurrentPeriodEnd() != null && s.getCurrentPeriodEnd().isAfter(now));
 
-        // Determine plan type and period end from the orderId prefix encoded during subscribe()
-        String planType;
-        LocalDateTime periodEnd;
-        if (orderId.startsWith("SUB-MON")) {
-            planType = "MONTHLY";
-            periodEnd = now.plusMonths(1);
-        } else {
-            planType = "YEARLY";
-            periodEnd = now.plusYears(1);
+        LocalDateTime from = current.map(Subscription::getCurrentPeriodEnd).orElse(now);
+        if (user.getSubscriptionEndDate() != null && user.getSubscriptionEndDate().isAfter(from)) {
+            from = user.getSubscriptionEndDate();
         }
+        LocalDateTime periodEnd = from.plusYears(years).plusMonths(months);
 
-        Subscription subscription = Subscription.builder()
-                .user(user)
-                .payzoneTransactionId(payzoneTransactionId)
-                .planType(planType)
-                .status(SubscriptionStatus.ACTIVE)
-                .currentPeriodStart(now)
-                .currentPeriodEnd(periodEnd)
-                .amount(transaction.getAmount())
-                .currency(transaction.getCurrency())
-                .lastPaymentAt(now)
-                .nextBillingDate(periodEnd)
-                .build();
-
-        subscriptionRepository.save(subscription);
+        Subscription subscription;
+        if (current.isPresent()) {
+            subscription = current.get();
+            subscription.setCurrentPeriodEnd(periodEnd);
+            subscription.setNextBillingDate(periodEnd);
+            subscription.setLastPaymentAt(now);
+            subscription.setCancelAtPeriodEnd(false);
+            subscription.setCancelledAt(null);
+            if ("YEARLY".equals(planType)) subscription.setPlanType("YEARLY");
+            if (paymentRef != null) subscription.setPayzoneTransactionId(paymentRef);
+        } else {
+            subscription = Subscription.builder()
+                    .user(user)
+                    .payzoneTransactionId(paymentRef)
+                    .planType(planType)
+                    .status(SubscriptionStatus.ACTIVE)
+                    .currentPeriodStart(now)
+                    .currentPeriodEnd(periodEnd)
+                    .amount(amount)
+                    .currency(txnCurrency)
+                    .lastPaymentAt(now)
+                    .nextBillingDate(periodEnd)
+                    .build();
+        }
+        subscription = subscriptionRepository.save(subscription);
 
         user.setSubscriptionStatus(SubscriptionStatus.ACTIVE);
-        user.setSubscriptionStartDate(now);
+        if (current.isEmpty()) user.setSubscriptionStartDate(now);
         user.setSubscriptionEndDate(periodEnd);
         userRepository.save(user);
 
         enrollmentService.enrollUserInAllBeginnerCourses(user);
-
-        emailService.sendSubscriptionConfirmation(user);
-
-        log.info("Subscription activated for user: {} until {}", user.getEmail(), periodEnd);
+        return subscription;
     }
 
     @Override
@@ -310,28 +351,65 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void checkAndExpireSubscriptions() {
         LocalDateTime now = LocalDateTime.now();
 
-        List<Subscription> expiredSubscriptions = subscriptionRepository.findExpiredActiveSubscriptions(now);
+        List<UUID> ids = subscriptionRepository.findExpiredActiveSubscriptions(now).stream()
+                .map(Subscription::getId).toList();
 
-        for (Subscription subscription : expiredSubscriptions) {
+        // One transaction per subscription: a single bad row no longer rolls back the
+        // whole nightly run (which used to leave every expired user with free access).
+        org.springframework.transaction.support.TransactionTemplate tx =
+                new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+        tx.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        int failed = 0;
+        for (UUID id : ids) {
+            try {
+                tx.executeWithoutResult(status -> expireOne(id, now));
+            } catch (Exception e) {
+                failed++;
+                log.error("Could not expire subscription {}: {}", id, e.getMessage(), e);
+            }
+        }
+        log.info("Processed {} expired subscriptions ({} failed)", ids.size(), failed);
+    }
+
+    private void expireOne(UUID subscriptionId, LocalDateTime now) {
+        Subscription subscription = subscriptionRepository.findById(subscriptionId).orElse(null);
+        if (subscription == null || subscription.getStatus() != SubscriptionStatus.ACTIVE) return;
+        {
             subscription.setStatus(SubscriptionStatus.EXPIRED);
             subscriptionRepository.save(subscription);
 
             User user = subscription.getUser();
+
+            // The user may have renewed (online, or an admin-recorded bank transfer)
+            // after this period ended but before tonight's run: only this old row
+            // expires — the user keeps access while their own end date is ahead.
+            boolean stillCovered = user.getSubscriptionEndDate() != null
+                    && user.getSubscriptionEndDate().isAfter(now);
+            boolean otherActive = subscriptionRepository
+                    .findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.ACTIVE)
+                    .filter(s -> !s.getId().equals(subscription.getId()))
+                    .filter(s -> s.getCurrentPeriodEnd() != null && s.getCurrentPeriodEnd().isAfter(now))
+                    .isPresent();
+            if (stillCovered || otherActive) {
+                log.info("Old subscription row expired; user {} keeps access until {}",
+                        user.getEmail(), user.getSubscriptionEndDate());
+                return;
+            }
+
             user.setSubscriptionStatus(SubscriptionStatus.EXPIRED);
             userRepository.save(user);
 
             enrollmentService.deactivateSubscriptionEnrollments(user);
 
+            org.hibernate.Hibernate.initialize(user); // the e-mail is sent on an @Async thread
             emailService.sendSubscriptionExpired(user);
 
             log.info("Subscription expired for user: {}", user.getEmail());
         }
-
-        log.info("Processed {} expired subscriptions", expiredSubscriptions.size());
     }
 
     @Override
@@ -345,6 +423,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         for (Subscription subscription : expiringSubscriptions) {
             int daysLeft = (int) java.time.Duration.between(now, subscription.getCurrentPeriodEnd()).toDays();
+            // Load the user here: the e-mail is sent on an @Async thread, which must
+            // not initialise a lazy proxy from this transaction's session.
+            org.hibernate.Hibernate.initialize(subscription.getUser());
             emailService.sendSubscriptionExpiryReminder(subscription.getUser(), daysLeft);
         }
 
@@ -356,36 +437,33 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public SubscriptionResponse adminActivateSubscription(UUID userId) {
         User user = userService.findById(userId);
 
-        if (user.hasActiveSubscription()) {
-            throw new BadRequestException("User already has an active subscription");
-        }
+        // Used for bank-transfer payments. A user who is still active gets one
+        // more year after their current end date (early renewal); otherwise a
+        // new year starts today.
+        boolean renewal = user.hasActiveSubscription();
+        Subscription subscription = grantSubscriptionTime(user, "YEARLY", 0, 1,
+                settingsService.getYearlyPrice(), currency, null);
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime periodEnd = now.plusYears(1);
-
-        Subscription subscription = Subscription.builder()
-                .user(user)
-                .planType("YEARLY")
-                .status(SubscriptionStatus.ACTIVE)
-                .currentPeriodStart(now)
-                .currentPeriodEnd(periodEnd)
-                .amount(settingsService.getYearlyPrice())
-                .currency(currency)
-                .lastPaymentAt(now)
-                .nextBillingDate(periodEnd)
-                .build();
-
-        subscription = subscriptionRepository.save(subscription);
-
-        user.setSubscriptionStatus(SubscriptionStatus.ACTIVE);
-        user.setSubscriptionStartDate(now);
-        user.setSubscriptionEndDate(periodEnd);
-        userRepository.save(user);
-
-        enrollmentService.enrollUserInAllBeginnerCourses(user);
-
-        log.info("Admin manually activated yearly subscription for user: {} until {}", user.getEmail(), periodEnd);
+        log.info("Admin {} yearly subscription for user: {} until {}",
+                renewal ? "extended" : "activated", user.getEmail(), subscription.getCurrentPeriodEnd());
         return SubscriptionResponse.fromEntity(subscription);
+    }
+
+    @Override
+    @Transactional
+    public void revokeForRefund(User user) {
+        LocalDateTime now = LocalDateTime.now();
+        subscriptionRepository.findTopByUserAndStatusOrderByCreatedAtDesc(user, SubscriptionStatus.ACTIVE)
+                .ifPresent(s -> {
+                    s.setStatus(SubscriptionStatus.EXPIRED);
+                    s.setCurrentPeriodEnd(now);
+                    subscriptionRepository.save(s);
+                });
+        user.setSubscriptionStatus(SubscriptionStatus.EXPIRED);
+        user.setSubscriptionEndDate(now);
+        userRepository.save(user);
+        enrollmentService.deactivateSubscriptionEnrollments(user);
+        log.info("Subscription revoked after refund for user {}", user.getEmail());
     }
 
     private User getCurrentUser() {

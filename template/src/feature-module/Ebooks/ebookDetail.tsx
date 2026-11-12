@@ -52,8 +52,13 @@ const EbookDetail: React.FC = () => {
     setBuying(true);
     try {
       const res = await paymentService.initiateCmiEbook(ebook.id);
-      sessionStorage.setItem('cmi_txn_id', String(res.transactionId));
-      localStorage.setItem('cmi_txn_id', String(res.transactionId));
+      // Same keys as the other checkouts, so the payment result page shows the
+      // ebook screen (not a stale subscription / course one).
+      sessionStorage.setItem('sl_pending_txn_id', String(res.transactionId));
+      sessionStorage.setItem('sl_pending_plan_id', 'ebook');
+      sessionStorage.setItem('sl_pending_ebook_slug', ebook.slug);
+      localStorage.setItem('sl_pending_txn_id_fb', String(res.transactionId));
+      localStorage.setItem('sl_pending_plan_id_fb', 'ebook');
       paymentService.submitCmiForm(res.gatewayUrl, res.formParams);
     } catch (err) {
       message.error(extractApiError(err, 'Could not start the payment'));

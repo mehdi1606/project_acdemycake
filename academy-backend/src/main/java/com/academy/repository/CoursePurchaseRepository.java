@@ -13,11 +13,15 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface CoursePurchaseRepository extends JpaRepository<CoursePurchase, UUID> {
+
+    boolean existsByCourse(com.academy.entity.Course course);
 
     Optional<CoursePurchase> findByUserAndCourseAndStatus(User user, Course course, PaymentStatus status);
 
@@ -40,4 +44,15 @@ public interface CoursePurchaseRepository extends JpaRepository<CoursePurchase, 
 
     @Query("SELECT SUM(p.amount) FROM CoursePurchase p WHERE p.status = 'COMPLETED'")
     BigDecimal sumTotalRevenue();
+
+    // ── LIVE masterclass seats ───────────────────────────────────────────────
+
+    /** Number of purchases of a course in a status (COMPLETED = paid seats). */
+    long countByCourseAndStatus(Course course, PaymentStatus status);
+
+    /** Purchases of one course with the buyer pre-loaded, newest first (participant list). */
+    @Query("SELECT p FROM CoursePurchase p JOIN FETCH p.user " +
+           "WHERE p.course = :course AND p.status IN :statuses ORDER BY p.purchasedAt DESC")
+    List<CoursePurchase> findParticipants(@Param("course") Course course,
+                                          @Param("statuses") Collection<PaymentStatus> statuses);
 }

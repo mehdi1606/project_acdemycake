@@ -103,8 +103,9 @@ const CourseListCard: React.FC<CourseListCardProps> = ({
   // Same rules as the shared card: masterclass kinds get their own badge, price and CTA.
   const kind = getCourseKind(course);
   const seatCap = course.maxStudents;
+  // Server-computed: paid seats + in-progress card payments (never page views / WhatsApp).
   const seatsLeft = kind === 'LIVE' && seatCap && seatCap > 0
-    ? Math.max(0, seatCap - (course.enrolledCount ?? 0))
+    ? (typeof course.seatsRemaining === 'number' ? course.seatsRemaining : seatCap)
     : null;
 
   return (

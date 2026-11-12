@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { formatMAD } from '../../../core/common/formatMoney';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link } from 'react-router-dom';
@@ -71,10 +72,7 @@ const AdminCourses = () => {
 
   const formatCurrency = (amount: number | undefined | null) => {
     if (!amount || amount === 0) return 'Free';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return formatMAD(amount);
   };
 
   return (

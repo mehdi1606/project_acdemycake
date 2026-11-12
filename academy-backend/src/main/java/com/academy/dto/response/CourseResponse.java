@@ -12,7 +12,9 @@ import lombok.NoArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -35,6 +37,15 @@ public class CourseResponse {
     private MasterclassFormat masterclassFormat;
     /** Seat limit for a LIVE masterclass; null = unlimited. */
     private Integer maxStudents;
+    // ── LIVE masterclass session + seat availability ───────────────────────────
+    private LocalDate sessionDate;
+    private LocalTime sessionStartTime;
+    private LocalTime sessionEndTime;
+    private String sessionLocation;
+    /** Confirmed paid seats (LIVE masterclass with a seat limit only). */
+    private Integer seatsTaken;
+    /** Seats still bookable: capacity − paid − seats held by in-progress card payments. */
+    private Integer seatsRemaining;
     /** Populated only for LIVE masterclasses; blank when the admin has not set a number. */
     private String reservationWhatsapp;
     private Boolean requiresPurchase;
@@ -116,6 +127,10 @@ public class CourseResponse {
                 .courseType(course.getCourseType())
                 .masterclassFormat(course.getMasterclassFormat())
                 .maxStudents(course.getMaxStudents())
+                .sessionDate(course.getSessionDate())
+                .sessionStartTime(course.getSessionStartTime())
+                .sessionEndTime(course.getSessionEndTime())
+                .sessionLocation(course.getSessionLocation())
                 .requiresPurchase(course.getRequiresPurchase())
                 .price(course.getPrice())
                 .originalPrice(course.getOriginalPrice())
