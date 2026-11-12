@@ -209,7 +209,7 @@ const PaymentCallbackPage: React.FC = () => {
           cleanup();
           setStage('timeout');
           setMessage(pendingMasterclass
-            ? t('paymentCallback.msgWaitingPlace', 'We\'re still waiting for confirmation from the payment provider. Your place is held and will be confirmed automatically once the payment is verified.')
+            ? t('paymentCallback.msgWaitingPlace2', 'We\'re still waiting for confirmation from the payment provider. Your place will be confirmed automatically once the payment is verified.')
             : t('paymentCallback.msgWaitingAccess', 'We\'re still waiting for confirmation from the payment provider. Your access will be activated automatically once the payment is confirmed.'));
         }
         // else status === 'PENDING' → keep polling

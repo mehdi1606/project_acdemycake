@@ -4,7 +4,7 @@
  * Two ways to book:
  *  A. WhatsApp — opens a pre-filled conversation with the academy. This never
  *     takes a seat; the instructor confirms it directly with the student.
- *  B. Card (CMI) — the backend holds a seat while the payment is in progress and
+ *  B. Card (CMI) — a seat is only taken once CMI confirms the payment, and
  *     only confirms the booking after CMI's verified server-to-server callback.
  *     If the session fills up meanwhile, the card is not charged.
  *
@@ -184,7 +184,7 @@ const LiveMasterclassBooking: React.FC<Props> = ({
           {dateLabel && <div>{dateLabel}{timeLabel ? ` · ${timeLabel}` : ''}</div>}
           {c.sessionLocation && <div>{c.sessionLocation}</div>}
           <div style={{ marginTop: 8 }}>
-            {t('liveBooking.confirmBody', 'You will be redirected to the secure CMI payment page. Your place is held for 30 minutes and confirmed once the payment is verified.')}
+            {t('liveBooking.confirmBody2', 'You will be redirected to the secure CMI payment page. Your place is confirmed as soon as the payment is verified.')}
           </div>
         </div>
       ),

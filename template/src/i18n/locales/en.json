@@ -2021,6 +2021,7 @@
     }
   },
   "paymentCallback": {
+    "msgWaitingPlace2": "We're still waiting for confirmation from the payment provider. Your place will be confirmed automatically once the payment is verified.",
     "success": {
       "title": "Payment Successful!",
       "subtitle": "Your enrollment has been confirmed",
@@ -2694,6 +2695,7 @@
     }
   },
   "liveBooking": {
+    "confirmBody2": "You will be redirected to the secure CMI payment page. Your place is confirmed as soon as the payment is verified.",
     "wa": {
       "intro": "Hello, I would like to reserve a place for the masterclass \"{{title}}\".",
       "date": "Date: {{date}}",
@@ -2743,6 +2745,31 @@
     "bookCta": "Book my place"
   },
   "mcRes": {
+    "subtitle2": "Participants who paid by card, plus the ones you added after a WhatsApp booking.",
+    "emptyHint2": "Card payments appear here once verified. For WhatsApp bookings, use \"Add participant\" after you receive the payment.",
+    "manual": "WhatsApp",
+    "paidCard": "Paid by card",
+    "add": {
+      "button": "Add participant",
+      "title": "Add a participant booked on WhatsApp",
+      "hint": "Use this once the participant has paid you directly (cash, bank transfer...). They take one place. If the e-mail matches an account, they will see their place as confirmed on the site.",
+      "name": "Full name",
+      "phone": "Phone (WhatsApp)",
+      "email": "E-mail (optional)",
+      "amount": "Amount paid ({{currency}})",
+      "note": "Note (optional)",
+      "notePh": "e.g. paid by bank transfer on 12/11",
+      "submit": "Add participant",
+      "saving": "Adding...",
+      "nameRequired": "Please enter the participant's full name.",
+      "amountInvalid": "Please enter a valid amount.",
+      "error": "Could not add the participant."
+    },
+    "remove": {
+      "button": "Remove",
+      "confirm": "Remove {{name}} from this masterclass? Their place will be freed.",
+      "error": "Could not remove the participant."
+    },
     "listError": "Could not load your masterclasses.",
     "loadError": "Could not load reservations.",
     "title": "Masterclass reservations",
@@ -2753,6 +2780,8 @@
     "create": "Create a masterclass",
     "viewPage": "View page",
     "stat": {
+      "participantsSub2": "Card + WhatsApp",
+      "revenueManual": "Card payments · + {{amount}} paid on WhatsApp",
       "participants": "Confirmed participants",
       "participantsSub": "Paid & verified",
       "capacity": "Maximum capacity",

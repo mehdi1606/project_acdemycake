@@ -11,6 +11,7 @@ import {
   PaginatedResponse,
   CourseLevel,
   MasterclassParticipants,
+  AddManualParticipantPayload,
 } from './types';
 
 interface CreateCourseRequest {
@@ -194,6 +195,18 @@ class InstructorService {
   // Confirmed paid participants + seat / revenue totals of one LIVE masterclass
   async getMasterclassParticipants(courseId: string): Promise<MasterclassParticipants> {
     const response = await api.get<MasterclassParticipants>(`/instructor/masterclasses/${courseId}/participants`);
+    return response.data;
+  }
+
+  /** Adds a participant booked on WhatsApp and paid outside the platform (takes a seat). */
+  async addMasterclassParticipant(courseId: string, payload: AddManualParticipantPayload): Promise<MasterclassParticipants> {
+    const response = await api.post<MasterclassParticipants>(`/instructor/masterclasses/${courseId}/participants`, payload);
+    return response.data;
+  }
+
+  /** Removes a manually added participant and frees the seat. */
+  async removeMasterclassParticipant(courseId: string, bookingId: string): Promise<MasterclassParticipants> {
+    const response = await api.delete<MasterclassParticipants>(`/instructor/masterclasses/${courseId}/participants/manual/${bookingId}`);
     return response.data;
   }
 

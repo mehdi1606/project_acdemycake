@@ -36,14 +36,16 @@ public class MasterclassParticipantsResponse {
 
     /** Seat limit; null when the instructor set none. */
     private Integer capacity;
-    /** Confirmed paid participants (purchase status COMPLETED). */
+    /** Confirmed participants (card + manually added). */
     private long confirmedParticipants;
-    /** Seats held right now by card payments still in progress. */
+    /** Card payments started but not finished (informational only, they do not take a seat). */
     private long pendingHolds;
     /** Seats still bookable; null when there is no seat limit. */
     private Integer remainingPlaces;
     /** Sum of confirmed payments (refunds excluded). */
     private BigDecimal totalRevenue;
+    /** Sum of amounts entered for manually added participants (paid outside the platform). */
+    private BigDecimal manualRevenue;
 
     private List<Participant> participants;
 
@@ -63,6 +65,9 @@ public class MasterclassParticipantsResponse {
         private String paymentStatus;
         /** CONFIRMED or CANCELLED (refunded). */
         private String bookingStatus;
+        /** CARD (paid online) or MANUAL (added by the instructor). */
+        private String source;
+        private String note;
         private LocalDateTime reservedAt;
     }
 }

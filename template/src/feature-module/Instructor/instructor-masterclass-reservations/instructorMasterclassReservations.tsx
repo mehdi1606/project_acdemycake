@@ -46,6 +46,62 @@ const InstructorMasterclassReservations: React.FC = () => {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
 
+  // ── Manual participant (WhatsApp booking paid outside the platform) ───────
+  const emptyForm = { fullName: '', phone: '', email: '', amountPaid: '', note: '' };
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const setField = (k: keyof typeof emptyForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const submitManual = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedId || saving) return;
+    if (form.fullName.trim().length < 2) {
+      setFormError(t('mcRes.add.nameRequired', 'Please enter the participant\'s full name.'));
+      return;
+    }
+    const amount = form.amountPaid.trim() === '' ? undefined : Number(form.amountPaid.replace(',', '.'));
+    if (amount !== undefined && (!Number.isFinite(amount) || amount < 0)) {
+      setFormError(t('mcRes.add.amountInvalid', 'Please enter a valid amount.'));
+      return;
+    }
+    try {
+      setSaving(true);
+      setFormError('');
+      const updated = await instructorService.addMasterclassParticipant(selectedId, {
+        fullName: form.fullName.trim(),
+        phone: form.phone.trim() || undefined,
+        email: form.email.trim() || undefined,
+        amountPaid: amount,
+        note: form.note.trim() || undefined,
+      });
+      setData(updated);
+      setForm(emptyForm);
+      setShowAdd(false);
+    } catch (err: any) {
+      setFormError(err?.response?.data?.message || t('mcRes.add.error', 'Could not add the participant.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeManual = async (bookingId: string, name: string) => {
+    if (!selectedId) return;
+    if (!window.confirm(t('mcRes.remove.confirm', 'Remove {{name}} from this masterclass? Their place will be freed.', { name }))) return;
+    try {
+      setRemovingId(bookingId);
+      setData(await instructorService.removeMasterclassParticipant(selectedId, bookingId));
+    } catch (err: any) {
+      setError(err?.response?.data?.message || t('mcRes.remove.error', 'Could not remove the participant.'));
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
   // ── Load my LIVE masterclasses ────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -103,9 +159,10 @@ const InstructorMasterclassReservations: React.FC = () => {
   const exportCsv = () => {
     if (!data) return;
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const header = ['Full name', 'Email', 'Phone', 'Masterclass', 'Amount', 'Currency', 'Payment status', 'Booking status', 'Reserved at'];
+    const header = ['Full name', 'Email', 'Phone', 'Masterclass', 'Amount', 'Currency', 'Payment', 'Booking status', 'Note', 'Reserved at'];
     const lines = data.participants.map((p) => [
-      p.fullName, p.email, p.phone, data.title, p.amount, p.currency, p.paymentStatus, p.bookingStatus, p.reservedAt,
+      p.fullName, p.email, p.phone, data.title, p.amount, p.currency,
+      p.source === 'MANUAL' ? 'WhatsApp / manual' : p.paymentStatus, p.bookingStatus, p.note, p.reservedAt,
     ].map(esc).join(','));
     const blob = new Blob(['﻿' + [header.map(esc).join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -129,7 +186,7 @@ const InstructorMasterclassReservations: React.FC = () => {
             {t('mcRes.title', 'Masterclass reservations')}
           </h5>
           <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: '4px 0 0' }}>
-            {t('mcRes.subtitle', 'Participants who paid by card and were confirmed by the payment provider.')}
+            {t('mcRes.subtitle2', 'Participants who paid by card, plus the ones you added after a WhatsApp booking.')}
           </p>
         </div>
         <div className="d-flex gap-2 flex-wrap">
@@ -202,10 +259,10 @@ const InstructorMasterclassReservations: React.FC = () => {
           {/* Stats */}
           <div className="row g-4 mb-4">
             {[
-              { label: t('mcRes.stat.participants', 'Confirmed participants'), value: data ? String(data.confirmedParticipants) : '—', sub: t('mcRes.stat.participantsSub', 'Paid & verified'), icon: 'isax isax-people', color: 'sage' },
+              { label: t('mcRes.stat.participants', 'Confirmed participants'), value: data ? String(data.confirmedParticipants) : '—', sub: t('mcRes.stat.participantsSub2', 'Card + WhatsApp'), icon: 'isax isax-people', color: 'sage' },
               { label: t('mcRes.stat.capacity', 'Maximum capacity'), value: capacity !== null ? String(capacity) : t('mcRes.unlimited', 'Unlimited'), sub: capacity ? t('mcRes.stat.filled', '{{pct}}% filled', { pct: fillPct }) : '', icon: 'isax isax-element-4', color: 'slate' },
-              { label: t('mcRes.stat.remaining', 'Remaining places'), value: data?.remainingPlaces != null ? String(data.remainingPlaces) : '—', sub: data?.pendingHolds ? t('mcRes.stat.holds', '{{count}} payment(s) in progress', { count: data.pendingHolds }) : t('mcRes.stat.remainingSub', 'Still bookable'), icon: 'isax isax-ticket', color: 'amber' },
-              { label: t('mcRes.stat.revenue', 'Total revenue'), value: data ? money(data.totalRevenue, currency) : '—', sub: t('mcRes.stat.revenueSub', 'Confirmed payments only'), icon: 'isax isax-dollar-circle', color: 'gold' },
+              { label: t('mcRes.stat.remaining', 'Remaining places'), value: data?.remainingPlaces != null ? String(data.remainingPlaces) : '—', sub: t('mcRes.stat.remainingSub', 'Still bookable'), icon: 'isax isax-ticket', color: 'amber' },
+              { label: t('mcRes.stat.revenue', 'Total revenue'), value: data ? money(data.totalRevenue, currency) : '—', sub: data?.manualRevenue ? t('mcRes.stat.revenueManual', 'Card payments · + {{amount}} paid on WhatsApp', { amount: money(data.manualRevenue, currency) }) : t('mcRes.stat.revenueSub', 'Confirmed payments only'), icon: 'isax isax-dollar-circle', color: 'gold' },
             ].map((s) => (
               <div key={s.label} className="col-xxl-3 col-lg-6 col-md-6">
                 <div className="lx-stat-card">
@@ -240,9 +297,58 @@ const InstructorMasterclassReservations: React.FC = () => {
                 <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={exportCsv} disabled={!data?.participants.length}>
                   <i className="isax isax-document-download" /> CSV
                 </button>
+                <button
+                  className="lx-btn lx-btn-gold lx-btn-sm"
+                  onClick={() => { setShowAdd((v) => !v); setFormError(''); }}
+                  disabled={!data || isSessionPast(data.sessionDate)}
+                >
+                  <i className="isax isax-user-add" /> {t('mcRes.add.button', 'Add participant')}
+                </button>
               </div>
             </div>
             <div className="lx-card-body">
+              {showAdd && data && (
+                <form onSubmit={submitManual} style={{ padding: 16, borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(37,211,102,0.25)', background: 'rgba(37,211,102,0.04)', marginBottom: 16 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                    <i className="fa-brands fa-whatsapp me-2" style={{ color: '#25D366' }} />
+                    {t('mcRes.add.title', 'Add a participant booked on WhatsApp')}
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: '0 0 12px' }}>
+                    {t('mcRes.add.hint', 'Use this once the participant has paid you directly (cash, bank transfer...). They take one place. If the e-mail matches an account, they will see their place as confirmed on the site.')}
+                  </p>
+                  <div className="row g-2">
+                    <div className="col-md-4">
+                      <label className="form-label" style={{ fontSize: 12 }}>{t('mcRes.add.name', 'Full name')} *</label>
+                      <input className="form-control form-control-sm" value={form.fullName} onChange={setField('fullName')} maxLength={150} required />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label" style={{ fontSize: 12 }}>{t('mcRes.add.phone', 'Phone (WhatsApp)')}</label>
+                      <input className="form-control form-control-sm" type="tel" value={form.phone} onChange={setField('phone')} maxLength={30} placeholder="+212 6..." />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label" style={{ fontSize: 12 }}>{t('mcRes.add.email', 'E-mail (optional)')}</label>
+                      <input className="form-control form-control-sm" type="email" value={form.email} onChange={setField('email')} maxLength={255} />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label" style={{ fontSize: 12 }}>{t('mcRes.add.amount', 'Amount paid ({{currency}})', { currency })}</label>
+                      <input className="form-control form-control-sm" inputMode="decimal" value={form.amountPaid} onChange={setField('amountPaid')} placeholder={String(data.price ?? '')} />
+                    </div>
+                    <div className="col-md-8">
+                      <label className="form-label" style={{ fontSize: 12 }}>{t('mcRes.add.note', 'Note (optional)')}</label>
+                      <input className="form-control form-control-sm" value={form.note} onChange={setField('note')} maxLength={500} placeholder={t('mcRes.add.notePh', 'e.g. paid by bank transfer on 12/11')} />
+                    </div>
+                  </div>
+                  {formError && <div style={{ color: '#8B2335', fontSize: 13, marginTop: 10 }}><i className="isax isax-warning-2 me-1" />{formError}</div>}
+                  <div className="d-flex gap-2 justify-content-end mt-3">
+                    <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => { setShowAdd(false); setForm(emptyForm); setFormError(''); }} disabled={saving}>
+                      {t('common.cancel', 'Cancel')}
+                    </button>
+                    <button type="submit" className="lx-btn lx-btn-gold lx-btn-sm" disabled={saving}>
+                      {saving ? t('mcRes.add.saving', 'Adding...') : t('mcRes.add.submit', 'Add participant')}
+                    </button>
+                  </div>
+                </form>
+              )}
               {error && (
                 <div style={{ padding: '12px 16px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)', color: '#8B2335', fontSize: 14, marginBottom: 16 }}>
                   <i className="isax isax-warning-2 me-2" />{error}
@@ -252,7 +358,7 @@ const InstructorMasterclassReservations: React.FC = () => {
                 <div className="lx-empty-state">
                   <div className="empty-icon"><i className="isax isax-people" /></div>
                   <h6>{t('mcRes.empty', 'No confirmed participants yet.')}</h6>
-                  <p>{t('mcRes.emptyHint', 'Participants appear here as soon as their card payment is verified. WhatsApp requests are handled directly with the student.')}</p>
+                  <p>{t('mcRes.emptyHint2', 'Card payments appear here once verified. For WhatsApp bookings, use "Add participant" after you receive the payment.')}</p>
                 </div>
               ) : (
                 <div className="table-responsive">
@@ -265,6 +371,7 @@ const InstructorMasterclassReservations: React.FC = () => {
                         <th>{t('mcRes.col.payment', 'Payment')}</th>
                         <th>{t('mcRes.col.booking', 'Booking')}</th>
                         <th>{t('mcRes.col.date', 'Reserved on')}</th>
+                        <th />
                       </tr>
                     </thead>
                     <tbody>
@@ -272,16 +379,23 @@ const InstructorMasterclassReservations: React.FC = () => {
                         <tr key={p.reservationId}>
                           <td>
                             <div style={{ fontWeight: 600 }}>{p.fullName || '—'}</div>
-                            <a href={`mailto:${p.email}`} style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{p.email}</a>
+                            {p.email && <a href={`mailto:${p.email}`} style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{p.email}</a>}
+                            {p.note && <div style={{ fontSize: 11, color: 'var(--lx-text-muted)', fontStyle: 'italic' }}>{p.note}</div>}
                           </td>
                           <td style={{ fontSize: 13 }}>
                             {p.phone ? <a href={`tel:${p.phone}`}>{p.phone}</a> : <span style={{ color: 'var(--lx-text-muted)' }}>—</span>}
                           </td>
-                          <td style={{ textAlign: 'right', fontWeight: 600 }}>{money(p.amount, p.currency)}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 600 }}>{p.amount != null ? money(p.amount, p.currency) : '—'}</td>
                           <td>
-                            <span className={`lx-badge ${p.paymentStatus === 'COMPLETED' ? 'badge-success' : 'badge-secondary'}`}>
-                              {p.paymentStatus === 'COMPLETED' ? t('mcRes.paid', 'Paid') : t('mcRes.refunded', 'Refunded')}
-                            </span>
+                            {p.source === 'MANUAL' ? (
+                              <span className="lx-badge" style={{ background: 'rgba(37,211,102,0.12)', color: '#128C7E' }}>
+                                <i className="fa-brands fa-whatsapp me-1" />{t('mcRes.manual', 'WhatsApp')}
+                              </span>
+                            ) : (
+                              <span className={`lx-badge ${p.paymentStatus === 'COMPLETED' ? 'badge-success' : 'badge-secondary'}`}>
+                                {p.paymentStatus === 'COMPLETED' ? t('mcRes.paidCard', 'Paid by card') : t('mcRes.refunded', 'Refunded')}
+                              </span>
+                            )}
                           </td>
                           <td>
                             <span className={`lx-badge ${p.bookingStatus === 'CONFIRMED' ? 'badge-info' : 'badge-danger'}`}>
@@ -289,6 +403,18 @@ const InstructorMasterclassReservations: React.FC = () => {
                             </span>
                           </td>
                           <td style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{fmtDateTime(p.reservedAt)}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            {p.source === 'MANUAL' && p.bookingStatus === 'CONFIRMED' && (
+                              <button
+                                className="lx-btn lx-btn-outline lx-btn-sm"
+                                title={t('mcRes.remove.button', 'Remove')}
+                                onClick={() => removeManual(p.reservationId, p.fullName)}
+                                disabled={removingId === p.reservationId}
+                              >
+                                <i className="isax isax-trash" />
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

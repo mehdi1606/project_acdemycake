@@ -1,9 +1,11 @@
 package com.academy.service.impl;
 
 import com.academy.config.CacheConfig;
+import com.academy.dto.request.AddManualParticipantRequest;
 import com.academy.dto.response.MasterclassParticipantsResponse;
 import com.academy.entity.Course;
 import com.academy.entity.CoursePurchase;
+import com.academy.entity.MasterclassManualBooking;
 import com.academy.entity.User;
 import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.CourseType;
@@ -16,13 +18,17 @@ import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
 import com.academy.repository.CoursePurchaseRepository;
 import com.academy.repository.CourseRepository;
+import com.academy.repository.MasterclassManualBookingRepository;
 import com.academy.repository.PaymentTransactionRepository;
+import com.academy.repository.UserRepository;
+import com.academy.service.EnrollmentService;
 import com.academy.security.UserPrincipal;
 import com.academy.service.MasterclassBookingService;
 import com.academy.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -33,6 +39,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,6 +54,10 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
     private final PaymentTransactionRepository transactionRepository;
     private final UserService userService;
     private final CacheManager cacheManager;
+    private final MasterclassManualBookingRepository manualBookingRepository;
+    private final UserRepository userRepository;
+    // Provider: EnrollmentService -> CourseService -> this service would be a cycle.
+    private final ObjectProvider<EnrollmentService> enrollmentServiceProvider;
 
     // ── Classification ───────────────────────────────────────────────────────
 
@@ -73,16 +85,23 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
     @Override
     @Transactional(readOnly = true)
     public long countConfirmedSeats(Course course) {
-        return coursePurchaseRepository.countByCourseAndStatus(course, PaymentStatus.COMPLETED);
+        // Card payments confirmed by CMI + participants the instructor added by hand
+        // (WhatsApp bookings paid outside the platform). A payment that was only
+        // started — page opened and closed, declined, abandoned — never takes a seat.
+        return coursePurchaseRepository.countByCourseAndStatus(course, PaymentStatus.COMPLETED)
+                + manualBookingRepository.countByCourseAndCancelledAtIsNull(course);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Integer remainingSeats(Course course) {
         if (!isSeatLimited(course)) return null;
-        long taken = countConfirmedSeats(course);
-        long held  = transactionRepository.countActiveSeatHolds(course.getId(), LocalDateTime.now());
-        return (int) Math.max(0, course.getMaxStudents() - taken - held);
+        return (int) Math.max(0, course.getMaxStudents() - countConfirmedSeats(course));
+    }
+
+    private boolean hasConfirmedPlace(Course course, User user) {
+        return coursePurchaseRepository.existsByUserAndCourseAndStatus(user, course, PaymentStatus.COMPLETED)
+                || manualBookingRepository.existsByCourseAndUserAndCancelledAtIsNull(course, user);
     }
 
     // ── Payment guards ───────────────────────────────────────────────────────
@@ -101,35 +120,25 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
         if (course.getSessionDate() != null && course.getSessionDate().isBefore(LocalDate.now())) {
             throw new BadRequestException("This masterclass has already taken place.");
         }
-        if (coursePurchaseRepository.existsByUserAndCourseAndStatus(user, course, PaymentStatus.COMPLETED)) {
+        if (hasConfirmedPlace(course, user)) {
             throw new BadRequestException("You already have a confirmed place in this masterclass.");
         }
-        if (isSeatLimited(course)) {
-            long taken = countConfirmedSeats(course);
-            long heldByOthers = transactionRepository.countActiveSeatHoldsExcludingUser(
-                    course.getId(), LocalDateTime.now(), user);
-            if (taken + heldByOthers >= course.getMaxStudents()) {
-                throw new ConflictException(taken >= course.getMaxStudents()
-                        ? "This masterclass is full."
-                        : "All remaining places are being booked right now. Please try again in a few minutes.");
-            }
+        // Only confirmed seats count. If several people pay for the last place at the
+        // same time, the first confirmed payment wins and the others are refused at
+        // confirmation without being charged (pre-authorisation is never captured).
+        if (isSeatLimited(course) && countConfirmedSeats(course) >= course.getMaxStudents()) {
+            throw new ConflictException("This masterclass is full.");
         }
     }
 
     @Override
     @Transactional(readOnly = true)
     public String refusalReasonForConfirmation(Course course, User user) {
-        if (coursePurchaseRepository.existsByUserAndCourseAndStatus(user, course, PaymentStatus.COMPLETED)) {
+        if (hasConfirmedPlace(course, user)) {
             return "DUPLICATE: you already have a confirmed place — this payment was not captured.";
         }
-        if (isSeatLimited(course)) {
-            long taken = countConfirmedSeats(course);
-            // This user's own hold is the one being converted, so only other users' holds count.
-            long heldByOthers = transactionRepository.countActiveSeatHoldsExcludingUser(
-                    course.getId(), LocalDateTime.now(), user);
-            if (taken + heldByOthers >= course.getMaxStudents()) {
-                return "FULL: the masterclass was fully booked before your payment completed — your card was not charged.";
-            }
+        if (isSeatLimited(course) && countConfirmedSeats(course) >= course.getMaxStudents()) {
+            return "FULL: the masterclass was fully booked before your payment completed — your card was not charged.";
         }
         return null;
     }
@@ -158,26 +167,31 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
 
     // ── Instructor view ──────────────────────────────────────────────────────
 
-    @Override
-    @Transactional(readOnly = true)
-    public MasterclassParticipantsResponse getParticipants(UUID courseId) {
+    /** Loads a LIVE masterclass the current user owns (or any, for an admin). */
+    private Course ownedLiveMasterclass(UUID courseId, User current) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
-
-        User current = currentUser();
         if (current.getRole() != UserRole.ADMIN
                 && !course.getInstructor().getId().equals(current.getId())) {
-            throw new ForbiddenException("You can only view reservations of your own masterclasses");
+            throw new ForbiddenException("You can only manage reservations of your own masterclasses");
         }
         if (!isLiveMasterclass(course)) {
             throw new BadRequestException("Reservations are only available for live masterclasses");
         }
+        return course;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MasterclassParticipantsResponse getParticipants(UUID courseId) {
+        Course course = ownedLiveMasterclass(courseId, currentUser());
 
         List<CoursePurchase> purchases = coursePurchaseRepository.findParticipants(
                 course, List.of(PaymentStatus.COMPLETED, PaymentStatus.REFUNDED));
+        List<MasterclassManualBooking> manual = manualBookingRepository.findAllForCourse(course);
 
-        List<MasterclassParticipantsResponse.Participant> participants = purchases.stream()
-                .map(p -> MasterclassParticipantsResponse.Participant.builder()
+        List<MasterclassParticipantsResponse.Participant> participants = new ArrayList<>();
+        purchases.forEach(p -> participants.add(MasterclassParticipantsResponse.Participant.builder()
                         .reservationId(p.getId())
                         .userId(p.getUser().getId())
                         .fullName(p.getUser().getFullName())
@@ -187,14 +201,34 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
                         .currency(p.getCurrency())
                         .paymentStatus(p.getStatus().name())
                         .bookingStatus(p.getStatus() == PaymentStatus.COMPLETED ? "CONFIRMED" : "CANCELLED")
+                        .source("CARD")
                         .reservedAt(p.getPurchasedAt() != null ? p.getPurchasedAt() : p.getCreatedAt())
-                        .build())
-                .toList();
+                        .build()));
+        manual.forEach(b -> participants.add(MasterclassParticipantsResponse.Participant.builder()
+                        .reservationId(b.getId())
+                        .userId(b.getUser() != null ? b.getUser().getId() : null)
+                        .fullName(b.getFullName())
+                        .email(b.getEmail())
+                        .phone(b.getPhone())
+                        .amount(b.getAmountPaid())
+                        .currency(b.getCurrency())
+                        .paymentStatus("MANUAL")
+                        .bookingStatus(b.getCancelledAt() == null ? "CONFIRMED" : "CANCELLED")
+                        .source("MANUAL")
+                        .note(b.getNote())
+                        .reservedAt(b.getCreatedAt())
+                        .build()));
+        participants.sort(Comparator.comparing(MasterclassParticipantsResponse.Participant::getReservedAt,
+                Comparator.nullsLast(Comparator.reverseOrder())));
 
-        long confirmed = purchases.stream().filter(p -> p.getStatus() == PaymentStatus.COMPLETED).count();
+        long confirmed = countConfirmedSeats(course);
         BigDecimal revenue = purchases.stream()
                 .filter(p -> p.getStatus() == PaymentStatus.COMPLETED)
                 .map(CoursePurchase::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal manualRevenue = manual.stream()
+                .filter(b -> b.getCancelledAt() == null && b.getAmountPaid() != null)
+                .map(MasterclassManualBooking::getAmountPaid)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         long holds = transactionRepository.countActiveSeatHolds(course.getId(), LocalDateTime.now());
 
@@ -213,8 +247,79 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
                 .pendingHolds(holds)
                 .remainingPlaces(remainingSeats(course))
                 .totalRevenue(revenue)
+                .manualRevenue(manualRevenue)
                 .participants(participants)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public MasterclassParticipantsResponse addManualParticipant(UUID courseId, AddManualParticipantRequest request) {
+        User current = currentUser();
+        ownedLiveMasterclass(courseId, current);
+        Course course = lockCourse(courseId);   // serialise with card confirmations
+
+        if (isSeatLimited(course) && countConfirmedSeats(course) >= course.getMaxStudents()) {
+            throw new ConflictException("This masterclass is full. Increase the capacity first if you want to add more participants.");
+        }
+
+        String email = request.getEmail() == null || request.getEmail().isBlank()
+                ? null : request.getEmail().trim().toLowerCase();
+        User account = email == null ? null : userRepository.findByEmail(email)
+                .filter(u -> !Boolean.TRUE.equals(u.getIsDeleted()))
+                .orElse(null);
+        if (account != null && hasConfirmedPlace(course, account)) {
+            throw new ConflictException("This person already has a confirmed place in this masterclass.");
+        }
+
+        MasterclassManualBooking booking = MasterclassManualBooking.builder()
+                .course(course)
+                .user(account)
+                .fullName(request.getFullName().trim())
+                .phone(request.getPhone() == null || request.getPhone().isBlank() ? null : request.getPhone().trim())
+                .email(email)
+                .amountPaid(request.getAmountPaid())
+                .currency(course.getCurrency() != null ? course.getCurrency() : "MAD")
+                .note(request.getNote() == null || request.getNote().isBlank() ? null : request.getNote().trim())
+                .addedBy(current)
+                .build();
+        manualBookingRepository.save(booking);
+
+        // A matching account sees "Your place is confirmed" on the masterclass page.
+        if (account != null) {
+            enrollmentServiceProvider.getObject().enrollUserInCourse(account, course, true);
+        }
+        log.info("Manual participant added to masterclass {} by {} (linked account: {})",
+                course.getId(), current.getEmail(), account != null);
+
+        evictCourseCachesAfterCommit();
+        return getParticipants(courseId);
+    }
+
+    @Override
+    @Transactional
+    public MasterclassParticipantsResponse removeManualParticipant(UUID courseId, UUID bookingId) {
+        User current = currentUser();
+        Course course = ownedLiveMasterclass(courseId, current);
+
+        MasterclassManualBooking booking = manualBookingRepository.findById(bookingId)
+                .filter(b -> b.getCourse().getId().equals(course.getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Participant", "id", bookingId));
+        if (booking.getCancelledAt() != null) {
+            return getParticipants(courseId);
+        }
+        booking.setCancelledAt(LocalDateTime.now());
+        manualBookingRepository.save(booking);
+
+        // Take back the access given above, unless the person also paid by card.
+        User account = booking.getUser();
+        if (account != null && !hasConfirmedPlace(course, account)) {
+            enrollmentServiceProvider.getObject().revokeEnrollment(account, course);
+        }
+        log.info("Manual participant {} removed from masterclass {} by {}", bookingId, course.getId(), current.getEmail());
+
+        evictCourseCachesAfterCommit();
+        return getParticipants(courseId);
     }
 
     private User currentUser() {

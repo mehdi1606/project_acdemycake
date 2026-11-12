@@ -41,6 +41,22 @@ public class InstructorController {
         return ResponseEntity.ok(ApiResponse.success(masterclassBookingService.getParticipants(courseId)));
     }
 
+    @PostMapping("/masterclasses/{courseId}/participants")
+    @Operation(summary = "Add a participant who booked on WhatsApp and paid outside the platform")
+    public ResponseEntity<ApiResponse<MasterclassParticipantsResponse>> addMasterclassParticipant(
+            @PathVariable UUID courseId, @Valid @RequestBody AddManualParticipantRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Participant added",
+                masterclassBookingService.addManualParticipant(courseId, request)));
+    }
+
+    @DeleteMapping("/masterclasses/{courseId}/participants/manual/{bookingId}")
+    @Operation(summary = "Remove a manually added participant (frees the seat)")
+    public ResponseEntity<ApiResponse<MasterclassParticipantsResponse>> removeMasterclassParticipant(
+            @PathVariable UUID courseId, @PathVariable UUID bookingId) {
+        return ResponseEntity.ok(ApiResponse.success("Participant removed",
+                masterclassBookingService.removeManualParticipant(courseId, bookingId)));
+    }
+
     @GetMapping("/dashboard")
     @Operation(summary = "Get instructor dashboard")
     public ResponseEntity<ApiResponse<DashboardResponse.InstructorDashboard>> getDashboard() {

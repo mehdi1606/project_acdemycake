@@ -754,15 +754,26 @@ export interface CourseQueryParams extends PaginationParams {
 
 export interface MasterclassParticipant {
   reservationId: string;
-  userId: string;
+  userId?: string | null;
   fullName: string;
-  email: string;
+  email?: string | null;
   phone?: string | null;
-  amount: number;
+  amount?: number | null;
   currency: string;
-  paymentStatus: 'COMPLETED' | 'REFUNDED';
+  /** MANUAL = added by the instructor (WhatsApp booking paid outside the platform). */
+  paymentStatus: 'COMPLETED' | 'REFUNDED' | 'MANUAL';
   bookingStatus: 'CONFIRMED' | 'CANCELLED';
+  source?: 'CARD' | 'MANUAL';
+  note?: string | null;
   reservedAt: string;
+}
+
+export interface AddManualParticipantPayload {
+  fullName: string;
+  phone?: string;
+  email?: string;
+  amountPaid?: number;
+  note?: string;
 }
 
 export interface MasterclassParticipants {
@@ -780,6 +791,8 @@ export interface MasterclassParticipants {
   pendingHolds: number;
   remainingPlaces?: number | null;
   totalRevenue: number;
+  /** Amounts entered for manually added participants. */
+  manualRevenue?: number | null;
   participants: MasterclassParticipant[];
 }
 
