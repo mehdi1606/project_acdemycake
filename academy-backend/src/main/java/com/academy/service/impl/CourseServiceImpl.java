@@ -234,6 +234,7 @@ public class CourseServiceImpl implements CourseService {
                 .sessionStartTime(request.getSessionStartTime())
                 .sessionEndTime(request.getSessionEndTime())
                 .sessionLocation(trimToNull(request.getSessionLocation()))
+                .previewVideoUrl(cleanVideoUrl(request.getPreviewVideoUrl()))
                 // Masterclass always requires individual purchase
                 .requiresPurchase(com.academy.entity.enums.CourseType.MASTERCLASS.equals(request.getCourseType()) ? true
                         : (request.getRequiresPurchase() != null ? request.getRequiresPurchase() : false))
@@ -316,6 +317,9 @@ public class CourseServiceImpl implements CourseService {
         }
         if (request.getSessionLocation() != null) {
             course.setSessionLocation(trimToNull(request.getSessionLocation()));
+        }
+        if (request.getPreviewVideoUrl() != null) {
+            course.setPreviewVideoUrl(cleanVideoUrl(request.getPreviewVideoUrl()));
         }
         if (request.getCourseType() != null) {
             course.setCourseType(request.getCourseType());
@@ -789,6 +793,17 @@ public class CourseServiceImpl implements CourseService {
         if (value == null) return null;
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /** Promo video link: blank means none; anything else must be an http(s) URL. */
+    private static String cleanVideoUrl(String value) {
+        String url = trimToNull(value);
+        if (url == null) return null;
+        String lower = url.toLowerCase(java.util.Locale.ROOT);
+        if (!(lower.startsWith("https://") || lower.startsWith("http://")) || url.chars().anyMatch(Character::isWhitespace)) {
+            throw new BadRequestException("The promo video link must be a full web address starting with https://");
+        }
+        return url;
     }
 
     /**

@@ -20,6 +20,7 @@ import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 import { assignmentService } from '../../../services/api/assignment.service';
 import LiveMasterclassBooking, { liveSeatInfo, formatSessionDate, formatSessionTimeRange } from './LiveMasterclassBooking';
+import VideoModal from '../../HomePages/home-one/section/videoModal';
 
 const { Panel } = Collapse;
 const route = all_routes;
@@ -78,6 +79,7 @@ const CourseDetails = () => {
   const [enrolling,    setEnrolling]    = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [activeTab,    setActiveTab]    = useState<'overview'|'curriculum'|'instructor'|'reviews'>('overview');
+  const [showPromo,    setShowPromo]    = useState(false);
   const [reviewRating,  setReviewRating]  = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingRev, setSubmittingRev] = useState(false);
@@ -418,7 +420,12 @@ const CourseDetails = () => {
               />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(30,10,16,0.4) 0%,transparent 60%)', pointerEvents: 'none' }} />
               {c.previewVideoUrl && (
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPromo(true)}
+                  aria-label="Play promo video"
+                  style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'none', border: 'none', padding: 0, width: '100%' }}
+                >
                   <div style={{
                     width: 70, height: 70, borderRadius: '50%',
                     background: 'rgba(255,255,255,0.95)',
@@ -428,7 +435,7 @@ const CourseDetails = () => {
                   }}>
                     <i className="fa-solid fa-play" style={{ fontSize: 24, color: '#651C32', marginLeft: 4 }} />
                   </div>
-                </div>
+                </button>
               )}
               {isMasterclass && (
                 <div style={{ position: 'absolute', top: 16, left: 16, background: 'linear-gradient(135deg,#C5973E,#DEBB6B)', color: '#fff', fontWeight: 800, fontSize: 11, padding: '4px 14px', borderRadius: 20, letterSpacing: '0.06em' }}>
@@ -436,6 +443,9 @@ const CourseDetails = () => {
                 </div>
               )}
             </div>
+            {c.previewVideoUrl && showPromo && (
+              <VideoModal show={showPromo} handleClose={() => setShowPromo(false)} videoUrl={c.previewVideoUrl} />
+            )}
           </div>
 
         </div>

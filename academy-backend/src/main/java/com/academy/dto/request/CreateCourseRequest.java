@@ -58,6 +58,10 @@ public class CreateCourseRequest {
     @Size(max = 500, message = "Location must be at most 500 characters")
     private String sessionLocation;
 
+    /** Optional promo video (YouTube, Vimeo or a direct video link). */
+    @Size(max = 500, message = "Video URL must be at most 500 characters")
+    private String previewVideoUrl;
+
     private Boolean requiresPurchase = false;
 
     @DecimalMin(value = "0.0", message = "Price must be positive")

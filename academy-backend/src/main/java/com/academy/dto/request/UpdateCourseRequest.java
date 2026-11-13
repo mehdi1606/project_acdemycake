@@ -55,6 +55,10 @@ public class UpdateCourseRequest {
     @Size(max = 500, message = "Location must be at most 500 characters")
     private String sessionLocation;
 
+    /** Optional promo video. An empty string removes it; null leaves it unchanged. */
+    @Size(max = 500, message = "Video URL must be at most 500 characters")
+    private String previewVideoUrl;
+
     private Boolean requiresPurchase;
 
     @DecimalMin(value = "0.0", message = "Price must be positive")

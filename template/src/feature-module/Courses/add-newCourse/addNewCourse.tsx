@@ -258,6 +258,8 @@ const AddNewCourse = () => {
     // Thumbnail is optional but videoUrl is required if videoType is selected
     if (formData.videoType && !formData.videoUrl.trim()) {
       newErrors.videoUrl = 'Please provide a video URL';
+    } else if (formData.videoType && !/^https?:\/\/\S+$/i.test(formData.videoUrl.trim())) {
+      newErrors.videoUrl = 'Please paste the full link, starting with https://';
     }
 
     setErrors(newErrors);
@@ -516,6 +518,8 @@ const AddNewCourse = () => {
         sessionEndTime: formData.sessionEndTime,
         sessionLocation: formData.sessionLocation.trim(),
       } : {}),
+      // Promo video ('' = none; on edit this clears a previously saved video)
+      previewVideoUrl: formData.videoType ? formData.videoUrl.trim() : '',
       requiresPurchase: isMasterclass,
       requirements: formData.requirements.filter(r => r.trim() !== '').join('\n'),
       whatYouWillLearn: formData.learningObjectives.filter(o => o.trim() !== '').join('\n'),
@@ -575,6 +579,11 @@ const AddNewCourse = () => {
           sessionStartTime: (c.sessionStartTime || '').slice(0, 5),
           sessionEndTime: (c.sessionEndTime || '').slice(0, 5),
           sessionLocation: c.sessionLocation || '',
+          videoUrl: c.previewVideoUrl || '',
+          videoType: !c.previewVideoUrl ? ''
+            : /youtube\.com|youtu\.be/i.test(c.previewVideoUrl) ? 'youtube'
+            : /vimeo\.com/i.test(c.previewVideoUrl) ? 'vimeo'
+            : 'external',
         }));
         setValue(description);
         setDescriptionAr(c.descriptionAr || '');
