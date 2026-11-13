@@ -20,7 +20,7 @@ import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 import { assignmentService } from '../../../services/api/assignment.service';
 import LiveMasterclassBooking, { liveSeatInfo, formatSessionDate, formatSessionTimeRange } from './LiveMasterclassBooking';
-import VideoModal from '../../HomePages/home-one/section/videoModal';
+import ReactPlayer from 'react-player';
 
 const { Panel } = Collapse;
 const route = all_routes;
@@ -79,7 +79,14 @@ const CourseDetails = () => {
   const [enrolling,    setEnrolling]    = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [activeTab,    setActiveTab]    = useState<'overview'|'curriculum'|'instructor'|'reviews'>('overview');
-  const [showPromo,    setShowPromo]    = useState(false);
+  const [promoPlaying, setPromoPlaying] = useState(false);
+
+  /** Hero play button: show the Overview tab, scroll to the video and start it. */
+  const playPromo = () => {
+    setActiveTab('overview');
+    setPromoPlaying(true);
+    window.setTimeout(() => document.getElementById('sl-promo-video')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  };
   const [reviewRating,  setReviewRating]  = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingRev, setSubmittingRev] = useState(false);
@@ -422,7 +429,7 @@ const CourseDetails = () => {
               {c.previewVideoUrl && (
                 <button
                   type="button"
-                  onClick={() => setShowPromo(true)}
+                  onClick={playPromo}
                   aria-label="Play promo video"
                   style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'none', border: 'none', padding: 0, width: '100%' }}
                 >
@@ -443,9 +450,6 @@ const CourseDetails = () => {
                 </div>
               )}
             </div>
-            {c.previewVideoUrl && showPromo && (
-              <VideoModal show={showPromo} handleClose={() => setShowPromo(false)} videoUrl={c.previewVideoUrl} />
-            )}
           </div>
 
         </div>
@@ -506,6 +510,24 @@ const CourseDetails = () => {
                   <div style={{ color: '#4b5563', lineHeight: 1.8, fontSize: 15, wordBreak: 'break-word', overflowWrap: 'break-word', overflow: 'hidden' }}
                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(c.description || c.shortDescription || '') }} />
                 </div>
+
+                {c.previewVideoUrl && (
+                  <div id="sl-promo-video" style={{ ...cardStyle, scrollMarginTop: 90 }}>
+                    <SectionTitle>{t('courses.details.promoVideo', 'Watch the video')}</SectionTitle>
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: 14, overflow: 'hidden', background: '#000' }}>
+                      <ReactPlayer
+                        url={c.previewVideoUrl}
+                        controls
+                        playing={promoPlaying}
+                        onPlay={() => setPromoPlaying(true)}
+                        onPause={() => setPromoPlaying(false)}
+                        width="100%"
+                        height="100%"
+                        style={{ position: 'absolute', inset: 0 }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {c.whatYouWillLearn?.trim() && (
                   <div style={{ ...cardStyle, background: 'linear-gradient(135deg,rgba(197,145,62,0.04) 0%,#fff 60%)', border: '1px solid rgba(197,145,62,0.15)' }}>
