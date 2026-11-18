@@ -5,7 +5,7 @@ import HeroOvenStory from './hero/HeroOvenStory'
 import HeroGoldPiping from './hero/HeroGoldPiping'
 import HeroFloating from './hero/HeroFloating'
 import HeroCinematic from './hero/HeroCinematic'
-import AssemblingWallpaper from './hero/AssemblingWallpaper'
+import Garden3D from './hero/Garden3D'
 import './hero/hero-variants.css'
 import { useTranslation } from 'react-i18next'
 import { all_routes } from '../../../router/all_routes'
@@ -105,7 +105,7 @@ const ClassicBanner: React.FC<{ assemble?: boolean }> = ({ assemble = false }) =
             className="sl-banner"
             style={{
                 cursor: 'default',
-                // Variant 6 builds the wallpaper itself (AssemblingWallpaper below).
+                // Variant 6 draws the wallpaper as a living 3D garden (Garden3D below).
                 ...(assemble
                     ? { backgroundImage: 'none', backgroundAttachment: 'scroll' }
                     : { backgroundImage: `url(${process.env.PUBLIC_URL}/assets/img/Landscape.jpeg)` }),
@@ -113,7 +113,7 @@ const ClassicBanner: React.FC<{ assemble?: boolean }> = ({ assemble = false }) =
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
-            {assemble && <AssemblingWallpaper />}
+            {assemble && <Garden3D />}
 
             {/* ── Layer 1: Graphic element (slowest parallax) ── */}
             <img
