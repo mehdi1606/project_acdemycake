@@ -69,6 +69,17 @@
 /* Cinematic (variant 5): our own veil replaces the default overlay so the footage shows */
 .sl-banner.hv-cinematic::before { display: none; }
 
+/* Wallpaper assembling itself (variant 6) */
+.hv-assemble { opacity: 0; animation-name: hv-assemble; animation-timing-function: cubic-bezier(.2,.8,.2,1); animation-fill-mode: both; will-change: transform, opacity; }
+@keyframes hv-assemble {
+  from { opacity: 0; transform: translate(var(--fx), var(--fy)) rotate(var(--fr)) scale(var(--fs)); }
+  20%  { opacity: 1; }
+  to   { opacity: 1; transform: none; }
+}
+/* lions bob as they walk in (6 steps ≈ the walk duration) */
+.hv-walk { animation: hv-walk .43s ease-in-out 6 alternate both; }
+@keyframes hv-walk { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-1.5%) rotate(-1.2deg); } }
+
 /* Oven glow (variant 2) */
 @keyframes hv-glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
@@ -83,7 +94,7 @@
 .hv-picker button.is-active { background: #C5912C; color: #2B0F1E; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hv-wing, .hv-fly, .hv-fly > *, .hv-wander, .hv-bob, .hv-sway, .hv-drift, .hv-glide, .hv-sparkle, .hv-float, .hv-shimmer::after { animation: none !important; }
+  .hv-assemble, .hv-walk, .hv-wing, .hv-fly, .hv-fly > *, .hv-wander, .hv-bob, .hv-sway, .hv-drift, .hv-glide, .hv-sparkle, .hv-float, .hv-shimmer::after { animation: none !important; }
   .hv-draw { animation: none; stroke-dashoffset: 0; }
   .hv-fade-in { animation: none; opacity: 1; }
 }

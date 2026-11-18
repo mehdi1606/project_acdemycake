@@ -5,6 +5,7 @@ import HeroOvenStory from './hero/HeroOvenStory'
 import HeroGoldPiping from './hero/HeroGoldPiping'
 import HeroFloating from './hero/HeroFloating'
 import HeroCinematic from './hero/HeroCinematic'
+import AssemblingWallpaper from './hero/AssemblingWallpaper'
 import './hero/hero-variants.css'
 import { useTranslation } from 'react-i18next'
 import { all_routes } from '../../../router/all_routes'
@@ -56,7 +57,7 @@ const StatItem: React.FC<{
 }
 
 // ── Main Banner ───────────────────────────────────────────────────────────────
-const ClassicBanner: React.FC = () => {
+const ClassicBanner: React.FC<{ assemble?: boolean }> = ({ assemble = false }) => {
   const { t } = useTranslation();
     const route = all_routes
     const navigate = useNavigate()
@@ -104,11 +105,16 @@ const ClassicBanner: React.FC = () => {
             className="sl-banner"
             style={{
                 cursor: 'default',
-                backgroundImage: `url(${process.env.PUBLIC_URL}/assets/img/Landscape.jpeg)`,
+                // Variant 6 builds the wallpaper itself (AssemblingWallpaper below).
+                ...(assemble
+                    ? { backgroundImage: 'none', backgroundAttachment: 'scroll' }
+                    : { backgroundImage: `url(${process.env.PUBLIC_URL}/assets/img/Landscape.jpeg)` }),
             }}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
+            {assemble && <AssemblingWallpaper />}
+
             {/* ── Layer 1: Graphic element (slowest parallax) ── */}
             <img
                 src={`${process.env.PUBLIC_URL}/assets/img/Graphics/Graphics Elements-09.svg`}
@@ -394,6 +400,7 @@ const HERO_VARIANTS: { label: string; Component: React.ComponentType }[] = [
     { label: '3 · Gold piping', Component: HeroGoldPiping },
     { label: '4 · Floating', Component: HeroFloating },
     { label: '5 · Cinematic', Component: HeroCinematic },
+    { label: '6 · Garden builds', Component: () => <ClassicBanner assemble /> },
 ]
 
 const BannerSection: React.FC = () => {
