@@ -25,6 +25,16 @@ export interface Ebook {
   purchasedAt?: string;
 }
 
+/** Why a PDF could not be loaded — lets the reader show the right message. */
+export type EbookAccessFailure = 'NOT_OWNED' | 'UNAVAILABLE' | 'FAILED';
+
+export class EbookAccessError extends Error {
+  constructor(public readonly reason: EbookAccessFailure, msg: string) {
+    super(msg);
+    this.name = 'EbookAccessError';
+  }
+}
+
 /**
  * NOTE: the axios interceptor already unwraps the backend's
  * `ApiResponse { success, message, data }` envelope into `response.data`.
@@ -78,13 +88,20 @@ class EbookService {
       const res = await api.get<Blob>(path, {
         responseType: 'blob',
         params: language ? { language } : undefined,
+        // Ebook PDFs run to 70+ MB; the default 30 s limit cut them off on
+        // ordinary connections, so the buyer saw an error after paying.
+        timeout: 0,
       });
       return res.data;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response?.status === 403) {
-        throw new Error('You have not purchased this ebook');
+        throw new EbookAccessError('NOT_OWNED', 'You have not purchased this ebook');
       }
-      throw new Error('Could not open this ebook');
+      if (isAxiosError(error) && error.response?.status === 404) {
+        // Purchase is fine — the file is missing on the server.
+        throw new EbookAccessError('UNAVAILABLE', 'This ebook file is temporarily unavailable');
+      }
+      throw new EbookAccessError('FAILED', 'Could not open this ebook');
     }
   }
 }

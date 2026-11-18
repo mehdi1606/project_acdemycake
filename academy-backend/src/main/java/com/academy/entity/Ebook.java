@@ -18,8 +18,8 @@ import java.math.BigDecimal;
  * {@code app.file.ebook-dir} and are only ever streamed by an endpoint that has
  * first checked the caller owns the book.
  *
- * A title may exist in several languages (e.g. Alchemy in Layers ships a French
- * and an Arabic edition). One purchase grants every edition of that title.
+ * A title may exist in several languages (one PDF column per language).
+ * One purchase grants every edition of that title.
  */
 @Getter
 @Setter

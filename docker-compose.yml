@@ -125,8 +125,14 @@ services:
       # Translation — self-hosted LibreTranslate on the internal network
       LIBRETRANSLATE_URL: http://libretranslate:5000
 
+      # Paid ebook PDFs — private, streamed only to buyers (see volume below)
+      EBOOK_STORAGE_DIR: /app/secure-storage/ebooks
+
     volumes:
       - uploads_data:/app/uploads   # Persistent file storage
+      # Ebook PDFs must survive rebuilds — without this volume every
+      # `up --build` wiped them and buyers got "file not available".
+      - ebooks_data:/app/secure-storage/ebooks
     networks:
       - academy-net
     # Backend is NOT exposed on host — only Nginx talks to it
@@ -165,6 +171,8 @@ volumes:
   postgres_data:
     driver: local
   uploads_data:
+    driver: local
+  ebooks_data:
     driver: local
   libretranslate_models:
     driver: local

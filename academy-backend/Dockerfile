@@ -25,7 +25,9 @@ RUN addgroup -S academy && adduser -S academy -G academy
 COPY --from=build /app/target/cake-design-academy-1.0.0.jar app.jar
 
 # Uploads directory (mounted as Docker volume for persistence)
-RUN mkdir -p /app/uploads && chown -R academy:academy /app
+# Ebook PDFs (paid content, never under /files/) live in their own volume.
+# Creating it here owned by "academy" makes a fresh named volume writable.
+RUN mkdir -p /app/uploads /app/secure-storage/ebooks && chown -R academy:academy /app
 
 USER academy
 

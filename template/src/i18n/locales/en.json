@@ -48,7 +48,16 @@
     "libraryEmptyHint": "Ebooks you buy appear here to read and download any time.",
     "browse": "Browse ebooks",
     "purchasedOn": "Purchased {{date}}",
-    "goToLibrary": "Go to my library"
+    "goToLibrary": "Go to my library",
+    "edition": "Edition",
+    "aboutBook": "About the book",
+    "insideBook": "Inside the book",
+    "recipesCount": "{{n}} exclusive recipes",
+    "whyLove": "Why you’ll love these recipes",
+    "highlights": "The highlights of our creations",
+    "madeByStudents": "Made with this book",
+    "studentCreations": "Our students’ creations",
+    "fileUnavailable": "Your purchase is saved, but this ebook file is temporarily unavailable. Please try again later or contact us."
   },
   "nav": {
     "home": "Home",

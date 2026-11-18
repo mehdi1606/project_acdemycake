@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { message } from 'antd';
 import { all_routes } from '../router/all_routes';
-import ebookService, { Ebook } from '../../services/api/ebook.service';
+import ebookService, { Ebook, EbookAccessError } from '../../services/api/ebook.service';
 
 const GOLD = '#C5912C';
 const DARK = '#1A0A10';
@@ -51,6 +51,17 @@ const EbookReader: React.FC = () => {
     return () => { cancelled = true; };
   }, [id, i18n.language, t]);
 
+  // An owner must never be told they lack access when the file is just missing.
+  const accessMessage = useCallback((e: unknown) => {
+    if (e instanceof EbookAccessError) {
+      if (e.reason === 'NOT_OWNED') return t('ebooks.notOwned', 'You have not purchased this ebook.');
+      if (e.reason === 'UNAVAILABLE') {
+        return t('ebooks.fileUnavailable', 'Your purchase is saved, but this ebook file is temporarily unavailable. Please try again later or contact us.');
+      }
+    }
+    return t('ebooks.loadError', 'Could not load the ebook.');
+  }, [t]);
+
   // Load the chosen edition.
   const loadContent = useCallback(async (lang: string) => {
     if (!id) return;
@@ -60,11 +71,11 @@ const EbookReader: React.FC = () => {
       const url = await ebookService.fetchContentBlobUrl(id, lang || undefined);
       setBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; });
     } catch (e: any) {
-      setError(e?.message || t('ebooks.loadError', 'Could not load the ebook.'));
+      setError(accessMessage(e));
     } finally {
       setLoading(false);
     }
-  }, [id, t]);
+  }, [id, accessMessage]);
 
   useEffect(() => {
     if (ebook && language !== null) loadContent(language);
@@ -81,7 +92,7 @@ const EbookReader: React.FC = () => {
       const safe = ebook.title.replace(/[^\w؀-ۿ -]/g, '').trim() || 'ebook';
       await ebookService.download(id, `${safe}.pdf`, language || undefined);
     } catch (e: any) {
-      message.error(e?.message || t('ebooks.downloadError', 'Download failed'));
+      message.error(e instanceof EbookAccessError && e.reason !== 'FAILED' ? accessMessage(e) : t('ebooks.downloadError', 'Download failed'));
     } finally {
       setDownloading(false);
     }
