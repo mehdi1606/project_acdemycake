@@ -93,6 +93,8 @@ public interface CourseRepository extends JpaRepository<Course, UUID>, JpaSpecif
     @Query("SELECT COUNT(c) FROM Course c WHERE c.status = 'PUBLISHED'")
     long countPublishedCourses();
 
+    long countByStatus(CourseStatus status);
+
     @Query("SELECT COUNT(c) FROM Course c WHERE c.instructor = :instructor")
     long countByInstructor(@Param("instructor") User instructor);
 

@@ -230,22 +230,26 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PageResponse<SubscriptionResponse> getAllSubscriptions(int page, int size, String status) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Subscription> subscriptions;
 
         if (status != null && !status.isBlank()) {
+            SubscriptionStatus subStatus;
             try {
-                SubscriptionStatus subStatus = SubscriptionStatus.valueOf(status.toUpperCase());
-                subscriptions = subscriptionRepository.findByStatus(subStatus, pageRequest);
+                subStatus = SubscriptionStatus.valueOf(status.trim().toUpperCase());
             } catch (IllegalArgumentException e) {
-                subscriptions = subscriptionRepository.findAll(pageRequest);
+                throw new BadRequestException("Invalid subscription status: " + status);
             }
+            subscriptions = subscriptionRepository.findByStatus(subStatus, pageRequest);
         } else {
             subscriptions = subscriptionRepository.findAll(pageRequest);
         }
 
-        return PageResponse.from(subscriptions, SubscriptionResponse::fromEntity);
+        // Mapped inside the read-only transaction so the lazy User proxy is accessible
+        // (open-in-view is disabled). Admin listing → include the subscriber's identity.
+        return PageResponse.from(subscriptions, SubscriptionResponse::fromEntityWithUser);
     }
 
     @Override

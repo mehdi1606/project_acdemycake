@@ -31,6 +31,10 @@ public class UserResponse {
     private Boolean mustChangePassword;
     private Long totalCourses;
     private Long totalStudents;
+    // Ban state — Lombok generates getIsBanned() for a Boolean, so the JSON key is "isBanned".
+    private Boolean isBanned;
+    private LocalDateTime bannedAt;
+    private String banReason;
 
     public static UserResponse fromEntity(User user) {
         return UserResponse.builder()
@@ -47,6 +51,9 @@ public class UserResponse {
                 .socialLinks(user.getSocialLinks())
                 .createdAt(user.getCreatedAt())
                 .mustChangePassword(Boolean.TRUE.equals(user.getMustChangePassword()))
+                .isBanned(Boolean.TRUE.equals(user.getIsBanned()))
+                .bannedAt(user.getBannedAt())
+                .banReason(user.getBanReason())
                 .build();
     }
 }

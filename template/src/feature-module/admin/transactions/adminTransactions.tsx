@@ -23,8 +23,13 @@ const AdminTransactions = () => {
   const [stats, setStats] = useState<TransactionStats | null>(null);
 
   useEffect(() => {
-    dispatch(fetchTransactions({ page: currentPage, size: 20 }));
-  }, [dispatch, currentPage]);
+    dispatch(fetchTransactions({
+      page: currentPage,
+      size: 20,
+      status: statusFilter || undefined,
+      type: typeFilter || undefined,
+    }));
+  }, [dispatch, currentPage, statusFilter, typeFilter]);
 
   // Refresh aggregate stats whenever the visible page changes (so a freshly
   // completed payment is reflected without a full reload).
@@ -46,12 +51,24 @@ const AdminTransactions = () => {
     setCurrentPage(page - 1);
   };
 
+  // Filters are applied server-side; a new filter always starts from the first page.
+  const handleStatusFilterChange = (value?: string) => {
+    setStatusFilter(value || '');
+    setCurrentPage(0);
+  };
+
+  const handleTypeFilterChange = (value?: string) => {
+    setTypeFilter(value || '');
+    setCurrentPage(0);
+  };
+
   const getStatusBadge = (status: string) => {
     const map: Record<string, { cls: string; label: string }> = {
       COMPLETED: { cls: 'badge-success', label: 'Completed' },
       PENDING:   { cls: 'badge-warning', label: 'Pending' },
       FAILED:    { cls: 'badge-danger',  label: 'Failed' },
       REFUNDED:  { cls: 'badge-slate',   label: 'Refunded' },
+      CANCELLED: { cls: 'badge-slate',   label: 'Cancelled' },
     };
     const b = map[status] || { cls: 'badge-info', label: status };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
@@ -61,6 +78,7 @@ const AdminTransactions = () => {
     const map: Record<string, { cls: string; label: string }> = {
       SUBSCRIPTION:    { cls: 'badge-warning', label: 'Subscription' },
       COURSE_PURCHASE: { cls: 'badge-info',    label: 'Course Purchase' },
+      EBOOK_PURCHASE:  { cls: 'badge-success', label: 'Ebook Purchase' },
     };
     const b = map[type] || { cls: 'badge-info', label: type };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
@@ -68,17 +86,15 @@ const AdminTransactions = () => {
 
   const formatCurrency = (amount: number, currency: string = 'MAD') => formatMAD(amount, currency);
 
-  const filteredTransactions = (transactions || []).filter((tx: any) => {
-    if (statusFilter && tx.status !== statusFilter) return false;
-    if (typeFilter && tx.transactionType !== typeFilter) return false;
-    return true;
-  });
+  // Status/type filtering is done server-side; the page already holds only matching rows.
+  const filteredTransactions = transactions || [];
 
   // Revenue figures come from the backend aggregate (all CMI payments), not the
   // current page. Realised revenue = COMPLETED payments only.
   const totalRevenue        = stats?.totalRevenue        ?? 0;
   const subscriptionRevenue = stats?.subscriptionRevenue ?? 0;
   const courseRevenue       = stats?.courseRevenue       ?? 0;
+  const ebookRevenue        = stats?.ebookRevenue        ?? 0;
   const pendingAmount       = stats?.pendingAmount       ?? 0;
 
   return (
@@ -110,8 +126,15 @@ const AdminTransactions = () => {
             color: 'slate',
             sub: null,
           },
+          {
+            label: t('admin.transactions.ebookSales', 'Ebook Sales'),
+            value: formatCurrency(ebookRevenue),
+            icon: 'isax isax-book-1',
+            color: 'rose',
+            sub: null,
+          },
         ].map((s, i) => (
-          <div key={i} className="col-md-4">
+          <div key={i} className="col-xxl-3 col-md-6">
             <div className="lx-stat-card">
               <div className={`stat-icon ${s.color}`}>
                 <i className={s.icon} />
@@ -139,22 +162,26 @@ const AdminTransactions = () => {
               placeholder={t('admin.transactions.filterByStatus', 'Filter by status')}
               allowClear
               style={{ width: 150 }}
-              onChange={(value) => setStatusFilter(value || '')}
+              value={statusFilter || undefined}
+              onChange={(value?: string) => handleStatusFilterChange(value)}
               options={[
                 { value: 'COMPLETED', label: t('admin.transactions.completed', 'Completed') },
                 { value: 'PENDING',   label: t('common.pending', 'Pending') },
                 { value: 'FAILED',    label: t('admin.transactions.failed', 'Failed') },
                 { value: 'REFUNDED',  label: t('admin.transactions.refunded', 'Refunded') },
+                { value: 'CANCELLED', label: t('admin.transactions.cancelled', 'Cancelled') },
               ]}
             />
             <Select
               placeholder={t('admin.transactions.filterByType', 'Filter by type')}
               allowClear
               style={{ width: 160 }}
-              onChange={(value) => setTypeFilter(value || '')}
+              value={typeFilter || undefined}
+              onChange={(value?: string) => handleTypeFilterChange(value)}
               options={[
                 { value: 'SUBSCRIPTION',    label: t('admin.sidebar.subscriptions', 'Subscription') },
                 { value: 'COURSE_PURCHASE', label: t('admin.transactions.coursePurchase', 'Course Purchase') },
+                { value: 'EBOOK_PURCHASE',  label: t('admin.transactions.ebookPurchase', 'Ebook Purchase') },
               ]}
             />
           </div>

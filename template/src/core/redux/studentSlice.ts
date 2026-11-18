@@ -124,7 +124,7 @@ const studentSlice = createSlice({
         state.isLoading = false;
         state.enrollments = action.payload.content;
         state.totalPages = action.payload.totalPages;
-        state.currentPage = action.payload.number;
+        state.currentPage = action.payload.page;
       })
       .addCase(fetchMyEnrollments.rejected, (state, action) => {
         state.isLoading = false;

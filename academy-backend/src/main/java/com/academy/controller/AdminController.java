@@ -3,6 +3,8 @@ package com.academy.controller;
 import com.academy.dto.request.AdminCreateUserRequest;
 import com.academy.dto.request.UpdatePricingRequest;
 import com.academy.dto.response.*;
+import com.academy.entity.enums.PaymentStatus;
+import com.academy.entity.enums.UserRole;
 import com.academy.service.*;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -55,24 +58,32 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    @Operation(summary = "Get all users with pagination")
+    @Operation(summary = "Get all users with pagination, optional search and role filter")
     public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UserRole role) {
 
-        PageResponse<UserResponse> response = userService.getAllUsers(page, size, search);
+        PageResponse<UserResponse> response = userService.getAllUsers(page, size, search, role);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/users/stats")
+    @Operation(summary = "User counts per role over the whole dataset (soft-deleted users excluded)")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getUserStats() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getUserStats()));
+    }
+
     @GetMapping("/instructors")
-    @Operation(summary = "Get all instructors with pagination and optional search")
+    @Operation(summary = "Get all instructors with pagination, optional search and sort (newest | oldest | name)")
     public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getInstructors(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "newest") String sort) {
 
-        PageResponse<UserResponse> response = userService.getInstructors(page, size, search);
+        PageResponse<UserResponse> response = userService.getInstructors(page, size, search, sort);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -126,6 +137,12 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/courses/stats")
+    @Operation(summary = "Course counts per status over the whole dataset")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getCourseStats() {
+        return ResponseEntity.ok(ApiResponse.success(adminService.getCourseStats()));
+    }
+
     @GetMapping("/courses/pending")
     @Operation(summary = "Get courses pending review")
     public ResponseEntity<ApiResponse<PageResponse<CourseResponse>>> getPendingCourses(
@@ -173,12 +190,14 @@ public class AdminController {
 
     // Transactions
     @GetMapping("/transactions")
-    @Operation(summary = "Get all transactions")
+    @Operation(summary = "Get all transactions, optionally filtered by status and type")
     public ResponseEntity<ApiResponse<PageResponse<TransactionResponse>>> getTransactions(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) PaymentStatus status,
+            @RequestParam(required = false) String type) {
 
-        PageResponse<TransactionResponse> response = adminService.getTransactions(page, size);
+        PageResponse<TransactionResponse> response = adminService.getTransactions(page, size, status, type);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

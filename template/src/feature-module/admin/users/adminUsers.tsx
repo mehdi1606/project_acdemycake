@@ -12,7 +12,7 @@ import {
 } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchUsers, banUser, unbanUser, deleteUser } from '../../../core/redux/adminSlice';
-import adminService from '../../../services/api/admin.service';
+import adminService, { UserRoleFilter, UserStats } from '../../../services/api/admin.service';
 import { extractApiError } from '../../../services/api/error.utils';
 import { getFileUrl } from '../../../environment';
 import BadgeAvatar from '../../../components/BadgeAvatar';
@@ -68,7 +68,9 @@ const AdminUsers: React.FC = () => {
   };
 
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [roleFilter, setRoleFilter] = useState<string>('');
+  const [roleFilter, setRoleFilter] = useState<UserRoleFilter | ''>('');
+  // Whole-dataset counts for the stat cards (not just the current page)
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [banModalVisible, setBanModalVisible] = useState<boolean>(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -85,9 +87,20 @@ const AdminUsers: React.FC = () => {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState(false);
 
+  const reloadUsers = () =>
+    dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined, role: roleFilter || undefined }));
+
+  const loadUserStats = () => {
+    adminService.getUserStats().then(setUserStats).catch(() => setUserStats(null));
+  };
+
   useEffect(() => {
-    dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined }));
-  }, [dispatch, currentPage, searchTerm]);
+    dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined, role: roleFilter || undefined }));
+  }, [dispatch, currentPage, searchTerm, roleFilter]);
+
+  useEffect(() => {
+    adminService.getUserStats().then(setUserStats).catch(() => setUserStats(null));
+  }, []);
 
   useEffect(() => {
     if (error) message.error(error);
@@ -95,6 +108,11 @@ const AdminUsers: React.FC = () => {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+    setCurrentPage(0);
+  };
+
+  const handleRoleFilterChange = (value?: UserRoleFilter) => {
+    setRoleFilter(value || '');
     setCurrentPage(0);
   };
 
@@ -132,6 +150,8 @@ const AdminUsers: React.FC = () => {
     try {
       await dispatch(deleteUser(userId)).unwrap();
       message.success('User deleted successfully');
+      loadUserStats();
+      reloadUsers();
     } catch {
       message.error('Failed to delete user');
     }
@@ -152,7 +172,8 @@ const AdminUsers: React.FC = () => {
     try {
       await adminService.createUser(createForm);
       setCreateSuccess(true);
-      dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined }));
+      reloadUsers();
+      loadUserStats();
     } catch (err) {
       setCreateError(extractApiError(err, 'Failed to create user'));
     } finally {
@@ -167,7 +188,7 @@ const AdminUsers: React.FC = () => {
       await adminService.activateSubscription(planModalUserId);
       message.success(t('admin.users.subscriptionActivated', 'Yearly subscription activated successfully'));
       setPlanModalUserId(null);
-      dispatch(fetchUsers({ page: currentPage, size: 20, search: searchTerm || undefined }));
+      reloadUsers();
     } catch (err) {
       message.error(extractApiError(err, 'Failed to activate subscription'));
     } finally {
@@ -197,13 +218,12 @@ const AdminUsers: React.FC = () => {
     return <span className="lx-badge badge-success">{t('admin.users.active', 'Active')}</span>;
   };
 
-  const filteredUsers: User[] = roleFilter
-    ? users.filter((user: User) => user.role === roleFilter)
-    : users;
+  // Role filtering is done server-side; the page already holds only matching users.
+  const filteredUsers: User[] = users;
 
-  const studentCount = users.filter((u: User) => u.role === 'STUDENT').length;
-  const instructorCount = users.filter((u: User) => u.role === 'INSTRUCTOR').length;
-  const adminCount = users.filter((u: User) => u.role === 'ADMIN').length;
+  const studentCount = userStats?.students ?? 0;
+  const instructorCount = userStats?.instructors ?? 0;
+  const adminCount = userStats?.admins ?? 0;
 
   return (
     <LuxuryDashboardLayout>
@@ -243,7 +263,8 @@ const AdminUsers: React.FC = () => {
               placeholder={t('admin.users.role', 'Filter by role')}
               allowClear
               style={{ width: 150 }}
-              onChange={(value) => setRoleFilter(value || '')}
+              value={roleFilter || undefined}
+              onChange={(value?: UserRoleFilter) => handleRoleFilterChange(value)}
               options={[
                 { value: 'STUDENT', label: t('admin.users.students', 'Students') },
                 { value: 'INSTRUCTOR', label: t('admin.users.instructors', 'Instructors') },

@@ -231,7 +231,7 @@ const InstructorEarning = () => {
       setEarnings(Array.isArray(data?.content) ? data.content : [])
       setETotalPages(data?.totalPages ?? 0)
       setETotalElements(data?.totalElements ?? 0)
-      setEPage(data?.number ?? page)
+      setEPage(data?.page ?? page)
     } catch (err) {
       console.error('Failed to load earnings:', err)
       setEarningsError('Failed to load earnings. Please try again.')
@@ -248,7 +248,7 @@ const InstructorEarning = () => {
       setPayouts(Array.isArray(data?.content) ? data.content : [])
       setPTotalPages(data?.totalPages ?? 0)
       setPTotalElements(data?.totalElements ?? 0)
-      setPPage(data?.number ?? page)
+      setPPage(data?.page ?? page)
     } catch (err) {
       console.error('Failed to load payouts:', err)
       setPayoutsError('Failed to load payout history. Please try again.')

@@ -364,7 +364,7 @@ const PaymentCallbackPage: React.FC = () => {
         t('paymentCallback.courseUnlockedDesc', 'Your course is now in your library. You can start learning right away.'),
         { to: route.studentCourses, label: t('paymentCallback.goToMyCourses', 'Go to my courses') })
     : kind === 'ebook' ? renderSimpleSuccess('isax-book-1', t('paymentCallback.paymentConfirmed', 'Payment confirmed'), t('paymentCallback.ebookReady', 'Ebook Ready'),
-        t('paymentCallback.ebookReadyDesc', 'Your ebook has been added to your library. You can read or download it now.'),
+        t('paymentCallback.ebookReadyDesc', 'Your ebook has been added to your library. You can start reading it now.'),
         { to: route.studentEbooks, label: t('paymentCallback.openMyEbooks', 'Open my ebooks') })
     : (
     <div className="sl-pcb__card sl-pcb__card--success">

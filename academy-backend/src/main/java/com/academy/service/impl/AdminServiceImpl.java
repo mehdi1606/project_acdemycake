@@ -9,8 +9,11 @@ import com.academy.dto.response.UserResponse;
 import com.academy.entity.Course;
 import com.academy.entity.PaymentTransaction;
 import com.academy.entity.User;
+import com.academy.entity.enums.CourseStatus;
 import com.academy.entity.enums.PaymentStatus;
+import com.academy.entity.enums.SubscriptionStatus;
 import com.academy.entity.enums.UserRole;
+import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.repository.*;
 import com.academy.security.UserPrincipal;
@@ -27,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -46,6 +50,9 @@ public class AdminServiceImpl implements AdminService {
     private final CourseCategoryRepository categoryRepository;
     private final TranslationService translationService;
     private final UserService userService;
+
+    /** Every transactionType written by the payment flows. */
+    private static final Set<String> TRANSACTION_TYPES = Set.of("SUBSCRIPTION", "COURSE_PURCHASE", "EBOOK_PURCHASE");
 
     /**
      * One-time proactive translation of ALL existing courses & categories.
@@ -86,7 +93,8 @@ public class AdminServiceImpl implements AdminService {
         verifyAdmin();
 
         long totalUsers = userRepository.countByIsDeletedFalse();
-        long totalCourses = courseRepository.countPublishedCourses();
+        // All courses in every status (courses are hard-deleted, so count() = every existing course)
+        long totalCourses = courseRepository.count();
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         long totalEnrollments = enrollmentRepository.count();
         long activeSubscriptions = subscriptionRepository.countActiveSubscriptions();
@@ -114,11 +122,28 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public PageResponse<TransactionResponse> getTransactions(int page, int size) {
+    public PageResponse<TransactionResponse> getTransactions(int page, int size, PaymentStatus status, String type) {
         verifyAdmin();
 
+        String txType = null;
+        if (type != null && !type.isBlank()) {
+            txType = type.trim().toUpperCase();
+            if (!TRANSACTION_TYPES.contains(txType)) {
+                throw new BadRequestException("Invalid transaction type: " + type);
+            }
+        }
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<PaymentTransaction> transactionsPage = transactionRepository.findAllByOrderByCreatedAtDesc(pageable);
+        Page<PaymentTransaction> transactionsPage;
+        if (status != null && txType != null) {
+            transactionsPage = transactionRepository.findByStatusAndTransactionTypeOrderByCreatedAtDesc(status, txType, pageable);
+        } else if (status != null) {
+            transactionsPage = transactionRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
+        } else if (txType != null) {
+            transactionsPage = transactionRepository.findByTransactionTypeOrderByCreatedAtDesc(txType, pageable);
+        } else {
+            transactionsPage = transactionRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
 
         // Map inside the transaction so the lazy User proxy is accessible
         return PageResponse.from(transactionsPage, TransactionResponse::from);
@@ -133,12 +158,14 @@ public class AdminServiceImpl implements AdminService {
         BigDecimal totalRevenue        = transactionRepository.sumAmountByStatus(PaymentStatus.COMPLETED);
         BigDecimal subscriptionRevenue = transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "SUBSCRIPTION");
         BigDecimal courseRevenue       = transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "COURSE_PURCHASE");
+        BigDecimal ebookRevenue        = transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "EBOOK_PURCHASE");
         BigDecimal pendingAmount       = transactionRepository.sumAmountByStatus(PaymentStatus.PENDING);
 
         return TransactionStatsResponse.builder()
                 .totalRevenue(totalRevenue)
                 .subscriptionRevenue(subscriptionRevenue)
                 .courseRevenue(courseRevenue)
+                .ebookRevenue(ebookRevenue)
                 .pendingAmount(pendingAmount)
                 .completedCount(transactionRepository.countByStatus(PaymentStatus.COMPLETED))
                 .pendingCount(transactionRepository.countByStatus(PaymentStatus.PENDING))
@@ -147,33 +174,93 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public Map<String, Long> getCourseStats() {
+        verifyAdmin();
+
+        Map<String, Long> stats = new LinkedHashMap<>();
+        stats.put("total", courseRepository.count());
+        for (CourseStatus status : CourseStatus.values()) {
+            stats.put(status.name(), courseRepository.countByStatus(status));
+        }
+        return stats;
+    }
+
+    /**
+     * Analytics for the selected period. Every money figure comes from realised
+     * CMI payments (COMPLETED PaymentTransaction rows) so it matches the dashboard
+     * and the Transactions page.
+     */
+    @Override
     public Object getAnalytics(String period) {
         verifyAdmin();
 
         LocalDateTime startDate = calculateStartDate(period);
+        LocalDate firstDay = startDate.toLocalDate();
+        LocalDate today = LocalDate.now();
 
-        Map<String, Object> analytics = new HashMap<>();
+        Map<String, Object> analytics = new LinkedHashMap<>();
+        analytics.put("period", period.toUpperCase());
+        analytics.put("startDate", startDate);
 
-        // User analytics
-        long newUsers = userRepository.countNewUsersSince(startDate);
-        long totalStudents = userRepository.countByRole(UserRole.STUDENT);
-        long totalInstructors = userRepository.countByRole(UserRole.INSTRUCTOR);
+        // Money (period) - COMPLETED transactions created since the start of the period
+        analytics.put("totalRevenue",
+                transactionRepository.sumAmountByStatusSince(PaymentStatus.COMPLETED, startDate));
+        analytics.put("coursesSold",
+                transactionRepository.countByStatusAndTypeSince(PaymentStatus.COMPLETED, "COURSE_PURCHASE", startDate));
 
-        analytics.put("newUsers", newUsers);
-        analytics.put("totalStudents", totalStudents);
-        analytics.put("totalInstructors", totalInstructors);
+        // Users / subscriptions / enrollments
+        analytics.put("totalUsers", userRepository.countByIsDeletedFalse());
+        analytics.put("newUsers", userRepository.countNewUsersSince(startDate));
+        analytics.put("activeSubscriptions", subscriptionRepository.countActiveSubscriptions());
+        analytics.put("newEnrollments", enrollmentRepository.countEnrollmentsSince(startDate));
 
-        // Enrollment analytics
-        long newEnrollments = enrollmentRepository.countEnrollmentsSince(startDate);
-        analytics.put("newEnrollments", newEnrollments);
+        // Per-day series (every day of the period, zero-filled)
+        Map<LocalDate, BigDecimal> revenuePerDay = new TreeMap<>();
+        Map<LocalDate, Long> usersPerDay = new TreeMap<>();
+        for (LocalDate d = firstDay; !d.isAfter(today); d = d.plusDays(1)) {
+            revenuePerDay.put(d, BigDecimal.ZERO);
+            usersPerDay.put(d, 0L);
+        }
+        for (Object[] row : transactionRepository.findCreatedAtAndAmountByStatusSince(PaymentStatus.COMPLETED, startDate)) {
+            if (row[0] == null || row[1] == null) continue;
+            LocalDate day = ((LocalDateTime) row[0]).toLocalDate();
+            revenuePerDay.merge(day, (BigDecimal) row[1], BigDecimal::add);
+        }
+        for (LocalDateTime createdAt : userRepository.findCreatedAtSince(startDate)) {
+            if (createdAt == null) continue;
+            usersPerDay.merge(createdAt.toLocalDate(), 1L, Long::sum);
+        }
 
-        // Revenue analytics
-        BigDecimal periodRevenue = subscriptionRepository.sumRevenueFromSubscriptionsSince(startDate);
-        analytics.put("periodRevenue", periodRevenue != null ? periodRevenue : BigDecimal.ZERO);
+        List<Map<String, Object>> revenueByDay = new ArrayList<>();
+        revenuePerDay.forEach((day, amount) -> {
+            Map<String, Object> point = new LinkedHashMap<>();
+            point.put("date", day.toString());
+            point.put("amount", amount);
+            revenueByDay.add(point);
+        });
+        List<Map<String, Object>> usersByDay = new ArrayList<>();
+        usersPerDay.forEach((day, count) -> {
+            Map<String, Object> point = new LinkedHashMap<>();
+            point.put("date", day.toString());
+            point.put("count", count);
+            usersByDay.add(point);
+        });
+        analytics.put("revenueByDay", revenueByDay);
+        analytics.put("usersByDay", usersByDay);
 
-        // Course analytics
-        long publishedCourses = courseRepository.countPublishedCourses();
-        analytics.put("publishedCourses", publishedCourses);
+        // Best sellers of the period by realised revenue
+        List<Map<String, Object>> topCourses = new ArrayList<>();
+        for (Object[] row : transactionRepository.findTopCourseRevenueSince(
+                PaymentStatus.COMPLETED, startDate, PageRequest.of(0, 5))) {
+            UUID courseId = (UUID) row[0];
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("courseId", courseId);
+            item.put("title", courseRepository.findById(courseId).map(Course::getTitle).orElse(null));
+            item.put("revenue", row[1]);
+            item.put("sales", row[2]);
+            topCourses.add(item);
+        }
+        analytics.put("topCourses", topCourses);
 
         return analytics;
     }
@@ -187,7 +274,8 @@ public class AdminServiceImpl implements AdminService {
             case "revenue" -> generateRevenueReport();
             case "courses" -> generateCourseReport();
             case "subscriptions" -> generateSubscriptionReport();
-            default -> Map.of("error", "Unknown report type");
+            default -> throw new BadRequestException(
+                    "Unknown report type: " + type + " (expected users, revenue, courses or subscriptions)");
         };
     }
 
@@ -198,10 +286,12 @@ public class AdminServiceImpl implements AdminService {
         return popularCourses.getContent().stream()
                 .map(course -> {
                     long enrollments = enrollmentRepository.countByCourse(course);
+                    // Realised revenue: COMPLETED COURSE_PURCHASE payments for this course
+                    BigDecimal revenue = transactionRepository.sumCourseRevenue(PaymentStatus.COMPLETED, course.getId());
                     return DashboardResponse.CourseStats.builder()
                             .course(CourseResponse.fromEntity(course))
                             .enrollmentsCount((int) enrollments)
-                            .revenue(course.getPrice().multiply(BigDecimal.valueOf(enrollments)))
+                            .revenue(revenue != null ? revenue : BigDecimal.ZERO)
                             .averageRating(course.getRatingAverage())
                             .build();
                 })
@@ -209,7 +299,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private List<DashboardResponse.UserStats> getTopInstructors(int limit) {
-        List<User> instructors = userRepository.findByRole(UserRole.INSTRUCTOR);
+        List<User> instructors = userRepository.findByRoleAndIsDeletedFalse(UserRole.INSTRUCTOR);
 
         return instructors.stream()
                 .map(instructor -> {
@@ -219,11 +309,16 @@ public class AdminServiceImpl implements AdminService {
                             .user(UserResponse.fromEntity(instructor))
                             .studentsCount((int) students)
                             .coursesCount((int) courses)
-                            .totalRevenue(BigDecimal.ZERO) // Would aggregate from earnings
                             .build();
                 })
                 .sorted((a, b) -> Integer.compare(b.getStudentsCount(), a.getStudentsCount()))
                 .limit(limit)
+                .peek(stats -> {
+                    // Only computed for the instructors actually shown
+                    User instructor = userRepository.getReferenceById(stats.getUser().getId());
+                    BigDecimal revenue = transactionRepository.sumCourseRevenueByInstructor(PaymentStatus.COMPLETED, instructor);
+                    stats.setTotalRevenue(revenue != null ? revenue : BigDecimal.ZERO);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -258,45 +353,71 @@ public class AdminServiceImpl implements AdminService {
             case "month" -> LocalDateTime.now().minusMonths(1);
             case "quarter" -> LocalDateTime.now().minusMonths(3);
             case "year" -> LocalDateTime.now().minusYears(1);
-            default -> LocalDateTime.now().minusMonths(1);
+            default -> throw new BadRequestException(
+                    "Invalid period: " + period + " (expected day, week, month, quarter or year)");
         };
     }
 
+    private static LocalDateTime startOfMonth() {
+        return LocalDate.now().withDayOfMonth(1).atStartOfDay();
+    }
+
     private Map<String, Object> generateUserReport() {
-        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> report = new LinkedHashMap<>();
         report.put("totalUsers", userRepository.countByIsDeletedFalse());
         report.put("students", userRepository.countByRole(UserRole.STUDENT));
         report.put("instructors", userRepository.countByRole(UserRole.INSTRUCTOR));
         report.put("admins", userRepository.countByRole(UserRole.ADMIN));
-        report.put("activeSubscriptions", userRepository.countActiveSubscriptions());
+        report.put("newUsersThisMonth", userRepository.countNewUsersSince(startOfMonth()));
+        report.put("activeSubscribers", userRepository.countActiveSubscriptions());
         report.put("generatedAt", LocalDateTime.now());
         return report;
     }
 
     private Map<String, Object> generateRevenueReport() {
-        Map<String, Object> report = new HashMap<>();
-        report.put("totalRevenue", subscriptionRepository.sumTotalSubscriptionRevenue());
-        report.put("monthlyRevenue", subscriptionRepository.sumRevenueFromSubscriptionsSince(
-                LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)));
-        report.put("activeSubscriptions", subscriptionRepository.countActiveSubscriptions());
+        // Realised revenue = COMPLETED CMI payments (same source as the dashboard)
+        Map<String, Object> report = new LinkedHashMap<>();
+        report.put("totalRevenue", transactionRepository.sumAmountByStatus(PaymentStatus.COMPLETED));
+        report.put("monthlyRevenue", transactionRepository.sumAmountByStatusSince(PaymentStatus.COMPLETED, startOfMonth()));
+        report.put("subscriptionRevenue", transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "SUBSCRIPTION"));
+        report.put("courseRevenue", transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "COURSE_PURCHASE"));
+        report.put("ebookRevenue", transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "EBOOK_PURCHASE"));
+        report.put("pendingAmount", transactionRepository.sumAmountByStatus(PaymentStatus.PENDING));
+        report.put("refundedAmount", transactionRepository.sumAmountByStatus(PaymentStatus.REFUNDED));
+        report.put("completedCount", transactionRepository.countByStatus(PaymentStatus.COMPLETED));
+        report.put("pendingCount", transactionRepository.countByStatus(PaymentStatus.PENDING));
+        report.put("failedCount", transactionRepository.countByStatus(PaymentStatus.FAILED));
+        report.put("currency", "MAD");
         report.put("generatedAt", LocalDateTime.now());
         return report;
     }
 
     private Map<String, Object> generateCourseReport() {
-        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> report = new LinkedHashMap<>();
         report.put("totalCourses", courseRepository.count());
-        report.put("publishedCourses", courseRepository.countPublishedCourses());
+        report.put("publishedCourses", courseRepository.countByStatus(CourseStatus.PUBLISHED));
+        report.put("pendingReviewCourses", courseRepository.countByStatus(CourseStatus.PENDING_REVIEW));
+        report.put("draftCourses", courseRepository.countByStatus(CourseStatus.DRAFT));
+        report.put("archivedCourses", courseRepository.countByStatus(CourseStatus.ARCHIVED));
         report.put("totalEnrollments", enrollmentRepository.count());
+        report.put("coursesSold", transactionRepository.countByStatusAndTransactionType(PaymentStatus.COMPLETED, "COURSE_PURCHASE"));
+        report.put("courseRevenue", transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "COURSE_PURCHASE"));
+        report.put("currency", "MAD");
         report.put("generatedAt", LocalDateTime.now());
         return report;
     }
 
     private Map<String, Object> generateSubscriptionReport() {
-        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> report = new LinkedHashMap<>();
         report.put("totalSubscriptions", subscriptionRepository.count());
-        report.put("activeSubscriptions", subscriptionRepository.countActiveSubscriptions());
-        report.put("totalRevenue", subscriptionRepository.sumTotalSubscriptionRevenue());
+        report.put("activeSubscriptions", subscriptionRepository.countByStatus(SubscriptionStatus.ACTIVE));
+        report.put("pastDueSubscriptions", subscriptionRepository.countByStatus(SubscriptionStatus.PAST_DUE));
+        report.put("cancelledSubscriptions", subscriptionRepository.countByStatus(SubscriptionStatus.CANCELLED));
+        report.put("expiredSubscriptions", subscriptionRepository.countByStatus(SubscriptionStatus.EXPIRED));
+        report.put("subscriptionRevenue", transactionRepository.sumAmountByStatusAndType(PaymentStatus.COMPLETED, "SUBSCRIPTION"));
+        report.put("monthlySubscriptionRevenue", transactionRepository.sumAmountByStatusAndTypeSince(
+                PaymentStatus.COMPLETED, "SUBSCRIPTION", startOfMonth()));
+        report.put("currency", "MAD");
         report.put("generatedAt", LocalDateTime.now());
         return report;
     }

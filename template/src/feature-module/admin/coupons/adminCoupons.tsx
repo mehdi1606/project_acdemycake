@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Pagination } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import api from '../../../services/api/axios.config';
 import { extractApiError } from '../../../services/api/error.utils';
@@ -41,6 +42,15 @@ const EMPTY_FORM: CreateForm = {
 const fmt = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+const PAGE_SIZE = 20;
+
+/**
+ * <input type="datetime-local"> gives "YYYY-MM-DDTHH:mm" in the admin's local time.
+ * The backend field is a LocalDateTime (no zone), so send that wall-clock value as-is
+ * (seconds added) instead of converting to UTC with toISOString(), which would shift it.
+ */
+const toLocalDateTime = (value: string) => (value.length === 16 ? `${value}:00` : value);
+
 const generateCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = 'SRL-';
@@ -65,6 +75,8 @@ const inputStyle: React.CSSProperties = {
 const AdminCoupons: React.FC = () => {
   const { t } = useTranslation();
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
+  const [page, setPage] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -79,15 +91,22 @@ const AdminCoupons: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get('/admin/coupons', { params: { page: 0, size: 50 } });
+      const res = await api.get('/admin/coupons', { params: { page, size: PAGE_SIZE } });
       const data = res.data;
-      setCoupons(data.content || []);
+      const content: CouponRow[] = data.content || [];
+      // The last row of a page was deleted → step back to the previous (non-empty) page.
+      if (content.length === 0 && page > 0) {
+        setPage(page - 1);
+        return;
+      }
+      setCoupons(content);
+      setTotalElements(data.totalElements ?? content.length);
     } catch (e) {
       setError(extractApiError(e));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => { loadCoupons(); }, [loadCoupons]);
 
@@ -112,13 +131,14 @@ const AdminCoupons: React.FC = () => {
         code,
         discountPercent: Number(form.discountPercent),
         maxUses: form.maxUses ? Number(form.maxUses) : null,
-        expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : null,
+        expiresAt: form.expiresAt ? toLocalDateTime(form.expiresAt) : null,
         description: form.description.trim() || null,
       });
       flash(t('admin.coupons.couponCreated', { code, defaultValue: `Coupon "${code}" created successfully` }));
       setForm(EMPTY_FORM);
       setShowForm(false);
-      loadCoupons();
+      // Newest coupons are listed first: show page 1 (reloads via the page effect, or directly).
+      if (page !== 0) setPage(0); else loadCoupons();
     } catch (e) {
       setFormError(extractApiError(e));
     } finally {
@@ -380,7 +400,7 @@ const AdminCoupons: React.FC = () => {
               background: 'rgba(197,145,44,0.1)', color: '#C5912C',
               borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700,
             }}>
-              {coupons.length}
+              {totalElements}
             </span>
           </div>
 
@@ -509,6 +529,18 @@ const AdminCoupons: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {totalElements > PAGE_SIZE && (
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(197,145,44,0.1)', display: 'flex', justifyContent: 'center' }}>
+              <Pagination
+                current={page + 1}
+                total={totalElements}
+                pageSize={PAGE_SIZE}
+                onChange={(p) => setPage(p - 1)}
+                showSizeChanger={false}
+              />
             </div>
           )}
         </div>

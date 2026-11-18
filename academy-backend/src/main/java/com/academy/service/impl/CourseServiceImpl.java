@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
+    private final com.academy.service.EmailService emailService;
     private final CourseEnrollmentRepository courseEnrollmentRepository;
     private final UserRepository userRepository;
     private final UserService userService;
@@ -535,6 +536,7 @@ public class CourseServiceImpl implements CourseService {
         course.setPublishedAt(LocalDateTime.now());
         courseRepository.save(course);
         log.info("Course approved and published: {}", course.getTitle());
+        notifyInstructor(course, true, null);
     }
 
     @Override
@@ -550,6 +552,15 @@ public class CourseServiceImpl implements CourseService {
         course.setStatus(CourseStatus.DRAFT);
         courseRepository.save(course);
         log.info("Course rejected: {} - Reason: {}", course.getTitle(), reason);
+        notifyInstructor(course, false, reason);
+    }
+
+    /** Emails the instructor the admin's review decision (sent on another thread). */
+    private void notifyInstructor(Course course, boolean approved, String reason) {
+        User instructor = course.getInstructor();
+        if (instructor == null) return;
+        org.hibernate.Hibernate.initialize(instructor);
+        emailService.sendCourseReviewResult(instructor, course.getTitle(), course.getSlug(), approved, reason);
     }
 
     @Override
@@ -573,12 +584,13 @@ public class CourseServiceImpl implements CourseService {
         Page<Course> courses;
 
         if (status != null && !status.isBlank()) {
+            CourseStatus courseStatus;
             try {
-                CourseStatus courseStatus = CourseStatus.valueOf(status.toUpperCase());
-                courses = courseRepository.findByStatus(courseStatus, pageRequest);
+                courseStatus = CourseStatus.valueOf(status.trim().toUpperCase());
             } catch (IllegalArgumentException e) {
-                courses = courseRepository.findAll(pageRequest);
+                throw new BadRequestException("Invalid course status: " + status);
             }
+            courses = courseRepository.findByStatus(courseStatus, pageRequest);
         } else {
             courses = courseRepository.findAll(pageRequest);
         }

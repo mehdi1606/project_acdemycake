@@ -215,7 +215,7 @@ const courseSlice = createSlice({
         }));
         state.totalPages = action.payload.totalPages;
         state.totalElements = action.payload.totalElements;
-        state.currentPage = action.payload.number;
+        state.currentPage = action.payload.page;
       })
       .addCase(fetchCourses.rejected, (state, action) => {
         state.isLoading = false;

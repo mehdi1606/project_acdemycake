@@ -43,6 +43,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByIsDeletedFalse();
 
+    List<User> findByRoleAndIsDeletedFalse(UserRole role);
+
     long countByIsDeletedFalse();
 
     @Query("SELECT u FROM User u WHERE u.subscriptionStatus = :status AND u.subscriptionEndDate < :date")
@@ -79,4 +81,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :since AND u.isDeleted = false")
     long countNewUsersSince(@Param("since") LocalDateTime since);
+
+    /** Sign-up timestamps since a date (non-deleted users) - bucketed per day for the analytics chart. */
+    @Query("SELECT u.createdAt FROM User u WHERE u.createdAt >= :since AND u.isDeleted = false")
+    List<LocalDateTime> findCreatedAtSince(@Param("since") LocalDateTime since);
 }

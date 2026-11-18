@@ -88,4 +88,15 @@ public class PaymentTransaction {
     /** Coupon applied at checkout; its usage is recorded only when the payment succeeds. */
     @Column(name = "coupon_code", length = 50)
     private String couponCode;
+
+    /**
+     * Unfinished-payment emails already sent (0-3). -1 = created before the
+     * reminder feature existed, so it is never emailed or auto-cancelled.
+     */
+    @Column(name = "reminder_count", nullable = false)
+    @Builder.Default
+    private Integer reminderCount = 0;
+
+    @Column(name = "last_reminder_at")
+    private LocalDateTime lastReminderAt;
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -80,4 +81,89 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                                         @Param("end") LocalDateTime end);
 
     long countByStatus(PaymentStatus status);
+
+    // ── Unfinished-payment reminders (PendingPaymentReminderJob) ──
+
+    /** PENDING payments old enough for their next reminder (legacy rows, reminder_count -1, excluded). */
+    @Query("SELECT t.id FROM PaymentTransaction t WHERE t.status = com.academy.entity.enums.PaymentStatus.PENDING " +
+           "AND t.reminderCount >= 0 AND t.createdAt < :before ORDER BY t.createdAt")
+    java.util.List<UUID> findPendingIdsForReminders(@Param("before") LocalDateTime before);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM PaymentTransaction t JOIN FETCH t.user WHERE t.id = :id")
+    Optional<PaymentTransaction> findByIdForUpdate(@Param("id") UUID id);
+
+    /** Another payment by the same customer for the same item (course / ebook), started later (a retry). */
+    @Query("SELECT COUNT(t) > 0 FROM PaymentTransaction t WHERE t.user.id = :userId AND t.id <> :id " +
+           "AND t.transactionType = :type AND t.referenceId = :refId " +
+           "AND t.createdAt > :createdAt")
+    boolean existsNewerForItem(@Param("userId") UUID userId, @Param("id") UUID id,
+                                          @Param("type") String type, @Param("refId") UUID refId,
+                                          @Param("createdAt") LocalDateTime createdAt);
+
+    /** Same, for payments with no item id (subscriptions). */
+    @Query("SELECT COUNT(t) > 0 FROM PaymentTransaction t WHERE t.user.id = :userId AND t.id <> :id " +
+           "AND t.transactionType = :type " +
+           "AND t.createdAt > :createdAt")
+    boolean existsNewerOfType(@Param("userId") UUID userId, @Param("id") UUID id,
+                                         @Param("type") String type, @Param("createdAt") LocalDateTime createdAt);
+
+    // ── Admin listing filters (server-side, so pagination stays correct) ──────
+
+    Page<PaymentTransaction> findByTransactionTypeOrderByCreatedAtDesc(String transactionType, Pageable pageable);
+
+    Page<PaymentTransaction> findByStatusAndTransactionTypeOrderByCreatedAtDesc(PaymentStatus status,
+                                                                              String transactionType,
+                                                                              Pageable pageable);
+
+    // ── Admin analytics / dashboard aggregates ────────────────────────────────
+
+    /** Number of transactions in a status AND type since a date (e.g. courses sold this period). */
+    @Query("SELECT COUNT(t) FROM PaymentTransaction t " +
+           "WHERE t.status = :status AND t.transactionType = :type AND t.createdAt >= :since")
+    long countByStatusAndTypeSince(@Param("status") PaymentStatus status,
+                                   @Param("type") String type,
+                                   @Param("since") LocalDateTime since);
+
+    /** Number of transactions in a status AND type (whole dataset). */
+    long countByStatusAndTransactionType(PaymentStatus status, String transactionType);
+
+    /** Total amount in a status AND type since a date. */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM PaymentTransaction t " +
+           "WHERE t.status = :status AND t.transactionType = :type AND t.createdAt >= :since")
+    BigDecimal sumAmountByStatusAndTypeSince(@Param("status") PaymentStatus status,
+                                             @Param("type") String type,
+                                             @Param("since") LocalDateTime since);
+
+    /** (createdAt, amount) rows in a status since a date - bucketed per day in Java (DB-agnostic). */
+    @Query("SELECT t.createdAt, t.amount FROM PaymentTransaction t " +
+           "WHERE t.status = :status AND t.createdAt >= :since")
+    List<Object[]> findCreatedAtAndAmountByStatusSince(@Param("status") PaymentStatus status,
+                                                       @Param("since") LocalDateTime since);
+
+    /**
+     * Best-selling courses by realised revenue: rows of (courseId, SUM(amount), COUNT(*))
+     * over COURSE_PURCHASE transactions in the given status created on/after {@code since},
+     * highest revenue first. The Pageable only limits the row count.
+     */
+    @Query("SELECT t.referenceId, SUM(t.amount), COUNT(t) FROM PaymentTransaction t " +
+           "WHERE t.status = :status AND t.transactionType = 'COURSE_PURCHASE' " +
+           "AND t.referenceId IS NOT NULL AND t.createdAt >= :since " +
+           "GROUP BY t.referenceId ORDER BY SUM(t.amount) DESC")
+    List<Object[]> findTopCourseRevenueSince(@Param("status") PaymentStatus status,
+                                             @Param("since") LocalDateTime since,
+                                             Pageable pageable);
+
+    /** Realised revenue of one course (COURSE_PURCHASE rows whose referenceId is the course id). */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM PaymentTransaction t " +
+           "WHERE t.status = :status AND t.transactionType = 'COURSE_PURCHASE' AND t.referenceId = :courseId")
+    BigDecimal sumCourseRevenue(@Param("status") PaymentStatus status,
+                                @Param("courseId") UUID courseId);
+
+    /** Realised revenue of every course taught by an instructor (COURSE_PURCHASE rows only). */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM PaymentTransaction t " +
+           "WHERE t.status = :status AND t.transactionType = 'COURSE_PURCHASE' " +
+           "AND t.referenceId IN (SELECT c.id FROM Course c WHERE c.instructor = :instructor)")
+    BigDecimal sumCourseRevenueByInstructor(@Param("status") PaymentStatus status,
+                                            @Param("instructor") User instructor);
 }

@@ -26,22 +26,51 @@ export interface TransactionStats {
   totalRevenue: number;        // realised: COMPLETED payments
   subscriptionRevenue: number; // COMPLETED + SUBSCRIPTION
   courseRevenue: number;       // COMPLETED + COURSE_PURCHASE
+  ebookRevenue: number;        // COMPLETED + EBOOK_PURCHASE
   pendingAmount: number;       // SUM of PENDING payments (in-flight)
   completedCount: number;
   pendingCount: number;
   currency: string;            // "MAD"
 }
 
-interface Analytics {
-  totalRevenue: number;
-  totalUsers: number;
-  newUsers: number;
+// Whole-dataset user counts (soft-deleted users excluded)
+export interface UserStats {
+  total: number;
+  students: number;
+  instructors: number;
+  admins: number;
+}
+
+// Whole-dataset course counts: `total` plus one key per CourseStatus
+export interface CourseStats {
+  total: number;
+  DRAFT: number;
+  PENDING_REVIEW: number;
+  PUBLISHED: number;
+  ARCHIVED: number;
+}
+
+export type UserRoleFilter = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
+export type InstructorSort = 'newest' | 'oldest' | 'name';
+export type ReportType = 'revenue' | 'users' | 'courses' | 'subscriptions';
+
+/** Aggregate report: a flat map of figures (plus `generatedAt` / `currency`). */
+export type AdminReport = Record<string, number | string | null>;
+
+// Analytics for a period. Money = COMPLETED payment transactions created in the period.
+export interface Analytics {
+  period: string;
+  startDate: string;
+  totalRevenue: number;        // revenue of the period
+  coursesSold: number;         // COMPLETED COURSE_PURCHASE count in the period
+  totalUsers: number;          // all non-deleted users
+  newUsers: number;            // sign-ups in the period
   activeSubscriptions: number;
-  coursesSold: number;
+  newEnrollments: number;
   topCourses: {
-    courseId: number;
-    title: string;
-    enrollments: number;
+    courseId: string;
+    title: string | null;      // null when the course was deleted since
+    sales: number;
     revenue: number;
   }[];
   revenueByDay: {
@@ -69,18 +98,6 @@ interface SubscriptionItem {
   createdAt: string;
 }
 
-interface Report {
-  id: number;
-  type: string;
-  reporterId: number;
-  reporterName: string;
-  targetType: 'POST' | 'COMMENT' | 'USER' | 'COURSE';
-  targetId: number;
-  reason: string;
-  status: 'PENDING' | 'RESOLVED' | 'DISMISSED';
-  createdAt: string;
-}
-
 class AdminService {
   // ============================================
   // Dashboard
@@ -99,11 +116,18 @@ class AdminService {
   async getUsers(
     page = 0,
     size = 20,
-    search?: string
+    search?: string,
+    role?: UserRoleFilter
   ): Promise<PaginatedResponse<AdminUser>> {
     const response = await api.get<PaginatedResponse<AdminUser>>('/admin/users', {
-      params: { page, size, search },
+      params: { page, size, search, role },
     });
+    return response.data;
+  }
+
+  // Whole-dataset user counts per role
+  async getUserStats(): Promise<UserStats> {
+    const response = await api.get<UserStats>('/admin/users/stats');
     return response.data;
   }
 
@@ -144,10 +168,11 @@ class AdminService {
   async getInstructors(
     page = 0,
     size = 12,
-    search?: string
+    search?: string,
+    sort: InstructorSort = 'newest'
   ): Promise<PaginatedResponse<AdminUser>> {
     const response = await api.get<PaginatedResponse<AdminUser>>('/admin/instructors', {
-      params: { page, size, search },
+      params: { page, size, search, sort },
     });
     return response.data;
   }
@@ -161,6 +186,12 @@ class AdminService {
     const response = await api.get<PaginatedResponse<Course>>('/admin/courses', {
       params: { page, size, status },
     });
+    return response.data;
+  }
+
+  // Whole-dataset course counts per status
+  async getCourseStats(): Promise<CourseStats> {
+    const response = await api.get<CourseStats>('/admin/courses/stats');
     return response.data;
   }
 
@@ -178,10 +209,9 @@ class AdminService {
     return response.data;
   }
 
-  // Reject course
-  async rejectCourse(courseId: string, reason: string): Promise<Course> {
-    const response = await api.post<Course>(`/admin/courses/${courseId}/reject`, { reason });
-    return response.data;
+  // Reject course (sends it back to DRAFT — never deletes). Backend reads `reason` as a query param.
+  async rejectCourse(courseId: string, reason: string): Promise<void> {
+    await api.post(`/admin/courses/${courseId}/reject`, null, { params: { reason } });
   }
 
   // Delete course
@@ -196,10 +226,12 @@ class AdminService {
   // Get all transactions
   async getTransactions(
     page = 0,
-    size = 20
+    size = 20,
+    status?: string,
+    type?: string
   ): Promise<PaginatedResponse<PaymentTransaction>> {
     const response = await api.get<PaginatedResponse<PaymentTransaction>>('/admin/transactions', {
-      params: { page, size },
+      params: { page, size, status: status || undefined, type: type || undefined },
     });
     return response.data;
   }
@@ -276,10 +308,10 @@ class AdminService {
   // Reports
   // ============================================
 
-  // Get reports
-  async getReports(type?: string, page = 0, size = 20): Promise<PaginatedResponse<Report>> {
-    const response = await api.get<PaginatedResponse<Report>>('/admin/reports', {
-      params: { type, page, size },
+  // Get an aggregate report (flat map of figures) for one report type
+  async getReports(type: ReportType = 'revenue'): Promise<AdminReport> {
+    const response = await api.get<AdminReport>('/admin/reports', {
+      params: { type },
     });
     return response.data;
   }

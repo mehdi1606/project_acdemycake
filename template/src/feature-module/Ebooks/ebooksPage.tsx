@@ -91,7 +91,7 @@ const EbooksPage: React.FC = () => {
               {t('ebooks.title', 'Our Exclusive Ebooks')}
             </h1>
             <p style={{ color: 'rgba(101,28,50,0.7)', fontSize: '1.02rem', maxWidth: 620, margin: '0 auto' }}>
-              {t('ebooks.subtitle', 'Professional recipe collections — buy once, read and download any time.')}
+              {t('ebooks.subtitle', 'Professional recipe collections — buy once, read any time on the platform.')}
             </p>
           </div>
 
@@ -208,7 +208,7 @@ const EbooksPage: React.FC = () => {
                               )}
                               <li style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: '0.85rem' }}>
                                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: GOLD }} />
-                                {t('ebooks.readAndDownload', 'Read online & download')}
+                                {t('ebooks.readAndDownload', 'Read online, on the platform')}
                               </li>
                             </ul>
                           </div>

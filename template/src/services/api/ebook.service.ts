@@ -57,26 +57,13 @@ class EbookService {
   }
 
   /**
-   * The reader/download URLs are ownership-checked server-side and need the JWT.
-   * They are fetched as blobs so the token travels in the Authorization header
-   * rather than in a shareable URL.
+   * The reader URL is ownership-checked server-side and needs the JWT, so the
+   * PDF is fetched as data (token in the Authorization header, never in a
+   * shareable URL) and drawn inside the platform. Ebooks cannot be downloaded.
    */
-  async fetchContentBlobUrl(ebookId: string, language?: string): Promise<string> {
+  async fetchContent(ebookId: string, language?: string): Promise<ArrayBuffer> {
     const blob = await this.fetchBlob(`/ebooks/${ebookId}/content`, language);
-    return URL.createObjectURL(blob);
-  }
-
-  async download(ebookId: string, filename: string, language?: string): Promise<void> {
-    const blob = await this.fetchBlob(`/ebooks/${ebookId}/download`, language);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    // Give the browser a moment to start the download before revoking.
-    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    return blob.arrayBuffer();
   }
 
   // Goes through the shared axios instance so an expired access token is

@@ -48,7 +48,8 @@ public class EbookController {
     }
 
     /**
-     * Streams the PDF inline for the in-app reader. Requires ownership.
+     * Streams the PDF to the in-app reader. Requires ownership.
+     * Ebooks are read inside the platform only: there is no download endpoint.
      * The file path is never exposed, so the link cannot be shared to bypass payment.
      */
     @GetMapping("/{id}/content")
@@ -64,17 +65,4 @@ public class EbookController {
                 .body(file);
     }
 
-    @GetMapping("/{id}/download")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Download an owned ebook")
-    public ResponseEntity<Resource> download(@PathVariable UUID id,
-                                             @RequestParam(required = false) String language) {
-        Resource file = ebookService.getEbookContent(id, language, true);
-        String name = file.getFilename() != null ? file.getFilename() : "ebook.pdf";
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + name + "\"")
-                .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
-                .body(file);
-    }
 }

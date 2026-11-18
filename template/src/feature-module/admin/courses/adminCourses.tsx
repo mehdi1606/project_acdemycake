@@ -8,6 +8,7 @@ import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchCourses, deleteCourse } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
+import adminService, { CourseStats } from '../../../services/api/admin.service';
 
 const AdminCourses = () => {
   const { t } = useTranslation();
@@ -18,10 +19,25 @@ const AdminCourses = () => {
 
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  // Whole-dataset counts per status for the stat cards (not just the current page)
+  const [courseStats, setCourseStats] = useState<CourseStats | null>(null);
+
+  const loadCourseStats = () => {
+    adminService.getCourseStats().then(setCourseStats).catch(() => setCourseStats(null));
+  };
 
   useEffect(() => {
-    dispatch(fetchCourses({ page: currentPage, size: 20 }));
-  }, [dispatch, currentPage]);
+    dispatch(fetchCourses({ page: currentPage, size: 20, status: statusFilter || undefined }));
+  }, [dispatch, currentPage, statusFilter]);
+
+  useEffect(() => {
+    adminService.getCourseStats().then(setCourseStats).catch(() => setCourseStats(null));
+  }, []);
+
+  const handleStatusFilterChange = (value?: string) => {
+    setStatusFilter(value || '');
+    setCurrentPage(0);
+  };
 
   useEffect(() => {
     if (error) {
@@ -37,7 +53,8 @@ const AdminCourses = () => {
     try {
       await dispatch(deleteCourse(courseId)).unwrap();
       message.success('Course deleted successfully');
-      dispatch(fetchCourses({ page: currentPage, size: 20 }));
+      dispatch(fetchCourses({ page: currentPage, size: 20, status: statusFilter || undefined }));
+      loadCourseStats();
     } catch {
       message.error('Failed to delete course');
     }
@@ -48,7 +65,6 @@ const AdminCourses = () => {
       PUBLISHED:      { cls: 'badge-success', label: 'Published' },
       DRAFT:          { cls: 'badge-warning', label: 'Draft' },
       PENDING_REVIEW: { cls: 'badge-info',    label: 'Pending Review' },
-      REJECTED:       { cls: 'badge-danger',  label: 'Rejected' },
       ARCHIVED:       { cls: 'badge-slate',   label: 'Archived' },
     };
     const b = map[status] || { cls: 'badge-info', label: status };
@@ -66,9 +82,8 @@ const AdminCourses = () => {
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
   };
 
-  const filteredCourses = statusFilter
-    ? courses.filter((course: any) => course.status === statusFilter)
-    : courses;
+  // Status filtering is done server-side; the page already holds only matching courses.
+  const filteredCourses = courses;
 
   const formatCurrency = (amount: number | undefined | null) => {
     if (!amount || amount === 0) return 'Free';
@@ -80,10 +95,10 @@ const AdminCourses = () => {
       {/* ── Stats Cards ── */}
       <div className="row g-4 mb-4">
         {[
-          { label: t('admin.dashboard.totalCourses', 'Total Courses'),  value: courses?.length || 0,                                        icon: 'isax isax-book',        color: 'gold' },
-          { label: t('common.published', 'Published'),                  value: courses?.filter((c: any) => c.status === 'PUBLISHED').length || 0,  icon: 'isax isax-tick-circle', color: 'sage' },
-          { label: t('common.pending', 'Pending'),                      value: courses?.filter((c: any) => c.status === 'PENDING_REVIEW').length || 0, icon: 'isax isax-clock', color: 'amber' },
-          { label: t('common.draft', 'Drafts'),                         value: courses?.filter((c: any) => c.status === 'DRAFT').length || 0,      icon: 'isax isax-edit-2',      color: 'slate' },
+          { label: t('admin.dashboard.totalCourses', 'Total Courses'),  value: courseStats?.total ?? 0,          icon: 'isax isax-book',        color: 'gold' },
+          { label: t('common.published', 'Published'),                  value: courseStats?.PUBLISHED ?? 0,      icon: 'isax isax-tick-circle', color: 'sage' },
+          { label: t('common.pending', 'Pending'),                      value: courseStats?.PENDING_REVIEW ?? 0, icon: 'isax isax-clock',       color: 'amber' },
+          { label: t('common.draft', 'Drafts'),                         value: courseStats?.DRAFT ?? 0,          icon: 'isax isax-edit-2',      color: 'slate' },
         ].map((s, i) => (
           <div key={i} className="col-xxl-3 col-lg-6 col-md-6">
             <div className="lx-stat-card">
@@ -108,12 +123,12 @@ const AdminCourses = () => {
               placeholder={t('admin.courses.status', 'Filter by status')}
               allowClear
               style={{ width: 180 }}
-              onChange={(value) => setStatusFilter(value || '')}
+              value={statusFilter || undefined}
+              onChange={(value?: string) => handleStatusFilterChange(value)}
               options={[
                 { value: 'PUBLISHED',      label: t('common.published', 'Published') },
                 { value: 'DRAFT',          label: t('common.draft', 'Draft') },
                 { value: 'PENDING_REVIEW', label: t('admin.courses.pendingApproval', 'Pending Review') },
-                { value: 'REJECTED',       label: t('common.rejected', 'Rejected') },
                 { value: 'ARCHIVED',       label: t('admin.courses.archived', 'Archived') },
               ]}
             />

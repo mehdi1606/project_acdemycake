@@ -548,7 +548,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 courseRepository.save(course);
             }
             if (!wasAccessible) {
-                emailService.sendCourseEnrollmentConfirmation(user, course.getTitle());
+                // A purchase already sends its own confirmation email.
+                if (type != EnrollmentType.PURCHASE) emailService.sendCourseEnrollmentConfirmation(user, course.getTitle());
                 log.info("User {} re-enrolled in course {} via {}", user.getEmail(), course.getTitle(), type);
             }
             return e;
@@ -570,7 +571,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         course.incrementEnrollmentCount();
         courseRepository.save(course);
 
-        emailService.sendCourseEnrollmentConfirmation(user, course.getTitle());
+        // A purchase already sends its own confirmation email.
+        if (type != EnrollmentType.PURCHASE) emailService.sendCourseEnrollmentConfirmation(user, course.getTitle());
 
         log.info("User {} enrolled in course {} via {}", user.getEmail(), course.getTitle(), type);
 

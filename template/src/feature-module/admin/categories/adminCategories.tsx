@@ -68,8 +68,10 @@ const AdminCategories = () => {
     setIsEditMode(true);
     setEditingCategory(category);
     setFormData({
-      name: category.name,
-      description: category.description || '',
+      // Base fields must come from the raw values: name/description are localized for display
+      // and saving them back would overwrite the base text with a translation.
+      name: category.baseName ?? category.name,
+      description: (category.baseDescription ?? category.description) || '',
       displayOrder: category.displayOrder || 0,
       nameEn: category.nameEn || '',
       nameAr: category.nameAr || '',

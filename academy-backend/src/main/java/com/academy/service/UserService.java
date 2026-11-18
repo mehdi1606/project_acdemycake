@@ -6,8 +6,10 @@ import com.academy.dto.request.UpdateProfileRequest;
 import com.academy.dto.response.PageResponse;
 import com.academy.dto.response.UserResponse;
 import com.academy.entity.User;
+import com.academy.entity.enums.UserRole;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
 import java.util.UUID;
 
 public interface UserService {
@@ -30,9 +32,13 @@ public interface UserService {
 
     String getNotificationPreferences();
 
-    PageResponse<UserResponse> getAllUsers(int page, int size, String search);
+    PageResponse<UserResponse> getAllUsers(int page, int size, String search, UserRole role);
 
-    PageResponse<UserResponse> getInstructors(int page, int size, String search);
+    /** Whole-dataset user counts (non-deleted) for the admin Users page stat cards. */
+    Map<String, Long> getUserStats();
+
+    /** @param sort newest (default) | oldest | name */
+    PageResponse<UserResponse> getInstructors(int page, int size, String search, String sort);
 
     void banUser(UUID userId, String reason);
 

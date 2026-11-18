@@ -30,6 +30,7 @@
     "i18next-browser-languagedetector": "^7.2.2",
     "jquery": "^4.0.0",
     "moment": "^2.30.1",
+    "pdfjs-dist": "3.11.174",
     "primereact": "^10.9.1",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",

@@ -13,10 +13,12 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   totalElements: number;
   size: number;
-  number: number;
+  /** Zero-based page index (backend PageResponse field name is `page`). */
+  page: number;
   first: boolean;
   last: boolean;
-  empty: boolean;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
 }
 
 export interface ApiError {
@@ -126,6 +128,9 @@ export interface CourseCategory {
   nameAr?: string;
   descriptionEn?: string;
   descriptionAr?: string;
+  /** Raw (untranslated) base name/description - what the admin edit form loads and saves. */
+  baseName?: string;
+  baseDescription?: string;
 }
 
 export interface CourseInstructor {
@@ -608,7 +613,7 @@ export interface AdminDashboard {
 export interface AdminUser extends User {
   isBanned: boolean;
   bannedAt?: string;
-  bannedReason?: string;
+  banReason?: string;
   enrollmentsCount: number;
   lastLoginAt?: string;
 }

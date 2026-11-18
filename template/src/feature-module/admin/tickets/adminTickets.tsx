@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { message as antMessage } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import {
   CATEGORY_LABELS,
@@ -14,6 +15,7 @@ import {
   ContactStats,
   contactService,
 } from '../../../services/api/ticket.service';
+import { extractApiError } from '../../../services/api/error.utils';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,28 +72,42 @@ const ContactMessagesPanel: React.FC = () => {
         contactService.getAll(page, PAGE_SIZE, unreadOnly || undefined),
         contactService.getStats(),
       ]);
-      setMessages(data.content ?? []);
+      const content = data.content ?? [];
+      // The last message of a page was deleted → step back to the previous page.
+      if (content.length === 0 && page > 0) {
+        setPage(page - 1);
+        return;
+      }
+      setMessages(content);
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
       setStats(s);
-    } catch { /* silent */ }
+    } catch (err) {
+      antMessage.error(extractApiError(err, t('admin.contact.loadFailed', 'Failed to load contact messages')));
+    }
     finally { setLoading(false); }
-  }, [page, unreadOnly]);
+  }, [page, unreadOnly, t]);
 
   useEffect(() => { load(); }, [load]);
 
   const markRead = async (id: string) => {
-    await contactService.markRead(id);
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m));
-    setStats(prev => prev ? { ...prev, unread: Math.max(0, prev.unread - 1) } : prev);
+    try {
+      await contactService.markRead(id);
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m));
+      setStats(prev => prev ? { ...prev, unread: Math.max(0, prev.unread - 1) } : prev);
+    } catch (err) {
+      antMessage.error(extractApiError(err, t('admin.contact.markReadFailed', 'Failed to mark the message as read')));
+    }
   };
 
   const deleteMsg = async (id: string) => {
     setDeleting(id);
     try {
       await contactService.deleteMessage(id);
-      setMessages(prev => prev.filter(m => m.id !== id));
-      setStats(prev => prev ? { ...prev, total: prev.total - 1 } : prev);
+      // Refetch so the page refills, pagination and the total/unread counts come from the server.
+      await load();
+    } catch (err) {
+      antMessage.error(extractApiError(err, t('admin.contact.deleteFailed', 'Failed to delete the message')));
     } finally { setDeleting(null); }
   };
 
@@ -347,8 +363,8 @@ const AdminTickets = () => {
       setReplyText('');
       loadTickets();
       loadStats();
-    } catch {
-      // ignore
+    } catch (err) {
+      antMessage.error(extractApiError(err, t('admin.tickets.replyFailed', 'Failed to send the reply')));
     } finally {
       setReplying(false);
     }
@@ -362,8 +378,8 @@ const AdminTickets = () => {
       setActiveTicket(updated);
       loadTickets();
       loadStats();
-    } catch {
-      // ignore
+    } catch (err) {
+      antMessage.error(extractApiError(err, t('admin.tickets.statusUpdateFailed', 'Failed to update the ticket status')));
     } finally {
       setChangingStatus(false);
     }

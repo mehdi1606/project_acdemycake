@@ -43,14 +43,33 @@ const AdminDashboard = () => {
       gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] },
     },
     xaxis: { categories: dashboard?.revenueHistory?.map((r) => r.month) || [], labels: { style: { colors: '#8B6D75', fontSize: '12px' } } },
-    yaxis: { labels: { style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => `${Math.round(v).toLocaleString()} MAD` } },
-    tooltip: { y: { formatter: (v: number) => `${Math.round(v).toLocaleString()} MAD` } },
+    // Two y-axes: revenue in MAD on the left, enrollment count (unscaled) on the right.
+    yaxis: [
+      {
+        seriesName: 'Revenue',
+        title: { text: 'MAD', style: { color: '#8B6D75', fontSize: '11px' } },
+        labels: { style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => `${Math.round(v).toLocaleString()} MAD` },
+      },
+      {
+        seriesName: 'Enrollments',
+        opposite: true,
+        min: 0,
+        forceNiceScale: true,
+        labels: { style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => `${Math.round(v)}` },
+      },
+    ],
+    tooltip: {
+      y: {
+        formatter: (v: number, opts?: { seriesIndex: number }) =>
+          opts?.seriesIndex === 1 ? `${Math.round(v)}` : `${Math.round(v).toLocaleString()} MAD`,
+      },
+    },
     grid:   { borderColor: 'rgba(101,28,50,0.08)', strokeDashArray: 4 },
   };
 
   const revenueSeries = [
     { name: 'Revenue',     data: dashboard?.revenueHistory?.map((r) => r.revenue)             || [] },
-    { name: 'Enrollments', data: dashboard?.revenueHistory?.map((r) => (r.enrollments ?? 0) * 10) || [] },
+    { name: 'Enrollments', data: dashboard?.revenueHistory?.map((r) => r.enrollments ?? 0) || [] },
   ];
 
   const firstName = user?.fullName?.split(' ')[0] || 'Admin';

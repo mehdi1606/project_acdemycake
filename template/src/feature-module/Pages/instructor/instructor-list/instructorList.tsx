@@ -251,10 +251,9 @@ const InstructorList: React.FC = () => {
   const fetchInstructors = useCallback(async (p: number, q: string) => {
     setLoading(true);
     try {
-      const res: PaginatedResponse<AdminUser> = await adminService.getInstructors(p, PAGE_SIZE, q || undefined);
-      let content = res.content ?? [];
-      if (sortBy === 'oldest') content = [...content].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      else if (sortBy === 'name') content = [...content].sort((a, b) => a.fullName.localeCompare(b.fullName));
+      // Sorting is done server-side so it applies across all pages, not just this one.
+      const res: PaginatedResponse<AdminUser> = await adminService.getInstructors(p, PAGE_SIZE, q || undefined, sortBy);
+      const content = res.content ?? [];
       setInstructors(content);
       setTotalPages(res.totalPages ?? 0);
       setTotalElements(res.totalElements ?? content.length);

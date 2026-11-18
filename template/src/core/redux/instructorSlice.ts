@@ -119,7 +119,7 @@ const instructorSlice = createSlice({
         state.isLoading = false;
         state.courses = action.payload.content;
         state.totalPages = action.payload.totalPages;
-        state.currentPage = action.payload.number;
+        state.currentPage = action.payload.page;
       })
       .addCase(fetchInstructorCourses.rejected, (state, action) => {
         state.isLoading = false;

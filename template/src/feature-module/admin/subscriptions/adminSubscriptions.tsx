@@ -8,7 +8,7 @@ const STATUS_BADGE: Record<string, string> = {
   ACTIVE: 'badge-success',
   CANCELLED: 'badge-warning',
   EXPIRED: 'badge-danger',
-  PENDING: 'badge-info',
+  PAST_DUE: 'badge-info',
 };
 
 const fmt = (iso?: string) =>
@@ -80,13 +80,13 @@ const AdminSubscriptions: React.FC = () => {
 
         {/* Filters */}
         <div className="d-flex gap-2 flex-wrap mb-3">
-          {['', 'ACTIVE', 'CANCELLED', 'EXPIRED', 'PENDING'].map((s) => (
+          {['', 'ACTIVE', 'PAST_DUE', 'CANCELLED', 'EXPIRED'].map((s) => (
             <button
               key={s}
               className={`btn btn-sm ${statusFilter === s ? 'btn-dark' : 'btn-outline-secondary'}`}
               onClick={() => handleStatus(s)}
             >
-              {s || t('common.all', 'All')}
+              {s ? s.replace('_', ' ') : t('common.all', 'All')}
             </button>
           ))}
         </div>
@@ -121,13 +121,13 @@ const AdminSubscriptions: React.FC = () => {
                     rows.map((r) => (
                       <tr key={r.id}>
                         <td className="ps-4 py-3">
-                          <div className="fw-semibold fs-14">{r.userFullName}</div>
+                          <div className="fw-semibold fs-14">{r.userFullName || '—'}</div>
                           <div className="text-muted fs-12">{r.userEmail}</div>
                         </td>
                         <td className="py-3 fs-14 text-capitalize">{r.planType}</td>
                         <td className="py-3">
                           <span className={`badge ${STATUS_BADGE[r.status] ?? 'badge-secondary'} rounded-pill`}>
-                            {r.status}
+                            {r.status?.replace('_', ' ')}
                           </span>
                           {r.cancelAtPeriodEnd && (
                             <span className="badge badge-warning rounded-pill ms-1 fs-11">Cancels at period end</span>

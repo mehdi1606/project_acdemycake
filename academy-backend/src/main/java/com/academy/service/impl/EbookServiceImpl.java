@@ -13,6 +13,7 @@ import com.academy.repository.EbookPurchaseRepository;
 import com.academy.repository.EbookRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.EbookService;
+import com.academy.service.EmailService;
 import com.academy.service.FileStorageService;
 import com.academy.service.NotificationService;
 import com.academy.service.UserService;
@@ -46,6 +47,7 @@ public class EbookServiceImpl implements EbookService {
     private final NotificationService notificationService;
     private final FileStorageService fileStorageService;
     private final UserService userService;
+    private final EmailService emailService;
 
     @Value("${app.file.ebook-dir}")
     private String ebookDir;
@@ -191,10 +193,14 @@ public class EbookServiceImpl implements EbookService {
         notificationService.createNotification(
                 user,
                 "Your ebook is ready",
-                "\"" + ebook.getTitle() + "\" has been added to your library. You can read or download it now.",
+                "\"" + ebook.getTitle() + "\" has been added to your library. You can start reading it now.",
                 NotificationType.SYSTEM,
-                "/student/ebooks"
+                "/student/student-ebooks"
         );
+
+        // The email is sent on another thread: load the (possibly lazy) user now.
+        org.hibernate.Hibernate.initialize(user);
+        emailService.sendEbookPurchaseConfirmation(user, ebook.getTitle(), ebook.getSlug());
 
         log.info("Ebook purchase granted: {} → {} (order {})", ebook.getSlug(), user.getEmail(), orderId);
     }

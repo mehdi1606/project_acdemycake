@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { message } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { all_routes } from '../../router/all_routes';
 import ebookService, { Ebook } from '../../../services/api/ebook.service';
 
 const GOLD = '#C5973E';
 
-/** The buyer's own library: everything they have paid for, readable and downloadable. */
+/** The buyer's own library: everything they have paid for, readable inside the platform (no download). */
 const StudentEbooks: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const [ebooks, setEbooks] = useState<Ebook[]>([]);
   const [loading, setLoading] = useState(true);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,20 +23,6 @@ const StudentEbooks: React.FC = () => {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
-
-  const handleDownload = async (book: Ebook) => {
-    setDownloadingId(book.id);
-    try {
-      const ui = i18n.language?.slice(0, 2) || 'en';
-      const lang = book.languages?.includes(ui) ? ui : book.languages?.[0];
-      const safe = book.title.replace(/[^\w؀-ۿ -]/g, '').trim() || 'ebook';
-      await ebookService.download(book.id, `${safe}.pdf`, lang);
-    } catch (e: any) {
-      message.error(e?.message || t('ebooks.downloadError', 'Download failed'));
-    } finally {
-      setDownloadingId(null);
-    }
-  };
 
   return (
     <LuxuryDashboardLayout>
@@ -69,7 +53,7 @@ const StudentEbooks: React.FC = () => {
               {t('ebooks.libraryEmpty', 'No ebooks yet')}
             </h6>
             <p style={{ color: 'var(--lx-text-muted)', marginBottom: 18 }}>
-              {t('ebooks.libraryEmptyHint', 'Ebooks you buy appear here to read and download any time.')}
+              {t('ebooks.libraryEmptyHint', 'Ebooks you buy appear here to read any time on the platform.')}
             </p>
             <Link to={all_routes.ebooks} className="lx-btn lx-btn-gold">
               {t('ebooks.browse', 'Browse ebooks')}
@@ -126,17 +110,6 @@ const StudentEbooks: React.FC = () => {
                       >
                         <i className="isax isax-book-saved" style={{ marginInlineEnd: 5 }} />
                         {t('ebooks.read', 'Read')}
-                      </button>
-                      <button
-                        type="button"
-                        className="lx-btn lx-btn-outline lx-btn-sm"
-                        disabled={downloadingId === book.id}
-                        onClick={() => handleDownload(book)}
-                      >
-                        <i className="isax isax-document-download" style={{ marginInlineEnd: 5 }} />
-                        {downloadingId === book.id
-                          ? t('common.loading', 'Loading…')
-                          : t('ebooks.download', 'Download')}
                       </button>
                     </div>
                   </div>

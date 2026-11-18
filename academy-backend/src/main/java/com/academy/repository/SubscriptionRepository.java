@@ -45,6 +45,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
     Page<Subscription> findByStatus(SubscriptionStatus status, Pageable pageable);
 
+    long countByStatus(SubscriptionStatus status);
+
     @Query("SELECT COUNT(s) FROM Subscription s WHERE s.status = 'ACTIVE'")
     long countActiveSubscriptions();
 

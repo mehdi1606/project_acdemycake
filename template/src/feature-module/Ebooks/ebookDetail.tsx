@@ -374,7 +374,7 @@ const EbookDetail: React.FC = () => {
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 24 }}>
                 {ebook.pageCount ? metaItem('isax-document-text', t('ebooks.pages', '{{n}} pages', { n: ebook.pageCount })) : null}
                 {editions && metaItem('isax-language-square', `${t('ebooks.edition', 'Edition')}: ${editions}`)}
-                {metaItem('isax-document-download', t('ebooks.readAndDownload', 'Read online & download'))}
+                {metaItem('isax-monitor', t('ebooks.readAndDownload', 'Read online, on the platform'))}
               </div>
 
               <BuyBox dark />
@@ -558,7 +558,7 @@ const EbookDetail: React.FC = () => {
               <p style={{ color: 'rgba(242,239,232,0.8)', marginBottom: 22 }}>
                 {sc.editionNote}
                 {ebook.pageCount ? ` · ${t('ebooks.pages', '{{n}} pages', { n: ebook.pageCount })}` : ''}
-                {` · ${t('ebooks.readAndDownload', 'Read online & download')}`}
+                {` · ${t('ebooks.readAndDownload', 'Read online, on the platform')}`}
               </p>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <BuyBox dark />

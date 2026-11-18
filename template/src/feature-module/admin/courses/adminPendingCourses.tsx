@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { message, Pagination } from 'antd';
 import { all_routes } from '../../router/all_routes';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
-import { fetchPendingCourses, approveCourse, deleteCourse } from '../../../core/redux/adminSlice';
+import { fetchPendingCourses, approveCourse, rejectCourse } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
 import AvatarImage from '../../../components/AvatarImage';
 
@@ -58,6 +58,7 @@ const AdminPendingCourses = () => {
     try {
       await dispatch(approveCourse(courseId)).unwrap();
       message.success('Course approved and published successfully!');
+      dispatch(fetchPendingCourses({ page: currentPage, size: 20 }));
     } catch {
       message.error('Failed to approve course');
     }
@@ -69,16 +70,22 @@ const AdminPendingCourses = () => {
   };
 
   const confirmReject = async () => {
-    if (selectedCourseId) {
-      try {
-        await dispatch(deleteCourse(selectedCourseId)).unwrap();
-        message.success('Course rejected');
-        setRejectModalVisible(false);
-        setRejectReason('');
-        setSelectedCourseId(null);
-      } catch {
-        message.error('Failed to reject course');
-      }
+    if (!selectedCourseId) return;
+    const reason = rejectReason.trim();
+    if (!reason) {
+      message.warning(t('admin.courses.rejectReasonRequired', 'Please enter a reason for the rejection'));
+      return;
+    }
+    try {
+      // Reject = send back to DRAFT with a reason. The course is never deleted.
+      await dispatch(rejectCourse({ courseId: selectedCourseId, reason })).unwrap();
+      message.success('Course rejected');
+      setRejectModalVisible(false);
+      setRejectReason('');
+      setSelectedCourseId(null);
+      dispatch(fetchPendingCourses({ page: currentPage, size: 20 }));
+    } catch (err) {
+      message.error(typeof err === 'string' ? err : 'Failed to reject course');
     }
   };
 
@@ -116,12 +123,12 @@ const AdminPendingCourses = () => {
         <div className="lx-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
             {t('admin.courses.pendingApproval', 'Courses Awaiting Approval')}
-            {pendingCourses.length > 0 && (
+            {pendingCoursesPagination.totalElements > 0 && (
               <span style={{
                 marginLeft: 8, padding: '2px 10px', borderRadius: 12,
                 background: 'rgba(197, 151, 62, 0.12)', color: '#C5973E', fontSize: 12, fontWeight: 600,
               }}>
-                {pendingCourses.length}
+                {pendingCoursesPagination.totalElements}
               </span>
             )}
           </h5>
@@ -283,6 +290,7 @@ const AdminPendingCourses = () => {
                 className="lx-btn"
                 style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
                 onClick={confirmReject}
+                disabled={!rejectReason.trim()}
               >
                 {t('admin.courses.reject', 'Reject Course')}
               </button>

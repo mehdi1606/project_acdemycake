@@ -28,6 +28,11 @@ public class CategoryResponse {
     private String descriptionEn;
     private String descriptionAr;
 
+    // Raw (untranslated) base fields - what the admin edit form must load and save.
+    // name/description above are localized for display and must not be written back.
+    private String baseName;
+    private String baseDescription;
+
     public static CategoryResponse fromEntity(CourseCategory category) {
         return CategoryResponse.builder()
                 .id(category.getId())
@@ -41,6 +46,8 @@ public class CategoryResponse {
                 .nameAr(category.getNameAr())
                 .descriptionEn(category.getDescriptionEn())
                 .descriptionAr(category.getDescriptionAr())
+                .baseName(category.getName())
+                .baseDescription(category.getDescription())
                 .build();
     }
 
@@ -57,6 +64,8 @@ public class CategoryResponse {
                 .nameAr(category.getNameAr())
                 .descriptionEn(category.getDescriptionEn())
                 .descriptionAr(category.getDescriptionAr())
+                .baseName(category.getName())
+                .baseDescription(category.getDescription())
                 .build();
     }
 

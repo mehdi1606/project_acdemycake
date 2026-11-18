@@ -24,6 +24,7 @@ public class TransactionStatsResponse {
     private BigDecimal totalRevenue;          // SUM(amount) where status = COMPLETED
     private BigDecimal subscriptionRevenue;   // COMPLETED + type SUBSCRIPTION
     private BigDecimal courseRevenue;         // COMPLETED + type COURSE_PURCHASE
+    private BigDecimal ebookRevenue;          // COMPLETED + type EBOOK_PURCHASE
     private BigDecimal pendingAmount;         // SUM(amount) where status = PENDING
     private long completedCount;
     private long pendingCount;

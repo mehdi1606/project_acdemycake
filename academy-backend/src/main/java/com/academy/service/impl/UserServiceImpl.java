@@ -29,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -172,11 +174,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageResponse<UserResponse> getAllUsers(int page, int size, String search) {
+    public PageResponse<UserResponse> getAllUsers(int page, int size, String search, UserRole role) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<User> users;
+        boolean hasSearch = search != null && !search.isBlank();
 
-        if (search != null && !search.isBlank()) {
+        if (role != null && hasSearch) {
+            users = userRepository.searchUsersByRole(role, search, pageRequest);
+        } else if (role != null) {
+            users = userRepository.findByRoleAndIsDeletedFalse(role, pageRequest);
+        } else if (hasSearch) {
             users = userRepository.searchUsers(search, pageRequest);
         } else {
             users = userRepository.findByIsDeletedFalse(pageRequest);
@@ -186,8 +193,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageResponse<UserResponse> getInstructors(int page, int size, String search) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public Map<String, Long> getUserStats() {
+        // countByRole / countByIsDeletedFalse already exclude soft-deleted users
+        Map<String, Long> stats = new LinkedHashMap<>();
+        stats.put("total", userRepository.countByIsDeletedFalse());
+        stats.put("students", userRepository.countByRole(UserRole.STUDENT));
+        stats.put("instructors", userRepository.countByRole(UserRole.INSTRUCTOR));
+        stats.put("admins", userRepository.countByRole(UserRole.ADMIN));
+        return stats;
+    }
+
+    @Override
+    public PageResponse<UserResponse> getInstructors(int page, int size, String search, String sort) {
+        Sort order;
+        if ("oldest".equalsIgnoreCase(sort)) {
+            order = Sort.by(Sort.Direction.ASC, "createdAt");
+        } else if ("name".equalsIgnoreCase(sort)) {
+            order = Sort.by(Sort.Order.asc("fullName").ignoreCase());
+        } else if (sort == null || sort.isBlank() || "newest".equalsIgnoreCase(sort)) {
+            order = Sort.by(Sort.Direction.DESC, "createdAt");
+        } else {
+            throw new BadRequestException("Invalid sort: " + sort + " (expected newest, oldest or name)");
+        }
+        PageRequest pageRequest = PageRequest.of(page, size, order);
         Page<User> users;
 
         if (search != null && !search.isBlank()) {

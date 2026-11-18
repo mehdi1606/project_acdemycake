@@ -96,7 +96,9 @@ app:
 
   email:
     from: ${EMAIL_FROM}
-    from-name: Cake Design Academy
+    from-name: ${EMAIL_FROM_NAME:Saralöwe Academy}
+    # PNG logo shown at the top of every email (empty = <frontend-url>/assets/img/email/logo-gold.png)
+    logo-url: ${EMAIL_LOGO_URL:}
 
   admin:
     email: ${ADMIN_EMAIL}

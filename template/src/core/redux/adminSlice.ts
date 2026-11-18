@@ -5,7 +5,7 @@ import {
   Course,
   PaymentTransaction,
 } from '../../services/api/types';
-import adminService from '../../services/api/admin.service';
+import adminService, { UserRoleFilter } from '../../services/api/admin.service';
 
 interface AdminState {
   dashboard: AdminDashboard | null;
@@ -89,11 +89,16 @@ export const fetchAdminDashboard = createAsyncThunk(
 export const fetchUsers = createAsyncThunk(
   'admin/fetchUsers',
   async (
-    { page = 0, size = 20, search }: { page?: number; size?: number; search?: string },
+    {
+      page = 0,
+      size = 20,
+      search,
+      role,
+    }: { page?: number; size?: number; search?: string; role?: UserRoleFilter },
     { rejectWithValue }
   ) => {
     try {
-      return await adminService.getUsers(page, size, search);
+      return await adminService.getUsers(page, size, search, role);
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch users');
@@ -106,7 +111,7 @@ export const banUser = createAsyncThunk(
   async ({ userId, reason }: { userId: string; reason?: string }, { rejectWithValue }) => {
     try {
       await adminService.banUser(userId, reason);
-      return userId;
+      return { userId, reason };
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to ban user');
@@ -142,9 +147,12 @@ export const deleteUser = createAsyncThunk(
 
 export const fetchCourses = createAsyncThunk(
   'admin/fetchCourses',
-  async ({ page = 0, size = 20 }: { page?: number; size?: number }, { rejectWithValue }) => {
+  async (
+    { page = 0, size = 20, status }: { page?: number; size?: number; status?: string },
+    { rejectWithValue }
+  ) => {
     try {
-      return await adminService.getCourses(page, size);
+      return await adminService.getCourses(page, size, status || undefined);
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch courses');
@@ -177,6 +185,20 @@ export const approveCourse = createAsyncThunk(
   }
 );
 
+// Reject a pending course: it goes back to DRAFT (never deleted). The reason is sent to the backend.
+export const rejectCourse = createAsyncThunk(
+  'admin/rejectCourse',
+  async ({ courseId, reason }: { courseId: string; reason: string }, { rejectWithValue }) => {
+    try {
+      await adminService.rejectCourse(courseId, reason);
+      return courseId;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to reject course');
+    }
+  }
+);
+
 export const deleteCourse = createAsyncThunk(
   'admin/deleteCourse',
   async (courseId: string, { rejectWithValue }) => {
@@ -192,9 +214,17 @@ export const deleteCourse = createAsyncThunk(
 
 export const fetchTransactions = createAsyncThunk(
   'admin/fetchTransactions',
-  async ({ page = 0, size = 20 }: { page?: number; size?: number }, { rejectWithValue }) => {
+  async (
+    {
+      page = 0,
+      size = 20,
+      status,
+      type,
+    }: { page?: number; size?: number; status?: string; type?: string },
+    { rejectWithValue }
+  ) => {
     try {
-      return await adminService.getTransactions(page, size);
+      return await adminService.getTransactions(page, size, status, type);
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch transactions');
@@ -239,7 +269,7 @@ const adminSlice = createSlice({
         state.usersPagination = {
           totalPages: action.payload.totalPages,
           totalElements: action.payload.totalElements,
-          currentPage: action.payload.number,
+          currentPage: action.payload.page,
         };
       })
       .addCase(fetchUsers.rejected, (state, action) => {
@@ -250,10 +280,11 @@ const adminSlice = createSlice({
     // Ban user
     builder
       .addCase(banUser.fulfilled, (state, action) => {
-        const user = state.users.find((u) => u.id === String(action.payload));
+        const user = state.users.find((u) => u.id === String(action.payload.userId));
         if (user) {
           user.isBanned = true;
           user.bannedAt = new Date().toISOString();
+          user.banReason = action.payload.reason;
         }
       });
 
@@ -264,6 +295,7 @@ const adminSlice = createSlice({
         if (user) {
           user.isBanned = false;
           user.bannedAt = undefined;
+          user.banReason = undefined;
         }
       });
 
@@ -286,7 +318,7 @@ const adminSlice = createSlice({
         state.coursesPagination = {
           totalPages: action.payload.totalPages,
           totalElements: action.payload.totalElements,
-          currentPage: action.payload.number,
+          currentPage: action.payload.page,
         };
       })
       .addCase(fetchCourses.rejected, (state, action) => {
@@ -306,7 +338,7 @@ const adminSlice = createSlice({
         state.pendingCoursesPagination = {
           totalPages: action.payload.totalPages,
           totalElements: action.payload.totalElements,
-          currentPage: action.payload.number,
+          currentPage: action.payload.page,
         };
       })
       .addCase(fetchPendingCourses.rejected, (state, action) => {
@@ -318,7 +350,16 @@ const adminSlice = createSlice({
     builder
       .addCase(approveCourse.fulfilled, (state, action) => {
         state.pendingCourses = state.pendingCourses.filter((c) => c.id !== action.payload);
-        state.pendingCoursesPagination.totalElements -= 1;
+        state.pendingCoursesPagination.totalElements = Math.max(0, state.pendingCoursesPagination.totalElements - 1);
+      });
+
+    // Reject course (back to DRAFT): drop it from the pending queue only
+    builder
+      .addCase(rejectCourse.fulfilled, (state, action) => {
+        state.pendingCourses = state.pendingCourses.filter((c) => c.id !== action.payload);
+        state.pendingCoursesPagination.totalElements = Math.max(0, state.pendingCoursesPagination.totalElements - 1);
+        const course = state.courses.find((c) => c.id === action.payload);
+        if (course) course.status = 'DRAFT';
       });
 
     // Delete course
@@ -326,7 +367,11 @@ const adminSlice = createSlice({
       .addCase(deleteCourse.fulfilled, (state, action) => {
         state.courses = state.courses.filter((c) => c.id !== action.payload);
         state.coursesPagination.totalElements -= 1;
+        const wasPending = state.pendingCourses.some((c) => c.id === action.payload);
         state.pendingCourses = state.pendingCourses.filter((c) => c.id !== action.payload);
+        if (wasPending) {
+          state.pendingCoursesPagination.totalElements = Math.max(0, state.pendingCoursesPagination.totalElements - 1);
+        }
       });
 
     // Transactions
@@ -341,7 +386,7 @@ const adminSlice = createSlice({
         state.transactionsPagination = {
           totalPages: action.payload.totalPages,
           totalElements: action.payload.totalElements,
-          currentPage: action.payload.number,
+          currentPage: action.payload.page,
         };
       })
       .addCase(fetchTransactions.rejected, (state, action) => {

@@ -56,6 +56,7 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
     private final CacheManager cacheManager;
     private final MasterclassManualBookingRepository manualBookingRepository;
     private final UserRepository userRepository;
+    private final com.academy.service.EmailService emailService;
     // Provider: EnrollmentService -> CourseService -> this service would be a cycle.
     private final ObjectProvider<EnrollmentService> enrollmentServiceProvider;
 
@@ -288,6 +289,8 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
         // A matching account sees "Your place is confirmed" on the masterclass page.
         if (account != null) {
             enrollmentServiceProvider.getObject().enrollUserInCourse(account, course, true);
+            // Same "your place is confirmed" email a card payment sends.
+            emailService.sendCoursePurchaseConfirmation(account, course);
         }
         log.info("Manual participant added to masterclass {} by {} (linked account: {})",
                 course.getId(), current.getEmail(), account != null);
