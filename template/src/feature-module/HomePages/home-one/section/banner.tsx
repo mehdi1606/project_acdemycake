@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import HeroCake3D from './hero/HeroCake3D'
+import HeroOvenStory from './hero/HeroOvenStory'
+import HeroGoldPiping from './hero/HeroGoldPiping'
+import HeroFloating from './hero/HeroFloating'
+import HeroCinematic from './hero/HeroCinematic'
+import './hero/hero-variants.css'
 import { useTranslation } from 'react-i18next'
 import { all_routes } from '../../../router/all_routes'
 import { courseService } from '../../../../services/api/course.service'
@@ -50,7 +56,7 @@ const StatItem: React.FC<{
 }
 
 // ── Main Banner ───────────────────────────────────────────────────────────────
-const BannerSection: React.FC = () => {
+const ClassicBanner: React.FC = () => {
   const { t } = useTranslation();
     const route = all_routes
     const navigate = useNavigate()
@@ -373,6 +379,46 @@ const BannerSection: React.FC = () => {
                 </div>
             </div>
         </section>
+        </>
+    )
+}
+
+// ── Hero variants (preview: add ?hero=1…5 to the home URL) ───────────────────
+// 0 = the classic hero above. The others are the animated proposals; visitors
+// keep seeing DEFAULT_HERO until one is chosen.
+const DEFAULT_HERO = 0
+const HERO_VARIANTS: { label: string; Component: React.ComponentType }[] = [
+    { label: 'Current', Component: ClassicBanner },
+    { label: '1 · 3D cake', Component: HeroCake3D },
+    { label: '2 · Oven story', Component: HeroOvenStory },
+    { label: '3 · Gold piping', Component: HeroGoldPiping },
+    { label: '4 · Floating', Component: HeroFloating },
+    { label: '5 · Cinematic', Component: HeroCinematic },
+]
+
+const BannerSection: React.FC = () => {
+    const location = useLocation()
+    const navigate = useNavigate()
+    const params = new URLSearchParams(location.search)
+    const raw = params.get('hero')
+    const previewing = raw !== null
+    const idx = Math.min(HERO_VARIANTS.length - 1, Math.max(0, Number(raw ?? DEFAULT_HERO) || 0))
+    const { Component } = HERO_VARIANTS[idx]
+
+    return (
+        <>
+            <Component key={idx} />
+            {previewing && (
+                <div className="hv-picker" role="toolbar" aria-label="Hero preview">
+                    <span>Hero preview</span>
+                    {HERO_VARIANTS.map((v, i) => (
+                        <button key={v.label} type="button" className={i === idx ? 'is-active' : ''}
+                            onClick={() => { navigate({ search: `?hero=${i}` }, { replace: true }); window.scrollTo({ top: 0 }) }}>
+                            {v.label}
+                        </button>
+                    ))}
+                </div>
+            )}
         </>
     )
 }

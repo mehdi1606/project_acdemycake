@@ -1,0 +1,89 @@
+/* ── Shared motion for the home hero variants ──────────────────────────────── */
+
+/* Butterfly: two mirrored halves that beat like wings */
+.hv-butterfly { position: absolute; perspective: 400px; pointer-events: none; }
+.hv-wing { position: absolute; top: 0; height: 100%; width: 50%; overflow: hidden; animation: hv-flap-l .35s ease-in-out infinite alternate; }
+.hv-wing--left  { left: 0;  transform-origin: right center; }
+.hv-wing--right { right: 0; transform-origin: left center; animation-name: hv-flap-r; }
+@keyframes hv-flap-l { from { transform: rotateY(0deg); } to { transform: rotateY(62deg); } }
+@keyframes hv-flap-r { from { transform: rotateY(0deg); } to { transform: rotateY(-62deg); } }
+
+/* Flight across the hero: the outer element travels, the inner one bobs */
+.hv-fly { position: absolute; left: 0; animation: hv-fly linear infinite; will-change: transform; pointer-events: none; }
+.hv-fly > * { animation: hv-bob 3.2s ease-in-out infinite; }
+@keyframes hv-fly { from { transform: translateX(-18vw); } to { transform: translateX(118vw); } }
+.hv-fly--rtl { animation-name: hv-fly-rtl; }
+@keyframes hv-fly-rtl { from { transform: translateX(118vw) scaleX(-1); } to { transform: translateX(-18vw) scaleX(-1); } }
+
+/* Wandering flutter for butterflies (figure-eight-ish loop) */
+.hv-wander { position: absolute; animation: hv-wander 14s ease-in-out infinite; pointer-events: none; }
+@keyframes hv-wander {
+  0%   { transform: translate(0, 0) rotate(-6deg); }
+  25%  { transform: translate(60px, -40px) rotate(8deg); }
+  50%  { transform: translate(10px, -80px) rotate(-4deg); }
+  75%  { transform: translate(-50px, -30px) rotate(6deg); }
+  100% { transform: translate(0, 0) rotate(-6deg); }
+}
+
+@keyframes hv-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.hv-bob { animation: hv-bob 6s ease-in-out infinite; }
+
+/* Branches and palms sway from their anchor */
+.hv-sway { animation: hv-sway 7s ease-in-out infinite; transform-origin: top right; }
+.hv-sway--left { transform-origin: top left; animation-duration: 8.5s; }
+@keyframes hv-sway { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-3.5deg); } }
+
+/* Clouds drift slowly */
+.hv-drift { animation: hv-drift 38s linear infinite alternate; }
+@keyframes hv-drift { from { transform: translateX(-4vw); } to { transform: translateX(6vw); } }
+
+/* Swan glides on the water line */
+.hv-glide { animation: hv-glide 26s ease-in-out infinite alternate; }
+@keyframes hv-glide { from { transform: translateX(0); } to { transform: translateX(-16vw); } }
+
+/* Falling sugar sparkles */
+.hv-sparkle { position: absolute; top: -12px; width: 4px; height: 4px; border-radius: 50%; background: #F4DFA9;
+  box-shadow: 0 0 8px 2px rgba(244, 223, 169, .55); animation: hv-fall linear infinite; pointer-events: none; }
+@keyframes hv-fall { from { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; }
+  to { transform: translateY(105vh) translateX(30px); opacity: 0; } }
+
+/* Gold line drawing */
+.hv-draw { stroke-dasharray: var(--len, 1200); stroke-dashoffset: var(--len, 1200); animation: hv-draw var(--dur, 3s) cubic-bezier(.6,.05,.3,1) forwards; animation-delay: var(--delay, 0s); }
+@keyframes hv-draw { to { stroke-dashoffset: 0; } }
+.hv-fade-in { opacity: 0; animation: hv-fade-in 1.2s ease forwards; animation-delay: var(--delay, 0s); }
+@keyframes hv-fade-in { to { opacity: 1; } }
+
+/* Gold shimmer sweep across an element */
+.hv-shimmer { position: relative; overflow: hidden; }
+.hv-shimmer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgba(255, 236, 190, .55) 50%, transparent 65%);
+  transform: translateX(-120%); animation: hv-shimmer 4.5s ease-in-out infinite; animation-delay: var(--delay, 2s); }
+@keyframes hv-shimmer { 0% { transform: translateX(-120%); } 40%, 100% { transform: translateX(120%); } }
+
+/* Floating photos (variant 4) */
+.hv-float { animation: hv-float var(--dur, 7s) ease-in-out infinite; animation-delay: var(--delay, 0s); }
+@keyframes hv-float { 0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--rot, 0deg)); } 50% { transform: translate3d(0, -18px, 0) rotate(calc(var(--rot, 0deg) * -1)); } }
+
+/* Moroccan arch frame */
+.hv-arch { border-radius: 999px 999px 18px 18px; overflow: hidden; }
+
+/* Cinematic (variant 5): our own veil replaces the default overlay so the footage shows */
+.sl-banner.hv-cinematic::before { display: none; }
+
+/* Oven glow (variant 2) */
+@keyframes hv-glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+/* The variant picker (only shown with ?hero= in the URL) */
+.hv-picker { position: fixed; z-index: 2000; left: 50%; bottom: 18px; transform: translateX(-50%);
+  display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-radius: 999px;
+  background: rgba(26, 10, 16, .92); border: 1px solid rgba(197, 145, 44, .5); box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+  font-family: var(--sl-font-body, sans-serif); max-width: calc(100vw - 24px); overflow-x: auto; }
+.hv-picker span { color: #C5912C; font-size: 12px; font-weight: 700; padding: 0 6px; white-space: nowrap; }
+.hv-picker button { border: 1px solid rgba(197, 145, 44, .45); background: transparent; color: #F2EFE8; border-radius: 999px;
+  padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.hv-picker button.is-active { background: #C5912C; color: #2B0F1E; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hv-wing, .hv-fly, .hv-fly > *, .hv-wander, .hv-bob, .hv-sway, .hv-drift, .hv-glide, .hv-sparkle, .hv-float, .hv-shimmer::after { animation: none !important; }
+  .hv-draw { animation: none; stroke-dashoffset: 0; }
+  .hv-fade-in { animation: none; opacity: 1; }
+}

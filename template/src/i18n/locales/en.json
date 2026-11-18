@@ -78,6 +78,12 @@
     "noCourses": "No published courses yet.",
     "loadMore": "Load more"
   },
+  "heroVariants": {
+    "bake": "Bake",
+    "assemble": "Assemble",
+    "decorate": "Decorate",
+    "scroll": "Scroll"
+  },
   "nav": {
     "home": "Home",
     "masterclasses": "Masterclasses",

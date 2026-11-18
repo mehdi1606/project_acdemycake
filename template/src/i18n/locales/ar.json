@@ -78,6 +78,12 @@
     "noCourses": "لا توجد دورات منشورة بعد.",
     "loadMore": "تحميل المزيد"
   },
+  "heroVariants": {
+    "bake": "الخَبز",
+    "assemble": "التركيب",
+    "decorate": "التزيين",
+    "scroll": "مرّر للأسفل"
+  },
   "nav": {
     "home": "الرئيسية",
     "masterclasses": "الدورات المتقدمة",
