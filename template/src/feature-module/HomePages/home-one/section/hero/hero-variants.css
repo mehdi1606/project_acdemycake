@@ -80,6 +80,29 @@
 .hv-walk { animation: hv-walk .43s ease-in-out 6 alternate both; }
 @keyframes hv-walk { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-1.5%) rotate(-1.2deg); } }
 
+/* Living animals of the garden (variant 6) */
+.hv-leg { animation: hv-leg .46s ease-in-out infinite alternate; }
+.hv-leg--b { animation-delay: -.46s; }
+@keyframes hv-leg { from { transform: rotate(-13deg); } to { transform: rotate(13deg); } }
+.hv-leg-rest { transform: rotate(0deg); transition: transform .5s ease; }
+.hv-body-walk { animation: hv-body-walk .23s ease-in-out infinite alternate; }
+@keyframes hv-body-walk { from { transform: translateY(0); } to { transform: translateY(-1.6%); } }
+.hv-breathe { transform-origin: 50% 100%; animation: hv-breathe 3.8s ease-in-out infinite; }
+@keyframes hv-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.018); } }
+.hv-tail { animation: hv-tail 2.6s ease-in-out infinite alternate; }
+@keyframes hv-tail { from { transform: rotate(-5deg); } to { transform: rotate(7deg); } }
+.hv-head-look { animation: hv-head-look 9s ease-in-out infinite; }
+@keyframes hv-head-look { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-4deg); } 55% { transform: rotate(1deg); } 75% { transform: rotate(3deg); } }
+.hv-flap { animation: hv-flap .3s ease-in-out infinite alternate; }
+@keyframes hv-flap { from { transform: scaleY(1) skewX(0deg); } to { transform: scaleY(-.55) skewX(8deg); } }
+.hv-walk-in { animation: hv-walk-in 4.4s cubic-bezier(.3,.05,.4,1) both; }
+@keyframes hv-walk-in { from { transform: translateX(-70vw); } to { transform: translateX(0); } }
+.hv-bird-path { position: absolute; animation: hv-bird-path linear infinite; }
+.hv-bird-path > * { animation: hv-bob 2.4s ease-in-out infinite; }
+@keyframes hv-bird-path { from { left: -8%; } to { left: 106%; } }
+.hv-fade-up { animation: hv-fade-up 1.6s ease both; }
+@keyframes hv-fade-up { from { opacity: 0; transform: translateY(6%); } to { opacity: 1; transform: none; } }
+
 /* Oven glow (variant 2) */
 @keyframes hv-glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
@@ -94,7 +117,7 @@
 .hv-picker button.is-active { background: #C5912C; color: #2B0F1E; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hv-assemble, .hv-walk, .hv-wing, .hv-fly, .hv-fly > *, .hv-wander, .hv-bob, .hv-sway, .hv-drift, .hv-glide, .hv-sparkle, .hv-float, .hv-shimmer::after { animation: none !important; }
+  .hv-assemble, .hv-walk, .hv-leg, .hv-body-walk, .hv-breathe, .hv-tail, .hv-head-look, .hv-flap, .hv-walk-in, .hv-bird-path, .hv-bird-path > *, .hv-fade-up, .hv-wing, .hv-fly, .hv-fly > *, .hv-wander, .hv-bob, .hv-sway, .hv-drift, .hv-glide, .hv-sparkle, .hv-float, .hv-shimmer::after { animation: none !important; }
   .hv-draw { animation: none; stroke-dashoffset: 0; }
   .hv-fade-in { animation: none; opacity: 1; }
 }

@@ -24,6 +24,17 @@ export type WallpaperPiece = {
 
 const cut = (name: string) => `/assets/img/hero/garden/${name}.webp`
 
+/** The animals (GardenActors) keep moving after the scene is built. */
+export const ACTORS = {
+    walkingLion: { left: 48.76, top: 60.27, width: 24.87 },   // drawing 03
+    restingLion: { left: 23.75, top: 42.96, width: 14.75 },   // drawing 02
+    butterfly:   { left: 70.64, top: 62.18, width: 5.76 },
+    birds: [
+        { top: 5.4, width: 3.8, duration: 19, delay: 2.4 },
+        { top: 11, width: 3.0, duration: 26, delay: 9 },
+    ],
+}
+
 export const WALLPAPER_PIECES: WallpaperPiece[] = [
     // sky
     { n: 14, left: 34.66, top: 5.03, width: 17.35, enter: 'driftLeft', delay: 0.1 },
@@ -37,16 +48,9 @@ export const WALLPAPER_PIECES: WallpaperPiece[] = [
     // fountain rises, tables drop in
     { n: 5, left: 38.53, top: 42.05, width: 24.1, enter: 'rise', delay: 1.0 },
     { n: 7, left: 65.01, top: 40.97, width: 19.98, enter: 'drop', delay: 1.5 },
-    // the resting lion walks in from the right, the standing one from the left
-    { n: 2, left: 23.75, top: 42.96, width: 14.75, enter: 'walkRight', delay: 1.2 },
     { n: 8, left: 11.48, top: 55.38, width: 14.21, enter: 'drop', delay: 2.0 },
     { n: 6, left: 23.67, top: 60.62, width: 20.97, enter: 'drop', delay: 1.75 },
-    { n: 3, left: 48.76, top: 60.27, width: 24.87, enter: 'walkLeft', delay: 1.6 },
     // foreground
     { src: cut('flowers'), left: 0, top: 61.53, width: 18.3, enter: 'grow', delay: 1.3 },
     { src: cut('lion-branch'), left: 62.2, top: 49.92, width: 37.8, enter: 'rise', delay: 2.2 },
-    // birds and the butterfly arrive last
-    { n: 26, left: 68.19, top: 5.44, width: 3.79, enter: 'fly', delay: 2.6 },
-    { src: cut('bird'), left: 26.17, top: 4.35, width: 4.9, enter: 'fly', delay: 2.9 },
-    { src: cut('butterfly'), left: 70.64, top: 62.18, width: 5.76, enter: 'flutter', delay: 3.1 },
 ]
