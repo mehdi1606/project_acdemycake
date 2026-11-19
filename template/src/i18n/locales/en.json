@@ -84,6 +84,21 @@
     "decorate": "Decorate",
     "scroll": "Scroll"
   },
+  "ebooksPage": {
+    "nav": "Library navigation",
+    "contact": "Contact",
+    "search": "Search a book, a recipe, a flavour…",
+    "helloName": "Happy baking, {{name}}",
+    "hello": "Happy baking",
+    "introOwned": "Your recipes are waiting. Open your ebook and pick up where you left off — read it any time, on any device.",
+    "continue": "Continue reading",
+    "discover": "Discover the book",
+    "popular": "Popular now",
+    "noMatch": "No ebook matches your search.",
+    "collection": "The collection",
+    "pagesLabel": "pages",
+    "recipesLabel": "recipes"
+  },
   "nav": {
     "home": "Home",
     "masterclasses": "Masterclasses",
