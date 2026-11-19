@@ -6,7 +6,7 @@ import { logout } from '../core/redux/authSlice';
 import { all_routes } from '../feature-module/router/all_routes';
 import { getFileUrl } from '../environment';
 import BadgeAvatar from './BadgeAvatar';
-import { getBadgeForUser } from '../config/badges';
+import { getBadgeForUser, progressOf } from '../config/badges';
 import { openBadgeGuide } from './BadgeGuide';
 
 interface SidebarItem {
@@ -187,7 +187,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
 
   const roleColor = getRoleColor();
   const { stats } = useAppSelector((s) => s.student);
-  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', progressOf(stats, user));
 
   return (
     <aside className={`luxury-sidebar${collapsed ? ' collapsed' : ''}`}>

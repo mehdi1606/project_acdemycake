@@ -36,8 +36,11 @@ export type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE'
 
 export interface User {
   id: string;
-  /** Courses completed (sent in admin user lists) — drives the real badge level. */
+  /** Badge numbers (sent by /auth/me and admin user lists) — drive the real gemstone badge. */
   completedCourses?: number;
+  completedMasterclasses?: number;
+  quizzesTaken?: number;
+  avgQuizScore?: number | null;
   email: string;
   fullName: string;
   avatarUrl?: string;
