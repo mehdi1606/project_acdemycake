@@ -15,8 +15,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BADGES, BadgeDefinition, BadgeProgress, preloadBadge, progressOf } from '../config/badges';
-import BadgeRequirementList, { useRequirementSummary } from './BadgeRequirementList';
+import { BADGES, BadgeDefinition, preloadBadge } from '../config/badges';
 import BadgeImage from './BadgeImage';
 
 const LS_KEY = 'slw_badge_guide_seen_';
@@ -31,8 +30,6 @@ interface Props {
   userId: string;
   currentBadge: BadgeDefinition;
   completedCourses: number;
-  /** Full badge numbers (courses, quiz average, membership); falls back to completedCourses */
-  progress?: Partial<BadgeProgress> | null;
   /** Controlled externally: set true to force the guide open (from trigger icon) */
   forceOpen?: boolean;
   onClose?: () => void;
@@ -48,12 +45,10 @@ const BadgeGuide: React.FC<Props> = ({
   userId,
   currentBadge,
   completedCourses,
-  progress,
   forceOpen = false,
   onClose,
 }) => {
   const { t, i18n } = useTranslation();
-  const reqSummary = useRequirementSummary();
   const isRtl = i18n.language === 'ar';
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
@@ -243,7 +238,10 @@ const BadgeGuide: React.FC<Props> = ({
             }}>
               <span style={{ color: badge.color, fontSize: 13 }}>{'★'.repeat(badge.stars)}</span>
               <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
-                {reqSummary(badge)}
+                {badge.id === 1
+                  ? t('badgeGuide.badge.startBadge', 'Starting badge — welcome!')
+                  : t('badgeGuide.badge.criteria', '{{n}}+ courses completed', { n: badge.minCourses })
+                }
               </span>
             </div>
           )}
@@ -299,9 +297,45 @@ const BadgeGuide: React.FC<Props> = ({
             {t(badge.descKey)}
           </p>
 
-          {/* Progress to next (students only): everything the next gemstone needs */}
+          {/* Progress to next (students only) */}
           {nextBadge && badge.id <= 7 && (
-            <BadgeRequirementList next={nextBadge} current={badge} progress={progressOf({ completedCourses, ...(progress ?? {}) }, null)} />
+            <div style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 12, padding: '14px 18px', marginBottom: 0,
+            }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between',
+                alignItems: 'center', marginBottom: 8,
+              }}>
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
+                  {t('badges.popup.nextLevel', 'Next Level')}
+                </span>
+                <span style={{ color: nextBadge.color, fontSize: 12, fontWeight: 700 }}>
+                  {t(nextBadge.nameKey)}
+                </span>
+              </div>
+              <div style={{
+                background: 'rgba(255,255,255,0.08)',
+                borderRadius: 100, height: 6, overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 100,
+                  background: `linear-gradient(90deg, ${badge.color}, ${nextBadge.color})`,
+                  width: `${Math.min(100, (completedCourses / nextBadge.minCourses) * 100)}%`,
+                  transition: 'width 1s ease',
+                }} />
+              </div>
+              <p style={{
+                color: 'rgba(255,255,255,0.45)', fontSize: 11,
+                marginTop: 6, marginBottom: 0,
+              }}>
+                {t('badges.popup.coursesNeeded', {
+                  completed: completedCourses,
+                  needed: nextBadge.minCourses,
+                })}
+              </p>
+            </div>
           )}
 
           {isElite && (

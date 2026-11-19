@@ -1914,9 +1914,7 @@
       "confirmExtend": "Add 1 year",
       "confirmActivate": "Activate Plan",
       "completedCourses": "{{n}} courses completed",
-      "completedShort": "{{n}} completed",
-      "badgeNumbers": "{{count}} courses · quiz {{quiz}} · {{days}} days",
-      "badgeNumbers_one": "{{count}} course · quiz {{quiz}} · {{days}} days"
+      "completedShort": "{{n}} completed"
     },
     "courses": {
       "title": "Course Management",
@@ -3855,76 +3853,45 @@
     },
     "apprentice": {
       "name": "Apprentice",
-      "desc": "Welcome to SARALÖWE Academy! Your journey starts with a Rose Quartz. Finish courses, score well in quizzes and stay with us to earn rarer gemstones."
+      "desc": "Welcome to SARALÖWE Academy! Your culinary journey begins here. Complete your first course to earn your Commis Chef badge."
     },
     "commisChef": {
       "name": "Commis Chef",
-      "desc": "A Citrine for a real start: 2 courses finished, a 60% quiz average and two weeks with the academy."
+      "desc": "Excellent start! You have completed your first course. Keep learning and refining your culinary skills to advance further."
     },
     "sousChef": {
       "name": "Sous Chef",
-      "desc": "An Amethyst for steady progress: 3 courses finished, a 70% quiz average and a month of learning."
+      "desc": "Impressive dedication! You have completed 3 courses. Your culinary knowledge is growing — continue to reach Chef de Partie."
     },
     "chefDePartie": {
       "name": "Chef de Partie",
-      "desc": "A Sapphire for solid skills: 4 courses finished, a 75% quiz average and two months of practice."
+      "desc": "Outstanding commitment! With 6 courses completed, you are mastering your station. Keep pushing to reach Executive Chef."
     },
     "executiveChef": {
       "name": "Executive Chef",
-      "desc": "An Emerald for true expertise: 5 courses finished, an 80% quiz average and four months of dedication."
+      "desc": "Remarkable achievement! You have completed 12 courses and demonstrated true culinary mastery. The Master Chef title awaits."
     },
     "masterChef": {
       "name": "Master Chef",
-      "desc": "A Ruby for mastery: 6 courses finished, an 85% quiz average and six months at the academy."
+      "desc": "Extraordinary skill! With 20 courses completed, you stand among the finest culinary students. Only the Elite level remains."
     },
     "elite": {
       "name": "Elite",
-      "desc": "The Diamond, our rarest stone: 8 courses and a masterclass, a 90% quiz average and a full year with SARALÖWE Academy."
+      "desc": "The pinnacle of excellence. You have completed 35+ courses and earned the highest honor at SARALÖWE Academy. You are truly Elite."
     },
     "instructor": {
       "name": "Instructor",
-      "desc": "Black Onyx, reserved for SARALÖWE Academy instructors."
+      "desc": "You are a certified SARALÖWE instructor, empowering students to master the art of culinary excellence."
     },
     "admin": {
       "name": "Admin",
-      "desc": "Imperial Topaz, reserved for the SARALÖWE Academy team."
-    },
-    "gems": {
-      "roseQuartz": "Rose Quartz",
-      "citrine": "Citrine",
-      "amethyst": "Amethyst",
-      "sapphire": "Sapphire",
-      "emerald": "Emerald",
-      "ruby": "Ruby",
-      "diamond": "Diamond",
-      "blackOnyx": "Black Onyx",
-      "imperialTopaz": "Imperial Topaz"
-    },
-    "req": {
-      "courses_one": "Finish {{count}} course",
-      "courses": "Finish {{count}} courses",
-      "quizAvg": "Quiz average {{n}}% or more",
-      "days_one": "Member for {{count}} day",
-      "days": "Member for {{count}} days",
-      "masterclasses_one": "Book {{count}} masterclass",
-      "masterclasses": "Book {{count}} masterclasses",
-      "coursesShort_one": "{{count}} course",
-      "coursesShort": "{{count}} courses",
-      "masterclassesShort_one": "{{count}} masterclass",
-      "masterclassesShort": "{{count}} masterclasses",
-      "quizShort": "{{n}}% quiz average",
-      "daysShort_one": "{{count}} day",
-      "daysShort": "{{count}} days",
-      "yourAvg": "yours: {{n}}%",
-      "noQuizYet": "no quiz yet",
-      "done": "done",
-      "allNeeded": "You need all of these:"
+      "desc": "You are a SARALÖWE administrator, managing and maintaining the academy platform."
     }
   },
   "badgeGuide": {
     "intro": {
       "title": "Your Culinary Badge Journey",
-      "body": "Every badge is a gemstone engraved with our logo. The rarer the stone, the harder it is to earn: you need finished courses, a good quiz average and time with the academy. Discover the 7 student gems and the special stones for instructors and admins."
+      "body": "At SARALÖWE Academy, every course you complete earns you a higher chef rank. Discover all 7 student levels plus special badges for instructors and admins."
     },
     "badge": {
       "level": "Level {{n}}",

@@ -2,18 +2,11 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Enrollment, PaymentTransaction, PaginatedResponse } from '../../services/api/types';
 import courseService from '../../services/api/course.service';
 import paymentService from '../../services/api/payment.service';
-import authService from '../../services/api/auth.service';
 
 interface StudentDashboardStats {
   enrolledCourses: number;
   activeCourses: number;
   completedCourses: number;
-  /** Gemstone badge rules (from /auth/me, same numbers the admin list uses) */
-  badgeCompletedCourses?: number;
-  completedMasterclasses?: number;
-  quizzesTaken?: number;
-  avgQuizScore?: number | null;
-  memberSince?: string | null;
 }
 
 interface StudentState {
@@ -93,21 +86,13 @@ export const fetchStudentStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Get all enrollments to calculate stats
-      const [response, me] = await Promise.all([
-        courseService.getMyEnrolledCourses(0, 1000),
-        authService.getCurrentUser().catch(() => null),
-      ]);
+      const response = await courseService.getMyEnrolledCourses(0, 1000);
       const enrollments = response.content;
 
       const stats: StudentDashboardStats = {
         enrolledCourses: enrollments.length,
         activeCourses: enrollments.filter((e) => e.progressPercentage > 0 && !e.isCompleted).length,
         completedCourses: enrollments.filter((e) => e.isCompleted).length,
-        badgeCompletedCourses: me?.completedCourses,
-        completedMasterclasses: me?.completedMasterclasses ?? 0,
-        quizzesTaken: me?.quizzesTaken ?? 0,
-        avgQuizScore: me?.avgQuizScore ?? null,
-        memberSince: me?.createdAt ?? null,
       };
 
       return stats;

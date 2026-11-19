@@ -16,7 +16,7 @@ import adminService, { UserRoleFilter, UserStats } from '../../../services/api/a
 import { extractApiError } from '../../../services/api/error.utils';
 import { getFileUrl } from '../../../environment';
 import BadgeAvatar from '../../../components/BadgeAvatar';
-import { getBadgeForUser, progressOf, memberDays } from '../../../config/badges';
+import { getBadgeForUser } from '../../../config/badges';
 
 const { Search } = Input;
 
@@ -55,9 +55,6 @@ interface User {
   createdAt: string;
   /** Courses completed — drives the user's real badge level. */
   completedCourses?: number;
-  completedMasterclasses?: number;
-  quizzesTaken?: number;
-  avgQuizScore?: number | null;
 }
 
 const AdminUsers: React.FC = () => {
@@ -320,7 +317,7 @@ const AdminUsers: React.FC = () => {
                           <BadgeAvatar
                             avatarUrl={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : undefined}
                             name={user.fullName}
-                            badge={getBadgeForUser(user.role, progressOf(null, user))}
+                            badge={getBadgeForUser(user.role, user.completedCourses ?? 0)}
                             size="sm"
                           />
                           <div>
@@ -336,25 +333,20 @@ const AdminUsers: React.FC = () => {
                       <td>
                         {getRoleBadge(user.role)}
                         {(() => {
-                          const bd = getBadgeForUser(user.role, progressOf(null, user));
+                          const bd = getBadgeForUser(user.role, user.completedCourses ?? 0);
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}
-                              title={t(bd.gemKey)}>
+                              title={user.role === 'STUDENT' ? t('admin.users.completedCourses', '{{n}} courses completed', { n: user.completedCourses ?? 0 }) : undefined}>
                               <img src={bd.image} alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text)' }}>{t(bd.nameKey)}</span>
-                              <span style={{ fontSize: 11.5, color: 'var(--lx-text-muted)' }}>· {t(bd.gemKey)}</span>
+                              {user.role === 'STUDENT' && (
+                                <span style={{ fontSize: 11.5, color: 'var(--lx-text-muted)' }}>
+                                  · {t('admin.users.completedShort', '{{n}} completed', { n: user.completedCourses ?? 0 })}
+                                </span>
+                              )}
                             </div>
                           );
                         })()}
-                        {user.role === 'STUDENT' && (
-                          <div style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginTop: 3 }}>
-                            {t('admin.users.badgeNumbers', '{{count}} courses · quiz {{quiz}} · {{days}} days', {
-                              count: user.completedCourses ?? 0,
-                              quiz: (user.quizzesTaken ?? 0) > 0 ? `${user.avgQuizScore ?? 0}%` : '—',
-                              days: memberDays(user.createdAt),
-                            })}
-                          </div>
-                        )}
                       </td>
                       <td>{getStatusBadge(user.isBanned, user.isEmailVerified)}</td>
                       <td>

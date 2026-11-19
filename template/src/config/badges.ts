@@ -1,44 +1,19 @@
 /**
  * SARALÖWE Academy — Badge System Configuration
  *
- * Each badge is a gemstone engraved with the academy logo; the rarer the stone, the
- * harder the level. A student needs ALL of a level's requirements (finished courses,
- * average best quiz score, time as a member, and for Diamond a masterclass), and levels
- * are climbed in order.
- *
- *   1  Apprentice      Rose Quartz    — everyone starts here
- *   2  Commis Chef     Citrine        — 2 courses · quiz average 60% · 14 days
- *   3  Sous Chef       Amethyst       — 3 courses · quiz average 70% · 30 days
- *   4  Chef de Partie  Sapphire       — 4 courses · quiz average 75% · 60 days
- *   5  Executive Chef  Emerald        — 5 courses · quiz average 80% · 120 days
- *   6  Master Chef     Ruby           — 6 courses · quiz average 85% · 180 days
- *   7  Elite           Diamond        — 8 courses + 1 masterclass · quiz average 90% · 365 days
+ * Hierarchy (students, by completed courses):
+ *   1  Apprentice         — 0  completed courses  (brand new)
+ *   2  Commis Chef        — 1+ completed courses
+ *   3  Sous Chef          — 3+ completed courses
+ *   4  Chef de Partie     — 6+ completed courses
+ *   5  Executive Chef     — 12+ completed courses
+ *   6  Master Chef        — 20+ completed courses
+ *   7  Elite              — 35+ completed courses
  *
  * Special roles:
- *   8  Instructor      Black Onyx     — role === 'INSTRUCTOR'
- *   9  Admin           Imperial Topaz — role === 'ADMIN'
+ *   8  Instructor         — role === 'INSTRUCTOR'
+ *   9  Admin              — role === 'ADMIN'
  */
-
-/** What a level asks for. A missing field = no requirement of that kind. */
-export interface BadgeRequirements {
-  courses: number;
-  /** Average of the best score on each quiz taken, 0-100 (needs at least one quiz). */
-  quizAvg?: number;
-  /** Days since the account was created. */
-  days?: number;
-  /** Masterclasses booked or bought. */
-  masterclasses?: number;
-}
-
-/** The student's numbers the rules are checked against (from /auth/me and admin lists). */
-export interface BadgeProgress {
-  completedCourses: number;
-  completedMasterclasses?: number;
-  quizzesTaken?: number;
-  avgQuizScore?: number | null;
-  /** ISO date the account was created */
-  memberSince?: string | null;
-}
 
 export interface BadgeDefinition {
   id: number;
@@ -46,17 +21,13 @@ export interface BadgeDefinition {
   nameKey: string;
   /** i18n key used to resolve description */
   descKey: string;
-  /** i18n key of the gemstone's name */
-  gemKey: string;
-  /** Minimum completed-course count (kept for simple displays; see `req` for the full rule) */
+  /** Minimum completed-course count (ignored for special role badges) */
   minCourses: number;
-  /** Full requirements (student levels only) */
-  req?: BadgeRequirements;
   /** Which user roles this badge applies to (undefined = student progression) */
   role?: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
   /** Path relative to /public */
   image: string;
-  /** Accent colour for the popup border / glow (the gem's colour) */
+  /** Accent colour for the popup border / glow */
   color: string;
   /** Star count displayed in the badge (for display purposes) */
   stars: number;
@@ -64,105 +35,107 @@ export interface BadgeDefinition {
 
 export const BADGES: BadgeDefinition[] = [
   {
-    id: 1, nameKey: 'badges.apprentice.name', descKey: 'badges.apprentice.desc', gemKey: 'badges.gems.roseQuartz',
-    minCourses: 0, req: { courses: 0 },
-    image: '/assets/img/badge/badge-1.webp', color: '#e8a4b8', stars: 1,
+    id: 1,
+    nameKey: 'badges.apprentice.name',
+    descKey: 'badges.apprentice.desc',
+    minCourses: 0,
+    image: '/assets/img/badge/badge-1.webp',
+    color: '#e8a4b8',
+    stars: 1,
   },
   {
-    id: 2, nameKey: 'badges.commisChef.name', descKey: 'badges.commisChef.desc', gemKey: 'badges.gems.citrine',
-    minCourses: 2, req: { courses: 2, quizAvg: 60, days: 14 },
-    image: '/assets/img/badge/badge-2.webp', color: '#e0a030', stars: 1,
+    id: 2,
+    nameKey: 'badges.commisChef.name',
+    descKey: 'badges.commisChef.desc',
+    minCourses: 1,
+    image: '/assets/img/badge/badge-2.webp',
+    color: '#c8a96e',
+    stars: 1,
   },
   {
-    id: 3, nameKey: 'badges.sousChef.name', descKey: 'badges.sousChef.desc', gemKey: 'badges.gems.amethyst',
-    minCourses: 3, req: { courses: 3, quizAvg: 70, days: 30 },
-    image: '/assets/img/badge/badge-3.webp', color: '#9b59b6', stars: 2,
+    id: 3,
+    nameKey: 'badges.sousChef.name',
+    descKey: 'badges.sousChef.desc',
+    minCourses: 3,
+    image: '/assets/img/badge/badge-3.webp',
+    color: '#b8973e',
+    stars: 2,
   },
   {
-    id: 4, nameKey: 'badges.chefDePartie.name', descKey: 'badges.chefDePartie.desc', gemKey: 'badges.gems.sapphire',
-    minCourses: 4, req: { courses: 4, quizAvg: 75, days: 60 },
-    image: '/assets/img/badge/badge-4.webp', color: '#2f6fd6', stars: 2,
+    id: 4,
+    nameKey: 'badges.chefDePartie.name',
+    descKey: 'badges.chefDePartie.desc',
+    minCourses: 6,
+    image: '/assets/img/badge/badge-4.webp',
+    color: '#c0392b',
+    stars: 2,
   },
   {
-    id: 5, nameKey: 'badges.executiveChef.name', descKey: 'badges.executiveChef.desc', gemKey: 'badges.gems.emerald',
-    minCourses: 5, req: { courses: 5, quizAvg: 80, days: 120 },
-    image: '/assets/img/badge/badge-5.webp', color: '#1f9d6a', stars: 3,
+    id: 5,
+    nameKey: 'badges.executiveChef.name',
+    descKey: 'badges.executiveChef.desc',
+    minCourses: 12,
+    image: '/assets/img/badge/badge-5.webp',
+    color: '#2e7d52',
+    stars: 3,
   },
   {
-    id: 6, nameKey: 'badges.masterChef.name', descKey: 'badges.masterChef.desc', gemKey: 'badges.gems.ruby',
-    minCourses: 6, req: { courses: 6, quizAvg: 85, days: 180 },
-    image: '/assets/img/badge/badge-6.webp', color: '#c0172f', stars: 4,
+    id: 6,
+    nameKey: 'badges.masterChef.name',
+    descKey: 'badges.masterChef.desc',
+    minCourses: 20,
+    image: '/assets/img/badge/badge-6.webp',
+    color: '#c8a030',
+    stars: 4,
   },
   {
-    id: 7, nameKey: 'badges.elite.name', descKey: 'badges.elite.desc', gemKey: 'badges.gems.diamond',
-    minCourses: 8, req: { courses: 8, quizAvg: 90, days: 365, masterclasses: 1 },
-    image: '/assets/img/badge/badge-7.webp', color: '#b9d7f2', stars: 5,
+    id: 7,
+    nameKey: 'badges.elite.name',
+    descKey: 'badges.elite.desc',
+    minCourses: 35,
+    image: '/assets/img/badge/badge-7.webp',
+    color: '#d4a017',
+    stars: 5,
   },
   {
-    id: 8, nameKey: 'badges.instructor.name', descKey: 'badges.instructor.desc', gemKey: 'badges.gems.blackOnyx',
-    minCourses: 0, role: 'INSTRUCTOR',
-    image: '/assets/img/badge/badge-8.webp', color: '#8f8f8f', stars: 0,
+    id: 8,
+    nameKey: 'badges.instructor.name',
+    descKey: 'badges.instructor.desc',
+    minCourses: 0,
+    role: 'INSTRUCTOR',
+    image: '/assets/img/badge/badge-8.webp',
+    color: '#2e7d52',
+    stars: 0,
   },
   {
-    id: 9, nameKey: 'badges.admin.name', descKey: 'badges.admin.desc', gemKey: 'badges.gems.imperialTopaz',
-    minCourses: 0, role: 'ADMIN',
-    image: '/assets/img/badge/badge-9.webp', color: '#e8833a', stars: 0,
+    id: 9,
+    nameKey: 'badges.admin.name',
+    descKey: 'badges.admin.desc',
+    minCourses: 0,
+    role: 'ADMIN',
+    image: '/assets/img/badge/badge-9.webp',
+    color: '#1565c0',
+    stars: 0,
   },
 ];
-
-export const toProgress = (progress: number | BadgeProgress | null | undefined): BadgeProgress =>
-  typeof progress === 'number' ? { completedCourses: progress } : (progress ?? { completedCourses: 0 });
-
-/** Days since the account was created (0 when unknown). */
-export function memberDays(memberSince?: string | null): number {
-  if (!memberSince) return 0;
-  const t = new Date(memberSince).getTime();
-  return Number.isFinite(t) ? Math.max(0, Math.floor((Date.now() - t) / 86400000)) : 0;
-}
-
-export type BadgeCheckKind = 'courses' | 'quizAvg' | 'days' | 'masterclasses';
-export interface BadgeCheck { kind: BadgeCheckKind; have: number; need: number; met: boolean }
-
-/** Each requirement of a level with the student's current value (checklists + progress bars). */
-export function badgeChecks(badge: BadgeDefinition, progress: number | BadgeProgress | null | undefined): BadgeCheck[] {
-  const p = toProgress(progress);
-  const r = badge.req;
-  if (!r) return [];
-  const checks: BadgeCheck[] = [];
-  const add = (kind: BadgeCheckKind, have: number, need: number) => checks.push({ kind, have, need, met: have >= need });
-  if (r.courses > 0) add('courses', p.completedCourses ?? 0, r.courses);
-  if (r.quizAvg) add('quizAvg', p.avgQuizScore ?? 0, r.quizAvg);
-  if (r.days) add('days', memberDays(p.memberSince), r.days);
-  if (r.masterclasses) add('masterclasses', p.completedMasterclasses ?? 0, r.masterclasses);
-  return checks;
-}
-
-/** Overall progress towards a level, 0-100 (average of each requirement's progress). */
-export function badgeProgressPercent(badge: BadgeDefinition, progress: number | BadgeProgress | null | undefined): number {
-  const checks = badgeChecks(badge, progress);
-  if (!checks.length) return 100;
-  const sum = checks.reduce((acc, c) => acc + Math.min(1, c.need ? c.have / c.need : 1), 0);
-  return Math.round((sum / checks.length) * 100);
-}
 
 /**
  * Resolve the badge for a given user.
  *
- * @param role     - user role: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN'
- * @param progress - the student's badge numbers (a plain number = completed courses only)
+ * @param role            - user role: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN'
+ * @param completedCourses - number of courses the student has fully completed
  */
 export function getBadgeForUser(
   role: string,
-  progress: number | BadgeProgress | null | undefined,
+  completedCourses: number,
 ): BadgeDefinition {
   if (role === 'ADMIN') return BADGES[8];      // badge 9
   if (role === 'INSTRUCTOR') return BADGES[7]; // badge 8
 
-  // Student progression: climbed in order, each level needs ALL its requirements.
+  // Student progression — pick the highest badge whose threshold is met
   let badge = BADGES[0]; // Apprentice — always at least this
-  for (const b of BADGES.slice(1, 7)) {
-    if (!badgeChecks(b, progress).every((c) => c.met)) break;
-    badge = b;
+  for (const b of BADGES.slice(0, 7)) {
+    if (completedCourses >= b.minCourses) badge = b;
   }
   return badge;
 }
@@ -225,18 +198,4 @@ export function preloadBadge(image?: string | null): void {
   img.onload = () => loadedBadges.add(image);
   img.srcset = badgeSrcSet(image);
   img.src = image;
-}
-
-/** Build the badge numbers from the student stats slice and/or a user object. */
-export function progressOf(
-  stats?: (Partial<BadgeProgress> & { badgeCompletedCourses?: number }) | null,
-  user?: { createdAt?: string | null; completedCourses?: number; completedMasterclasses?: number; quizzesTaken?: number; avgQuizScore?: number | null } | null,
-): BadgeProgress {
-  return {
-    completedCourses: stats?.badgeCompletedCourses ?? stats?.completedCourses ?? user?.completedCourses ?? 0,
-    completedMasterclasses: stats?.completedMasterclasses ?? user?.completedMasterclasses ?? 0,
-    quizzesTaken: stats?.quizzesTaken ?? user?.quizzesTaken ?? 0,
-    avgQuizScore: stats?.avgQuizScore ?? user?.avgQuizScore ?? null,
-    memberSince: stats?.memberSince ?? user?.createdAt ?? null,
-  };
 }

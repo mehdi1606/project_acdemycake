@@ -9,7 +9,7 @@ import { useAppSelector, useAppDispatch } from "../../../core/redux/hooks";
 import profileService from "../../../services/api/profile.service";
 import { User } from "../../../services/api/types";
 import UserBadge from "../../../components/UserBadge";
-import { getBadgeForUser, progressOf } from "../../../config/badges";
+import { getBadgeForUser } from "../../../config/badges";
 import { fetchStudentStats } from "../../../core/redux/studentSlice";
 
 const StudentProfile = () => {
@@ -64,7 +64,7 @@ const StudentProfile = () => {
 
   const socialLinks = parseSocialLinks(user?.socialLinks);
 
-  const userBadge = getBadgeForUser(user?.role || 'STUDENT', progressOf(stats, user));
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
 
   if (loading) {
     return (

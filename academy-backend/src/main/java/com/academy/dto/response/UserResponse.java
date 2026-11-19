@@ -35,10 +35,6 @@ public class UserResponse {
     private Boolean isBanned;
     /** Courses this user has completed — drives their real badge level (admin lists). */
     private Integer completedCourses;
-    /** Badge rules (students): masterclasses booked/bought, quizzes submitted, average best quiz score (0-100, null = no quiz yet). */
-    private Integer completedMasterclasses;
-    private Integer quizzesTaken;
-    private Integer avgQuizScore;
     private LocalDateTime bannedAt;
     private String banReason;
 

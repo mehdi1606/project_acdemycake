@@ -6,13 +6,13 @@ import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import BadgeAvatar from '../../../components/BadgeAvatar';
-import { getBadgeForUser, progressOf } from '../../../config/badges';
+import { getBadgeForUser } from '../../../config/badges';
 
 const ProfileCard = () => {
   const { t } = useTranslation()
   const { user } = useAppSelector((state) => state.auth);
   const { stats } = useAppSelector((state) => state.student);
-  const userBadge = getBadgeForUser(user?.role || 'STUDENT', progressOf(stats, user));
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
 
   return (
     <div className="profile-card overflow-hidden bg-blue-gradient2 mb-5 p-5">
