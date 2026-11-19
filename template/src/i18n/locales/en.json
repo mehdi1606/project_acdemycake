@@ -2781,7 +2781,9 @@
       "reviewSubmitted": "Review submitted! Thank you.",
       "reviewFailed": "Could not submit your review. Please try again."
     },
+    "quizCount_one": "{{count}} quiz",
     "quizCount": "{{count}} quizzes",
+    "lessonCount_one": "{{count}} lesson",
     "reviewCount": "({{count}} reviews)",
     "createdBy": "Created by",
     "playPromo": "Play the course video",

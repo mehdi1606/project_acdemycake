@@ -17,7 +17,7 @@ import BadgePopup from '../../../components/BadgePopup';
 import { getBadgeForUser } from '../../../config/badges';
 
 const StudentDashboard = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
   const { recentEnrollments, transactions, stats, isLoading } = useAppSelector(
     (s) => s.student
@@ -57,7 +57,7 @@ const StudentDashboard = () => {
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">
           <p className="welcome-greeting">{t('student.dashboard.welcome', 'Good to see you again')}</p>
-          <h4>{t('student.dashboard.welcomeBack', 'Welcome back')}, {firstName}!</h4>
+          <h4>{t('student.dashboard.welcomeBack', 'Welcome back')}{i18n.language === 'ar' ? '، ' : ', '}{firstName}!</h4>
           <p>{t('student.dashboard.continueLearningSubtitle', 'Continue your learning journey — you\'re doing great.')}</p>
         </div>
         <div className="welcome-actions">

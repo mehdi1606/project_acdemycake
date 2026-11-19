@@ -357,7 +357,7 @@ const CourseDetails = () => {
               }}>
                 {levelLabel(c.level, t as TFn)}
               </span>
-              {!c.requiresPurchase && (
+              {!c.requiresPurchase && !isPlan && (
                 <span style={{ background: 'rgba(16,185,129,0.18)', color: '#34D399', fontSize: 11, fontWeight: 800, padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(16,185,129,0.25)', textTransform: 'uppercase' }}>{t('courseDetails.free', 'Free')}</span>
               )}
               {c.isEnrolled && (
@@ -390,8 +390,8 @@ const CourseDetails = () => {
                     ? t('courseDetails.placesLeftOf', '{{count}} of {{capacity}} places left', { count: seatsLeft, capacity: seatCap })
                     : t('liveBooking.status.full', 'Fully booked') }] : []),
               ] : [
-                { icon: 'fa-book-open', val: `${totalLessons} ${t('common.lessons', 'lessons')}` },
-                { icon: 'fa-clock', val: fmtDuration(c.durationMinutes) },
+                { icon: 'fa-book-open', val: t('courseDetails.lessonCount', '{{count}} lessons', { count: totalLessons }) },
+                ...(c.durationMinutes > 0 ? [{ icon: 'fa-clock', val: fmtDuration(c.durationMinutes) }] : []),
                 { icon: 'fa-users', val: `${c.enrolledCount?.toLocaleString()} ${t('common.enrolled', 'Enrolled')}` },
                 ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', val: t('courseDetails.quizCount', '{{count}} quizzes', { count: quizLessons }) }] : []),
               ]).map((s, i) => (

@@ -2812,7 +2812,11 @@
       "reviewSubmitted": "تم إرسال تقييمك! شكراً لك.",
       "reviewFailed": "تعذّر إرسال تقييمك. يرجى المحاولة مرة أخرى."
     },
+    "quizCount_one": "اختبار واحد",
+    "quizCount_two": "اختباران",
     "quizCount": "{{count}} اختبارات",
+    "lessonCount_one": "درس واحد",
+    "lessonCount_two": "درسان",
     "reviewCount": "({{count}} تقييمات)",
     "createdBy": "من إعداد",
     "playPromo": "تشغيل فيديو الدورة",

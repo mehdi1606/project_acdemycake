@@ -337,7 +337,7 @@ const AdminUsers: React.FC = () => {
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}
                               title={user.role === 'STUDENT' ? t('admin.users.completedCourses', '{{n}} courses completed', { n: user.completedCourses ?? 0 }) : undefined}>
-                              <img src={bd.image} alt="" width={18} height={18} style={{ objectFit: 'contain' }} />
+                              <img src={bd.image} alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text)' }}>{t(bd.nameKey)}</span>
                               {user.role === 'STUDENT' && (
                                 <span style={{ fontSize: 11.5, color: 'var(--lx-text-muted)' }}>
