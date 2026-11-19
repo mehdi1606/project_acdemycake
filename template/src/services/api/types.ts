@@ -312,6 +312,16 @@ export interface SubscriptionPlan {
   billingPeriod: string; // matches backend billingPeriod field
   features: string[];
   isPopular?: boolean;
+  /** Normal price (crossed out while an offer runs). */
+  regularPrice?: number;
+  /** Limited-time offer (sent before and during its window). */
+  promoId?: string;
+  promoTheme?: string;
+  promoPrice?: number;
+  promoStartsAt?: string;
+  promoEndsAt?: string;
+  /** Server clock (ISO) — countdowns are aligned to it. */
+  serverTime?: string;
 }
 
 export interface Subscription {

@@ -22,6 +22,9 @@ import 'aos/dist/aos.css'
 import { useTranslation } from 'react-i18next'
 
 import BannerSection from './section/banner'
+import PromoTakeover, { PromoTape, SnowLayer } from '../../../components/promo/PromoTakeover'
+import { useActivePromo } from '../../../components/promo/usePromo'
+import { promoDiscountPercent } from '../../../config/promo'
 import Benefits from './section/benefits'
 import StorySection from './section/story'
 import WhyChooseUs from './section/why-choose-us'
@@ -95,10 +98,30 @@ const HomeOne: React.FC = () => {
         AOS.refresh()
     }, [])
 
+    // Limited-time offer (Black Friday / Christmas) themes the whole home page while it runs.
+    const active = useActivePromo()
+    const promo = active?.promo ?? null
+    const promoTheme = promo?.theme
+    // Theme the (shared) header while the offer runs on the home page.
+    useEffect(() => {
+        if (!promoTheme) return
+        const cls = `sl-promo-theme--${promoTheme}`
+        document.body.classList.add(cls)
+        return () => document.body.classList.remove(cls)
+    }, [promoTheme])
+
     return (
-        <div>
-            {/* 1 — Cinematic hero */}
-            <BannerSection />
+        <div className={promo ? `sl-home-promo sl-home-promo--${promo.theme}` : undefined}>
+            {/* 1 — Cinematic hero, replaced by the themed offer hero while an offer runs */}
+            {promo ? (
+                <>
+                    {promo.theme === 'christmas' && <SnowLayer fixed />}
+                    <PromoTakeover />
+                    <PromoTape theme={promo.theme} off={promoDiscountPercent(promo)} />
+                </>
+            ) : (
+                <BannerSection />
+            )}
 
             {/* 2 — Marquee discipline strip */}
             <SlMarquee />

@@ -1,0 +1,62 @@
+/* ── Limited-time offer: shared animations + sticky bar ───────────────────── */
+@keyframes sl-promo-pulse { 0%, 100% { box-shadow: 0 14px 40px rgba(224, 197, 110, 0.35), 0 0 0 0 rgba(224, 197, 110, 0.5); } 50% { box-shadow: 0 14px 40px rgba(224, 197, 110, 0.5), 0 0 0 14px rgba(224, 197, 110, 0); } }
+@keyframes sl-promo-shine { 0% { left: -60%; } 60%, 100% { left: 130%; } }
+@keyframes sl-promo-blink { to { visibility: hidden; } }
+
+/* ── Sticky bottom bar ─────────────────────────────────────────────────────── */
+.sl-promobar {
+  position: fixed; z-index: 1040; left: 50%; bottom: 16px; transform: translateX(-50%);
+  width: min(960px, calc(100% - 24px));
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 10px 10px 18px; border-radius: 999px;
+  color: #f5eee4; background: rgba(11, 8, 9, 0.94);
+  border: 1px solid rgba(224, 197, 110, 0.45);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  animation: sl-promobar-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.sl-promobar--christmas { background: rgba(74, 20, 37, 0.95); border-color: rgba(245, 218, 223, 0.45); }
+@keyframes sl-promobar-in { from { transform: translate(-50%, 120%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.sl-promobar__tag {
+  flex-shrink: 0; font-size: 11px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+  color: #1a0f08; background: linear-gradient(135deg, #f6e3a1, #c5912c); padding: 6px 11px; border-radius: 999px;
+}
+.sl-promobar__text { flex: 1; min-width: 0; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl-promobar__text b { color: #e0c56e; font-size: 17px; }
+.sl-promobar__text s { opacity: 0.55; margin-inline-start: 4px; }
+.sl-promobar__clock { flex-shrink: 0; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 15px; letter-spacing: 0.5px; direction: ltr; }
+.sl-promobar__cta {
+  flex-shrink: 0; position: relative; overflow: hidden;
+  padding: 11px 22px; border-radius: 999px; font-weight: 900; font-size: 15px;
+  color: #1a0f08 !important; text-decoration: none;
+  background: linear-gradient(135deg, #f6e3a1, #e0c56e 45%, #c5912c);
+  animation: sl-promo-pulse 2.2s ease-in-out infinite;
+}
+.sl-promobar__cta::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: sl-promo-shine 2.8s ease-in-out infinite;
+}
+.sl-promobar__close {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); font-size: 13px;
+}
+.sl-promobar__close:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.sl-promobar-pill {
+  position: fixed; z-index: 1040; bottom: 16px; inset-inline-start: 16px;
+  padding: 11px 16px; border-radius: 999px; font-weight: 900; font-size: 14px; direction: ltr;
+  color: #1a0f08 !important; text-decoration: none;
+  background: linear-gradient(135deg, #f6e3a1, #e0c56e 45%, #c5912c);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  animation: sl-promo-pulse 2.2s ease-in-out infinite;
+}
+@media (max-width: 700px) {
+  .sl-promobar { bottom: 10px; gap: 8px; padding: 8px 8px 8px 12px; flex-wrap: wrap; border-radius: 20px; }
+  .sl-promobar__tag { display: none; }
+  .sl-promobar__text { flex: 1 1 60%; font-size: 13.5px; }
+  .sl-promobar__clock { font-size: 13.5px; }
+  .sl-promobar__cta { flex: 1 1 auto; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl-promobar, .sl-promobar__cta, .sl-promobar__cta::after, .sl-promobar-pill { animation: none !important; }
+}

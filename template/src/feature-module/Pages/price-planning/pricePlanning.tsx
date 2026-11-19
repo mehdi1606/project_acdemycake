@@ -13,6 +13,8 @@ import { Subscription } from "../../../services/api/types";
 import { useAppSelector } from "../../../core/redux/hooks";
 import { Spin, Modal, App } from "antd";
 import PaymentBadges from "../../common/PaymentBadges";
+import { usePromo } from "../../../components/promo/usePromo";
+import "../../../components/promo/promo.css";
 
 // ── Plan shape ────────────────────────────────────────────────────────────────
 interface Plan {
@@ -26,6 +28,8 @@ interface Plan {
   features: string[];
   premiumExtras: string[];
   couponEligible: boolean;
+  /** Usual price shown crossed out (the offer's 'was' price during a promo) */
+  was?: number;
 }
 
 // ── Floating particle ─────────────────────────────────────────────────────────
@@ -146,7 +150,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSubscribed, currentPlanId, 
               textDecorationColor: '#E5484D',
               textDecorationThickness: '2.5px',
             }}>
-              {(3900).toLocaleString()} MAD
+              {(plan.was ?? 3900).toLocaleString()} MAD
             </span>
           </div>
         )}
@@ -679,6 +683,10 @@ const PricePlanning: React.FC = () => {
   const [annualPrice, setAnnualPrice] = useState<number | null>(null);
 
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+  // Limited-time offer (Black Friday / Christmas) — overrides the yearly price while it runs.
+  const { promo, phase: promoPhase, left: promoLeft } = usePromo();
+  // Normal yearly price from the server, shown crossed out while an offer runs.
+  const [regularPrice, setRegularPrice] = useState<number | null>(null);
 
   // ── Plans (inside component so t() works) ──────────────────────────────────
   const PLANS: Plan[] = [
@@ -686,7 +694,9 @@ const PricePlanning: React.FC = () => {
       id: "yearly",
       period: "yearly",
       periodLabel: t('pricing.perYear', '/ year'),
+      // The server already returns the offer price inside its window (and charges it).
       price: annualPrice ?? 0,
+      was: regularPrice != null && annualPrice != null && annualPrice < regularPrice ? regularPrice : undefined,
       savings: t('pricing.limitedOffer', 'Limited offer'),
       badge: t('pricing.bestValue', 'Best Value'),
       recommended: true,
@@ -741,6 +751,7 @@ const PricePlanning: React.FC = () => {
         const plans = await subscriptionService.getPlans();
         const yearly = plans.find((p) => p.planId === 'yearly');
         if (yearly?.price != null) setAnnualPrice(yearly.price);
+        if (yearly?.regularPrice != null) setRegularPrice(Number(yearly.regularPrice));
 
         if (isAuthenticated) {
           const sub = await subscriptionService.getMySubscription();
@@ -848,6 +859,17 @@ const PricePlanning: React.FC = () => {
       {/* ══ PLAN CARDS ══ */}
       <section className="sl-pricing__section">
         <div className="container">
+          {promo && (
+            <div className={`sl-promobar sl-promobar--${promo.theme}`} style={{ position: 'relative', left: 'auto', bottom: 'auto', transform: 'none', width: 'min(640px, 100%)', margin: '0 auto 26px', animation: 'none' }}>
+              <span className="sl-promobar__tag">{promo.theme === 'christmas' ? t('promo.xmas.tag', 'Christmas') : t('promo.bf.tag', 'Black Friday')}</span>
+              <span className="sl-promobar__text">
+                {promoPhase === 'upcoming'
+                  ? t('promo.pricingSoon', '{{price}} DH instead of {{was}} DH from midnight, for 24 hours', { price: promo.price, was: promo.was })
+                  : t('promo.pricingNote', 'Offer price applied: {{price}} DH instead of {{was}} DH', { price: promo.price, was: promo.was })}
+              </span>
+              <span className="sl-promobar__clock" role="timer">⏱ {promoLeft.h}:{promoLeft.m}:{promoLeft.s}</span>
+            </div>
+          )}
           <div className="sl-pricing__grid" style={{ maxWidth: 480, margin: '0 auto', gridTemplateColumns: '1fr' }}>
             {PLANS.map((plan) => (
               <PlanCard

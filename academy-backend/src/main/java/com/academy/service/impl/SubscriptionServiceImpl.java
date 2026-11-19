@@ -79,16 +79,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                         .features(baseFeatures)
                         .isPopular(false)
                         .build(),
-                SubscriptionPlanResponse.builder()
-                        .planId("yearly")
-                        .name("Annual")
-                        .description("Best value — includes all Masterclasses + coupon eligible")
-                        .price(settingsService.getYearlyPrice())
-                        .currency(currency)
-                        .billingPeriod("yearly")
-                        .features(baseFeatures)
-                        .isPopular(true)
-                        .build()
+                yearlyPlan(baseFeatures)
         );
     }
 
@@ -98,12 +89,32 @@ public class SubscriptionServiceImpl implements SubscriptionService {
      * {@link #processSuccessfulPayment} can reconstruct the plan details
      * from just the orderId, without needing an extra DB column.
      */
+    /** Annual plan with its live price and, when configured, the limited-time offer. */
+    private SubscriptionPlanResponse yearlyPlan(List<String> features) {
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        var promo = settingsService.getYearlyPromo().filter(p -> !p.isOver(now));
+        var b = SubscriptionPlanResponse.builder()
+                .planId("yearly")
+                .name("Annual")
+                .description("Best value — includes all Masterclasses + coupon eligible")
+                .price(settingsService.getEffectiveYearlyPrice())
+                .regularPrice(settingsService.getYearlyPrice())
+                .currency(currency)
+                .billingPeriod("yearly")
+                .features(features)
+                .isPopular(true)
+                .serverTime(now.toString());
+        promo.ifPresent(p -> b.promoId(p.id()).promoTheme(p.theme()).promoPrice(p.price())
+                .promoStartsAt(p.startsAt().toString()).promoEndsAt(p.endsAt().toString()));
+        return b.build();
+    }
+
     private record PlanMeta(String prefix, BigDecimal price, String label) {}
 
     private PlanMeta resolvePlan(String planId) {
         return switch (planId.toLowerCase()) {
             case "monthly" -> new PlanMeta("SUB-MON", settingsService.getMonthlyPrice(), "Monthly Subscription — SARALÖWE Academy");
-            default        -> new PlanMeta("SUB-YEA", settingsService.getYearlyPrice(),  "Annual Subscription — SARALÖWE Academy");
+            default        -> new PlanMeta("SUB-YEA", settingsService.getEffectiveYearlyPrice(),  "Annual Subscription — SARALÖWE Academy");
         };
     }
 

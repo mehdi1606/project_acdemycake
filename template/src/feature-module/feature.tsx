@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router";
 import { useEffect } from "react";
 import Header from "../core/common/header/header";
 import BackToTop from "../core/common/backtotop/backToTop";
+import PromoBar from '../components/promo/PromoBar';
 import Footer from "./HomePages/home-one/footer";
 
 /* Prefixes for dashboard/instructor/admin pages — they provide their
@@ -51,6 +52,7 @@ const Feature = () => {
           <Outlet />
           <Footer />
           <BackToTop />
+          <PromoBar />
         </div>
         <div className="sidebar-overlay" />
       </div>

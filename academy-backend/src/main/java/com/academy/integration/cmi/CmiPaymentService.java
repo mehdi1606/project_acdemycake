@@ -110,7 +110,14 @@ public class CmiPaymentService {
             price      = settingsService.getMonthlyPrice();
         } else {
             planPrefix = "SUB-YEA";
-            price      = settingsService.getYearlyPrice();
+            // Offer price only inside its window (server clock); normal price otherwise.
+            price      = settingsService.getEffectiveYearlyPrice();
+        }
+
+        // Coupons don't stack on a running offer (its price is already applied).
+        if (couponCode != null && !couponCode.isBlank()
+                && "yearly".equalsIgnoreCase(planId) && settingsService.getActiveYearlyPromo().isPresent()) {
+            throw new BadRequestException("Coupons can't be combined with the current offer: the offer price is already applied.");
         }
 
         // Apply coupon (yearly only)

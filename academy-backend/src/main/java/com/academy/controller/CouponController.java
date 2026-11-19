@@ -38,6 +38,13 @@ public class CouponController {
             // Not authenticated — still validate but skip user-specific checks
         }
 
+        // While an offer runs its price is already applied: coupons don't stack on top.
+        if (settingsService.getActiveYearlyPromo().isPresent()) {
+            return ResponseEntity.ok(ApiResponse.success(ValidateCouponResponse.builder()
+                    .valid(false).code(code)
+                    .message("Coupons can't be combined with the current offer: the offer price is already applied.")
+                    .build()));
+        }
         // Use the live (admin-editable) yearly price so the coupon preview matches the charge.
         ValidateCouponResponse result = couponService.validateCoupon(code, user, settingsService.getYearlyPrice());
         return ResponseEntity.ok(ApiResponse.success(result));

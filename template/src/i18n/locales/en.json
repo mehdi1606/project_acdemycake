@@ -4221,5 +4221,49 @@
       "EBOOK_PURCHASE": "Ebook Purchase",
       "SUBSCRIPTION": "Subscription"
     }
+  },
+  "promo": {
+    "bf": {
+      "eyebrow": "Black Friday · 24 hours only",
+      "title": "BLACK FRIDAY",
+      "tag": "Black Friday",
+      "lead": "The biggest offer of the year: one full year of Premium, every course and every certificate."
+    },
+    "xmas": {
+      "eyebrow": "Christmas gift · 24 hours only",
+      "title": "Give yourself a year of pastry",
+      "tag": "Christmas",
+      "tape": "MERRY CHRISTMAS",
+      "big1": "Merry",
+      "big2": "Christmas",
+      "lead": "Our gift to you: one full year of Premium, every course and every certificate."
+    },
+    "lead": "One full year of Premium: every course, every certificate, the whole academy.",
+    "priceAria": "{{price}} dirhams instead of {{was}}",
+    "cta": "Get Premium for {{price}} DH",
+    "small": "One payment · 1 year of access · secure card payment",
+    "endsIn": "Offer ends in",
+    "hours": "hours",
+    "minutes": "min",
+    "seconds": "sec",
+    "note": "After that, the price goes back to {{was}} DH.",
+    "barAria": "Limited-time offer",
+    "barText": "Premium for 1 year:",
+    "barCta": "I want it",
+    "minimise": "Make smaller",
+    "pricingNote": "Offer price applied: {{price}} DH instead of {{was}} DH",
+    "bigCta": "Get the offer: {{price}} DH",
+    "bigCtaSub": "Premium 1 year · secure card payment",
+    "trust1": "All courses included",
+    "trust2": "Certificates",
+    "trust3": "1 full year of access",
+    "soonEyebrow": "Starts at midnight · 24 hours only",
+    "fromMidnight": "from 00:00",
+    "soonCta": "{{price}} DH at midnight",
+    "soonCtaSub": "See the offer · normal price until midnight",
+    "startsIn": "Starts in",
+    "barSoon": "Starts at midnight:",
+    "barSoonCta": "See it",
+    "pricingSoon": "{{price}} DH instead of {{was}} DH from midnight, for 24 hours"
   }
 }

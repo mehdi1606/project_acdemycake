@@ -1,0 +1,214 @@
+/* ══ Full-screen themed home hero (Black Friday / Christmas) ═══════════════ */
+.sl-tk {
+  --gold: #e0c56e; --gold-2: #c5912c; --gold-hi: #f6e3a1;
+  position: relative; overflow: hidden; isolation: isolate;
+  min-height: 100vh; min-height: 100svh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 96px 16px 64px; color: #f7efe3; text-align: center;
+}
+.sl-tk--blackfriday { background: radial-gradient(90% 70% at 50% 35%, #2b1d12 0%, #0d0a09 55%, #030303 100%); }
+.sl-tk--christmas {
+  background:
+    radial-gradient(60% 45% at 50% 30%, rgba(224, 197, 110, 0.22), transparent 70%),
+    radial-gradient(120% 90% at 50% 0%, #7d2238 0%, #4a1425 45%, #1e060d 100%);
+  padding-bottom: 130px;
+}
+.sl-tk__inner { position: relative; z-index: 2; width: min(880px, 100%); display: flex; flex-direction: column; align-items: center; }
+.sl-tk__logo { width: clamp(64px, 7vw, 86px); height: auto; margin-bottom: 8px; filter: drop-shadow(0 6px 24px rgba(224, 197, 110, 0.35)); }
+.sl-tk__eyebrow {
+  font-size: 12.5px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase;
+  color: #1a0f08; background: linear-gradient(135deg, var(--gold-hi), var(--gold-2));
+  padding: 8px 16px; border-radius: 999px; margin-bottom: 12px;
+}
+.sl-tk__title { margin: 0 0 10px; line-height: 0.88; font-weight: 900; }
+.sl-tk--blackfriday .sl-tk__title {
+  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(60px, 10.5vw, 128px); letter-spacing: 2px;
+  background: linear-gradient(180deg, #fffdf6 0%, #f3e2b0 45%, #c5912c 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 10px 40px rgba(224, 197, 110, 0.25));
+}
+.sl-tk--christmas .sl-tk__title {
+  font-family: var(--sl-font-display, 'Playfair Display', serif);
+  font-size: clamp(50px, 8vw, 104px); color: #fff8ef;
+  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+}
+.sl-tk--christmas .sl-tk__title em { display: block; font-style: italic; color: var(--gold); }
+.sl-tk__lead { max-width: 600px; margin: 0 auto 14px; font-size: clamp(15px, 1.5vw, 17px); line-height: 1.6; color: rgba(247, 239, 227, 0.75); }
+
+.sl-tk__price { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 18px; }
+.sl-tk__now {
+  font-family: var(--sl-font-display, 'Playfair Display', serif);
+  font-size: clamp(64px, 8vw, 100px); font-weight: 900; line-height: 0.9; color: var(--gold);
+  text-shadow: 0 10px 50px rgba(224, 197, 110, 0.45);
+}
+.sl-tk__now small { font-size: 0.32em; margin-inline-start: 6px; }
+.sl-tk__was { font-size: clamp(20px, 2.4vw, 28px); color: rgba(247, 239, 227, 0.55); text-decoration: line-through; text-decoration-color: #e5484d; text-decoration-thickness: 3px; }
+.sl-tk__seal {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: clamp(78px, 9vw, 104px); height: clamp(78px, 9vw, 104px); border-radius: 50%;
+  font-size: clamp(22px, 2.6vw, 30px); font-weight: 900; color: #fff;
+  background: radial-gradient(circle at 35% 30%, #ef3b57, #a0102a 70%);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 14px 30px rgba(160, 16, 42, 0.5);
+  animation: sl-tk-spin-wobble 3s ease-in-out infinite;
+}
+@keyframes sl-tk-spin-wobble { 0%, 100% { transform: rotate(-10deg) scale(1); } 50% { transform: rotate(8deg) scale(1.06); } }
+
+/* THE big button */
+.sl-tk__cta {
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; column-gap: 18px;
+  width: min(620px, 100%); padding: 20px 22px 18px 34px; border-radius: 26px;
+  text-align: start; text-decoration: none; color: #1a0f08 !important;
+  background: linear-gradient(135deg, var(--gold-hi) 0%, var(--gold) 38%, var(--gold-2) 100%);
+  box-shadow: 0 20px 60px rgba(224, 197, 110, 0.45), inset 0 -4px 0 rgba(0, 0, 0, 0.14), inset 0 2px 0 rgba(255, 255, 255, 0.5);
+  animation: sl-tk-pulse 2s ease-in-out infinite;
+  transition: transform 0.2s ease;
+}
+.sl-tk__cta:hover { transform: translateY(-3px) scale(1.015); }
+.sl-tk__cta::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 35%; left: -50%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  animation: sl-promo-shine 2.6s ease-in-out infinite;
+}
+.sl-tk__cta-main { grid-column: 1; font-size: clamp(22px, 3vw, 32px); font-weight: 900; line-height: 1.1; letter-spacing: -0.3px; }
+.sl-tk__cta-sub { grid-column: 1; font-size: 13.5px; font-weight: 700; opacity: 0.7; margin-top: 4px; }
+.sl-tk__cta-arrow {
+  grid-column: 2; grid-row: 1 / span 2;
+  width: clamp(54px, 6vw, 66px); height: clamp(54px, 6vw, 66px); border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #1a0f08; color: var(--gold); font-size: 28px; font-weight: 900;
+  transition: transform 0.2s ease;
+}
+.sl-tk__cta:hover .sl-tk__cta-arrow { transform: translateX(5px); }
+[dir='rtl'] .sl-tk__cta-arrow { transform: scaleX(-1); }
+[dir='rtl'] .sl-tk__cta { padding: 20px 34px 18px 22px; }
+@keyframes sl-tk-pulse {
+  0%, 100% { box-shadow: 0 20px 60px rgba(224, 197, 110, 0.4), 0 0 0 0 rgba(224, 197, 110, 0.55), inset 0 -4px 0 rgba(0, 0, 0, 0.14); }
+  50% { box-shadow: 0 20px 60px rgba(224, 197, 110, 0.55), 0 0 0 18px rgba(224, 197, 110, 0), inset 0 -4px 0 rgba(0, 0, 0, 0.14); }
+}
+/* snow cap on the Christmas button */
+.sl-tk--christmas .sl-tk__cta { overflow: visible; }
+.sl-tk--christmas .sl-tk__cta::before {
+  content: ''; position: absolute; left: 14px; right: 14px; top: -11px; height: 22px; z-index: 1;
+  background:
+    radial-gradient(14px 12px at 8% 70%, #fff 98%, transparent), radial-gradient(18px 14px at 22% 55%, #fff 98%, transparent),
+    radial-gradient(16px 13px at 38% 68%, #fff 98%, transparent), radial-gradient(20px 15px at 55% 52%, #fff 98%, transparent),
+    radial-gradient(15px 12px at 71% 66%, #fff 98%, transparent), radial-gradient(18px 14px at 87% 56%, #fff 98%, transparent),
+    linear-gradient(#fff, #fff) bottom / 100% 13px no-repeat;
+  border-radius: 12px; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.15));
+}
+.sl-tk--christmas .sl-tk__cta::after { display: none; }
+
+.sl-tk__ends { margin-top: 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.sl-tk__ends > span { font-size: 12.5px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
+.sl-tk__timer { display: flex; align-items: flex-start; gap: 10px; direction: ltr; }
+.sl-tk__unit {
+  display: flex; flex-direction: column; align-items: center; min-width: 84px; padding: 12px 8px 10px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(224, 197, 110, 0.3); backdrop-filter: blur(4px);
+}
+.sl-tk__unit b { font-size: clamp(36px, 5vw, 52px); line-height: 1; font-variant-numeric: tabular-nums; color: #fff; }
+.sl-tk__unit small { margin-top: 5px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(247, 239, 227, 0.6); }
+.sl-tk__colon { font-size: 40px; font-weight: 900; color: var(--gold); padding-top: 8px; animation: sl-promo-blink 1s steps(2, start) infinite; }
+.sl-tk__trust { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; font-size: 13.5px; color: rgba(247, 239, 227, 0.7); }
+
+/* Black Friday: rotating gold light rays + sparks */
+.sl-tk__rays {
+  position: absolute; z-index: 0; left: 50%; top: 42%; width: 180vmax; height: 180vmax; transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(224, 197, 110, 0.07) 0deg 6deg, transparent 6deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 0%, transparent 55%); mask: radial-gradient(circle, #000 0%, transparent 55%);
+  animation: sl-tk-rotate 60s linear infinite;
+}
+@keyframes sl-tk-rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.sl-tk__sparks {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 10% 20%, var(--gold-hi), transparent), radial-gradient(1.5px 1.5px at 80% 30%, var(--gold-hi), transparent),
+    radial-gradient(2.5px 2.5px at 25% 75%, var(--gold), transparent), radial-gradient(1.5px 1.5px at 65% 85%, var(--gold-hi), transparent),
+    radial-gradient(2px 2px at 90% 65%, var(--gold), transparent), radial-gradient(1.5px 1.5px at 45% 12%, var(--gold-hi), transparent);
+  animation: sl-tk-twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes sl-tk-twinkle { from { opacity: 0.35; } to { opacity: 1; } }
+
+/* Christmas: snow canvas, lights, ornaments, snow drift */
+.sl-snow { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+.sl-snow--fixed { position: fixed; z-index: 1035; }
+.sl-lights { position: absolute; z-index: 3; top: 68px; left: 0; right: 0; height: 46px; pointer-events: none; }
+.sl-lights__wire { position: absolute; inset: 0; width: 100%; height: 40px; }
+.sl-lights__wire path { fill: none; stroke: #2a3a2a; stroke-width: 2; }
+.sl-lights__row { position: absolute; left: 0; right: 0; top: 12px; display: flex; justify-content: space-around; }
+.sl-lights__bulb { width: 11px; height: 17px; border-radius: 50% 50% 45% 45%; position: relative; animation: sl-tk-glow 1.6s ease-in-out infinite; }
+.sl-lights__bulb::before { content: ''; position: absolute; top: -5px; left: 2px; width: 7px; height: 6px; border-radius: 2px; background: #3b3b30; }
+.sl-lights__bulb--0 { background: #ffd56b; --c: rgba(255, 213, 107, 0.9); }
+.sl-lights__bulb--1 { background: #ff4d6a; --c: rgba(255, 77, 106, 0.9); }
+.sl-lights__bulb--2 { background: #fff6e8; --c: rgba(255, 246, 232, 0.9); }
+.sl-lights__row .sl-lights__bulb:nth-child(odd) { margin-top: 9px; }
+@keyframes sl-tk-glow { 0%, 100% { box-shadow: 0 0 6px 2px var(--c); opacity: 1; } 50% { box-shadow: 0 0 1px 0 var(--c); opacity: 0.45; } }
+.sl-tk__ornaments { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.sl-orn { position: absolute; top: 0; width: 2px; transform-origin: top center; background: rgba(224, 197, 110, 0.6); animation: sl-tk-swing 4.5s ease-in-out infinite; }
+.sl-orn::after {
+  content: ''; position: absolute; bottom: -38px; left: 50%; transform: translateX(-50%);
+  width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff7d6 0%, var(--gold) 22%, var(--gold-2) 60%, #7a5412 100%);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+.sl-orn::before { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 12px; height: 8px; border-radius: 2px; background: #b38b3a; z-index: 1; }
+.sl-orn--1 { left: 7%; height: 170px; }
+.sl-orn--2 { left: 17%; height: 250px; animation-delay: -1.2s; }
+.sl-orn--2::after { width: 34px; height: 34px; bottom: -30px; background: radial-gradient(circle at 32% 28%, #ffd0d8 0%, #e23a55 30%, #8e0f25 100%); }
+.sl-orn--3 { right: 9%; height: 210px; animation-delay: -2.1s; }
+.sl-orn--4 { right: 19%; height: 140px; animation-delay: -0.6s; }
+.sl-orn--4::after { width: 30px; height: 30px; bottom: -26px; background: radial-gradient(circle at 32% 28%, #ffffff 0%, #e8e8e8 30%, #9aa0a8 100%); }
+@keyframes sl-tk-swing { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-4deg); } }
+.sl-tk__drift {
+  position: absolute; z-index: 2; left: -5%; right: -5%; bottom: -1px; height: 110px; pointer-events: none;
+  background:
+    radial-gradient(60% 120% at 15% 100%, #fff 60%, transparent 61%),
+    radial-gradient(50% 110% at 55% 100%, #fbf7f2 60%, transparent 61%),
+    radial-gradient(55% 120% at 92% 100%, #fff 60%, transparent 61%);
+  filter: drop-shadow(0 -6px 14px rgba(0, 0, 0, 0.18));
+}
+
+/* ── Tape running across the page (between sections) ─────────────────────── */
+.sl-tape { position: relative; z-index: 5; margin: -22px -4% 0; overflow: hidden; padding: 12px 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
+.sl-tape--blackfriday { background: repeating-linear-gradient(45deg, #e0c56e 0 22px, #c5912c 22px 44px); color: #0b0809; }
+.sl-tape--christmas { background: #fff; color: #7a1f33; border-top: 4px dashed #c0172f; border-bottom: 4px dashed #c0172f; }
+.sl-tape__track { display: flex; width: max-content; animation: sl-tk-tape 28s linear infinite; }
+.sl-tape__group { display: flex; }
+.sl-tape span { white-space: nowrap; padding: 0 18px; font-family: 'Montserrat', Arial, sans-serif; font-weight: 900; font-size: 20px; letter-spacing: 3px; }
+.sl-tape--blackfriday span { background: #0b0809; color: var(--gold, #e0c56e); padding: 6px 20px; margin: 0 10px; border-radius: 4px; }
+.sl-tape b { color: #c0172f; }
+.sl-tape--blackfriday b { color: #fff; }
+.sl-tape i { font-style: normal; opacity: 0.7; }
+@keyframes sl-tk-tape { to { transform: translateX(-50%); } }
+[dir='rtl'] .sl-tape__track { direction: ltr; }
+
+/* ── The rest of the home page while an offer runs ─────────────────────────── */
+.sl-home-promo--blackfriday .sl-marquee { background: #0b0809 !important; }
+.sl-home-promo--blackfriday .sl-marquee__text,
+.sl-home-promo--blackfriday .sl-marquee__dot { color: #e0c56e !important; }
+.sl-home-promo--christmas .sl-marquee { background: #fff !important; }
+.sl-home-promo--christmas .sl-marquee__text,
+.sl-home-promo--christmas .sl-marquee__text-mono { color: #7a1f33 !important; }
+.sl-home-promo--christmas .sl-marquee__dot { color: #c0172f !important; }
+
+@media (max-width: 700px) {
+  .sl-tk { padding: 104px 14px 70px; min-height: auto; }
+  .sl-tk--christmas { padding-bottom: 110px; }
+  .sl-lights { top: 60px; }
+  .sl-orn--2, .sl-orn--4 { display: none; }
+  .sl-orn--1 { left: 3%; height: 120px; }
+  .sl-orn--3 { right: 3%; height: 150px; }
+  .sl-tk__cta { padding: 16px 14px 14px 20px; column-gap: 12px; border-radius: 22px; }
+  .sl-tk__unit { min-width: 70px; }
+  .sl-tk__trust { gap: 6px 14px; font-size: 12.5px; }
+  .sl-tape span { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl-tk__seal, .sl-tk__cta, .sl-tk__cta::after, .sl-tk__rays, .sl-tk__sparks, .sl-lights__bulb, .sl-orn, .sl-tape__track, .sl-tk__colon { animation: none !important; }
+}
+
+/* Black Friday: the header goes black & gold too */
+body.sl-promo-theme--blackfriday .header-one { background: rgba(8, 6, 6, 0.97) !important; box-shadow: 0 1px 0 rgba(224, 197, 110, 0.25) !important; }
+body.sl-promo-theme--christmas .header-one { box-shadow: 0 1px 0 rgba(224, 197, 110, 0.25) !important; }
+.sl-tk__from { font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #1a0f08; background: #e0c56e; padding: 6px 12px; border-radius: 999px; }
