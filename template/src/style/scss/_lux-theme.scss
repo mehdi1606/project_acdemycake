@@ -1,0 +1,380 @@
+/* ════════════════════════════════════════════════════════════════════════
+   SARALÖWE LUX THEME — the reader-dashboard look, platform-wide
+   ────────────────────────────────────────────────────────────────────────
+   Same brand colours (burgundy #651C32, gold #C5912C, ivory #F2EFE8).
+   What changes is the finish, borrowed from the ebooks page:
+   ivory canvas with cream "frame" panels, generous rounded corners, soft
+   deep shadows, pill buttons and fields, serif burgundy headings, and a
+   floating rounded sidebar whose items sit in icon circles.
+   Loaded last (index.scss) so it refines everything before it.
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --slx-ivory: #F2EFE8;
+  --slx-panel: #FBF8F3;
+  --slx-panel-2: #F6F0E6;
+  --slx-burg: #651C32;
+  --slx-burg-dark: #4A1020;
+  --slx-gold: #C5912C;
+  --slx-gold-lt: #E0C56E;
+  --slx-ink: #2B0F1E;
+  --slx-line: rgba(197, 145, 44, 0.18);
+  --slx-line-strong: rgba(197, 145, 44, 0.34);
+  --slx-shadow: 0 30px 80px rgba(43, 15, 30, 0.10), 0 0 0 1px rgba(197, 145, 44, 0.14);
+  --slx-shadow-soft: 0 14px 40px rgba(43, 15, 30, 0.08);
+  --slx-shadow-lift: 0 22px 56px rgba(43, 15, 30, 0.14);
+  --slx-r-sm: 12px;
+  --slx-r: 18px;
+  --slx-r-lg: 24px;
+  --slx-r-xl: 30px;
+  --slx-serif: 'Playfair Display', Georgia, serif;
+
+  /* re-tune the dashboard design system to the new finish */
+  --lx-bg: var(--slx-ivory);
+  --lx-main-bg: var(--slx-ivory);
+  --lx-sidebar-bg: var(--slx-panel);
+  --lx-topbar-bg: rgba(251, 248, 243, 0.92);
+  --lx-card: var(--slx-panel);
+  --lx-card-hover: #FFFDF9;
+  --lx-card-border: var(--slx-line);
+  --lx-card-border-hover: var(--slx-line-strong);
+  --lx-card-shadow: var(--slx-shadow-soft);
+  --lx-card-shadow-hover: var(--slx-shadow-lift);
+  --lx-radius-sm: var(--slx-r-sm);
+  --lx-radius: var(--slx-r);
+  --lx-radius-lg: var(--slx-r-lg);
+  --lx-radius-xl: var(--slx-r-xl);
+  --lx-sidebar-w: 268px;
+  --lx-sidebar-w-sm: 84px;
+}
+
+/* ── shared pill button recipe ─────────────────────────────────────────── */
+@mixin slx-pill {
+  border-radius: 999px !important;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease, background .25s ease, color .25s ease, border-color .25s ease;
+  &:hover { transform: translateY(-2px); }
+  &:active { transform: translateY(0); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   1. DASHBOARDS (student / instructor / admin)
+   ════════════════════════════════════════════════════════════════════════ */
+.luxury-dashboard {
+  background: var(--slx-ivory);
+
+  /* topbar: cream glass, pill search, round action buttons */
+  .luxury-topbar {
+    background: rgba(251, 248, 243, 0.9);
+    border-bottom: 1px solid var(--slx-line);
+    box-shadow: 0 8px 30px rgba(43, 15, 30, 0.05);
+    .topbar-search input { border-radius: 999px; background: #fff; border-color: var(--slx-line); height: 42px; }
+    .topbar-menu-btn, .topbar-action-btn { border-radius: 50%; background: #fff; border-color: var(--slx-line); }
+    .profile-trigger { border-radius: 999px; background: #fff; border-color: var(--slx-line); }
+    .profile-dropdown { border-radius: var(--slx-r-lg); background: var(--slx-panel); box-shadow: var(--slx-shadow); }
+    .upgrade-btn, .premium-badge { border-radius: 999px; }
+  }
+
+  /* floating rounded sidebar */
+  .luxury-sidebar {
+    top: calc(var(--lx-topbar-h) + 16px);
+    left: 16px;
+    height: calc(100vh - var(--lx-topbar-h) - 32px);
+    border-radius: var(--slx-r-xl);
+    background: var(--slx-panel);
+    border: none;
+    box-shadow: var(--slx-shadow);
+    &::before { display: none; }
+
+    .sidebar-toggle-btn { right: -12px; top: 24px; border-radius: 50%; }
+
+    .sidebar-profile {
+      margin: 12px 12px 4px;
+      padding: 14px;
+      border-radius: var(--slx-r-lg);
+      border-bottom: none;
+      background: var(--slx-panel-2);
+      box-shadow: inset 0 0 0 1px var(--slx-line);
+      .sidebar-user-info h6 { font-family: var(--slx-serif); font-size: 14px; color: var(--slx-burg); }
+      .role-badge { border-radius: 999px; }
+    }
+
+    .sidebar-group-label {
+      font-family: var(--slx-serif);
+      font-size: 10px; letter-spacing: .2em;
+      color: var(--slx-gold);
+      padding: 18px 22px 6px;
+    }
+
+    .sidebar-link {
+      gap: 12px;
+      margin: 2px 12px;
+      width: calc(100% - 24px);
+      padding: 6px 14px 6px 6px;
+      border-radius: 999px;
+      border-left: none !important;
+      color: rgba(43, 15, 30, 0.72);
+      font-weight: 600;
+
+      i {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 17px; color: var(--slx-burg);
+        background: rgba(197, 145, 44, 0.10);
+        transition: background .25s ease, color .25s ease, transform .25s ease;
+      }
+      &:hover {
+        background: rgba(197, 145, 44, 0.10);
+        color: var(--slx-burg);
+        i { background: rgba(197, 145, 44, 0.2); color: var(--slx-burg); transform: scale(1.05); }
+      }
+      &.active {
+        background: var(--slx-burg) !important;
+        color: #fff !important;
+        padding-left: 6px;
+        box-shadow: 0 12px 26px rgba(101, 28, 50, 0.28);
+        i { background: rgba(255, 255, 255, 0.14); color: var(--slx-gold-lt); }
+      }
+    }
+
+    .sidebar-footer {
+      border-top: none;
+      background: transparent;
+      padding: 10px 0 14px;
+      .logout-link i { background: rgba(180, 40, 60, 0.08); }
+    }
+
+    /* collapsed = the icon rail of the ebooks page */
+    &.collapsed {
+      .sidebar-profile { margin: 12px 10px 4px; padding: 10px 0; background: transparent; box-shadow: none; }
+      .sidebar-link { justify-content: center; padding: 5px; margin: 4px auto; width: 48px; height: 48px; }
+      .sidebar-link i { width: 38px; height: 38px; background: transparent; }
+      .sidebar-link.active i { background: transparent; color: #fff; }
+    }
+  }
+
+  .luxury-main {
+    margin-left: calc(var(--lx-sidebar-w) + 32px);
+    padding: 30px 32px 40px 0;
+    background: var(--slx-ivory);
+  }
+  &.sidebar-collapsed .luxury-main { margin-left: calc(var(--lx-sidebar-w-sm) + 32px); }
+
+  @media (max-width: 991.98px) {
+    .luxury-sidebar { top: var(--lx-topbar-h); left: 0; height: calc(100vh - var(--lx-topbar-h)); border-radius: 0 var(--slx-r-xl) var(--slx-r-xl) 0; }
+    .luxury-main, &.sidebar-collapsed .luxury-main { margin-left: 0 !important; padding: 22px 16px 32px; }
+  }
+
+  /* headings inside dashboards read like the ebooks page */
+  .luxury-main {
+    h1, h2, h3, h4, .page-title, .lx-page-title { font-family: var(--slx-serif); }
+  }
+
+  /* hero / welcome banner — and any dark banner: headings stay light */
+  .lx-dashboard-welcome { border-radius: var(--slx-r-xl); box-shadow: 0 26px 60px rgba(101, 28, 50, 0.22); }
+
+  /* cards */
+  .lx-card, .lx-stat-card, .lx-course-card, .luxury-main .card {
+    background: var(--slx-panel);
+    border: 1px solid var(--slx-line);
+    border-radius: var(--slx-r-lg);
+    box-shadow: var(--slx-shadow-soft);
+    &:hover { box-shadow: var(--slx-shadow-lift); }
+  }
+  .lx-card .lx-card-header, .luxury-main .card .card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--slx-line);
+    h5, h6, .card-title { font-family: var(--slx-serif); color: var(--slx-burg); font-weight: 700; }
+  }
+  .lx-stat-card .stat-value { color: var(--slx-burg); }
+
+  /* buttons */
+  .lx-btn {
+    @include slx-pill;
+    padding: 11px 24px;
+    &.lx-btn-sm { padding: 7px 16px; }
+    &.lx-btn-gold, &.lx-btn-premium { background: linear-gradient(135deg, var(--slx-gold), var(--slx-gold-lt)); color: var(--slx-ink); }
+    &.lx-btn-rose { background: var(--slx-burg); color: #fff; }
+    &.lx-btn-outline { background: #fff; border: 1.5px solid var(--slx-line-strong); color: var(--slx-burg); }
+  }
+
+  /* tables */
+  .lx-table, .luxury-main .table {
+    border-collapse: separate; border-spacing: 0;
+    background: var(--slx-panel);
+    border-radius: var(--slx-r-lg);
+    overflow: hidden;
+    thead th {
+      background: var(--slx-panel-2);
+      color: var(--slx-burg);
+      font-family: var(--slx-serif);
+      font-weight: 700;
+      border-bottom: 1px solid var(--slx-line) !important;
+    }
+    tbody tr { transition: background .2s ease; }
+    tbody tr:hover { background: rgba(197, 145, 44, 0.07); }
+    td, th { border-color: var(--slx-line) !important; }
+  }
+  .table-responsive { border-radius: var(--slx-r-lg); }
+
+  .lx-badge, .luxury-main .badge { border-radius: 999px; padding: .35em .8em; }
+  .lx-empty-state { border-radius: var(--slx-r-lg); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   2. WHOLE PLATFORM (public pages + dashboards): controls & surfaces
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Bootstrap buttons → pills in the brand colours */
+.btn {
+  @include slx-pill;
+  &.btn-icon, &.btn-close { border-radius: 50% !important; }
+}
+.btn-primary, .btn-secondary.btn-gold {
+  background: var(--slx-burg) !important;
+  border-color: var(--slx-burg) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 24px rgba(101, 28, 50, 0.22);
+  &:hover, &:focus { background: var(--slx-burg-dark) !important; border-color: var(--slx-burg-dark) !important; box-shadow: 0 14px 30px rgba(101, 28, 50, 0.3); }
+}
+.btn-outline-primary {
+  border-color: var(--slx-line-strong) !important;
+  color: var(--slx-burg) !important;
+  background: #fff;
+  &:hover { background: var(--slx-burg) !important; border-color: var(--slx-burg) !important; color: #fff !important; }
+}
+.btn-dark { background: var(--slx-ink) !important; border-color: var(--slx-ink) !important; }
+.btn-warning, .btn-gold {
+  background: linear-gradient(135deg, var(--slx-gold), var(--slx-gold-lt)) !important;
+  border: none !important;
+  color: var(--slx-ink) !important;
+}
+
+/* the site's own button styles get the same finish */
+.sl-btn-gold, .sl-btn-outline, .sl-btn-magnetic { border-radius: 999px !important; }
+
+/* fields */
+.form-control, .form-select {
+  border-radius: var(--slx-r-sm);
+  border-color: var(--slx-line);
+  transition: border-color .2s ease, box-shadow .2s ease;
+  &:focus { border-color: var(--slx-gold); box-shadow: 0 0 0 4px rgba(197, 145, 44, 0.14); }
+}
+.input-group > .form-control:first-child { border-radius: 999px 0 0 999px; }
+.input-group > .form-control:last-child { border-radius: 0 999px 999px 0; }
+textarea.form-control { border-radius: var(--slx-r); }
+.form-check-input:checked { background-color: var(--slx-burg); border-color: var(--slx-burg); }
+
+/* surfaces */
+.card {
+  border-radius: var(--slx-r-lg);
+  border-color: var(--slx-line);
+  .card-img-top { border-radius: var(--slx-r-lg) var(--slx-r-lg) 0 0; }
+}
+.modal-content {
+  border-radius: var(--slx-r-xl);
+  border: none;
+  background: var(--slx-panel);
+  box-shadow: var(--slx-shadow);
+  .modal-header { border-bottom-color: var(--slx-line); }
+  .modal-footer { border-top-color: var(--slx-line); }
+  .modal-title { font-family: var(--slx-serif); color: var(--slx-burg); }
+}
+.dropdown-menu {
+  border-radius: var(--slx-r);
+  border: 1px solid var(--slx-line);
+  background: var(--slx-panel);
+  box-shadow: var(--slx-shadow-soft);
+  padding: 8px;
+  .dropdown-item { border-radius: var(--slx-r-sm); }
+  .dropdown-item:hover, .dropdown-item:focus { background: rgba(197, 145, 44, 0.12); color: var(--slx-burg); }
+}
+.badge { border-radius: 999px; }
+.alert { border-radius: var(--slx-r); }
+.nav-tabs { border-bottom-color: var(--slx-line); }
+.nav-pills .nav-link { border-radius: 999px; }
+.nav-pills .nav-link.active { background: var(--slx-burg); }
+
+/* pagination → round chips */
+.pagination {
+  gap: 6px;
+  .page-link {
+    border-radius: 50% !important;
+    min-width: 38px; height: 38px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-color: var(--slx-line);
+    color: var(--slx-burg);
+  }
+  .page-item.active .page-link { background: var(--slx-burg); border-color: var(--slx-burg); color: #fff; }
+}
+
+/* ── antd components (tables, modals, inputs, selects, tabs…) ───────────── */
+.ant-btn { border-radius: 999px !important; font-weight: 600; }
+.ant-btn-primary:not(.ant-btn-dangerous) { background: var(--slx-burg); box-shadow: 0 10px 22px rgba(101, 28, 50, 0.2); }
+.ant-btn-primary:not(.ant-btn-dangerous):not(:disabled):hover { background: var(--slx-burg-dark) !important; }
+.ant-input, .ant-input-affix-wrapper, .ant-select-selector, .ant-picker, .ant-input-number {
+  border-radius: var(--slx-r-sm) !important;
+  border-color: var(--slx-line) !important;
+}
+.ant-input-affix-wrapper-focused, .ant-select-focused .ant-select-selector, .ant-input:focus, .ant-picker-focused {
+  border-color: var(--slx-gold) !important;
+  box-shadow: 0 0 0 4px rgba(197, 145, 44, 0.14) !important;
+}
+.ant-input-search .ant-input-affix-wrapper, .ant-input-search .ant-input { border-radius: 999px 0 0 999px !important; }
+.ant-input-search-button { border-radius: 0 999px 999px 0 !important; }
+.ant-modal .ant-modal-content {
+  border-radius: var(--slx-r-xl) !important;
+  background: var(--slx-panel);
+  box-shadow: var(--slx-shadow);
+  padding: 26px 28px;
+}
+.ant-modal .ant-modal-title { font-family: var(--slx-serif); color: var(--slx-burg); font-size: 1.2rem; }
+.ant-table-wrapper {
+  .ant-table { border-radius: var(--slx-r-lg); background: var(--slx-panel); }
+  .ant-table-container { border-radius: var(--slx-r-lg); }
+  .ant-table-thead > tr > th {
+    background: var(--slx-panel-2) !important;
+    color: var(--slx-burg);
+    font-family: var(--slx-serif);
+    font-weight: 700;
+    border-bottom-color: var(--slx-line) !important;
+    &::before { display: none; }
+  }
+  .ant-table-tbody > tr > td { border-bottom-color: var(--slx-line); }
+  .ant-table-tbody > tr:hover > td { background: rgba(197, 145, 44, 0.07) !important; }
+}
+.ant-pagination {
+  .ant-pagination-item, .ant-pagination-prev .ant-pagination-item-link, .ant-pagination-next .ant-pagination-item-link {
+    border-radius: 50%;
+  }
+  .ant-pagination-item-active { background: var(--slx-burg); border-color: var(--slx-burg); a { color: #fff !important; } }
+}
+.ant-tabs .ant-tabs-ink-bar { background: var(--slx-gold); }
+.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn { color: var(--slx-burg); }
+.ant-tag { border-radius: 999px; }
+.ant-dropdown .ant-dropdown-menu, .ant-select-dropdown { border-radius: var(--slx-r) !important; padding: 6px; }
+.ant-card { border-radius: var(--slx-r-lg); border-color: var(--slx-line); }
+.ant-message-notice-content, .ant-notification-notice { border-radius: var(--slx-r) !important; }
+.ant-switch.ant-switch-checked { background: var(--slx-burg); }
+.ant-checkbox-checked .ant-checkbox-inner, .ant-radio-checked .ant-radio-inner { background-color: var(--slx-burg); border-color: var(--slx-burg); }
+
+/* ── RTL: the floating sidebar sits on the right ───────────────────────── */
+[dir="rtl"] .luxury-dashboard {
+  .luxury-sidebar { left: auto; right: 16px; }
+  .luxury-main { margin-left: 0; margin-right: calc(var(--lx-sidebar-w) + 32px); padding: 30px 0 40px 32px; }
+  &.sidebar-collapsed .luxury-main { margin-right: calc(var(--lx-sidebar-w-sm) + 32px); }
+  .luxury-sidebar .sidebar-link { padding: 6px 6px 6px 14px; }
+  .luxury-sidebar .sidebar-toggle-btn { right: auto; left: -12px; }
+  @media (max-width: 991.98px) {
+    .luxury-sidebar { right: 0; border-radius: var(--slx-r-xl) 0 0 var(--slx-r-xl); }
+    .luxury-main, &.sidebar-collapsed .luxury-main { margin-right: 0 !important; padding: 22px 16px 32px; }
+  }
+}
+.input-group > .form-control:first-child { [dir="rtl"] & { border-radius: 0 999px 999px 0; } }
+.input-group > .form-control:last-child { [dir="rtl"] & { border-radius: 999px 0 0 999px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .lx-btn, .luxury-sidebar .sidebar-link i { transition: none; }
+  .btn:hover, .lx-btn:hover { transform: none; }
+}

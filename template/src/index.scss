@@ -694,3 +694,5 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+/* Lux theme (reader-dashboard finish) — must stay last */
+@import "./style/scss/lux-theme";
