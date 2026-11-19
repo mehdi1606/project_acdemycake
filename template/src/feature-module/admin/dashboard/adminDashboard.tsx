@@ -16,6 +16,8 @@ const AdminDashboard = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { dashboard, isLoading, error } = useAppSelector((s) => s.admin);
+  const revLabel = t('admin.dashboard.revenueSeries', 'Revenue');
+  const enrLabel = t('admin.dashboard.enrollmentsSeries', 'Enrollments');
   const { user } = useAppSelector((s) => s.auth);
 
   useEffect(() => { dispatch(fetchAdminDashboard()); }, [dispatch]);
@@ -46,12 +48,12 @@ const AdminDashboard = () => {
     // Two y-axes: revenue in MAD on the left, enrollment count (unscaled) on the right.
     yaxis: [
       {
-        seriesName: 'Revenue',
+        seriesName: revLabel,
         title: { text: 'MAD', style: { color: '#8B6D75', fontSize: '11px' } },
         labels: { style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => `${Math.round(v).toLocaleString()} MAD` },
       },
       {
-        seriesName: 'Enrollments',
+        seriesName: enrLabel,
         opposite: true,
         min: 0,
         forceNiceScale: true,
@@ -68,11 +70,11 @@ const AdminDashboard = () => {
   };
 
   const revenueSeries = [
-    { name: 'Revenue',     data: dashboard?.revenueHistory?.map((r) => r.revenue)             || [] },
-    { name: 'Enrollments', data: dashboard?.revenueHistory?.map((r) => r.enrollments ?? 0) || [] },
+    { name: revLabel,      data: dashboard?.revenueHistory?.map((r) => r.revenue)             || [] },
+    { name: enrLabel,      data: dashboard?.revenueHistory?.map((r) => r.enrollments ?? 0) || [] },
   ];
 
-  const firstName = user?.fullName?.split(' ')[0] || 'Admin';
+  const firstName = user?.fullName?.split(' ')[0] || t('common.admin', 'Admin');
 
   const statsRow1 = [
     { label: t('admin.dashboard.totalUsers', 'Total Users'),             value: dashboard?.totalUsers,           icon: 'isax isax-people',    color: 'gold'  },
@@ -253,7 +255,7 @@ const AdminDashboard = () => {
                                   style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                                 />
                                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-brown)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {item.course?.title || 'Course'}
+                                  {item.course?.title || t('admin.dashboard.courseFallback', 'Course')}
                                 </span>
                               </div>
                             </td>
@@ -303,7 +305,7 @@ const AdminDashboard = () => {
                                   size={38}
                                 />
                                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-brown)' }}>
-                                  {item.user?.fullName || 'Instructor'}
+                                  {item.user?.fullName || t('common.instructor', 'Instructor')}
                                 </span>
                               </div>
                             </td>

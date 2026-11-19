@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import { useAppDispatch, useAppSelector } from "../../../core/redux/hooks";
 import { register, clearError } from "../../../core/redux/authSlice";
@@ -55,8 +55,14 @@ const Register: React.FC = () => {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoading, error, isAuthenticated } = useAppSelector((s) => s.auth);
   const route = all_routes;
+  // Where the visitor was heading before login/register (passed on from the login page).
+  const [carriedState] = useState(() => {
+    const st = (location.state || {}) as { from?: unknown; reason?: string };
+    return { from: st.from, reason: st.reason };
+  });
 
   useEffect(() => { dispatch(clearError()); }, [dispatch]);
   useEffect(() => {
@@ -71,8 +77,9 @@ const Register: React.FC = () => {
   const validatePassword = (value: string) => {
     if (!value) { setValidationError(1); return; }
     if (value.length < 8) { setValidationError(2); return; }
+    // Beyond 8 characters, numbers / special characters are optional advice only.
     if (!/[0-9]/.test(value)) { setValidationError(3); return; }
-    if (!/[!@#$%^&*()]/.test(value)) { setValidationError(4); return; }
+    if (!/[!@#$%^&*()+=._-]/.test(value)) { setValidationError(4); return; }
     setValidationError(5);
   };
 
@@ -89,21 +96,21 @@ const Register: React.FC = () => {
   const validateField = (name: string, value: string): string | undefined => {
     switch (name) {
       case "fullName":
-        if (!value.trim()) return "Full name is required.";
-        if (value.trim().length < 2) return "Must be at least 2 characters.";
-        if (value.trim().length > 100) return "Must not exceed 100 characters.";
+        if (!value.trim()) return t('auth.errors.fullNameRequired', 'Please enter your full name.');
+        if (value.trim().length < 2) return t('auth.errors.fullNameShort', 'Your name must be at least 2 characters.');
+        if (value.trim().length > 100) return t('auth.errors.fullNameLong', 'Your name must not exceed 100 characters.');
         break;
       case "email":
-        if (!value.trim()) return "Email is required.";
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Please enter a valid email address.";
+        if (!value.trim()) return t('auth.errors.emailRequired', 'Email is required.');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('auth.errors.emailInvalid', 'Please enter a valid email address (e.g. name@example.com).');
         break;
       case "password":
-        if (!value) return "Password is required.";
-        if (value.length < 8) return "Password must be at least 8 characters.";
+        if (!value) return t('auth.errors.passwordRequired', 'Password is required.');
+        if (value.length < 8) return t('auth.errors.passwordMin', 'Password must be at least 8 characters.');
         break;
       case "confirmPassword":
-        if (!value) return "Please confirm your password.";
-        if (value !== formData.password) return "Passwords do not match.";
+        if (!value) return t('auth.errors.confirmRequired', 'Please type your password again to confirm it.');
+        if (value !== formData.password) return t('auth.errors.passwordMismatch', 'The two passwords do not match.');
         break;
     }
     return undefined;
@@ -116,9 +123,9 @@ const Register: React.FC = () => {
 
   const passwordMessages = () => {
     switch (validationError) {
-      case 2: return <span className="sl-auth__pw-hint sl-auth__pw-hint--weak"><ImageWithBasePath src="assets/img/icon/angry.svg" className="me-2" alt="" />{t('auth.register.pwHintWeak', 'Weak — at least 8 characters')}</span>;
-      case 3: return <span className="sl-auth__pw-hint sl-auth__pw-hint--avg"><ImageWithBasePath src="assets/img/icon/anguish.svg" className="me-2" alt="" />{t('auth.register.pwHintAverage', 'Average — add a number')}</span>;
-      case 4: return <span className="sl-auth__pw-hint sl-auth__pw-hint--good"><ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />{t('auth.register.pwHintGood', 'Almost — add a special character')}</span>;
+      case 2: return null; // the "At least 8 characters" rule line below the field covers this
+      case 3: return <span className="sl-auth__pw-hint sl-auth__pw-hint--avg"><ImageWithBasePath src="assets/img/icon/anguish.svg" className="me-2" alt="" />{t('auth.register.pwTipNumber', 'Good. Tip (optional): adding a number makes it stronger.')}</span>;
+      case 4: return <span className="sl-auth__pw-hint sl-auth__pw-hint--good"><ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />{t('auth.register.pwTipSpecial', 'Strong. Tip (optional): a symbol like ! or @ makes it even stronger.')}</span>;
       case 5: return <span className="sl-auth__pw-hint sl-auth__pw-hint--great"><ImageWithBasePath src="assets/img/icon/smile.svg" className="me-2" alt="" />{t('auth.register.pwHintSecure', 'Secure password ✓')}</span>;
       default: return null;
     }
@@ -132,7 +139,7 @@ const Register: React.FC = () => {
       password:        validateField("password", formData.password),
       confirmPassword: validateField("confirmPassword", formData.confirmPassword),
     };
-    if (!agreeTerms) errors.terms = "You must agree to the Terms of Service and Privacy Policy.";
+    if (!agreeTerms) errors.terms = t('auth.errors.termsRequired', 'Please tick the box to accept the Terms of Service and Privacy Policy.');
     if (Object.values(errors).some(Boolean)) { setFieldErrors(errors); return; }
 
     try {
@@ -142,7 +149,9 @@ const Register: React.FC = () => {
         password: formData.password,
         phone:    formData.phone || undefined,
       })).unwrap();
-      navigate(route.login, { state: { registrationSuccess: true, email: formData.email } });
+      navigate(route.login, {
+        state: { registrationSuccess: true, email: formData.email, from: carriedState.from, reason: carriedState.reason },
+      });
     } catch { /* Error shown via Alert */ }
   };
 
@@ -279,11 +288,15 @@ const Register: React.FC = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   className="sl-auth__input"
-                  placeholder={t('auth.register.phonePlaceholder', 'Enter your phone number')}
+                  placeholder={t('auth.register.phoneExample', '+212 6 12 34 56 78')}
                   disabled={isLoading}
                   autoComplete="tel"
+                  dir="ltr"
                 />
                 <i className="isax isax-call sl-auth__input-icon" />
+              </div>
+              <div style={{ marginTop: 5, fontSize: '0.78rem', color: '#7A6060' }}>
+                {t('auth.register.phoneHint', 'With country code, used for WhatsApp about your bookings (optional)')}
               </div>
             </div>
 
@@ -317,6 +330,16 @@ const Register: React.FC = () => {
                 }`}
               >
                 <span /><span /><span /><span />
+              </div>
+              {/* The one real rule, always visible */}
+              <div
+                style={{
+                  marginTop: 5, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4,
+                  color: formData.password.length >= 8 ? '#2D5F3F' : '#7A6060', fontWeight: 500,
+                }}
+              >
+                <i className={`isax ${formData.password.length >= 8 ? 'isax-tick-circle' : 'isax-info-circle'}`} />
+                {t('auth.register.pwRule', 'At least 8 characters')}
               </div>
               {passwordMessages()}
               {fieldErrors.password && <div className="sl-auth__field-error"><i className="isax isax-info-circle me-1" />{fieldErrors.password}</div>}
@@ -379,7 +402,7 @@ const Register: React.FC = () => {
 
           <div className="sl-auth__switch">
             {t('auth.register.alreadyHaveAccount', 'Already have an account?')}{" "}
-            <Link to={route.login} className="sl-auth__switch-link">{t('auth.register.signIn', 'Sign In')}</Link>
+            <Link to={route.login} state={carriedState.from ? carriedState : undefined} className="sl-auth__switch-link">{t('auth.register.signIn', 'Sign In')}</Link>
           </div>
         </div>
       </div>

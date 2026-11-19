@@ -10,8 +10,9 @@ import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchPendingCourses, approveCourse, rejectCourse } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
 import AvatarImage from '../../../components/AvatarImage';
+import { TFunction } from 'i18next';
 
-const levelBadge = (level: string) => {
+const levelBadge = (t: TFunction, level: string) => {
   const map: Record<string, string> = {
     BEGINNER: 'badge-success',
     INTERMEDIATE: 'badge-info',
@@ -19,16 +20,16 @@ const levelBadge = (level: string) => {
     ALL_LEVELS: 'badge-slate',
   };
   const labels: Record<string, string> = {
-    BEGINNER: 'Beginner',
-    INTERMEDIATE: 'Intermediate',
-    ADVANCED: 'Advanced',
-    ALL_LEVELS: 'All Levels',
+    BEGINNER: t('enums.level.BEGINNER', 'Beginner'),
+    INTERMEDIATE: t('enums.level.INTERMEDIATE', 'Intermediate'),
+    ADVANCED: t('enums.level.ADVANCED', 'Advanced'),
+    ALL_LEVELS: t('enums.level.ALL_LEVELS', 'All Levels'),
   };
   return <span className={`lx-badge ${map[level] ?? 'badge-slate'}`}>{labels[level] ?? level}</span>;
 };
 
-const formatCurrency = (amount: number | undefined) => {
-  if (!amount) return 'Free';
+const formatCurrency = (t: TFunction, amount: number | undefined) => {
+  if (!amount) return t('common.free', 'Free');
   return formatMAD(amount);
 };
 
@@ -57,10 +58,10 @@ const AdminPendingCourses = () => {
   const handleApproveCourse = async (courseId: string) => {
     try {
       await dispatch(approveCourse(courseId)).unwrap();
-      message.success('Course approved and published successfully!');
+      message.success(t('admin.courses.approvedSuccess', 'Course approved and published successfully!'));
       dispatch(fetchPendingCourses({ page: currentPage, size: 20 }));
     } catch {
-      message.error('Failed to approve course');
+      message.error(t('admin.courses.approveError', "The course couldn't be approved. Refresh the page and try again."));
     }
   };
 
@@ -79,13 +80,13 @@ const AdminPendingCourses = () => {
     try {
       // Reject = send back to DRAFT with a reason. The course is never deleted.
       await dispatch(rejectCourse({ courseId: selectedCourseId, reason })).unwrap();
-      message.success('Course rejected');
+      message.success(t('admin.courses.rejectedSuccess', 'Course sent back to the instructor'));
       setRejectModalVisible(false);
       setRejectReason('');
       setSelectedCourseId(null);
       dispatch(fetchPendingCourses({ page: currentPage, size: 20 }));
     } catch (err) {
-      message.error(typeof err === 'string' ? err : 'Failed to reject course');
+      message.error(typeof err === 'string' ? err : t('admin.courses.rejectError', "The course couldn't be rejected. Please try again."));
     }
   };
 
@@ -176,7 +177,7 @@ const AdminPendingCourses = () => {
                         <div>
                           <p style={{ margin: 0, fontWeight: 500, fontSize: 13 }}>{course.title}</p>
                           <small style={{ color: 'var(--lx-text-muted)' }}>
-                            {course.category?.name || 'Uncategorized'} · {course.lessonsCount || 0} lessons
+                            {course.category?.name || t('admin.courses.uncategorized', 'Uncategorized')} · {t('admin.courses.lessonsCount', '{{n}} lessons', { n: course.lessonsCount || 0 })}
                           </small>
                         </div>
                       </div>
@@ -188,15 +189,15 @@ const AdminPendingCourses = () => {
                           name={course.instructor?.fullName}
                           size={28}
                         />
-                        <small style={{ fontWeight: 500 }}>{course.instructor?.fullName || 'Unknown'}</small>
+                        <small style={{ fontWeight: 500 }}>{course.instructor?.fullName || t('admin.courses.unknown', 'Unknown')}</small>
                       </div>
                     </td>
-                    <td>{levelBadge(course.level)}</td>
+                    <td>{levelBadge(t, course.level)}</td>
                     <td>
                       {!course.requiresPurchase ? (
-                        <span className="lx-badge badge-success">Free</span>
+                        <span className="lx-badge badge-success">{t('common.free', 'Free')}</span>
                       ) : (
-                        <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{formatCurrency(course.price)}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{formatCurrency(t, course.price)}</span>
                       )}
                     </td>
                     <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>
@@ -207,7 +208,7 @@ const AdminPendingCourses = () => {
                         <Link
                           to={`${all_routes.courseDetails}/${course.slug || course.id}`}
                           className="lx-btn lx-btn-outline lx-btn-sm"
-                          title="Preview Course"
+                          title={t('admin.courses.previewCourse', 'Preview Course')}
                         >
                           <i className="isax isax-eye" />
                         </Link>
@@ -215,7 +216,7 @@ const AdminPendingCourses = () => {
                           className="lx-btn lx-btn-sm"
                           style={{ background: 'rgba(45, 95, 63, 0.1)', color: '#2D5F3F', border: '1px solid rgba(45, 95, 63, 0.15)' }}
                           onClick={() => handleApproveCourse(course.id)}
-                          title="Approve & Publish"
+                          title={t('admin.courses.approvePublish', 'Approve & Publish')}
                         >
                           <i className="isax isax-tick-circle" />
                         </button>
@@ -223,7 +224,7 @@ const AdminPendingCourses = () => {
                           className="lx-btn lx-btn-sm"
                           style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}
                           onClick={() => handleRejectCourse(course.id)}
-                          title="Reject"
+                          title={t('admin.courses.rejectShort', 'Reject')}
                         >
                           <i className="isax isax-close-circle" />
                         </button>

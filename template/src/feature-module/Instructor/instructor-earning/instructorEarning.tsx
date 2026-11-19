@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import { Link } from 'react-router-dom';
+import { all_routes } from '../../router/all_routes';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import instructorService from '../../../services/api/instructor.service';
 import { useTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 import {
   InstructorEarning as EarningItem,
   EarningsSummary,
@@ -22,15 +25,26 @@ const fmt = (val?: number | null, currency = 'MAD') => {
   return Number(val).toFixed(2) + ' ' + currency
 }
 
-const fmtDate = (str?: string) => {
+const fmtDate = (str?: string, locale = 'en-US') => {
   if (!str) return '—'
-  return new Date(str).toLocaleDateString('en-US', {
+  return new Date(str).toLocaleDateString(locale, {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 }
 
-const sourceLabel = (type?: string) =>
-  type === 'COURSE_PURCHASE' ? 'Course Sale' : type === 'SUBSCRIPTION_SHARE' ? 'Subscription' : type ?? '—'
+const sourceLabel = (t: TFunction, type?: string) =>
+  type === 'COURSE_PURCHASE' ? t('enums.earningSource.COURSE_PURCHASE', 'Course Sale')
+  : type === 'SUBSCRIPTION_SHARE' ? t('enums.earningSource.SUBSCRIPTION_SHARE', 'Subscription')
+  : type ?? '—'
+
+const PAYOUT_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Pending', PAID: 'Paid', CANCELLED: 'Cancelled', REQUESTED: 'Requested',
+  PROCESSING: 'Processing', COMPLETED: 'Completed', REJECTED: 'Rejected',
+}
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  BANK_TRANSFER: 'Bank Transfer', PAYPAL: 'PayPal', CASH: 'Cash', OTHER: 'Other',
+}
 
 // ─── Payout Form Fields ──────────────────────────────────────────────────────
 
@@ -40,11 +54,13 @@ interface PayoutFormProps {
   onChange: (field: keyof PayoutRequest, value: string | number) => void
 }
 
-const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => (
+const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
+  const { t } = useTranslation()
+  return (
   <>
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-        Amount <span style={{ color: '#8B2335' }}>*</span>
+        {t('instructor.earningsPage.amount', 'Amount')} <span style={{ color: '#8B2335' }}>*</span>
       </label>
       <div className="d-flex">
         <input
@@ -82,13 +98,13 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => (
         </span>
       </div>
       <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginTop: 4 }}>
-        Available: <strong style={{ color: 'var(--lx-green)' }}>{fmt(pending)}</strong>
+        {t('instructor.earningsPage.available', 'Available:')} <strong style={{ color: 'var(--lx-green)' }}>{fmt(pending)}</strong>
       </p>
     </div>
 
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-        Payment Method <span style={{ color: '#8B2335' }}>*</span>
+        {t('instructor.earningsPage.paymentMethod', 'Payment Method')} <span style={{ color: '#8B2335' }}>*</span>
       </label>
       <select
         value={form.paymentMethod}
@@ -104,21 +120,20 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => (
           color: 'var(--lx-text)',
         }}
       >
-        <option value="">— Select method —</option>
-        <option value="BANK_TRANSFER">Bank Transfer</option>
-        <option value="PAYPAL">PayPal</option>
-        <option value="CASH">Cash</option>
-        <option value="OTHER">Other</option>
+        <option value="">{t('instructor.earningsPage.selectMethod', '— Select method —')}</option>
+        {Object.keys(PAYMENT_METHOD_LABELS).map((m) => (
+          <option key={m} value={m}>{t(`enums.paymentMethod.${m}`, PAYMENT_METHOD_LABELS[m])}</option>
+        ))}
       </select>
     </div>
 
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-        Bank / Account Info <span style={{ color: '#8B2335' }}>*</span>
+        {t('instructor.earningsPage.accountInfo', 'Bank / Account Info')} <span style={{ color: '#8B2335' }}>*</span>
       </label>
       <textarea
         rows={3}
-        placeholder="IBAN, account number, PayPal email, etc."
+        placeholder={t('instructor.earningsPage.accountInfoPlaceholder', 'IBAN, account number, PayPal email, etc.')}
         value={form.bankAccountInfo}
         onChange={(e) => onChange('bankAccountInfo', e.target.value)}
         style={{
@@ -137,11 +152,11 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => (
 
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-        Notes (optional)
+        {t('instructor.earningsPage.notesOptional', 'Notes (optional)')}
       </label>
       <textarea
         rows={2}
-        placeholder="Any additional notes for the admin…"
+        placeholder={t('instructor.earningsPage.notesPlaceholder', 'Any additional notes for the admin…')}
         value={form.notes ?? ''}
         onChange={(e) => onChange('notes', e.target.value)}
         style={{
@@ -158,11 +173,13 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => (
       />
     </div>
   </>
-)
+  )
+}
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
 const StatusBadge = ({ status }: { status?: string }) => {
+  const { t } = useTranslation()
   const map: Record<string, string> = {
     PENDING:    'badge-warning',
     PAID:       'badge-success',
@@ -173,13 +190,15 @@ const StatusBadge = ({ status }: { status?: string }) => {
     REJECTED:   'badge-danger',
   }
   const cls = map[status ?? ''] ?? 'badge-info'
-  return <span className={`lx-badge ${cls}`}>{status ?? '—'}</span>
+  const label = status ? t(`enums.payoutStatus.${status}`, PAYOUT_STATUS_LABELS[status] ?? status) : '—'
+  return <span className={`lx-badge ${cls}`}>{label}</span>
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const InstructorEarning = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US'
   const [activeTab, setActiveTab] = useState<ActiveTab>('earnings')
 
   const [summary, setSummary] = useState<EarningsSummary | null>(null)
@@ -234,11 +253,11 @@ const InstructorEarning = () => {
       setEPage(data?.page ?? page)
     } catch (err) {
       console.error('Failed to load earnings:', err)
-      setEarningsError('Failed to load earnings. Please try again.')
+      setEarningsError(t('instructor.earningsPage.loadEarningsError', "We couldn't load your earnings. Check your connection and try again."))
     } finally {
       setEarningsLoading(false)
     }
-  }, [])
+  }, [t])
 
   const fetchPayouts = useCallback(async (page: number) => {
     try {
@@ -251,11 +270,11 @@ const InstructorEarning = () => {
       setPPage(data?.page ?? page)
     } catch (err) {
       console.error('Failed to load payouts:', err)
-      setPayoutsError('Failed to load payout history. Please try again.')
+      setPayoutsError(t('instructor.earningsPage.loadPayoutsError', "We couldn't load your payout history. Check your connection and try again."))
     } finally {
       setPayoutsLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchSummary()
@@ -293,7 +312,7 @@ const InstructorEarning = () => {
     grid: { borderColor: 'rgba(101,28,50,0.08)' },
   }
 
-  const chartSeries = [{ name: 'Net Earnings (MAD)', data: chartValues.length ? chartValues : [] }]
+  const chartSeries = [{ name: t('instructor.earningsPage.netEarningsMad', 'Net earnings (MAD)'), data: chartValues.length ? chartValues : [] }]
 
   // ── Payout form helpers ──────────────────────────────────────────────────
   const updatePayoutForm = useCallback(
@@ -314,15 +333,15 @@ const InstructorEarning = () => {
 
   const submitPayout = async () => {
     if (!payoutForm.amount || payoutForm.amount <= 0) {
-      setPayoutError('Please enter a valid amount.')
+      setPayoutError(t('instructor.earningsPage.errAmount', 'Please enter an amount greater than 0.'))
       return
     }
     if (!payoutForm.paymentMethod) {
-      setPayoutError('Please select a payment method.')
+      setPayoutError(t('instructor.earningsPage.errMethod', 'Please choose how you want to be paid.'))
       return
     }
     if (!payoutForm.bankAccountInfo.trim()) {
-      setPayoutError('Please enter your bank / account info.')
+      setPayoutError(t('instructor.earningsPage.errAccount', 'Please enter your bank or account details so we can pay you.'))
       return
     }
 
@@ -338,7 +357,7 @@ const InstructorEarning = () => {
         setActiveTab('payouts')
       }, 1500)
     } catch (err: any) {
-      setPayoutError(err?.message ?? 'Failed to submit payout request.')
+      setPayoutError(err?.message ?? t('instructor.earningsPage.errSubmit', "Your payout request couldn't be sent. Please try again."))
     } finally {
       setPayoutSubmitting(false)
     }
@@ -356,7 +375,7 @@ const InstructorEarning = () => {
     return (
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ padding: '16px 0 0' }}>
         <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>
-          Page {currentPage + 1} of {totalPages} · {totalElements} {label}
+          {t('common.pageOf', 'Page {{page}} of {{total}}', { page: currentPage + 1, total: totalPages })} · {totalElements} {label}
         </p>
         <div className="d-flex gap-1">
           <button
@@ -397,24 +416,24 @@ const InstructorEarning = () => {
 
       {/* Header */}
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-        <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>Earnings</h5>
+        <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{t('instructor.earningsPage.title', 'Earnings')}</h5>
         <button
           className="lx-btn lx-btn-gold lx-btn-sm"
           onClick={openPayoutModal}
           disabled={summaryLoading || (summary?.pendingEarnings ?? 0) <= 0}
         >
           <i className="isax isax-money-send" />
-          Request Payout
+          {t('instructor.earningsPage.requestPayout', 'Request Payout')}
         </button>
       </div>
 
       {/* ── Summary cards ── */}
       <div className="row g-4 mb-4">
         {[
-          { label: 'Total Earnings', value: fmt(summary?.totalEarnings), sub: 'All-time net',       icon: 'isax isax-dollar-circle', color: 'sage' },
-          { label: 'Pending Payout', value: fmt(summary?.pendingEarnings), sub: 'Awaiting payout',  icon: 'isax isax-clock',          color: 'amber' },
-          { label: 'This Month',     value: fmt(summary?.monthlyEarnings), sub: 'Current month',    icon: 'isax isax-calendar-tick',  color: 'slate' },
-          { label: 'Total Paid Out', value: fmt(summary?.totalPaidOut), sub: 'Completed payouts',   icon: 'isax isax-tick-circle',    color: 'gold' },
+          { label: t('instructor.earningsPage.totalEarnings', 'Total Earnings'), value: fmt(summary?.totalEarnings), sub: t('instructor.earningsPage.allTimeNet', 'All-time net'),       icon: 'isax isax-dollar-circle', color: 'sage' },
+          { label: t('instructor.earningsPage.pendingPayout', 'Pending Payout'), value: fmt(summary?.pendingEarnings), sub: t('instructor.earningsPage.awaitingPayout', 'Awaiting payout'),  icon: 'isax isax-clock',          color: 'amber' },
+          { label: t('instructor.earningsPage.thisMonth', 'This Month'),     value: fmt(summary?.monthlyEarnings), sub: t('instructor.earningsPage.currentMonth', 'Current month'),    icon: 'isax isax-calendar-tick',  color: 'slate' },
+          { label: t('instructor.earningsPage.totalPaidOut', 'Total Paid Out'), value: fmt(summary?.totalPaidOut), sub: t('instructor.earningsPage.completedPayouts', 'Completed payouts'),   icon: 'isax isax-tick-circle',    color: 'gold' },
         ].map((s, i) => (
           <div key={i} className="col-xxl-3 col-lg-6 col-md-6">
             <div className="lx-stat-card">
@@ -438,8 +457,8 @@ const InstructorEarning = () => {
       {/* ── Chart ── */}
       <div className="lx-card mb-4">
         <div className="lx-card-header">
-          <h6>Earnings — Last 12 Months</h6>
-          <span className="lx-badge badge-info">Net earnings (MAD)</span>
+          <h6>{t('instructor.earningsPage.last12Months', 'Earnings — Last 12 Months')}</h6>
+          <span className="lx-badge badge-info">{t('instructor.earningsPage.netEarningsMad', 'Net earnings (MAD)')}</span>
         </div>
         <div className="lx-card-body">
           {summaryLoading ? (
@@ -473,7 +492,7 @@ const InstructorEarning = () => {
                 } : {}}
               >
                 <i className={tab === 'earnings' ? 'isax isax-dollar-circle' : 'isax isax-money-send'} />
-                {tab === 'earnings' ? 'Transactions' : 'Payout History'}
+                {tab === 'earnings' ? t('instructor.earningsPage.transactions', 'Transactions') : t('instructor.earningsPage.payoutHistory', 'Payout History')}
                 {tab === 'earnings' && !earningsLoading && eTotalElements > 0 && (
                   <span
                     style={{
@@ -527,19 +546,25 @@ const InstructorEarning = () => {
                   }}
                 >
                   <i className="isax isax-warning-2" />{earningsError}
+                  <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 'auto' }} onClick={() => fetchEarnings(ePage)}>
+                    {t('common.tryAgain', 'Try Again')}
+                  </button>
                 </div>
               )}
 
               {earningsLoading ? (
                 <div className="d-flex flex-column align-items-center justify-content-center py-5">
                   <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                  <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading transactions…</p>
+                  <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('instructor.earningsPage.loadingTransactions', 'Loading transactions…')}</p>
                 </div>
               ) : earnings.length === 0 ? (
                 <div className="lx-empty-state">
                   <div className="empty-icon"><i className="isax isax-dollar-circle" /></div>
-                  <h6>No earnings yet.</h6>
-                  <p>Earnings are created automatically when students enrol in your courses.</p>
+                  <h6>{t('instructor.earningsPage.noEarnings', 'No earnings yet')}</h6>
+                  <p>{t('instructor.earningsPage.noEarningsDesc', 'Earnings are created automatically when students enrol in your courses.')}</p>
+                  <Link to={all_routes.instructorCourse} className="lx-btn lx-btn-outline lx-btn-sm">
+                    <i className="isax isax-book" /> {t('instructor.earningsPage.viewMyCourses', 'View my courses')}
+                  </Link>
                 </div>
               ) : (
                 <>
@@ -547,22 +572,22 @@ const InstructorEarning = () => {
                     <table className="lx-table">
                       <thead>
                         <tr>
-                          <th>Date</th>
-                          <th>Type</th>
-                          <th>Description</th>
-                          <th style={{ textAlign: 'right' }}>Gross</th>
-                          <th style={{ textAlign: 'right' }}>Platform Fee</th>
-                          <th style={{ textAlign: 'right' }}>Net</th>
-                          <th>Status</th>
+                          <th>{t('common.date', 'Date')}</th>
+                          <th>{t('common.type', 'Type')}</th>
+                          <th>{t('common.description', 'Description')}</th>
+                          <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.gross', 'Gross')}</th>
+                          <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.platformFee', 'Platform Fee')}</th>
+                          <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.net', 'Net')}</th>
+                          <th>{t('common.status', 'Status')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {earnings.map((e) => (
                           <tr key={e.id}>
-                            <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{fmtDate(e.createdAt)}</td>
+                            <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{fmtDate(e.createdAt, dateLocale)}</td>
                             <td>
                               <span className="lx-badge badge-info" style={{ fontSize: 11 }}>
-                                {sourceLabel(e.sourceType)}
+                                {sourceLabel(t, e.sourceType)}
                               </span>
                             </td>
                             <td style={{ fontSize: 14, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -581,7 +606,7 @@ const InstructorEarning = () => {
                       </tbody>
                     </table>
                   </div>
-                  {renderPagination(ePage, eTotalPages, eTotalElements, 'transactions', fetchEarnings)}
+                  {renderPagination(ePage, eTotalPages, eTotalElements, t('instructor.earningsPage.transactionsLower', 'transactions'), fetchEarnings)}
                 </>
               )}
             </>
@@ -606,26 +631,29 @@ const InstructorEarning = () => {
                   }}
                 >
                   <i className="isax isax-warning-2" />{payoutsError}
+                  <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 'auto' }} onClick={() => fetchPayouts(pPage)}>
+                    {t('common.tryAgain', 'Try Again')}
+                  </button>
                 </div>
               )}
 
               {payoutsLoading ? (
                 <div className="d-flex flex-column align-items-center justify-content-center py-5">
                   <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                  <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading payouts…</p>
+                  <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('instructor.earningsPage.loadingPayouts', 'Loading payouts…')}</p>
                 </div>
               ) : payouts.length === 0 ? (
                 <div className="lx-empty-state">
                   <div className="empty-icon"><i className="isax isax-money-send" /></div>
-                  <h6>No payout requests yet.</h6>
-                  <p>Click <strong>"Request Payout"</strong> above to withdraw your earnings.</p>
+                  <h6>{t('instructor.earningsPage.noPayouts', 'No payout requests yet')}</h6>
+                  <p>{t('instructor.earningsPage.noPayoutsDesc', 'When you have pending earnings, request a payout to withdraw them.')}</p>
                   <button
                     className="lx-btn lx-btn-gold lx-btn-sm"
                     onClick={openPayoutModal}
                     disabled={(summary?.pendingEarnings ?? 0) <= 0}
                   >
                     <i className="isax isax-money-send" />
-                    Request Payout
+                    {t('instructor.earningsPage.requestPayout', 'Request Payout')}
                   </button>
                 </div>
               ) : (
@@ -634,22 +662,22 @@ const InstructorEarning = () => {
                     <table className="lx-table">
                       <thead>
                         <tr>
-                          <th>Date</th>
-                          <th style={{ textAlign: 'right' }}>Amount</th>
-                          <th>Method</th>
-                          <th>Reference</th>
-                          <th>Status</th>
-                          <th>Completed</th>
+                          <th>{t('common.date', 'Date')}</th>
+                          <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.amount', 'Amount')}</th>
+                          <th>{t('instructor.earningsPage.method', 'Method')}</th>
+                          <th>{t('instructor.earningsPage.reference', 'Reference')}</th>
+                          <th>{t('common.status', 'Status')}</th>
+                          <th>{t('common.completed', 'Completed')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {payouts.map((p) => (
                           <tr key={p.id}>
-                            <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{fmtDate(p.createdAt)}</td>
+                            <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{fmtDate(p.createdAt, dateLocale)}</td>
                             <td style={{ textAlign: 'right', fontWeight: 600, fontSize: 14 }}>
                               {Number(p.amount).toFixed(2)} {p.currency}
                             </td>
-                            <td style={{ fontSize: 13 }}>{p.paymentMethod ?? '—'}</td>
+                            <td style={{ fontSize: 13 }}>{p.paymentMethod ? t(`enums.paymentMethod.${p.paymentMethod}`, PAYMENT_METHOD_LABELS[p.paymentMethod] ?? p.paymentMethod) : '—'}</td>
                             <td>
                               {p.transactionReference ? (
                                 <code style={{ fontSize: 12, background: 'rgba(107, 29, 42, 0.04)', padding: '2px 8px', borderRadius: 4 }}>
@@ -660,13 +688,13 @@ const InstructorEarning = () => {
                               )}
                             </td>
                             <td><StatusBadge status={p.status} /></td>
-                            <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{fmtDate(p.completedAt)}</td>
+                            <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{fmtDate(p.completedAt, dateLocale)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  {renderPagination(pPage, pTotalPages, pTotalElements, 'payouts', fetchPayouts)}
+                  {renderPagination(pPage, pTotalPages, pTotalElements, t('instructor.earningsPage.payoutsLower', 'payouts'), fetchPayouts)}
                 </>
               )}
             </>
@@ -704,7 +732,7 @@ const InstructorEarning = () => {
             >
               {/* Modal header */}
               <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>Request Payout</h5>
+                <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>{t('instructor.earningsPage.requestPayout', 'Request Payout')}</h5>
                 <button
                   onClick={closePayoutModal}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}
@@ -731,9 +759,9 @@ const InstructorEarning = () => {
                     >
                       <i className="isax isax-tick-circle" style={{ fontSize: 28, color: 'var(--lx-green)' }} />
                     </div>
-                    <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', marginBottom: 8 }}>Payout Requested!</h5>
+                    <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', marginBottom: 8 }}>{t('instructor.earningsPage.payoutRequested', 'Payout Requested!')}</h5>
                     <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>
-                      Your payout request has been submitted. The admin will process it shortly.
+                      {t('instructor.earningsPage.payoutRequestedDesc', 'Your payout request has been submitted. The admin will process it shortly.')}
                     </p>
                   </div>
                 ) : (
@@ -773,7 +801,7 @@ const InstructorEarning = () => {
                     onClick={closePayoutModal}
                     disabled={payoutSubmitting}
                   >
-                    Cancel
+                    {t('common.cancel', 'Cancel')}
                   </button>
                   <button
                     className="lx-btn lx-btn-gold"
@@ -783,12 +811,12 @@ const InstructorEarning = () => {
                     {payoutSubmitting ? (
                       <>
                         <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                        Submitting…
+                        {t('instructor.earningsPage.submitting', 'Submitting…')}
                       </>
                     ) : (
                       <>
                         <i className="isax isax-money-send" />
-                        Submit Request
+                        {t('instructor.earningsPage.submitRequest', 'Submit Request')}
                       </>
                     )}
                   </button>

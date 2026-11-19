@@ -40,11 +40,11 @@ const StudentList: React.FC = () => {
       setCurrentPage(data?.page ?? page);
     } catch (err) {
       console.error('Failed to load students:', err);
-      setError('Failed to load students. Please try again.');
+      setError(t('instructor.students.loadError', "We couldn't load your students. Check your connection and try again."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchStudents(0, '');
@@ -148,6 +148,9 @@ const StudentList: React.FC = () => {
         <div className="alert alert-danger d-flex align-items-center" role="alert">
           <i className="isax isax-warning-2 me-2" />
           {error}
+          <button type="button" className="btn btn-sm btn-outline-danger ms-auto" onClick={() => fetchStudents(currentPage, search)}>
+            {t('common.tryAgain', 'Try Again')}
+          </button>
         </div>
       )}
 
@@ -165,6 +168,11 @@ const StudentList: React.FC = () => {
           <p className="mt-2 text-muted">
             {search ? t('instructor.students.noSearchResults', 'No students found matching "{{search}}"', { search }) : t('instructor.students.noStudents', 'No students enrolled in your courses yet.')}
           </p>
+          {!search && (
+            <Link to={all_routes.instructorCourse} className="btn btn-sm btn-outline-primary">
+              {t('instructor.students.checkCourses', 'Check that your courses are published')}
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -237,7 +245,7 @@ const StudentList: React.FC = () => {
                         <Link
                           to={`${all_routes.studentsDetails}?studentId=${student.id}`}
                           className="d-inline-flex fs-14 action-icon"
-                          title="View details"
+                          title={t('instructor.studentDetail.viewDetails', 'View details')}
                         >
                           <i className="isax isax-eye" />
                         </Link>
@@ -247,7 +255,7 @@ const StudentList: React.FC = () => {
                             student.fullName
                           )}`}
                           className="d-inline-flex fs-14 action-icon"
-                          title="Send message"
+                          title={t('instructor.studentDetail.sendMessageLower', 'Send message')}
                         >
                           <i className="isax isax-messages-3" />
                         </Link>
@@ -264,7 +272,7 @@ const StudentList: React.FC = () => {
             <div className="row align-items-center mt-3">
               <div className="col-md-4">
                 <p className="pagination-text text-muted fs-14">
-                  Page {currentPage + 1} of {totalPages} &nbsp;·&nbsp; {totalElements} students
+                  {t('common.pageOf', 'Page {{page}} of {{total}}', { page: currentPage + 1, total: totalPages })} &nbsp;·&nbsp; {t('instructor.students.count', '{{n}} students', { n: totalElements })}
                 </p>
               </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import useIsPhone from '../../../hooks/useIsPhone';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { courseService } from '../../../services/api/course.service';
@@ -19,7 +19,7 @@ import { addToCart } from '../../../core/redux/cartSlice';
 import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 import { assignmentService } from '../../../services/api/assignment.service';
-import LiveMasterclassBooking, { liveSeatInfo, formatSessionDate, formatSessionTimeRange } from './LiveMasterclassBooking';
+import LiveMasterclassBooking, { liveSeatInfo, formatSessionDate, formatSessionTimeRange, useLiveBookingActions } from './LiveMasterclassBooking';
 import ReactPlayer from 'react-player';
 
 const { Panel } = Collapse;
@@ -34,21 +34,22 @@ function fmtDuration(minutes: number) {
   return `${h}hr ${m}min`;
 }
 function fmtSecDuration(secs: number) { return fmtDuration(Math.floor(secs / 60)); }
-function levelLabel(level: string) {
+type TFn = (key: string, def: string, opts?: Record<string, unknown>) => string;
+function levelLabel(level: string, t: TFn) {
   const map: Record<string, string> = {
-    BEGINNER: 'Beginner', INTERMEDIATE: 'Intermediate',
-    ADVANCED: 'Advanced', ALL_LEVELS: 'All Levels',
+    BEGINNER: t('courses.list.beginner', 'Beginner'), INTERMEDIATE: t('courses.list.intermediate', 'Intermediate'),
+    ADVANCED: t('courses.list.advanced', 'Advanced'), ALL_LEVELS: t('courses.list.allLevels', 'All Levels'),
   };
   return map[level] ?? level;
 }
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: TFn): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const days = Math.floor(diff / 86400000);
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 30) return `${days} days ago`;
-  if (days < 365) return `${Math.floor(days / 30)} months ago`;
-  return `${Math.floor(days / 365)} years ago`;
+  if (days === 0) return t('courseDetails.ago.today', 'Today');
+  if (days === 1) return t('courseDetails.ago.yesterday', 'Yesterday');
+  if (days < 30) return t('courseDetails.ago.days', '{{n}} days ago', { n: days });
+  if (days < 365) return t('courseDetails.ago.months', '{{n}} months ago', { n: Math.floor(days / 30) });
+  return t('courseDetails.ago.years', '{{n}} years ago', { n: Math.floor(days / 365) });
 }
 function parseSocialLinks(raw?: string): Record<string, string> {
   if (!raw) return {};
@@ -66,6 +67,7 @@ const CourseDetails = () => {
   const { t, i18n } = useTranslation();
   const { slug }   = useParams<{ slug: string }>();
   const navigate   = useNavigate();
+  const location   = useLocation();
   const dispatch   = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
   const { items: cartItems }      = useAppSelector((s) => s.cart);
@@ -129,7 +131,7 @@ const CourseDetails = () => {
             .catch(() => {});
         }
       } catch {
-        if (!cancelled) message.error('Failed to load course details');
+        if (!cancelled) message.error(t('courseDetails.toast.loadFailed', 'Could not load this course. Please refresh the page.'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -149,33 +151,44 @@ const CourseDetails = () => {
     return () => { cancelled = true; };
   }, [course?.id, course?.isEnrolled, user?.role]);
 
+  /** Sends a visitor to sign in, explaining why, and brings them back to this page afterwards. */
+  const goToLogin = useCallback((reason: 'enroll' | 'wishlist' | 'book') => {
+    const msgs = {
+      enroll:   t('authPrompt.enroll', "Create a free account or sign in to start this course — you'll come right back here."),
+      wishlist: t('authPrompt.wishlist', "Create a free account or sign in to save courses to your wishlist — you'll come right back here."),
+      book:     t('authPrompt.book', "Create a free account or sign in to book your place — you'll come right back here."),
+    };
+    message.info(msgs[reason]);
+    navigate(route.login, { state: { from: `${location.pathname}${location.search}`, reason } });
+  }, [t, message, navigate, location.pathname, location.search]);
+
   const handleEnroll = useCallback(async () => {
-    if (!isAuthenticated) { message.warning('Please login to enroll'); navigate(route.login); return; }
+    if (!isAuthenticated) { goToLogin('enroll'); return; }
     if (!course) return;
     try {
       setEnrolling(true);
       await courseService.enrollInCourse(course.id);
       if (user?.role === 'ADMIN') {
-        message.success('Access granted!');
+        message.success(t('courseDetails.toast.accessGranted', 'Access granted!'));
         navigate(`${route.courseWatch}/${course.slug}`);
         return;
       }
-      message.success('Successfully enrolled!');
+      message.success(t('courseDetails.toast.enrolled', 'Successfully enrolled!'));
       const updated = await courseService.getCourseBySlug(slug!);
       setCourse(updated);
     } catch (err: any) {
       const serverMsg: string = err?.response?.data?.message ?? '';
       if (serverMsg.toLowerCase().includes('already enrolled')) {
-        message.info('You are already enrolled'); navigate(`${route.courseWatch}/${course.slug}`);
+        message.info(t('courseDetails.toast.alreadyEnrolled', 'You are already enrolled')); navigate(`${route.courseWatch}/${course.slug}`);
       } else if (serverMsg.toLowerCase().includes('subscription')) {
-        message.warning('Active subscription required.'); navigate(route.pricingPlan);
+        message.warning(t('courseDetails.toast.subRequired', 'This course is included with Premium. Choose a plan to start learning.')); navigate(route.pricingPlan);
       } else if (serverMsg.toLowerCase().includes('purchase') || serverMsg.toLowerCase().includes('masterclass')) {
-        message.warning('This masterclass requires purchase.');
+        message.warning(t('courseDetails.toast.purchaseRequired', 'This masterclass has to be purchased first.'));
       } else {
-        message.error('Failed to enroll. Please try again.');
+        message.error(t('courseDetails.toast.enrollFailed', 'Could not enrol you. Please try again.'));
       }
     } finally { setEnrolling(false); }
-  }, [isAuthenticated, user, course, slug, message, navigate]);
+  }, [isAuthenticated, user, course, slug, message, navigate, goToLogin, t]);
 
   /** Silent reload (fresh seat availability for a live masterclass). */
   const refreshCourse = useCallback(() => {
@@ -184,23 +197,23 @@ const CourseDetails = () => {
   }, [slug]);
 
   const handleWishlist = useCallback(async () => {
-    if (!isAuthenticated) { message.warning('Please login to use wishlist'); navigate(route.login); return; }
+    if (!isAuthenticated) { goToLogin('wishlist'); return; }
     if (!course || wishlistBusy) return;
     try {
       setWishlistBusy(true);
       if (course.isWishlisted) {
-        await dispatch(removeFromWishlist(course.id)).unwrap(); message.success('Removed from wishlist');
+        await dispatch(removeFromWishlist(course.id)).unwrap(); message.success(t('courseDetails.toast.wishlistRemoved', 'Removed from wishlist'));
       } else {
-        await dispatch(addToWishlist(course.id)).unwrap(); message.success('Added to wishlist');
+        await dispatch(addToWishlist(course.id)).unwrap(); message.success(t('courseDetails.toast.wishlistAdded', 'Added to wishlist'));
       }
       const updated = await courseService.getCourseBySlug(slug!); setCourse(updated);
-    } catch { message.error('Failed to update wishlist'); }
+    } catch { message.error(t('courseDetails.toast.wishlistFailed', 'Could not update your wishlist. Please try again.')); }
     finally { setWishlistBusy(false); }
-  }, [isAuthenticated, course, wishlistBusy, slug, dispatch, message, navigate]);
+  }, [isAuthenticated, course, wishlistBusy, slug, dispatch, message, goToLogin, t]);
 
   const handleAddToCart = useCallback(() => {
     if (!course) return;
-    if (cartItems.some((i) => i.id === course.id)) { message.info('Already in cart'); return; }
+    if (cartItems.some((i) => i.id === course.id)) { message.info(t('courseDetails.toast.alreadyInCart', 'Already in your cart')); return; }
     dispatch(addToCart({
       id: course.id, slug: course.slug, title: course.title,
       thumbnailUrl: course.thumbnailUrl, price: course.price ?? 0,
@@ -208,27 +221,30 @@ const CourseDetails = () => {
       instructorId: course.instructor?.id, instructorAvatar: course.instructor?.avatarUrl,
       rating: course.ratingAverage, ratingCount: course.ratingCount, level: course.level,
     }));
-    message.success(`"${course.title}" added to cart`);
-  }, [course, cartItems, dispatch, message]);
+    message.success(t('courseDetails.toast.addedToCart', '"{{title}}" added to your cart', { title: course.title }));
+  }, [course, cartItems, dispatch, message, t]);
 
   const handleSubmitReview = useCallback(async () => {
-    if (!isAuthenticated) { navigate(route.login); return; }
-    if (!course || reviewRating === 0) { message.warning('Please select a rating'); return; }
-    if (!reviewComment.trim()) { message.warning('Please write a comment'); return; }
+    if (!isAuthenticated) { goToLogin('enroll'); return; }
+    if (!course || reviewRating === 0) { message.warning(t('courseDetails.toast.pickRating', 'Please choose a star rating')); return; }
+    if (!reviewComment.trim()) { message.warning(t('courseDetails.toast.writeComment', 'Please write a short comment')); return; }
     try {
       setSubmittingRev(true);
       const req: CreateReviewRequest = { rating: reviewRating, reviewText: reviewComment.trim() };
       if (userReview) {
-        await courseService.updateReview(course.id, String(userReview.id), req); message.success('Review updated!');
+        await courseService.updateReview(course.id, String(userReview.id), req); message.success(t('courseDetails.toast.reviewUpdated', 'Review updated!'));
       } else {
-        await courseService.createReview(course.id, req); message.success('Review submitted! Thank you.');
+        await courseService.createReview(course.id, req); message.success(t('courseDetails.toast.reviewSubmitted', 'Review submitted! Thank you.'));
       }
       const rev2 = await courseService.getCourseReviews(course.id, 0, 10);
       setReviews(rev2.content ?? []);
       const own = (rev2.content ?? []).find((r) => r.isOwner); if (own) setUserReview(own);
-    } catch { message.error('Failed to submit review'); }
+    } catch { message.error(t('courseDetails.toast.reviewFailed', 'Could not submit your review. Please try again.')); }
     finally { setSubmittingRev(false); }
-  }, [isAuthenticated, course, reviewRating, reviewComment, userReview, message, navigate]);
+  }, [isAuthenticated, course, reviewRating, reviewComment, userReview, message, goToLogin, t]);
+
+  // Booking actions for a LIVE masterclass (used by the phone bottom bar; the sidebar panel has its own).
+  const liveActions = useLiveBookingActions(course, { isAuthenticated, user: user as any, onRefresh: refreshCourse });
 
   /* loading */
   if (loading) return (
@@ -339,14 +355,14 @@ const CourseDetails = () => {
                 fontSize: 11, fontWeight: 600, padding: '4px 14px', borderRadius: 20,
                 border: '1px solid rgba(255,255,255,0.1)',
               }}>
-                {levelLabel(c.level)}
+                {levelLabel(c.level, t as TFn)}
               </span>
               {!c.requiresPurchase && (
-                <span style={{ background: 'rgba(16,185,129,0.18)', color: '#34D399', fontSize: 11, fontWeight: 800, padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(16,185,129,0.25)' }}>FREE</span>
+                <span style={{ background: 'rgba(16,185,129,0.18)', color: '#34D399', fontSize: 11, fontWeight: 800, padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(16,185,129,0.25)', textTransform: 'uppercase' }}>{t('courseDetails.free', 'Free')}</span>
               )}
               {c.isEnrolled && (
-                <span style={{ background: 'rgba(16,185,129,0.18)', color: '#34D399', fontSize: 11, fontWeight: 800, padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(16,185,129,0.25)' }}>
-                  <i className="fa-solid fa-check" style={{ marginRight: 4 }} />ENROLLED
+                <span style={{ background: 'rgba(16,185,129,0.18)', color: '#34D399', fontSize: 11, fontWeight: 800, padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(16,185,129,0.25)', textTransform: 'uppercase' }}>
+                  <i className="fa-solid fa-check" style={{ marginInlineEnd: 4 }} />{t('courseDetails.enrolled', 'Enrolled')}
                 </span>
               )}
             </div>
@@ -377,7 +393,7 @@ const CourseDetails = () => {
                 { icon: 'fa-book-open', val: `${totalLessons} ${t('common.lessons', 'lessons')}` },
                 { icon: 'fa-clock', val: fmtDuration(c.durationMinutes) },
                 { icon: 'fa-users', val: `${c.enrolledCount?.toLocaleString()} ${t('common.enrolled', 'Enrolled')}` },
-                ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', val: `${quizLessons} Quiz${quizLessons > 1 ? 'zes' : ''}` }] : []),
+                ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', val: t('courseDetails.quizCount', '{{count}} quizzes', { count: quizLessons }) }] : []),
               ]).map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
                   <i className={`fa-solid ${s.icon}`} style={{ color: 'rgba(197,145,62,0.8)', fontSize: 13 }} />
@@ -386,13 +402,21 @@ const CourseDetails = () => {
               ))}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-              <span style={{ fontSize: 22, fontWeight: 800, color: '#DEBB6B', lineHeight: 1 }}>
-                {c.ratingAverage?.toFixed(1)}
-              </span>
-              <Rate disabled value={c.ratingAverage} allowHalf style={{ fontSize: 15, color: '#C5973E' }} />
-              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>({c.ratingCount} reviews)</span>
-            </div>
+            {(c.ratingCount ?? 0) > 0 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
+                <span style={{ fontSize: 22, fontWeight: 800, color: '#DEBB6B', lineHeight: 1 }}>
+                  {c.ratingAverage?.toFixed(1)}
+                </span>
+                <Rate disabled value={c.ratingAverage} allowHalf style={{ fontSize: 15, color: '#C5973E' }} />
+                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>{t('courseDetails.reviewCount', '({{count}} reviews)', { count: c.ratingCount })}</span>
+              </div>
+            ) : (
+              <div style={{ marginBottom: 22 }}>
+                <span style={{ background: 'rgba(197,145,62,0.2)', color: '#DEBB6B', fontSize: 12, fontWeight: 800, padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(197,145,62,0.3)' }}>
+                  {t('common.new', 'New')}
+                </span>
+              </div>
+            )}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <BadgeAvatar
@@ -402,7 +426,7 @@ const CourseDetails = () => {
                 size="sm"
               />
               <div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 2 }}>Created by</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 2 }}>{t('courseDetails.createdBy', 'Created by')}</div>
                 <button
                   onClick={() => setActiveTab('instructor')}
                   style={{ background: 'none', border: 'none', padding: 0, color: '#DEBB6B', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
@@ -430,7 +454,7 @@ const CourseDetails = () => {
                 <button
                   type="button"
                   onClick={playPromo}
-                  aria-label="Play promo video"
+                  aria-label={t('courseDetails.playPromo', 'Play the course video')}
                   style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'none', border: 'none', padding: 0, width: '100%' }}
                 >
                   <div style={{
@@ -446,7 +470,7 @@ const CourseDetails = () => {
               )}
               {isMasterclass && (
                 <div style={{ position: 'absolute', top: 16, left: 16, background: 'linear-gradient(135deg,#C5973E,#DEBB6B)', color: '#fff', fontWeight: 800, fontSize: 11, padding: '4px 14px', borderRadius: 20, letterSpacing: '0.06em' }}>
-                  MASTERCLASS
+                  <span style={{ textTransform: 'uppercase' }}>{t('courseDetails.masterclassBadge', 'Masterclass')}</span>
                 </div>
               )}
             </div>
@@ -486,7 +510,12 @@ const CourseDetails = () => {
                     boxShadow: activeTab === tab ? '0 4px 14px rgba(101,28,50,0.25)' : 'none',
                   }}
                 >
-                  {tab}
+                  {{
+                    overview: t('courseDetails.tab.overview', 'Overview'),
+                    curriculum: t('courseDetails.tab.curriculum', 'Curriculum'),
+                    instructor: t('courseDetails.tab.instructor', 'Instructor'),
+                    reviews: t('courseDetails.tab.reviews', 'Reviews'),
+                  }[tab]}
                   {tab === 'reviews' && c.ratingCount > 0 && (
                     <span style={{
                       marginLeft: 5, fontSize: 10, fontWeight: 800,
@@ -585,8 +614,8 @@ const CourseDetails = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
                     <SectionTitle noMargin>{t('courses.details.curriculum', 'Curriculum')}</SectionTitle>
                     <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#9A8080' }}>
-                      <span><i className="fa-solid fa-layer-group" style={{ color: '#C5973E', marginRight: 4 }} />{curriculum.length} modules</span>
-                      <span><i className="fa-solid fa-book-open" style={{ color: '#651C32', marginRight: 4 }} />{totalLessons} lessons</span>
+                      <span><i className="fa-solid fa-layer-group" style={{ color: '#C5973E', marginInlineEnd: 4 }} />{t('courseDetails.moduleCount', '{{count}} modules', { count: curriculum.length })}</span>
+                      <span><i className="fa-solid fa-book-open" style={{ color: '#651C32', marginInlineEnd: 4 }} />{t('courseDetails.lessonCount', '{{count}} lessons', { count: totalLessons })}</span>
                       <span><i className="fa-solid fa-clock" style={{ color: '#10B981', marginRight: 4 }} />{fmtSecDuration(totalDurSec)}</span>
                     </div>
                   </div>
@@ -619,7 +648,7 @@ const CourseDetails = () => {
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontWeight: 700, color: '#2C1810', fontSize: 14, marginBottom: 2 }}>{mod.title}</div>
                                   <div style={{ fontSize: 12, color: '#9A8080' }}>
-                                    {(mod.lessons?.length ?? 0)} lessons
+                                    {t('courseDetails.lessonCount', '{{count}} lessons', { count: mod.lessons?.length ?? 0 })}
                                     {mod.totalDurationSeconds ? ` · ${fmtSecDuration(mod.totalDurationSeconds)}` : ''}
                                   </div>
                                 </div>
@@ -652,10 +681,10 @@ const CourseDetails = () => {
                                       {lesson.title}
                                     </span>
                                     {(lesson.isPreview || lesson.isFreePreview) && (
-                                      <span style={{ background: '#ECFDF5', color: '#10B981', fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 10, flexShrink: 0 }}>Preview</span>
+                                      <span style={{ background: '#ECFDF5', color: '#10B981', fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 10, flexShrink: 0 }}>{t('courseDetails.preview', 'Preview')}</span>
                                     )}
                                     {isQuiz && (
-                                      <span style={{ background: '#FFFBEB', color: '#D97706', fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 10, flexShrink: 0 }}>Quiz</span>
+                                      <span style={{ background: '#FFFBEB', color: '#D97706', fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 10, flexShrink: 0 }}>{t('courseDetails.quizBadge', 'Quiz')}</span>
                                     )}
                                   </div>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -664,10 +693,10 @@ const CourseDetails = () => {
                                         fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 8,
                                         background: 'rgba(245,158,11,0.1)', color: '#D97706',
                                         textDecoration: 'none', border: '1px solid rgba(245,158,11,0.2)',
-                                      }}>Take Quiz</Link>
+                                      }}>{t('courseDetails.takeQuiz', 'Take Quiz')}</Link>
                                     )}
                                     {durMin > 0 && (
-                                      <span style={{ fontSize: 11, color: '#9ca3af', minWidth: 36, textAlign: 'right' }}>{durMin}min</span>
+                                      <span style={{ fontSize: 11, color: '#9ca3af', minWidth: 36, textAlign: 'right' }}>{t('courseDetails.minutesShort', '{{n}} min', { n: durMin })}</span>
                                     )}
                                   </div>
                                 </div>
@@ -835,10 +864,10 @@ const CourseDetails = () => {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                             <strong style={{ fontSize: 14, color: '#2C1810' }}>{rev.user?.fullName}</strong>
                             {rev.isOwner && (
-                              <span style={{ fontSize: 10, fontWeight: 800, background: 'rgba(101,28,50,0.08)', color: '#651C32', padding: '1px 8px', borderRadius: 10 }}>You</span>
+                              <span style={{ fontSize: 10, fontWeight: 800, background: 'rgba(101,28,50,0.08)', color: '#651C32', padding: '1px 8px', borderRadius: 10 }}>{t('courseDetails.you', 'You')}</span>
                             )}
                             <Rate disabled value={rev.rating} style={{ fontSize: 12, color: '#C5973E' }} />
-                            <span style={{ fontSize: 11, color: '#9ca3af' }}>{timeAgo(rev.createdAt)}</span>
+                            <span style={{ fontSize: 11, color: '#9ca3af' }}>{timeAgo(rev.createdAt, t as TFn)}</span>
                           </div>
                           <p style={{ margin: 0, fontSize: 14, color: '#4b5563', lineHeight: 1.75 }}>{rev.comment}</p>
                         </div>
@@ -933,16 +962,16 @@ const CourseDetails = () => {
                       <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(59,130,246,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                         <i className="fa-solid fa-chalkboard-teacher" style={{ fontSize: 24, color: '#3B82F6' }} />
                       </div>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: '#1D4ED8' }}>Instructor View</div>
-                      <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>You can preview this course</p>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: '#1D4ED8' }}>{t('courseDetails.instructorView', 'Instructor view')}</div>
+                      <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>{t('courseDetails.instructorViewSub', 'You can preview this course')}</p>
                     </div>
                   ) : isAdmin ? (
                     <div>
                       <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(101,28,50,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                         <i className="fa-solid fa-shield-halved" style={{ fontSize: 24, color: '#651C32' }} />
                       </div>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: '#651C32' }}>Admin Access</div>
-                      <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>Full access — no payment required</p>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: '#651C32' }}>{t('courseDetails.adminAccess', 'Admin access')}</div>
+                      <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>{t('courseDetails.adminAccessSub', 'Full access — no payment required')}</p>
                     </div>
                   ) : isPlan ? (
                     hasActiveSub ? (
@@ -950,23 +979,23 @@ const CourseDetails = () => {
                         <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(197,145,62,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                           <i className="fa-solid fa-crown" style={{ fontSize: 24, color: '#C5973E' }} />
                         </div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: '#C5973E' }}>Included in your Plan</div>
-                        <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>Access with your active subscription</p>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: '#C5973E' }}>{t('courseDetails.includedInPlan', 'Included in your Premium plan')}</div>
+                        <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>{t('courseDetails.includedInPlanSub', 'Your subscription gives you access')}</p>
                       </div>
                     ) : (
                       <div>
                         <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(107,29,42,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                           <i className="fa-solid fa-lock" style={{ fontSize: 24, color: '#9ca3af' }} />
                         </div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: '#374151' }}>Subscription Required</div>
-                        <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>Subscribe to access all Plan courses</p>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: '#374151' }}>{t('courseDetails.premiumCourse', 'Premium course')}</div>
+                        <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>{t('courseDetails.premiumCourseSub', 'One Premium subscription unlocks every course')}</p>
                       </div>
                     )
                   ) : isMasterclass ? (
                     !c.requiresPurchase ? (
                       <div>
-                        <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 40, fontWeight: 800, color: '#10B981' }}>Free</span>
-                        <div style={{ fontSize: 12, color: '#9A8080', marginTop: 4 }}>No payment required</div>
+                        <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 40, fontWeight: 800, color: '#10B981' }}>{t('courseDetails.free', 'Free')}</span>
+                        <div style={{ fontSize: 12, color: '#9A8080', marginTop: 4 }}>{t('courseDetails.noPaymentRequired', 'No payment required')}</div>
                       </div>
                     ) : (
                       <div>
@@ -979,14 +1008,14 @@ const CourseDetails = () => {
                         </div>
                         {hasDiscount && (
                           <span style={{ background: 'rgba(220,38,38,0.08)', color: '#DC2626', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(220,38,38,0.15)' }}>
-                            {discountPct}% OFF
+                            {t('courseDetails.percentOff', '{{n}}% off', { n: discountPct })}
                           </span>
                         )}
                       </div>
                     )
                   ) : (
                     !c.requiresPurchase
-                      ? <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 40, fontWeight: 800, color: '#10B981' }}>Free</span>
+                      ? <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 40, fontWeight: 800, color: '#10B981' }}>{t('courseDetails.free', 'Free')}</span>
                       : <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 38, fontWeight: 800, color: '#2C1810' }}>{c.price} MAD</span>
                   )}
                 </div>
@@ -1025,7 +1054,7 @@ const CourseDetails = () => {
                       boxSizing: 'border-box',
                     }}>
                       <i className="fa-solid fa-play" style={{ fontSize: 13 }} />
-                      <span>{t('courses.details.continueLearning', 'Continue Learning')}</span>
+                      <span>{t('courseDetails.cta.continue', 'Continue learning')}</span>
                     </Link>
                     </>
                   ) : isOwnInstructor ? (
@@ -1036,7 +1065,7 @@ const CourseDetails = () => {
                       background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: '#fff', textDecoration: 'none',
                       boxShadow: '0 6px 20px rgba(29,78,216,0.28)', marginBottom: 10,
                     }}>
-                      <i className="fa-solid fa-eye" />Preview Course
+                      <i className="fa-solid fa-eye" />{t('courseDetails.previewCourse', 'Preview course')}
                     </Link>
                   ) : isAdmin ? (
                     <button onClick={handleEnroll} disabled={enrolling} style={{
@@ -1047,7 +1076,7 @@ const CourseDetails = () => {
                       opacity: enrolling ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}>
                       {enrolling ? <Spin size="small" /> : <i className="fa-solid fa-shield-halved" />}
-                      {enrolling ? 'Opening...' : 'Access Course'}
+                      {enrolling ? t('courseDetails.opening', 'Opening…') : t('courseDetails.accessCourse', 'Open course')}
                     </button>
                   ) : isPlan ? (
                     hasActiveSub ? (
@@ -1059,19 +1088,19 @@ const CourseDetails = () => {
                         opacity: enrolling ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       }}>
                         {enrolling ? <Spin size="small" /> : <i className="fa-solid fa-graduation-cap" />}
-                        {enrolling ? 'Enrolling...' : 'Start Learning'}
+                        {enrolling ? t('courseDetails.enrolling', 'Enrolling…') : t('courseDetails.cta.startLearning', 'Start learning')}
                       </button>
                     ) : (
                       <React.Fragment>
                         {!isAuthenticated ? (
-                          <Link to={route.login} style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          <button type="button" onClick={() => goToLogin('enroll')} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', cursor: 'pointer',
                             width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 14, boxSizing: 'border-box' as const,
                             background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#fff', textDecoration: 'none',
                             boxShadow: '0 6px 20px rgba(101,28,50,0.28)', marginBottom: 10,
                           }}>
-                            <i className="fa-solid fa-right-to-bracket" />Login to Enroll
-                          </Link>
+                            <i className="fa-solid fa-right-to-bracket" />{t('courseDetails.cta.signInToStart', 'Sign in to start')}
+                          </button>
                         ) : (
                           <Link to={route.pricingPlan} style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -1079,25 +1108,26 @@ const CourseDetails = () => {
                             background: 'linear-gradient(135deg,#C5912C,#A67825)', color: '#fff', textDecoration: 'none',
                             boxShadow: '0 6px 20px rgba(197,145,44,0.3)', marginBottom: 10,
                           }}>
-                            <i className="fa-solid fa-crown" />Subscribe to Access
+                            <i className="fa-solid fa-crown" />{t('courseDetails.cta.getPremium', 'Get Premium to access')}
                           </Link>
                         )}
-                        <p style={{ fontSize: 11, color: '#9A8080', textAlign: 'center', margin: '0 0 10px' }}>
-                          Included in the subscription plan
+                        <p style={{ fontSize: 13, color: '#6B5050', textAlign: 'center', margin: '0 0 10px', lineHeight: 1.5 }}>
+                          <i className="fa-solid fa-crown" style={{ color: '#C5912C', marginInlineEnd: 6 }} />
+                          {t('courseDetails.includedWithPremium', 'Included with Premium — one subscription unlocks every course')}
                         </p>
                       </React.Fragment>
                     )
                   ) : (
                     <React.Fragment>
                       {!isAuthenticated ? (
-                        <Link to={route.login} style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        <button type="button" onClick={() => goToLogin('enroll')} style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', cursor: 'pointer',
                           width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 14, boxSizing: 'border-box' as const,
                           background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#fff', textDecoration: 'none',
                           boxShadow: '0 6px 20px rgba(101,28,50,0.28)', marginBottom: 10,
                         }}>
-                          <i className="fa-solid fa-right-to-bracket" />Login to Enroll
-                        </Link>
+                          <i className="fa-solid fa-right-to-bracket" />{t('courseDetails.cta.signInToStart', 'Sign in to start')}
+                        </button>
                       ) : (
                         <button onClick={handleEnroll} disabled={enrolling} style={{
                           width: '100%', padding: '14px 20px', borderRadius: 12, border: 'none',
@@ -1107,7 +1137,7 @@ const CourseDetails = () => {
                           opacity: enrolling ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         }}>
                           {enrolling ? <Spin size="small" /> : <i className="fa-solid fa-graduation-cap" />}
-                          {enrolling ? t('common.loading', 'Loading...') : !c.requiresPurchase ? t('home.featured.enrolFree', 'Enrol Free') : t('courses.details.enroll', 'Enroll Now')}
+                          {enrolling ? t('common.loading', 'Loading...') : !c.requiresPurchase ? t('courseDetails.cta.startFree', 'Start for free') : t('courses.details.enroll', 'Enroll Now')}
                         </button>
                       )}
                       {c.requiresPurchase && isAuthenticated && (
@@ -1157,18 +1187,18 @@ const CourseDetails = () => {
                       { icon: 'fa-users',              color: '#C5973E', text: seatsLeft !== null
                           ? t('courseDetails.placesLeftOf', '{{count}} of {{capacity}} places left', { count: seatsLeft, capacity: seatCap })
                           : t('courseDetails.limitedPlaces', 'Limited places') },
-                      { icon: 'fa-signal',             color: '#8B5CF6', text: levelLabel(c.level) },
-                      { icon: 'fa-globe',              color: '#10B981', text: c.language ?? 'English' },
+                      { icon: 'fa-signal',             color: '#8B5CF6', text: levelLabel(c.level, t as TFn) },
+                      { icon: 'fa-globe',              color: '#10B981', text: c.language ?? t('courseDetails.defaultLanguage', 'English') },
                       ...(Number(c.price ?? 0) > 0
                         ? [{ icon: 'fa-credit-card', color: '#651C32', text: t('courseDetails.liveIncludeCard', 'Secure online card payment') }]
                         : []),
                       { icon: 'fa-brands fa-whatsapp', color: '#1DA851', text: t('courseDetails.liveIncludeWhatsappV2', 'Questions & reservations on WhatsApp') },
                     ] : [
-                      { icon: 'fa-video',          color: '#3B82F6', text: `${fmtDuration(c.durationMinutes)} on-demand video` },
-                      { icon: 'fa-file-lines',     color: '#6B7280', text: `${totalLessons} lessons · ${curriculum.length} modules` },
-                      ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', color: '#F59E0B', text: `${quizLessons} quiz${quizLessons > 1 ? 'zes' : ''}` }] : []),
-                      { icon: 'fa-signal',         color: '#8B5CF6', text: levelLabel(c.level) },
-                      { icon: 'fa-globe',          color: '#10B981', text: c.language ?? 'English' },
+                      { icon: 'fa-video',          color: '#3B82F6', text: t('courseDetails.onDemandVideo', '{{duration}} on-demand video', { duration: fmtDuration(c.durationMinutes) }) },
+                      { icon: 'fa-file-lines',     color: '#6B7280', text: `${t('courseDetails.lessonCount', '{{count}} lessons', { count: totalLessons })} · ${t('courseDetails.moduleCount', '{{count}} modules', { count: curriculum.length })}` },
+                      ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', color: '#F59E0B', text: t('courseDetails.quizCount', '{{count}} quizzes', { count: quizLessons }) }] : []),
+                      { icon: 'fa-signal',         color: '#8B5CF6', text: levelLabel(c.level, t as TFn) },
+                      { icon: 'fa-globe',          color: '#10B981', text: c.language ?? t('courseDetails.defaultLanguage', 'English') },
                       { icon: 'fa-infinity',       color: '#C5973E', text: t('courses.details.fullLifetimeAccess', 'Full lifetime access') },
                       { icon: 'fa-mobile-screen',  color: '#651C32', text: t('courses.details.accessOnMobile', 'Access on mobile and desktop') },
                       { icon: 'fa-certificate',    color: '#C5973E', text: t('courses.details.certificate', 'Certificate of completion') },
@@ -1240,9 +1270,9 @@ const CourseDetails = () => {
         const GOLD_BTN = 'linear-gradient(135deg,#C5912C,#A67825)';
         const BURG_BTN = 'linear-gradient(135deg,#651C32,#8B2335)';
         const loginBtn = (
-          <Link to={route.login} style={{ ...barBtn, background: BURG_BTN }}>
-            <i className="fa-solid fa-right-to-bracket" />{t('courseDetails.loginToEnroll', 'Login to Enroll')}
-          </Link>
+          <button type="button" onClick={() => goToLogin('enroll')} style={{ ...barBtn, background: BURG_BTN }}>
+            <i className="fa-solid fa-right-to-bracket" />{t('courseDetails.cta.signInToStart', 'Sign in to start')}
+          </button>
         );
         const enrollBtn = (text: React.ReactNode, bg: string, icon: string) => (
           <button onClick={handleEnroll} disabled={enrolling} style={{ ...barBtn, background: bg, opacity: enrolling ? 0.7 : 1 }}>
@@ -1253,60 +1283,108 @@ const CourseDetails = () => {
         let label: React.ReactNode;
         let sub: React.ReactNode = null;
         let action: React.ReactNode = null;
+        /** Live masterclass: two booking buttons on their own row under the price. */
+        let stacked = false;
 
-        if (c.isEnrolled) {
+        if (isLiveMasterclass && !isAdmin && !isInstructor) {
+          const la = liveActions;
+          if (c.isEnrolled) {
+            label = t('liveBooking.booked', 'Your place is confirmed');
+            action = (
+              <button type="button"
+                onClick={() => document.getElementById('sl-live-booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                style={{ ...barBtn, background: 'linear-gradient(135deg,#047857,#065f46)' }}>
+                <i className="fa-solid fa-circle-check" />{t('liveBooking.details', 'Details')}
+              </button>
+            );
+          } else {
+            stacked = true;
+            label = la.cardEnabled ? `${la.price} ${la.currency}` : t('liveBooking.badge', 'Live masterclass');
+            if (seatsLeft !== null) {
+              sub = seatsLeft > 0
+                ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
+                : t('liveBooking.status.full', 'Fully booked');
+            }
+            const cardBlocked = la.isFull || la.past;
+            action = (
+              <>
+                {la.cardEnabled && (
+                  <button type="button" onClick={la.confirmPayment} disabled={la.paying || cardBlocked}
+                    style={{ ...barBtn, flex: '1 1 0', minWidth: 0, padding: '0 10px', fontSize: 13.5, whiteSpace: 'normal', lineHeight: 1.2,
+                      background: cardBlocked ? '#d1d5db' : BURG_BTN, opacity: la.paying ? 0.8 : 1,
+                      cursor: (la.paying || cardBlocked) ? 'not-allowed' : 'pointer' }}>
+                    {la.paying ? <Spin size="small" /> : <i className="fa-regular fa-credit-card" />}
+                    {la.past ? t('liveBooking.status.past', 'Session over')
+                      : la.isFull ? t('liveBooking.status.full', 'Fully booked')
+                      : t('liveBooking.payByCard', 'Pay by card · {{price}} {{currency}}', { price: la.price, currency: la.currency })}
+                  </button>
+                )}
+                {la.waHref && (
+                  <a href={la.waHref} target="_blank" rel="noopener noreferrer"
+                    title={t('liveBooking.waHint', 'Opens WhatsApp to talk to us')}
+                    style={{ ...barBtn, flex: '1 1 0', minWidth: 0, padding: '0 10px', fontSize: 13.5, whiteSpace: 'normal', lineHeight: 1.2,
+                      background: la.cardEnabled ? '#fff' : 'linear-gradient(135deg,#25D366,#1da851)',
+                      color: la.cardEnabled ? '#146C35' : '#fff',
+                      border: la.cardEnabled ? '1.5px solid rgba(29,168,81,0.45)' : 'none' }}>
+                    <i className="fa-brands fa-whatsapp" style={{ fontSize: 18 }} />{t('liveBooking.bookWhatsapp', 'Book via WhatsApp')}
+                  </a>
+                )}
+              </>
+            );
+          }
+        } else if (c.isEnrolled) {
           label = t('courses.details.enrolled', 'You are Enrolled');
           if (typeof c.enrollmentProgress === 'number') sub = `${t('courses.details.progress', 'Progress')} · ${c.enrollmentProgress}%`;
           action = (
             <Link to={`${route.courseWatch}/${c.slug}`} style={{ ...barBtn, background: 'linear-gradient(135deg,#047857,#059669)' }}>
-              <i className="fa-solid fa-play" />{t('courses.details.continueLearning', 'Continue Learning')}
+              <i className="fa-solid fa-play" />{t('courseDetails.cta.continue', 'Continue learning')}
             </Link>
           );
         } else if (isOwnInstructor) {
-          label = 'Instructor View';
+          label = t('courseDetails.instructorView', 'Instructor view');
           action = (
             <Link to={`${route.courseWatch}/${c.slug}`} style={{ ...barBtn, background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
-              <i className="fa-solid fa-eye" />Preview
+              <i className="fa-solid fa-eye" />{t('courseDetails.preview', 'Preview')}
             </Link>
           );
         } else if (isAdmin) {
-          label = 'Admin Access';
-          action = enrollBtn('Access Course', BURG_BTN, 'fa-shield-halved');
+          label = t('courseDetails.adminAccess', 'Admin access');
+          action = enrollBtn(t('courseDetails.accessCourse', 'Open course'), BURG_BTN, 'fa-shield-halved');
         } else if (isPlan) {
-          label = hasActiveSub ? 'Included in your Plan' : 'Subscription Required';
+          label = hasActiveSub ? t('courseDetails.includedInPlan', 'Included in your Premium plan') : t('courseDetails.premiumCourse', 'Premium course');
+          if (!hasActiveSub) sub = t('courseDetails.includedWithPremiumShort', 'One subscription unlocks every course');
           action = hasActiveSub
-            ? enrollBtn('Start Learning', GOLD_BTN, 'fa-graduation-cap')
+            ? enrollBtn(t('courseDetails.cta.startLearning', 'Start learning'), GOLD_BTN, 'fa-graduation-cap')
             : !isAuthenticated
               ? loginBtn
               : (
                 <Link to={route.pricingPlan} style={{ ...barBtn, background: GOLD_BTN }}>
-                  <i className="fa-solid fa-crown" />Subscribe
+                  <i className="fa-solid fa-crown" />{t('courseDetails.cta.getPremium', 'Get Premium to access')}
                 </Link>
               );
-        } else if (isLiveMasterclass) {
-          // Phones: the booking panel (both options) sits below the content — jump to it.
-          label = c.isEnrolled
-            ? t('liveBooking.booked', 'Your place is confirmed')
-            : Number(c.price ?? 0) > 0 ? `${c.price} ${c.currency || 'MAD'}` : t('liveBooking.badge', 'Live masterclass');
-          if (seatsLeft !== null) {
-            sub = <span>{seatsLeft > 0
-              ? t('courseDetails.placesLeft', '{{count}} places left', { count: seatsLeft })
-              : t('liveBooking.status.full', 'Fully booked')}</span>;
-          }
-          action = (
-            <button type="button"
-              onClick={() => document.getElementById('sl-live-booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              style={{ ...barBtn, border: 'none', cursor: 'pointer', background: c.isEnrolled ? 'linear-gradient(135deg,#047857,#065f46)' : 'linear-gradient(135deg,#25D366,#1da851)' }}>
-              <i className={c.isEnrolled ? 'fa-solid fa-circle-check' : 'isax isax-ticket'} />
-              {c.isEnrolled ? t('liveBooking.details', 'Details') : t('liveBooking.bookCta', 'Book my place')}
-            </button>
-          );
         } else {
           label = !c.requiresPurchase ? t('courseDetails.free', 'Free') : `${c.price} MAD`;
           if (hasDiscount) sub = <del>{c.originalPrice} MAD</del>;
           action = !isAuthenticated
             ? loginBtn
-            : enrollBtn(!c.requiresPurchase ? t('home.featured.enrolFree', 'Enrol Free') : t('courses.details.enroll', 'Enroll Now'), BURG_BTN, 'fa-graduation-cap');
+            : enrollBtn(!c.requiresPurchase ? t('courseDetails.cta.startFree', 'Start for free') : t('courses.details.enroll', 'Enroll Now'), BURG_BTN, 'fa-graduation-cap');
+        }
+
+        if (stacked) {
+          return (
+            <div style={{
+              position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1030,
+              padding: '8px 14px calc(10px + env(safe-area-inset-bottom))',
+              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+              borderTop: '1px solid rgba(197,145,44,0.24)', boxShadow: '0 -10px 34px rgba(78,20,32,0.14)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+                <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 800, fontSize: 16, color: '#2C1810' }}>{label}</span>
+                {sub && <span style={{ fontSize: 12, color: '#7A6060' }}>{sub}</span>}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>{action}</div>
+            </div>
+          );
         }
 
         return (

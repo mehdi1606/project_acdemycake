@@ -40,11 +40,11 @@ const StudentGrid: React.FC = () => {
       setCurrentPage(data?.page ?? page);
     } catch (err) {
       console.error('Failed to load students:', err);
-      setError('Failed to load students. Please try again.');
+      setError(t('instructor.students.loadError', "We couldn't load your students. Check your connection and try again."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchStudents(0, '');
@@ -92,7 +92,7 @@ const StudentGrid: React.FC = () => {
     <LuxuryDashboardLayout>
       <div className="page-title d-flex align-items-center justify-content-between">
         <h5 className="fw-bold">
-          Students
+          {t('instructor.students.title', 'Students')}
           {!loading && (
             <span className="text-muted fs-14 fw-normal ms-2">({totalElements})</span>
           )}
@@ -117,7 +117,7 @@ const StudentGrid: React.FC = () => {
             <input
               type="text"
               className="form-control form-control-md"
-              placeholder="Search by name or email..."
+              placeholder={t('instructor.students.searchPlaceholder', 'Search by name or email...')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}
@@ -137,7 +137,7 @@ const StudentGrid: React.FC = () => {
               </button>
             )}
             <button type="button" className="btn btn-primary" onClick={handleSearchClick}>
-              Search
+              {t('common.search', 'Search')}
             </button>
           </div>
         </div>
@@ -148,6 +148,9 @@ const StudentGrid: React.FC = () => {
         <div className="alert alert-danger d-flex align-items-center" role="alert">
           <i className="isax isax-warning-2 me-2" />
           {error}
+          <button type="button" className="btn btn-sm btn-outline-danger ms-auto" onClick={() => fetchStudents(currentPage, search)}>
+            {t('common.tryAgain', 'Try Again')}
+          </button>
         </div>
       )}
 
@@ -155,16 +158,21 @@ const StudentGrid: React.FC = () => {
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">{t('common.loading', 'Loading...')}</span>
           </div>
-          <p className="mt-2 text-muted">Loading students...</p>
+          <p className="mt-2 text-muted">{t('instructor.students.loading', 'Loading students...')}</p>
         </div>
       ) : students.length === 0 ? (
         <div className="text-center py-5">
           <i className="isax isax-people fs-1 text-muted" />
           <p className="mt-2 text-muted">
-            {search ? `No students found matching "${search}"` : 'No students enrolled in your courses yet.'}
+            {search ? t('instructor.students.noSearchResults', 'No students found matching "{{search}}"', { search }) : t('instructor.students.noStudents', 'No students enrolled in your courses yet.')}
           </p>
+          {!search && (
+            <Link to={all_routes.instructorCourse} className="btn btn-sm btn-outline-primary">
+              {t('instructor.students.checkCourses', 'Check that your courses are published')}
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -199,7 +207,7 @@ const StudentGrid: React.FC = () => {
                           student.fullName
                         )}`}
                         className="avatar avatar-md avatar-rounded border flex-shrink-0 ms-2"
-                        title="Send message"
+                        title={t('instructor.studentDetail.sendMessageLower', 'Send message')}
                       >
                         <i className="isax isax-messages text-gray-9 fs-14" />
                       </Link>
@@ -208,7 +216,7 @@ const StudentGrid: React.FC = () => {
                     {/* Progress bar */}
                     <div className="mb-3">
                       <div className="d-flex justify-content-between fs-13 mb-1">
-                        <span className="text-muted">Avg. Progress</span>
+                        <span className="text-muted">{t('instructor.students.avgProgress', 'Avg. Progress')}</span>
                         <span className="fw-medium">
                           {(student.averageProgress ?? 0).toFixed(0)}%
                         </span>
@@ -244,7 +252,7 @@ const StudentGrid: React.FC = () => {
             <div className="row align-items-center mt-3">
               <div className="col-md-4">
                 <p className="pagination-text text-muted fs-14">
-                  Page {currentPage + 1} of {totalPages} &nbsp;·&nbsp; {totalElements} students
+                  {t('common.pageOf', 'Page {{page}} of {{total}}', { page: currentPage + 1, total: totalPages })} &nbsp;·&nbsp; {t('instructor.students.count', '{{n}} students', { n: totalElements })}
                 </p>
               </div>
               <div className="col-md-8">

@@ -120,7 +120,7 @@ const InstructorQuizQuestions: React.FC = () => {
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: 'var(--lx-primary)', fontSize: 16, padding: 4,
                     }}
-                    title="Edit"
+                    title={t('common.edit', 'Edit')}
                   >
                     <i className="isax isax-edit-2" />
                   </button>
@@ -131,7 +131,7 @@ const InstructorQuizQuestions: React.FC = () => {
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: '#8B2335', fontSize: 16, padding: 4,
                     }}
-                    title="Delete"
+                    title={t('common.delete', 'Delete')}
                   >
                     <i className="isax isax-trash" />
                   </button>

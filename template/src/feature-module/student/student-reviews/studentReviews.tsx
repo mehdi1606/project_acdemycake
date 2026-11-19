@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { TFunction } from 'i18next';
+import { all_routes } from '../../router/all_routes';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { message } from 'antd';
 import { reviewService, MyReview } from '../../../services/api/review.service';
@@ -26,15 +29,15 @@ const renderStars = (rating: number, interactive = false, onSet?: (n: number) =>
   </div>
 );
 
-const formatDate = (iso: string) => {
+const formatDate = (t: TFunction, iso: string) => {
   const d = new Date(iso);
   const diffMs = Date.now() - d.getTime();
   const diffDays = Math.floor(diffMs / 86400000);
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 30) return `${diffDays} days ago`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-  return `${Math.floor(diffDays / 365)} years ago`;
+  if (diffDays === 0) return t('common.today', 'Today');
+  if (diffDays === 1) return t('common.yesterday', 'Yesterday');
+  if (diffDays < 30) return t('common.daysAgo', '{{n}} days ago', { n: diffDays });
+  if (diffDays < 365) return t('common.monthsAgo', '{{n}} months ago', { n: Math.floor(diffDays / 30) });
+  return t('common.yearsAgo', '{{n}} years ago', { n: Math.floor(diffDays / 365) });
 };
 
 const inputStyle: React.CSSProperties = {
@@ -69,11 +72,11 @@ const StudentReviews = () => {
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
     } catch (err) {
-      message.error(extractApiError(err, 'Failed to load reviews'));
+      message.error(extractApiError(err, t('student.reviews.loadError', "We couldn't load your reviews. Please try again.")));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { fetchReviews(page); }, [page, fetchReviews]);
 
@@ -93,9 +96,9 @@ const StudentReviews = () => {
       });
       setReviews((prev) => prev.map((r) => r.id === updated.id ? updated : r));
       setEditingReview(null);
-      message.success('Review updated');
+      message.success(t('student.reviews.updated', 'Review updated'));
     } catch (err) {
-      message.error(extractApiError(err, 'Failed to update review'));
+      message.error(extractApiError(err, t('student.reviews.updateError', "Your review couldn't be saved. Please try again.")));
     } finally {
       setSaving(false);
     }
@@ -108,9 +111,9 @@ const StudentReviews = () => {
       setDeleteConfirmId(null);
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
       setTotalElements((n) => n - 1);
-      message.success('Review deleted');
+      message.success(t('student.reviews.deleted', 'Review deleted'));
     } catch (err) {
-      message.error(extractApiError(err, 'Failed to delete review'));
+      message.error(extractApiError(err, t('student.reviews.deleteError', "The review couldn't be deleted. Please try again.")));
     } finally {
       setDeletingId(null);
     }
@@ -120,7 +123,7 @@ const StudentReviews = () => {
     <LuxuryDashboardLayout>
       <div className="lx-section-header" style={{ marginBottom: 24 }}>
         <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-          My Reviews
+          {t('student.reviews.title', 'My Reviews')}
           {!loading && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--lx-text-muted)', marginLeft: 8 }}>({totalElements})</span>}
         </h5>
       </div>
@@ -128,7 +131,7 @@ const StudentReviews = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0' }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
-          <p style={{ color: 'var(--lx-text-muted)', margin: 0 }}>Loading reviews...</p>
+          <p style={{ color: 'var(--lx-text-muted)', margin: 0 }}>{t('student.reviews.loading', 'Loading reviews...')}</p>
         </div>
       ) : reviews.length === 0 ? (
         <div style={{
@@ -137,8 +140,13 @@ const StudentReviews = () => {
           border: '1px solid rgba(107, 29, 42, 0.06)',
         }}>
           <i className="fa-solid fa-star" style={{ fontSize: 40, color: 'rgba(107, 29, 42, 0.15)', marginBottom: 16, display: 'block' }} />
-          <h6 style={{ color: 'var(--lx-text)', marginBottom: 8 }}>No reviews yet</h6>
-          <p style={{ color: 'var(--lx-text-muted)', margin: 0 }}>Complete a course and leave a review to see it here.</p>
+          <h6 style={{ color: 'var(--lx-text)', marginBottom: 8 }}>{t('student.reviews.noReviews', 'No reviews yet')}</h6>
+          <p style={{ color: 'var(--lx-text-muted)', margin: '0 0 16px' }}>
+            {t('student.reviews.emptyText', "Rate a course you've taken: open it from My courses and leave a review. It will appear here.")}
+          </p>
+          <Link to={all_routes.studentCourses} className="lx-btn lx-btn-gold lx-btn-sm">
+            <i className="isax isax-teacher" /> {t('student.reviews.myCourses', 'My courses')}
+          </Link>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -163,9 +171,9 @@ const StudentReviews = () => {
                 {review.isVerifiedPurchase && (
                   <span style={{
                     fontSize: 12, color: '#2D5F3F', background: 'rgba(45, 95, 63, 0.08)',
-                    padding: '3px 10px', borderRadius: 20, marginLeft: 6,
+                    padding: '3px 10px', borderRadius: 20, marginInlineStart: 6,
                   }}>
-                    <i className="fa-solid fa-check-circle me-1" /> Verified
+                    <i className="fa-solid fa-check-circle me-1" /> {t('student.reviews.verified', 'Verified')}
                   </span>
                 )}
               </div>
@@ -182,7 +190,7 @@ const StudentReviews = () => {
                     <h6 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--lx-text)' }}>
                       {review.userName}
                     </h6>
-                    <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{formatDate(review.createdAt)}</span>
+                    <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{formatDate(t, review.createdAt)}</span>
                   </div>
                 </div>
                 {renderStars(review.rating)}
@@ -190,7 +198,7 @@ const StudentReviews = () => {
 
               {/* Review text */}
               <p style={{ margin: '0 0 12px', fontSize: 14, color: 'var(--lx-text-mid)', lineHeight: 1.6 }}>
-                {review.reviewText || <em style={{ color: 'var(--lx-text-muted)' }}>No written review</em>}
+                {review.reviewText || <em style={{ color: 'var(--lx-text-muted)' }}>{t('student.reviews.noText', 'No written review')}</em>}
               </p>
 
               {/* Actions */}
@@ -204,7 +212,7 @@ const StudentReviews = () => {
                     fontSize: 13, color: 'var(--lx-primary)', fontWeight: 500,
                   }}
                 >
-                  <i className="isax isax-edit-2" /> Edit
+                  <i className="isax isax-edit-2" /> {t('common.edit', 'Edit')}
                 </button>
                 <button
                   type="button"
@@ -215,7 +223,7 @@ const StudentReviews = () => {
                     fontSize: 13, color: '#8B2335', fontWeight: 500,
                   }}
                 >
-                  <i className="isax isax-trash" /> Delete
+                  <i className="isax isax-trash" /> {t('common.delete', 'Delete')}
                 </button>
               </div>
             </div>
@@ -227,7 +235,7 @@ const StudentReviews = () => {
       {totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 24, flexWrap: 'wrap', gap: 12 }}>
           <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)' }}>
-            Page {page + 1} of {totalPages}
+            {t('common.pageOf', 'Page {{page}} of {{total}}', { page: page + 1, total: totalPages })}
           </p>
           <div style={{ display: 'flex', gap: 6 }}>
             <button
@@ -278,7 +286,7 @@ const StudentReviews = () => {
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>Edit Review</h5>
+                <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.reviews.editReview', 'Edit Review')}</h5>
                 <p style={{ margin: 0, fontSize: 12, color: 'var(--lx-text-muted)' }}>{editingReview.courseTitle}</p>
               </div>
               <button onClick={() => setEditingReview(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
@@ -288,29 +296,29 @@ const StudentReviews = () => {
             <div style={{ padding: 24 }}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 8 }}>
-                  Rating <span style={{ color: '#8B2335' }}>*</span>
+                  {t('common.rating', 'Rating')} <span style={{ color: '#8B2335' }}>*</span>
                 </label>
                 {renderStars(editRating, true, setEditRating)}
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                  Review
+                  {t('student.reviews.yourReview', 'Your Review')}
                 </label>
                 <textarea
                   style={inputStyle}
                   rows={4}
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  placeholder="Share your experience with this course..."
+                  placeholder={t('student.reviews.placeholder', 'Share your experience with this course...')}
                   maxLength={2000}
                 />
                 <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{editText.length}/2000</small>
               </div>
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={() => setEditingReview(null)}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={() => setEditingReview(null)}>{t('common.cancel', 'Cancel')}</button>
               <button type="button" className="lx-btn lx-btn-gold" onClick={handleSaveEdit} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? t('common.saving', 'Saving...') : t('common.saveChanges', 'Save Changes')}
               </button>
             </div>
           </div>
@@ -339,13 +347,13 @@ const StudentReviews = () => {
             }}>
               <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
             </div>
-            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>Delete Review</h5>
+            <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.reviews.deleteReview', 'Delete Review')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
-              Are you sure you want to delete this review? This cannot be undone.
+              {t('student.reviews.deleteConfirm', 'Are you sure you want to delete this review? This cannot be undone.')}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={() => setDeleteConfirmId(null)}>
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="button"
@@ -354,7 +362,7 @@ const StudentReviews = () => {
                 disabled={!!deletingId}
                 onClick={() => handleDelete(deleteConfirmId)}
               >
-                {deletingId === deleteConfirmId ? 'Deleting...' : 'Yes, Delete'}
+                {deletingId === deleteConfirmId ? t('common.deleting', 'Deleting...') : t('common.yesDelete', 'Yes, Delete')}
               </button>
             </div>
           </div>

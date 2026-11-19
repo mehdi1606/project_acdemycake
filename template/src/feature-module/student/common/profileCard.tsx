@@ -37,7 +37,7 @@ const ProfileCard = () => {
             <div>
               <h5 className="mb-1 text-white d-inline-flex align-items-center">
                 <Link to={all_routes.studentProfile} className="text-white">
-                  {user?.fullName || "Student"}
+                  {user?.fullName || t('common.student', 'Student')}
                 </Link>
                 <Link
                   to={all_routes.studentSettings}
@@ -46,7 +46,7 @@ const ProfileCard = () => {
                   <i className="isax isax-edit-2" />
                 </Link>
               </h5>
-              <p className="text-light">{user?.role === "STUDENT" ? "Student" : user?.role || "Student"}</p>
+              <p className="text-light">{t(`enums.role.${user?.role || 'STUDENT'}`, user?.role === 'INSTRUCTOR' ? 'Instructor' : user?.role === 'ADMIN' ? 'Admin' : 'Student')}</p>
             </div>
           </div>
         </div>
@@ -65,7 +65,7 @@ const ProfileCard = () => {
                 }}
               >
                 <i className="isax isax-crown-1 me-1" style={{ fontSize: '15px' }} />
-                Premium Member
+                {t('student.profileCard.premiumMember', 'Premium Member')}
               </span>
             ) : (
               <Link
@@ -73,7 +73,7 @@ const ProfileCard = () => {
                 className="btn btn-white rounded-pill"
               >
                 <i className="isax isax-crown me-1" />
-                Get Premium
+                {t('student.profileCard.getPremium', 'Get Premium')}
               </Link>
             )}
           </div>

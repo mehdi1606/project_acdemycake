@@ -157,6 +157,8 @@ const CourseWatch: React.FC = () => {
   const [pdfBlobUrl,      setPdfBlobUrl]      = useState<string | null>(null);
   const [pdfBlobLoading,  setPdfBlobLoading]  = useState(false);
   const [pdfBlobError,    setPdfBlobError]    = useState(false);
+  /** Bumped by the "Try again" button to re-fetch the PDF. */
+  const [pdfRetry,        setPdfRetry]        = useState(0);
 
   // Quiz panel state
   const [lessonQuiz,      setLessonQuiz]      = useState<Quiz | null>(null);
@@ -183,6 +185,11 @@ const CourseWatch: React.FC = () => {
   const [qResult,     setQResult]     = useState<QResult | null>(null);
   const [timeLeft,    setTimeLeft]    = useState(0);
   const [submitting,  setSubmitting]  = useState(false);
+  /** Pre-quiz warning (shown before the attempt starts) and its "I understand" tick. */
+  const [quizIntro,   setQuizIntro]   = useState<{ id: string; minutes: number } | null>(null);
+  const [quizAck,     setQuizAck]     = useState(false);
+  /** "Exit quiz?" confirmation while an attempt is running (exiting submits it). */
+  const [exitAsk,     setExitAsk]     = useState(false);
 
   const attemptIdRef     = useRef<string | null>(null);
   const answersRef       = useRef<QuizAnswer[]>([]);
@@ -333,7 +340,7 @@ const CourseWatch: React.FC = () => {
 
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeRes]);
+  }, [activeRes, pdfRetry]);
 
   // Revoke blob URL on component unmount
   useEffect(() => () => { if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl); }, [pdfBlobUrl]);
@@ -403,8 +410,9 @@ const CourseWatch: React.FC = () => {
       const ea = new Date(Date.now() + spanMs);
       setEndsAt(ea);
       setTimeLeft(Math.round(spanMs / 1000));
-      setQuizPhase('quiz');
-    } catch (e: any) { setQuizErr(e?.response?.data?.message ?? 'Failed to load quiz.'); setQuizPhase('error'); }
+      setQuizPhase('quiz'); setExitAsk(false);
+    } catch (e: any) { setQuizErr(e?.response?.data?.message ?? t('quiz.loadFailed', 'Could not load the quiz. Please try again.')); setQuizPhase('error'); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openReview = useCallback((a: QuizAttempt) => {
@@ -418,7 +426,7 @@ const CourseWatch: React.FC = () => {
       const aid = attemptIdRef.current; const acc = answersRef.current;
       if (aid) { try { await quizService.submitAttempt(aid, acc, false); } catch { /* ignore */ } }
     }
-    setQuizOpen(false); setQuizPhase('loading'); refreshProgress();
+    setQuizOpen(false); setQuizPhase('loading'); setExitAsk(false); refreshProgress();
     if (lessonQuiz?.id) quizService.getMyQuizAttempts(lessonQuiz.id).then(a => setQuizAttempts(a)).catch(() => {});
   }, [refreshProgress, lessonQuiz?.id]);
 
@@ -619,8 +627,8 @@ const CourseWatch: React.FC = () => {
           {/* Progress */}
           <div style={{ marginBottom:16 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-              <span style={{ fontSize:10, fontWeight:800, color:GOLD, textTransform:'uppercase', letterSpacing:'0.08em' }}>{t('courseWatch.yourProgress', 'Your Progress')}</span>
-              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)' }}>{doneLessons}/{totalLessons} {t('common.lessons', 'lessons')}</span>
+              <span style={{ fontSize:12, fontWeight:800, color:GOLD, textTransform:'uppercase', letterSpacing:'0.08em' }}>{t('courseWatch.yourProgress', 'Your Progress')}</span>
+              <span style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.65)' }}>{doneLessons}/{totalLessons} {t('common.lessons', 'lessons')}</span>
             </div>
             <div style={{ height:6, borderRadius:3, background:'rgba(255,255,255,0.07)', overflow:'hidden', position:'relative' }}>
               <div style={{
@@ -632,8 +640,8 @@ const CourseWatch: React.FC = () => {
               }} />
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', marginTop:4 }}>
-              <span style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{pct}% {t('courseWatch.complete', 'complete')}</span>
-              {pct===100 && <span style={{ fontSize:10, color:'#4ADE80', fontWeight:700 }}>🎉 {t('courseWatch.done', 'Done!')}</span>}
+              <span style={{ fontSize:12, color:'rgba(255,255,255,0.6)', fontWeight:600 }}>{pct}% {t('courseWatch.complete', 'complete')}</span>
+              {pct===100 && <span style={{ fontSize:12, color:'#4ADE80', fontWeight:700 }}>🎉 {t('courseWatch.done', 'Done!')}</span>}
             </div>
           </div>
 
@@ -643,7 +651,7 @@ const CourseWatch: React.FC = () => {
               <i className="fa-solid fa-trophy" style={{ color:GOLD, fontSize:18 }} />
               <div>
                 <p style={{ margin:0, fontWeight:800, fontSize:12, color:'#4ADE80' }}>{t('courseWatch.courseComplete', 'Course Complete!')}</p>
-                <p style={{ margin:0, fontSize:10, color: certPendingMark ? '#DEBB6B' : 'rgba(74,222,128,0.65)' }}>
+                <p style={{ margin:0, fontSize:12, color: certPendingMark ? '#DEBB6B' : 'rgba(74,222,128,0.8)' }}>
                   {certPendingMark
                     ? t('courseWatch.certPendingBanner', 'Certificate after your assignment is marked')
                     : t('courseWatch.certificateGenerated', 'Certificate generated')}
@@ -690,7 +698,7 @@ const CourseWatch: React.FC = () => {
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ margin:0, fontSize:12, fontWeight:700, color:WHITE, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{mod.title}</p>
-                    <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>{mDone}/{mTotal} {t('common.lessons', 'lessons')}</p>
+                    <p style={{ margin:0, fontSize:12, color:'rgba(255,255,255,0.55)', fontWeight:600 }}>{mDone}/{mTotal} {t('common.lessons', 'lessons')}</p>
                   </div>
                   <i className={`fa-solid ${isOpen?'fa-chevron-up':'fa-chevron-down'}`} style={{ fontSize:9, color:'rgba(255,255,255,0.25)', flexShrink:0 }} />
                 </div>
@@ -728,7 +736,7 @@ const CourseWatch: React.FC = () => {
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
                           }}>{lesson.title}</p>
                           {!locked && fmtDuration(lesson.videoDurationSeconds) && (
-                            <span style={{ fontSize:9, color:'rgba(255,255,255,0.25)', flexShrink:0, fontWeight:700 }}>
+                            <span style={{ fontSize:12, color:'rgba(255,255,255,0.5)', flexShrink:0, fontWeight:700 }}>
                               {fmtDuration(lesson.videoDurationSeconds)}
                             </span>
                           )}
@@ -892,7 +900,7 @@ const CourseWatch: React.FC = () => {
 
                         {lessonQuiz.status === 'PUBLISHED' ? (
                           canStart ? (
-                            <button onClick={() => openQuiz(lessonQuiz.id)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 32px', borderRadius:12, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:15, boxShadow:'0 6px 20px rgba(197,151,62,0.3)' }}>
+                            <button onClick={() => { setQuizAck(false); setQuizIntro({ id: lessonQuiz.id, minutes: lessonQuiz.duration ?? 0 }); }} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 32px', borderRadius:12, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:15, boxShadow:'0 6px 20px rgba(197,151,62,0.3)' }}>
                               <i className="fa-solid fa-play" />{quizAttempts.length===0?t('quiz.startQuiz','Start Quiz'):t('quiz.retakeQuiz','Retake Quiz')}
                             </button>
                           ) : quizPassed ? (
@@ -1218,7 +1226,19 @@ const CourseWatch: React.FC = () => {
                                           </div>
                                         )}
                                         {!pdfBlobLoading && pdfBlobError && (
-                                          <p style={{ textAlign:'center', color:'rgba(255,255,255,0.6)', fontWeight:700, fontSize:14, padding:'32px 0', margin:0 }}>Unable to load PDF</p>
+<div style={{ textAlign:'center', color:'rgba(255,255,255,0.75)', padding:'32px 8px' }}>
+                                            <i className="fa-solid fa-circle-exclamation" style={{ fontSize:40, display:'block', marginBottom:12, color:'#F87171' }} />
+                                            <p style={{ margin:0, fontWeight:700, fontSize:14 }}>{t('courseWatch.pdfError', 'We could not open this PDF.')}</p>
+                                            <p style={{ margin:'6px 0 14px', fontSize:13, opacity:0.8 }}>{t('courseWatch.pdfErrorHint', 'Check your connection and try again.')}</p>
+                                            <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
+                                              <button type="button" onClick={() => setPdfRetry(n => n + 1)} style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:40, padding:'0 18px', borderRadius:10, border:'none', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:14, cursor:'pointer' }}>
+                                                <i className="fa-solid fa-rotate-right" />{t('courseWatch.tryAgain', 'Try again')}
+                                              </button>
+                                              <Link to={routes.contactUs} style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:40, padding:'0 18px', borderRadius:10, border:'1px solid rgba(255,255,255,0.3)', color:WHITE, fontWeight:700, fontSize:14, textDecoration:'none' }}>
+                                                <i className="fa-regular fa-envelope" />{t('courseWatch.contactUs', 'Contact us')}
+                                              </Link>
+                                            </div>
+                                          </div>
                                         )}
                                         {!pdfBlobLoading && !pdfBlobError && pdfBlobUrl && (
                                           <PdfCanvasViewer url={pdfBlobUrl} title={res.name} />
@@ -1230,14 +1250,22 @@ const CourseWatch: React.FC = () => {
                                         {pdfBlobLoading && (
                                           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
                                             <div style={{ width:44, height:44, borderRadius:'50%', border:'4px solid rgba(197,151,62,0.2)', borderTopColor:'#C5973E', animation:'spin 0.9s linear infinite' }} />
-                                            <span style={{ color:'rgba(255,255,255,0.5)', fontSize:13, fontWeight:600 }}>Loading PDF…</span>
+                                            <span style={{ color:'rgba(255,255,255,0.5)', fontSize:13, fontWeight:600 }}>{t('courseWatch.loadingPdf', 'Loading PDF…')}</span>
                                           </div>
                                         )}
                                         {!pdfBlobLoading && pdfBlobError && (
-                                          <div style={{ textAlign:'center', color:'rgba(255,255,255,0.5)', padding:32 }}>
+<div style={{ textAlign:'center', color:'rgba(255,255,255,0.75)', padding:32 }}>
                                             <i className="fa-solid fa-circle-exclamation" style={{ fontSize:40, display:'block', marginBottom:12, color:'#F87171' }} />
-                                            <p style={{ margin:0, fontWeight:700, fontSize:14 }}>Unable to load PDF</p>
-                                            <p style={{ margin:'6px 0 0', fontSize:12, opacity:0.6 }}>Please try again later</p>
+                                            <p style={{ margin:0, fontWeight:700, fontSize:14 }}>{t('courseWatch.pdfError', 'We could not open this PDF.')}</p>
+                                            <p style={{ margin:'6px 0 14px', fontSize:13, opacity:0.8 }}>{t('courseWatch.pdfErrorHint', 'Check your connection and try again.')}</p>
+                                            <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
+                                              <button type="button" onClick={() => setPdfRetry(n => n + 1)} style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:40, padding:'0 18px', borderRadius:10, border:'none', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:14, cursor:'pointer' }}>
+                                                <i className="fa-solid fa-rotate-right" />{t('courseWatch.tryAgain', 'Try again')}
+                                              </button>
+                                              <Link to={routes.contactUs} style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:40, padding:'0 18px', borderRadius:10, border:'1px solid rgba(255,255,255,0.3)', color:WHITE, fontWeight:700, fontSize:14, textDecoration:'none' }}>
+                                                <i className="fa-regular fa-envelope" />{t('courseWatch.contactUs', 'Contact us')}
+                                              </Link>
+                                            </div>
                                           </div>
                                         )}
                                         {!pdfBlobLoading && !pdfBlobError && pdfBlobUrl && (
@@ -1329,7 +1357,7 @@ const CourseWatch: React.FC = () => {
               <text x="18" y="21.5" textAnchor="middle" fontSize="9.5" fontWeight="800" fill={GOLD_L}>{pct}%</text>
             </svg>
             <span style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', lineHeight:1.15 }}>
-              <span style={{ fontSize:9.5, fontWeight:800, letterSpacing:'0.1em', textTransform:'uppercase', color:GOLD }}>{t('courseWatch.lessons', 'Lessons')}</span>
+              <span style={{ fontSize:12, fontWeight:800, letterSpacing:'0.06em', textTransform:'uppercase', color:GOLD }}>{t('courseWatch.lessons', 'Lessons')}</span>
               <span style={{ fontSize:13, fontWeight:800 }}>{lessonIdx + 1} / {totalLessons}</span>
             </span>
           </button>
@@ -1339,14 +1367,69 @@ const CourseWatch: React.FC = () => {
         </nav>
       )}
 
+      {/* ══════════ PRE-QUIZ WARNING ══════════ */}
+      {quizIntro && (
+        <div onClick={() => setQuizIntro(null)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(8,3,12,0.8)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="sl-quiz-intro-title" onClick={e => e.stopPropagation()} style={{ width:'min(480px,100%)', background:WHITE, borderRadius:20, padding: isPhone ? '24px 18px 18px' : '30px 28px 22px', boxShadow:'0 30px 80px rgba(0,0,0,0.45)', position:'relative' }}>
+            <button type="button" onClick={() => setQuizIntro(null)} aria-label={t('common.close', 'Close')} style={{ position:'absolute', top:12, insetInlineEnd:12, width:40, height:40, borderRadius:10, border:'none', background:'rgba(107,29,42,0.06)', color:BURG, cursor:'pointer' }}>
+              <i className="fa-solid fa-xmark" style={{ fontSize:18 }} aria-hidden="true" />
+            </button>
+            <div style={{ width:64, height:64, borderRadius:'50%', margin:'0 auto 14px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(197,151,62,0.12)', border:'2px solid rgba(197,151,62,0.3)' }}>
+              <i className="fa-solid fa-triangle-exclamation" style={{ fontSize:28, color:GOLD }} aria-hidden="true" />
+            </div>
+            <h3 id="sl-quiz-intro-title" style={{ textAlign:'center', fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:800, color:BURG_D, margin:'0 0 12px' }}>
+              {t('quizWarn.title', 'Before you start')}
+            </h3>
+            <p style={{ fontSize:15, color:'#3d2b2b', lineHeight:1.65, margin:'0 0 16px' }}>
+              {quizIntro.minutes > 0
+                ? t('quizWarn.body', "Stay on this page until you submit. If you leave this page, switch apps, take a call or lock your screen, your quiz is submitted automatically and can't be retaken. Make sure you have {{minutes}} minutes and turn on Do Not Disturb.", { minutes: quizIntro.minutes })
+                : t('quizWarn.bodyNoTime', "Stay on this page until you submit. If you leave this page, switch apps, take a call or lock your screen, your quiz is submitted automatically and can't be retaken. Make sure you have enough time and turn on Do Not Disturb.")}
+            </p>
+            <label style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', borderRadius:12, background:'rgba(101,28,50,0.04)', border:'1px solid rgba(101,28,50,0.12)', cursor:'pointer', fontSize:15, fontWeight:700, color:'#2C1810', marginBottom:16 }}>
+              <input type="checkbox" checked={quizAck} onChange={e => setQuizAck(e.target.checked)} style={{ width:20, height:20, accentColor:BURG, flexShrink:0 }} />
+              {t('quizWarn.ack', 'I understand')}
+            </label>
+            <button type="button" disabled={!quizAck}
+              onClick={() => { const id = quizIntro.id; setQuizIntro(null); openQuiz(id); }}
+              style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', minHeight:48, borderRadius:12, border:'none', cursor: quizAck ? 'pointer' : 'not-allowed', background: quizAck ? `linear-gradient(135deg,${GOLD},#A67825)` : 'rgba(0,0,0,0.08)', color: quizAck ? WHITE : '#9A8080', fontWeight:800, fontSize:15 }}>
+              <i className="fa-solid fa-play" aria-hidden="true" />{t('quiz.startQuiz', 'Start Quiz')}
+            </button>
+            <button type="button" onClick={() => setQuizIntro(null)} style={{ marginTop:8, width:'100%', minHeight:40, borderRadius:10, border:'none', background:'transparent', color:'#7A6060', fontWeight:600, fontSize:14, cursor:'pointer' }}>
+              {t('quizWarn.notNow', 'Not now')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ══════════ QUIZ OVERLAY ══════════ */}
       {quizOpen && (
         <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(8,3,12,0.92)', backdropFilter:'blur(10px)', display:'flex', alignItems:'flex-start', justifyContent:'center', overflowY:'auto', padding: isPhone ? '10px 8px' : '28px 16px' }}>
           <div style={{ width:'100%', maxWidth:720, background:WHITE, borderRadius:20, boxShadow:'0 24px 80px rgba(0,0,0,0.5)', border:`1px solid rgba(197,151,62,0.15)`, overflow:'hidden', position:'relative' }}>
-            {quizPhase !== 'quiz' && (
-              <button onClick={closeQuiz} style={{ position:'absolute', top:14, right:14, zIndex:2, background:'rgba(107,29,42,0.06)', border:'1px solid rgba(107,29,42,0.12)', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:BURG }}>
-                <i className="fa-solid fa-xmark" style={{ fontSize:16 }} />
-              </button>
+            <button type="button"
+              onClick={() => { if (quizPhase === 'quiz') setExitAsk(true); else closeQuiz(); }}
+              aria-label={quizPhase === 'quiz' ? t('quizWarn.exitAria', 'Exit quiz') : t('common.close', 'Close')}
+              title={quizPhase === 'quiz' ? t('quizWarn.exitAria', 'Exit quiz') : t('common.close', 'Close')}
+              style={{ position:'absolute', top:12, insetInlineEnd:12, zIndex:3, background:'rgba(107,29,42,0.06)', border:'1px solid rgba(107,29,42,0.12)', borderRadius:10, width:40, height:40, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:BURG }}>
+              <i className="fa-solid fa-xmark" style={{ fontSize:18 }} aria-hidden="true" />
+            </button>
+            {quizPhase === 'quiz' && exitAsk && (
+              <div role="alertdialog" aria-modal="true" aria-labelledby="sl-quiz-exit-title" style={{ position:'absolute', inset:0, zIndex:4, background:'rgba(255,255,255,0.97)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+                <div style={{ maxWidth:420, textAlign:'center' }}>
+                  <i className="fa-solid fa-paper-plane" style={{ fontSize:34, color:GOLD, display:'block', marginBottom:14 }} />
+                  <h4 id="sl-quiz-exit-title" style={{ fontWeight:800, color:BURG_D, fontSize:20, margin:'0 0 10px' }}>{t('quizWarn.exitTitle', 'Exit and submit your quiz?')}</h4>
+                  <p style={{ color:'#5b4a4a', fontSize:14, lineHeight:1.6, margin:'0 0 22px' }}>
+                    {t('quizWarn.exitBody', "Exiting submits your quiz now with the answers you have given so far. Unanswered questions score 0 and you can't retake it.")}
+                  </p>
+                  <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
+                    <button type="button" autoFocus onClick={() => setExitAsk(false)} style={{ minHeight:44, padding:'0 22px', borderRadius:10, border:'none', background:`linear-gradient(135deg,${GOLD},#A67825)`, color:WHITE, fontWeight:800, fontSize:14, cursor:'pointer' }}>
+                      {t('quizWarn.keepGoing', 'Keep answering')}
+                    </button>
+                    <button type="button" onClick={closeQuiz} style={{ minHeight:44, padding:'0 22px', borderRadius:10, border:`1.5px solid rgba(101,28,50,0.25)`, background:'transparent', color:BURG, fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                      {t('quizWarn.submitExit', 'Submit and exit')}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
             <div style={{ padding: isPhone ? '22px 16px' : '30px 34px' }}>
 
@@ -1429,6 +1512,11 @@ const CourseWatch: React.FC = () => {
 
                 return (
                   <>
+                    {/* Persistent reminder: leaving the page auto-submits */}
+                    <div role="note" style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', marginBottom:14, marginInlineEnd:44, borderRadius:10, background:'rgba(197,151,62,0.12)', border:'1px solid rgba(197,151,62,0.35)', color:'#7A5200', fontSize:13, fontWeight:700 }}>
+                      <i className="fa-solid fa-triangle-exclamation" style={{ color:GOLD }} aria-hidden="true" />
+                      {t('quizWarn.banner', 'Stay on this page until you submit')}
+                    </div>
                     {/* Header */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, flexWrap:'wrap', gap:8 }}>
                       <div>
@@ -1489,8 +1577,8 @@ const CourseWatch: React.FC = () => {
                       )}
                     </div>
                     {isLast && !allAns && (
-                      <p style={{ textAlign:'right', fontSize:12, color:GOLD, marginTop:7, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:5 }}>
-                        <i className="fa-solid fa-circle-info" />{t('quiz.unanswered', { n: totalQ-answered, defaultValue: '{{n}} unanswered' })}
+                      <p style={{ textAlign:'end', fontSize:13, color:'#7A5200', fontWeight:600, marginTop:8, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:6 }}>
+                        <i className="fa-solid fa-circle-info" style={{ color:GOLD }} />{t('quizWarn.answerAllLeft', 'Answer all questions to submit ({{n}} left)', { n: totalQ-answered })}
                       </p>
                     )}
                   </>
@@ -1505,7 +1593,7 @@ const CourseWatch: React.FC = () => {
       {showCertModal && (
         <div onClick={() => setShowCertModal(false)} style={{ position:'fixed', inset:0, zIndex:99990, background:'rgba(20,7,14,0.72)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'5vh 4vw' }}>
           <div onClick={e => e.stopPropagation()} style={{ width:'min(440px,94vw)', background:WHITE, borderRadius:20, padding:'34px 28px 24px', textAlign:'center', boxShadow:'0 30px 80px rgba(0,0,0,0.45)', position:'relative' }}>
-            <button onClick={() => setShowCertModal(false)} aria-label="Close" style={{ position:'absolute', top:14, right:14, width:32, height:32, borderRadius:8, border:'none', background:'rgba(107,29,42,0.06)', color:BURG, cursor:'pointer' }}><i className="fa-solid fa-xmark" /></button>
+            <button onClick={() => setShowCertModal(false)} aria-label={t('common.close', 'Close')} style={{ position:'absolute', top:14, insetInlineEnd:14, width:32, height:32, borderRadius:8, border:'none', background:'rgba(107,29,42,0.06)', color:BURG, cursor:'pointer' }}><i className="fa-solid fa-xmark" /></button>
             <div style={{ width:84, height:84, borderRadius:'50%', margin:'0 auto 18px', display:'flex', alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', boxShadow:'0 12px 30px rgba(45,95,63,0.32)' }}>
               <i className="fa-solid fa-trophy" style={{ fontSize:38, color:WHITE }} />
             </div>

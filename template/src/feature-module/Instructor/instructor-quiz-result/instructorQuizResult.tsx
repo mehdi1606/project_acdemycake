@@ -137,7 +137,9 @@ const InstructorQuizResult: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                   <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{selectedQuiz.title}</h5>
                   <span className={`lx-badge ${selectedQuiz.status === 'PUBLISHED' ? 'badge-success' : 'badge-warning'}`}>
-                    {selectedQuiz.status}
+                    {selectedQuiz.status === 'PUBLISHED' ? t('enums.quizStatus.PUBLISHED', 'Published')
+                      : selectedQuiz.status === 'DRAFT' ? t('enums.quizStatus.DRAFT', 'Draft')
+                      : selectedQuiz.status}
                   </span>
                 </div>
                 {selectedQuiz.description && (

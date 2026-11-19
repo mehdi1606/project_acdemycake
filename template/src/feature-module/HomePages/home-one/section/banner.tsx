@@ -90,7 +90,8 @@ const ClassicBanner: React.FC<{ assemble?: boolean }> = ({ assemble = false }) =
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        navigate(route.courseList)
+        const q = searchQuery.trim()
+        navigate(q ? `${route.courseList}?search=${encodeURIComponent(q)}` : route.courseList)
     }
 
     // Scroll-driven values
@@ -222,24 +223,31 @@ const ClassicBanner: React.FC<{ assemble?: boolean }> = ({ assemble = false }) =
                             <form
                                 onSubmit={handleSubmit}
                                 className="sl-banner__search"
+                                role="search"
                                 data-aos="fade-up"
                                 data-aos-delay="380"
                                 data-aos-duration="700"
                             >
-                                <button type="button" className="sl-search-category"
-                                    onClick={() => navigate(route.courseList)}>
-                                    {t('banner.allDisciplines', 'All Disciplines')}
-                                    <i className="isax isax-arrow-down5" style={{ fontSize: '0.7rem', marginLeft: 4 }} />
-                                </button>
+                                <Link to={route.courseList} className="sl-search-category" style={{ textDecoration: 'none' }}>
+                                    {t('banner.browseAll', 'Browse all')}
+                                </Link>
                                 <div className="search-divider" />
                                 <input
                                     type="text"
+                                    enterKeyHint="search"
+                                    aria-label={t('banner.searchLabel', 'Search courses')}
                                     placeholder={t('banner.searchPlaceholder', 'Search courses, techniques…')}
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
                                 />
-                                <button type="submit" className="sl-search-btn">
-                                    <i className="isax isax-search-normal" />
+                                <button
+                                    type="submit"
+                                    className="sl-search-btn"
+                                    aria-label={t('common.search', 'Search')}
+                                    title={t('common.search', 'Search')}
+                                >
+                                    <i className="isax isax-search-normal" aria-hidden="true" />
+                                    <span style={{ marginInlineStart: 6, fontWeight: 700, fontSize: '0.85rem' }}>{t('common.search', 'Search')}</span>
                                 </button>
                             </form>
 
@@ -254,7 +262,7 @@ const ClassicBanner: React.FC<{ assemble?: boolean }> = ({ assemble = false }) =
                                     {t('banner.exploreCourses', 'Explore Courses')} <i className="isax isax-arrow-right-1" />
                                 </Link>
                                 <Link to={route.register} className="sl-btn-outline">
-                                    {t('banner.enrolFree', 'Enrol Free')}
+                                    {t('banner.createFreeAccount', 'Create free account')}
                                 </Link>
                             </div>
 

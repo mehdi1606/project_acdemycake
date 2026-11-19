@@ -64,11 +64,11 @@ const AdminTransactions = () => {
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      COMPLETED: { cls: 'badge-success', label: 'Completed' },
-      PENDING:   { cls: 'badge-warning', label: 'Pending' },
-      FAILED:    { cls: 'badge-danger',  label: 'Failed' },
-      REFUNDED:  { cls: 'badge-slate',   label: 'Refunded' },
-      CANCELLED: { cls: 'badge-slate',   label: 'Cancelled' },
+      COMPLETED: { cls: 'badge-success', label: t('enums.paymentStatus.COMPLETED', 'Completed') },
+      PENDING:   { cls: 'badge-warning', label: t('enums.paymentStatus.PENDING', 'Pending') },
+      FAILED:    { cls: 'badge-danger',  label: t('enums.paymentStatus.FAILED', 'Failed') },
+      REFUNDED:  { cls: 'badge-slate',   label: t('enums.paymentStatus.REFUNDED', 'Refunded') },
+      CANCELLED: { cls: 'badge-slate',   label: t('enums.paymentStatus.CANCELLED', 'Cancelled') },
     };
     const b = map[status] || { cls: 'badge-info', label: status };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
@@ -76,9 +76,9 @@ const AdminTransactions = () => {
 
   const getTypeBadge = (type: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      SUBSCRIPTION:    { cls: 'badge-warning', label: 'Subscription' },
-      COURSE_PURCHASE: { cls: 'badge-info',    label: 'Course Purchase' },
-      EBOOK_PURCHASE:  { cls: 'badge-success', label: 'Ebook Purchase' },
+      SUBSCRIPTION:    { cls: 'badge-warning', label: t('enums.transactionType.SUBSCRIPTION', 'Subscription') },
+      COURSE_PURCHASE: { cls: 'badge-info',    label: t('enums.transactionType.COURSE_PURCHASE', 'Course Purchase') },
+      EBOOK_PURCHASE:  { cls: 'badge-success', label: t('enums.transactionType.EBOOK_PURCHASE', 'Ebook Purchase') },
     };
     const b = map[type] || { cls: 'badge-info', label: type };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
@@ -228,7 +228,7 @@ const AdminTransactions = () => {
                       <td>
                         <div>
                           <p style={{ marginBottom: 2, fontWeight: 600, fontSize: 13, color: 'var(--lx-text)' }}>
-                            {transaction.userName || 'Unknown User'}
+                            {transaction.userName || t('admin.transactions.unknownUser', 'Unknown User')}
                           </p>
                           <small style={{ color: 'var(--lx-text-muted)', fontSize: 12 }}>
                             {transaction.userEmail}

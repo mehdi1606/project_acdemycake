@@ -59,12 +59,12 @@ const InstructorAnnouncements = () => {
         setCurrentPage(data?.page ?? page);
       } catch (err) {
         console.error('Failed to load announcements:', err);
-        setError('Failed to load announcements. Please try again.');
+        setError(t('instructor.announcements.loadError', "We couldn't load your announcements. Please try again."));
       } finally {
         setLoading(false);
       }
     },
-    [pageSize]
+    [pageSize, t]
   );
 
   useEffect(() => { fetchAnnouncements(0); }, [fetchAnnouncements]);
@@ -90,7 +90,7 @@ const InstructorAnnouncements = () => {
       fetchAnnouncements(0);
     } catch (err) {
       console.error('Failed to create announcement:', err);
-      setError('Failed to create announcement. Please try again.');
+      setError(t('instructor.announcements.createError', "The announcement couldn't be published. Your text is kept; please try again."));
     } finally {
       setAddSubmitting(false);
     }
@@ -106,7 +106,7 @@ const InstructorAnnouncements = () => {
       fetchAnnouncements(currentPage);
     } catch (err) {
       console.error('Failed to update announcement:', err);
-      setError('Failed to update announcement. Please try again.');
+      setError(t('instructor.announcements.updateError', "The announcement couldn't be updated. Please try again."));
     } finally {
       setEditSubmitting(false);
     }
@@ -122,7 +122,7 @@ const InstructorAnnouncements = () => {
       fetchAnnouncements(nextPage);
     } catch (err) {
       console.error('Failed to delete announcement:', err);
-      setError('Failed to delete announcement. Please try again.');
+      setError(t('instructor.announcements.deleteError', "The announcement couldn't be deleted. Please try again."));
     } finally {
       setDeleteSubmitting(false);
     }
@@ -251,16 +251,16 @@ const InstructorAnnouncements = () => {
                       <td><span className="lx-badge badge-success">{t('common.published', 'Published')}</span></td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title="View" onClick={() => openView(ann)}>
+                          <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('common.view', 'View')} onClick={() => openView(ann)}>
                             <i className="isax isax-eye" />
                           </button>
-                          <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title="Edit" onClick={() => openEdit(ann)}>
+                          <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('common.edit', 'Edit')} onClick={() => openEdit(ann)}>
                             <i className="isax isax-edit-2" />
                           </button>
                           <button
                             type="button"
                             className="lx-btn lx-btn-sm"
-                            title="Delete"
+                            title={t('common.delete', 'Delete')}
                             onClick={() => openDelete(ann)}
                             style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}
                           >

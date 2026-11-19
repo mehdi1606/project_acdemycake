@@ -13,7 +13,10 @@ interface LocationState {
   registrationSuccess?: boolean;
   email?: string;
   from?: string | { pathname?: string; search?: string; hash?: string };
+  reason?: LoginReason;
 }
+
+type LoginReason = "book" | "enroll" | "wishlist" | "checkout" | "subscribe";
 
 /** Internal path the user was sent to login from (guards pass `{ from }`), or null. */
 const getRedirectFrom = (state: LocationState | null | undefined): string | null => {
@@ -63,6 +66,17 @@ const Login = () => {
   const route = all_routes;
   // Captured once: the registration-success effect below clears location.state.
   const [redirectFrom] = useState<string | null>(() => getRedirectFrom(locationState));
+  const [redirectReason] = useState<LoginReason | undefined>(() => locationState?.reason);
+
+  const reasonSubtitles: Record<LoginReason, string> = {
+    book: t('auth.login.reason.book', "Sign in or create a free account to book your place — you'll come right back."),
+    enroll: t('auth.login.reason.enroll', "Sign in or create a free account to enrol in this course — you'll come right back."),
+    wishlist: t('auth.login.reason.wishlist', "Sign in or create a free account to save this to your wishlist — you'll come right back."),
+    checkout: t('auth.login.reason.checkout', "Sign in or create a free account to complete your order — your cart is kept."),
+    subscribe: t('auth.login.reason.subscribe', "Sign in or create a free account to start your Premium membership — you'll come right back."),
+  };
+  const continueSubtitle = (redirectReason && reasonSubtitles[redirectReason])
+    || t('auth.login.reason.default', "Sign in or create a free account — you'll come right back to where you were.");
 
   useEffect(() => {
     if (locationState?.registrationSuccess) {
@@ -101,11 +115,11 @@ const Login = () => {
 
   const validateField = (name: string, value: string): string | undefined => {
     if (name === "email") {
-      if (!value.trim()) return "Email is required.";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Please enter a valid email address.";
+      if (!value.trim()) return t('auth.errors.emailRequired', 'Email is required.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('auth.errors.emailInvalid', 'Please enter a valid email address (e.g. name@example.com).');
     }
     if (name === "password") {
-      if (!value) return "Password is required.";
+      if (!value) return t('auth.errors.passwordRequired', 'Password is required.');
     }
     return undefined;
   };
@@ -129,7 +143,7 @@ const Login = () => {
       setResendState('sent');
     } catch {
       setResendState('idle');
-      message.error({ content: 'Could not send the email. Please try again.', duration: 4 });
+      message.error({ content: t('auth.login.resendFailed', 'Could not send the email. Please try again in a minute.'), duration: 4 });
     }
   };
 
@@ -143,7 +157,7 @@ const Login = () => {
     try {
       await dispatch(login(formData)).unwrap();
     } catch (err: unknown) {
-      const errorMsg = typeof err === "string" ? err : "Invalid credentials. Please check your email and password.";
+      const errorMsg = typeof err === "string" ? err : t('auth.login.invalidCredentials', 'Invalid credentials. Please check your email and password.');
       message.error({ content: errorMsg, duration: 5, key: "login-error" });
     }
   };
@@ -238,8 +252,17 @@ const Login = () => {
           </div>
 
           {/* Heading */}
-          <h1 className="sl-auth__form-title">{t('auth.login.title', 'Welcome Back')}</h1>
-          <p className="sl-auth__form-subtitle">{t('auth.login.subtitle', 'Sign in to continue your journey')}</p>
+          {redirectFrom ? (
+            <>
+              <h1 className="sl-auth__form-title">{t('auth.login.continueTitle', 'Sign in to continue')}</h1>
+              <p className="sl-auth__form-subtitle">{continueSubtitle}</p>
+            </>
+          ) : (
+            <>
+              <h1 className="sl-auth__form-title">{t('auth.login.title', 'Welcome Back')}</h1>
+              <p className="sl-auth__form-subtitle">{t('auth.login.subtitle', 'Sign in to continue your journey')}</p>
+            </>
+          )}
 
           {/* Registration success alert */}
           {showVerificationAlert && (
@@ -394,13 +417,32 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Sign-up link */}
-          <div className="sl-auth__switch">
-            {t('auth.login.noAccount', "Don't have an account?")}{" "}
-            <Link to={route.register} className="sl-auth__switch-link">
-              {t('auth.login.createOne', 'Create one')}
-            </Link>
-          </div>
+          {/* Sign-up: prominent secondary button when coming from a protected action */}
+          {redirectFrom ? (
+            <div className="sl-auth__switch">
+              <div className="mb-2">{t('auth.login.newHere', 'New to SARALÖWE Academy? It only takes a minute.')}</div>
+              <Link
+                to={route.register}
+                state={{ from: redirectFrom, reason: redirectReason }}
+                className="sl-auth__create-btn"
+                style={{
+                  width: '100%', height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  border: '2px solid #C5912C', borderRadius: 12, background: 'transparent',
+                  color: '#651C32', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                  fontSize: '0.85rem', textDecoration: 'none',
+                }}
+              >
+                <i className="isax isax-user-add" />{t('auth.login.createAccountFree', 'Create a free account')}
+              </Link>
+            </div>
+          ) : (
+            <div className="sl-auth__switch">
+              {t('auth.login.noAccount', "Don't have an account?")}{" "}
+              <Link to={route.register} className="sl-auth__switch-link">
+                {t('auth.login.createOne', 'Create one')}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -44,7 +44,7 @@ const StudentProfile = () => {
   }, [reduxUser]);
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "Not set";
+    if (!dateString) return t('student.profileExtra.notSet', 'Not set');
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       day: "numeric",
@@ -274,7 +274,9 @@ const StudentProfile = () => {
                 <span
                   className={`lx-badge ${user?.subscriptionStatus === 'ACTIVE' ? 'badge-success' : 'badge-slate'}`}
                 >
-                  {user?.subscriptionStatus || 'None'}
+                  {user?.subscriptionStatus
+                    ? t(`enums.subscriptionStatus.${user.subscriptionStatus}`, String(user.subscriptionStatus))
+                    : t('student.profileExtra.noSubscription', 'None')}
                 </span>
               </div>
             </div>
@@ -343,7 +345,7 @@ const StudentProfile = () => {
                     >
                       <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <i className="isax isax-global" style={{ fontSize: 14 }} />
-                        Website
+                        {t('student.profile.website', 'Website')}
                       </p>
                       <a
                         href={socialLinks.website}

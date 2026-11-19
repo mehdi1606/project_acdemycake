@@ -54,11 +54,14 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 6,
 }
 
-const StatusBadge: React.FC<{ status: AssignmentStatus }> = ({ status }) => (
-  <span className={`lx-badge ${status === 'PUBLISHED' ? 'badge-success' : 'badge-info'}`}>
-    {status === 'PUBLISHED' ? 'Published' : 'Draft'}
-  </span>
-)
+const StatusBadge: React.FC<{ status: AssignmentStatus }> = ({ status }) => {
+  const { t } = useTranslation()
+  return (
+    <span className={`lx-badge ${status === 'PUBLISHED' ? 'badge-success' : 'badge-info'}`}>
+      {status === 'PUBLISHED' ? t('instructor.assignmentsPage.statusPublished', 'Published') : t('instructor.assignmentsPage.statusDraft', 'Draft')}
+    </span>
+  )
+}
 
 const TITLE_MAX = 255
 const TEXT_MAX = 5000
@@ -98,6 +101,7 @@ const toPayload = (f: AssignmentForm) => ({
 const NO_WRITING_ASSIST = { 'data-gramm': 'false', 'data-gramm_editor': 'false', 'data-enable-grammarly': 'false' }
 
 const FieldLabel: React.FC<{ text: string; value: string; max: number; required?: boolean }> = ({ text, value, max, required }) => {
+  const { t } = useTranslation()
   const over = value.length > max
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
@@ -105,7 +109,7 @@ const FieldLabel: React.FC<{ text: string; value: string; max: number; required?
         {text} {required && <span style={{ color: '#8B2335' }}>*</span>}
       </label>
       <span style={{ fontSize: 11.5, fontWeight: 600, color: over ? '#dc2626' : 'var(--lx-text-muted)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-        {value.length.toLocaleString('en-US')} / {max.toLocaleString('en-US')}{over ? ' · too long' : ''}
+        {value.length.toLocaleString('en-US')} / {max.toLocaleString('en-US')}{over ? ` · ${t('instructor.assignmentsPage.tooLong', 'too long')}` : ''}
       </span>
     </div>
   )
@@ -118,6 +122,7 @@ interface FormFieldsProps {
 }
 
 const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChange }) => {
+  const { t } = useTranslation()
   const [lang, setLang] = useState<FormLang>('en')
   const keys = LANG_FIELDS[lang]
   const rtl = lang === 'ar'
@@ -134,9 +139,9 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
-        <label style={labelStyle}>Course <span style={{ color: '#8B2335' }}>*</span></label>
+        <label style={labelStyle}>{t('instructor.assignmentsPage.course', 'Course')} <span style={{ color: '#8B2335' }}>*</span></label>
         <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.courseId} onChange={(e) => onChange('courseId', e.target.value)} required>
-          <option value="">Select a course</option>
+          <option value="">{t('instructor.assignmentsPage.selectCourse', 'Select a course')}</option>
           {courses.map((c: Course) => (<option key={c.id} value={c.id}>{c.title}</option>))}
         </select>
       </div>
@@ -161,7 +166,7 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
               >
                 {l === 'en' ? 'English' : 'العربية'}
                 <span
-                  title={filled(l) ? 'Written' : 'Empty'}
+                  title={filled(l) ? t('instructor.assignmentsPage.written', 'Written') : t('instructor.assignmentsPage.empty', 'Empty')}
                   style={{ width: 7, height: 7, borderRadius: '50%', background: filled(l) ? '#22c55e' : (active ? 'rgba(255,255,255,0.45)' : 'rgba(107,29,42,0.25)') }}
                 />
               </button>
@@ -169,7 +174,7 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
           })}
         </div>
         <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: '6px 0 0', lineHeight: 1.5 }}>
-          Students see the language of their site (AR / EN). If one language is empty, the other is shown. A title is required in at least one language.
+          {t('instructor.assignmentsPage.langHint', 'Students see the language of their site (AR / EN). If one language is empty, the other is shown. A title is required in at least one language.')}
         </p>
       </div>
 
@@ -212,18 +217,18 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
         <div>
-          <label style={labelStyle}>Total Mark</label>
+          <label style={labelStyle}>{t('instructor.assignmentsPage.totalMark', 'Total Mark')}</label>
           <input type="number" style={inputStyle} min={1} max={1000} value={form.totalMark} onChange={(e) => onChange('totalMark', e.target.value)} />
         </div>
         <div>
-          <label style={labelStyle}>Due Date</label>
+          <label style={labelStyle}>{t('instructor.assignmentsPage.dueDate', 'Due Date')}</label>
           <input type="date" style={inputStyle} value={form.dueDate} onChange={(e) => onChange('dueDate', e.target.value)} />
         </div>
         <div>
-          <label style={labelStyle}>Status <span style={{ color: '#8B2335' }}>*</span></label>
+          <label style={labelStyle}>{t('common.status', 'Status')} <span style={{ color: '#8B2335' }}>*</span></label>
           <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.status} onChange={(e) => onChange('status', e.target.value as AssignmentStatus)}>
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
+            <option value="DRAFT">{t('instructor.assignmentsPage.statusDraft', 'Draft')}</option>
+            <option value="PUBLISHED">{t('instructor.assignmentsPage.statusPublished', 'Published')}</option>
           </select>
         </div>
       </div>
@@ -239,6 +244,7 @@ const isGraded = (s: Submission) => s.grade !== undefined && s.grade !== null
  * browsers cannot display (doc/docx) fall back to a labelled open-link.
  */
 const AttachmentPreview: React.FC<{ url: string }> = ({ url }) => {
+  const { t } = useTranslation()
   const [imgFailed, setImgFailed] = useState(false)
   useEffect(() => { setImgFailed(false) }, [url])
 
@@ -258,22 +264,22 @@ const AttachmentPreview: React.FC<{ url: string }> = ({ url }) => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text-mid)' }}>
           <i className="isax isax-paperclip-2" style={{ marginInlineEnd: 5 }} />
-          Attachment ({ext.toUpperCase()})
+          {t('instructor.assignmentsPage.attachmentExt', 'Attachment ({{ext}})', { ext: ext.toUpperCase() })}
         </span>
         <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--lx-primary)', fontWeight: 600 }}>
-          Open full size ↗
+          {t('instructor.assignmentsPage.openFullSize', 'Open full size ↗')}
         </a>
       </div>
 
       {isImage && (
         <a href={url} target="_blank" rel="noreferrer" style={{ ...frame, display: 'block' }}>
-          <img src={url} alt="Student attachment" onError={() => setImgFailed(true)} style={{ width: '100%', maxHeight: 420, objectFit: 'contain', display: 'block', background: '#faf8f5' }} />
+          <img src={url} alt={t('instructor.assignmentsPage.studentAttachment', 'Student attachment')} onError={() => setImgFailed(true)} style={{ width: '100%', maxHeight: 420, objectFit: 'contain', display: 'block', background: '#faf8f5' }} />
         </a>
       )}
 
       {isPdf && (
         <div style={frame}>
-          <iframe src={`${url}#toolbar=0&view=FitH`} title="Student attachment" style={{ width: '100%', height: 460, border: 'none', display: 'block' }} />
+          <iframe src={`${url}#toolbar=0&view=FitH`} title={t('instructor.assignmentsPage.studentAttachment', 'Student attachment')} style={{ width: '100%', height: 460, border: 'none', display: 'block' }} />
         </div>
       )}
 
@@ -284,8 +290,8 @@ const AttachmentPreview: React.FC<{ url: string }> = ({ url }) => {
         >
           <i className="isax isax-document-text" style={{ fontSize: 26, color: 'var(--lx-primary)' }} />
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lx-text)' }}>{ext.toUpperCase()} file</div>
-            <div style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>Preview not supported — click to open</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.assignmentsPage.fileExt', '{{ext}} file', { ext: ext.toUpperCase() })}</div>
+            <div style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{t('instructor.assignmentsPage.noPreview', 'Preview not supported — click to open')}</div>
           </div>
         </a>
       )}
@@ -323,7 +329,7 @@ const ModalHeader: React.FC<{ title: string; onClose: () => void }> = ({ title, 
 )
 
 const InstructorAssignment: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -361,11 +367,11 @@ const InstructorAssignment: React.FC = () => {
       setCurrentPage(data?.page ?? 0)
     } catch (err) {
       console.error('Failed to load assignments:', err)
-      setError('Failed to load assignments.')
+      setError(t('instructor.assignmentsPage.loadError', 'We couldn\'t load your assignments. Check your connection and try again.'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   const fetchCourses = useCallback(async () => {
     try {
@@ -386,7 +392,7 @@ const InstructorAssignment: React.FC = () => {
   }, [])
 
   const formatDate = (dateStr?: string) =>
-    dateStr ? new Date(dateStr).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+    dateStr ? new Date(dateStr).toLocaleDateString(i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
   const openSubmissions = useCallback(async (a: Assignment) => {
     setSelected(a)
@@ -405,11 +411,11 @@ const InstructorAssignment: React.FC = () => {
       setSubmissions(list)
       if (list.length > 0) selectSubmission(list[0])   // open the first student straight away
     } catch (e) {
-      setSubmissionsError(extractApiError(e, 'Failed to load submissions'))
+      setSubmissionsError(extractApiError(e, t('instructor.assignmentsPage.loadSubmissionsError', 'We couldn\'t load the submissions. Close this window and try again.')))
     } finally {
       setSubmissionsLoading(false)
     }
-  }, [])
+  }, [t])
 
   /** Show one student's work and preload their existing grade into the form. */
   function selectSubmission(sub: Submission) {
@@ -427,7 +433,7 @@ const InstructorAssignment: React.FC = () => {
       const updated = await assignmentService.gradeSubmission(submissionId, { grade, feedback: gradeFeedback.trim() || undefined })
       setSubmissions(prev => prev.map(s => s.id === submissionId ? updated : s))
     } catch (e) {
-      setSubmissionsError(extractApiError(e, 'Failed to save grade'))
+      setSubmissionsError(extractApiError(e, t('instructor.assignmentsPage.saveGradeError', 'The mark couldn\'t be saved. Please try again.')))
     } finally {
       setGrading(false)
     }
@@ -478,7 +484,7 @@ const InstructorAssignment: React.FC = () => {
       await instructorService.createAssignment({ courseId: form.courseId, ...toPayload(form) })
       closeModal()
       fetchAssignments(0)
-    } catch (err) { message.error(extractApiError(err, 'Failed to create assignment.')) }
+    } catch (err) { message.error(extractApiError(err, t('instructor.assignmentsPage.createError', 'The assignment couldn\'t be created. Please try again.'))) }
     finally { setSubmitting(false) }
   }
 
@@ -490,7 +496,7 @@ const InstructorAssignment: React.FC = () => {
       await instructorService.updateAssignment(selected.id, toPayload(form))
       closeModal()
       fetchAssignments(currentPage)
-    } catch (err) { message.error(extractApiError(err, 'Failed to update assignment.')) }
+    } catch (err) { message.error(extractApiError(err, t('instructor.assignmentsPage.updateError', 'Your changes couldn\'t be saved. Please try again.'))) }
     finally { setSubmitting(false) }
   }
 
@@ -502,7 +508,7 @@ const InstructorAssignment: React.FC = () => {
       closeModal()
       const nextPage = assignments.length === 1 && currentPage > 0 ? currentPage - 1 : currentPage
       fetchAssignments(nextPage)
-    } catch { setError('Failed to delete assignment.') }
+    } catch { message.error(t('instructor.assignmentsPage.deleteError', 'The assignment couldn\'t be deleted. Please try again.')) }
     finally { setDeleteSubmitting(false) }
   }
 
@@ -510,10 +516,10 @@ const InstructorAssignment: React.FC = () => {
     if (totalPages <= 1) return null
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-        <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>Page {currentPage + 1} of {totalPages} · {totalElements} assignments</span>
+        <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{t('common.pageOf', 'Page {{page}} of {{total}}', { page: currentPage + 1, total: totalPages })} · {t('instructor.assignmentsPage.count', '{{n}} assignments', { n: totalElements })}</span>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={currentPage === 0} onClick={() => fetchAssignments(currentPage - 1)}>Previous</button>
-          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={currentPage >= totalPages - 1} onClick={() => fetchAssignments(currentPage + 1)}>Next</button>
+          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={currentPage === 0} onClick={() => fetchAssignments(currentPage - 1)}>{t('common.previous', 'Previous')}</button>
+          <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={currentPage >= totalPages - 1} onClick={() => fetchAssignments(currentPage + 1)}>{t('common.next', 'Next')}</button>
         </div>
       </div>
     )
@@ -524,17 +530,20 @@ const InstructorAssignment: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <h5 style={{ fontSize: 20, fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>
-          Assignments
-          {!loading && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--lx-text-muted)', marginLeft: 8 }}>({totalElements})</span>}
+          {t('instructor.assignmentsPage.title', 'Assignments')}
+          {!loading && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--lx-text-muted)', marginInlineStart: 8 }}>({totalElements})</span>}
         </h5>
         <button className="lx-btn lx-btn-gold" onClick={openAdd}>
-          <i className="isax isax-add-circle" style={{ marginRight: 6 }} /> Add Assignment
+          <i className="isax isax-add-circle" style={{ marginInlineEnd: 6 }} /> {t('instructor.assignmentsPage.add', 'Add Assignment')}
         </button>
       </div>
 
       {error && (
         <div style={{ padding: '12px 16px', marginBottom: 20, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139, 35, 53, 0.06)', border: '1px solid rgba(139, 35, 53, 0.12)', color: '#8B2335', fontSize: 14 }}>
           {error}
+          <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 12 }} onClick={() => fetchAssignments(currentPage)}>
+            {t('common.tryAgain', 'Try Again')}
+          </button>
         </div>
       )}
 
@@ -545,7 +554,11 @@ const InstructorAssignment: React.FC = () => {
       ) : assignments.length === 0 ? (
         <div className="lx-empty-state">
           <span className="empty-icon"><i className="isax isax-document-text" style={{ fontSize: 28 }} /></span>
-          <p>No assignments yet. Create your first one!</p>
+          <h6>{t('instructor.assignmentsPage.emptyTitle', 'No assignments yet')}</h6>
+          <p>{t('instructor.assignmentsPage.emptyDesc', 'Create an assignment and publish it: students of that course will see it in their course and can submit their work.')}</p>
+          <button type="button" className="lx-btn lx-btn-gold lx-btn-sm" onClick={openAdd}>
+            <i className="isax isax-add-circle" /> {t('instructor.assignmentsPage.createFirst', 'Create your first assignment')}
+          </button>
         </div>
       ) : (
         <div className="lx-card">
@@ -553,12 +566,12 @@ const InstructorAssignment: React.FC = () => {
             <table className="lx-table">
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Course</th>
-                  <th>Due Date</th>
-                  <th>Mark</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th>{t('common.title', 'Title')}</th>
+                  <th>{t('instructor.assignmentsPage.course', 'Course')}</th>
+                  <th>{t('instructor.assignmentsPage.dueDate', 'Due Date')}</th>
+                  <th>{t('instructor.assignmentsPage.mark', 'Mark')}</th>
+                  <th>{t('common.status', 'Status')}</th>
+                  <th>{t('common.actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -571,10 +584,10 @@ const InstructorAssignment: React.FC = () => {
                     <td><StatusBadge status={a.status} /></td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openSubmissions(a)} title="Submissions"><i className="isax isax-document-text" /></button>
-                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openView(a)} title="View"><i className="isax isax-eye" /></button>
-                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openEdit(a)} title="Edit"><i className="isax isax-edit-2" /></button>
-                        <button type="button" className="lx-btn lx-btn-sm" onClick={() => openDelete(a)} title="Delete" style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}><i className="isax isax-trash" /></button>
+                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openSubmissions(a)} title={t('instructor.assignmentsPage.submissions', 'Submissions')}><i className="isax isax-document-text" /></button>
+                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openView(a)} title={t('common.view', 'View')}><i className="isax isax-eye" /></button>
+                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openEdit(a)} title={t('common.edit', 'Edit')}><i className="isax isax-edit-2" /></button>
+                        <button type="button" className="lx-btn lx-btn-sm" onClick={() => openDelete(a)} title={t('common.delete', 'Delete')} style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}><i className="isax isax-trash" /></button>
                       </div>
                     </td>
                   </tr>
@@ -590,13 +603,13 @@ const InstructorAssignment: React.FC = () => {
       {/* Add Modal */}
       {modal === 'add' && (
         <GlassModal maxWidth={700} onClose={closeModal}>
-          <ModalHeader title="Add New Assignment" onClose={closeModal} />
+          <ModalHeader title={t('instructor.assignmentsPage.addTitle', 'Add New Assignment')} onClose={closeModal} />
           <form onSubmit={handleAdd}>
             <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
               <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !formValid || !form.courseId}>
-                {submitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : 'Create'}
+                {submitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : t('common.create', 'Create')}
               </button>
             </div>
           </form>
@@ -606,18 +619,18 @@ const InstructorAssignment: React.FC = () => {
       {/* View Modal */}
       {modal === 'view' && selected && (
         <GlassModal onClose={closeModal}>
-          <ModalHeader title="Assignment Details" onClose={closeModal} />
+          <ModalHeader title={t('instructor.assignmentsPage.detailsTitle', 'Assignment Details')} onClose={closeModal} />
           <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}>
             {[
-              { label: 'Title', value: selected.titleAr && selected.title === selected.titleAr ? '—' : selected.title },
-              { label: 'Title (Arabic)', value: selected.titleAr || '—' },
-              { label: 'Course', value: selected.courseTitle || '—' },
-              { label: 'Description', value: selected.description || '—' },
-              { label: 'Description (Arabic)', value: selected.descriptionAr || '—' },
-              { label: 'Instructions', value: selected.instructions || '—' },
-              { label: 'Instructions (Arabic)', value: selected.instructionsAr || '—' },
-              { label: 'Due Date', value: formatDate(selected.dueDate) },
-              { label: 'Total Mark', value: String(selected.totalMark ?? '—') },
+              { label: t('common.title', 'Title'), value: selected.titleAr && selected.title === selected.titleAr ? '—' : selected.title },
+              { label: t('instructor.assignmentsPage.titleAr', 'Title (Arabic)'), value: selected.titleAr || '—' },
+              { label: t('instructor.assignmentsPage.course', 'Course'), value: selected.courseTitle || '—' },
+              { label: t('common.description', 'Description'), value: selected.description || '—' },
+              { label: t('instructor.assignmentsPage.descriptionAr', 'Description (Arabic)'), value: selected.descriptionAr || '—' },
+              { label: t('instructor.assignmentsPage.instructions', 'Instructions'), value: selected.instructions || '—' },
+              { label: t('instructor.assignmentsPage.instructionsAr', 'Instructions (Arabic)'), value: selected.instructionsAr || '—' },
+              { label: t('instructor.assignmentsPage.dueDate', 'Due Date'), value: formatDate(selected.dueDate) },
+              { label: t('instructor.assignmentsPage.totalMark', 'Total Mark'), value: String(selected.totalMark ?? '—') },
             ].map((f) => (
               <div key={f.label} style={{ marginBottom: 16, padding: 14, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
                 <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{f.label}</p>
@@ -625,13 +638,13 @@ const InstructorAssignment: React.FC = () => {
               </div>
             ))}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)' }}>Status:</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)' }}>{t('common.status', 'Status')}:</span>
               <StatusBadge status={selected.status} />
             </div>
           </div>
           <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Close</button>
-            <button type="button" className="lx-btn lx-btn-gold" onClick={() => openEdit(selected)}><i className="isax isax-edit-2" style={{ marginRight: 4 }} /> Edit</button>
+            <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.close', 'Close')}</button>
+            <button type="button" className="lx-btn lx-btn-gold" onClick={() => openEdit(selected)}><i className="isax isax-edit-2" style={{ marginInlineEnd: 4 }} /> {t('common.edit', 'Edit')}</button>
           </div>
         </GlassModal>
       )}
@@ -639,13 +652,13 @@ const InstructorAssignment: React.FC = () => {
       {/* Edit Modal */}
       {modal === 'edit' && selected && (
         <GlassModal maxWidth={700} onClose={closeModal}>
-          <ModalHeader title="Edit Assignment" onClose={closeModal} />
+          <ModalHeader title={t('instructor.assignmentsPage.editTitle', 'Edit Assignment')} onClose={closeModal} />
           <form onSubmit={handleEdit}>
             <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
               <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !formValid}>
-                {submitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : 'Save Changes'}
+                {submitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : t('common.saveChanges', 'Save Changes')}
               </button>
             </div>
           </form>
@@ -655,23 +668,27 @@ const InstructorAssignment: React.FC = () => {
       {/* Submissions Modal */}
       {modal === 'submissions' && selected && (
         <GlassModal maxWidth={1080} onClose={closeModal}>
-          <ModalHeader title={`Submissions — ${selected.title}`} onClose={closeModal} />
+          <ModalHeader title={t('instructor.assignmentsPage.submissionsFor', 'Submissions — {{title}}', { title: selected.title })} onClose={closeModal} />
 
           {submissionsLoading ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--lx-text-muted)' }}>Loading…</div>
+            <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--lx-text-muted)' }}>{t('common.loading', 'Loading...')}</div>
           ) : submissions.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--lx-text-muted)', fontSize: 14 }}>
               <i className="isax isax-document" style={{ fontSize: 34, display: 'block', marginBottom: 10, opacity: 0.4 }} />
-              No submissions yet
+              <div style={{ fontWeight: 600, color: 'var(--lx-text)', marginBottom: 4 }}>{t('instructor.assignmentsPage.noSubmissions', 'No submissions yet')}</div>
+              {t('instructor.assignmentsPage.noSubmissionsDesc', 'Students who submit their work for this assignment will appear here.')}
+              {selected.status !== 'PUBLISHED' && (
+                <div style={{ marginTop: 8, color: '#d97706' }}>{t('instructor.assignmentsPage.notPublishedHint', 'This assignment is still a draft: publish it so students can see it.')}</div>
+              )}
             </div>
           ) : (
             <>
               {/* Summary strip */}
               <div style={{ display: 'flex', gap: 18, padding: '12px 24px', borderBottom: '1px solid rgba(107,29,42,0.08)', fontSize: 12.5, color: 'var(--lx-text-mid)', flexWrap: 'wrap' }}>
-                <span><strong>{submissions.length}</strong> submitted</span>
-                <span style={{ color: '#16a34a' }}><strong>{gradedCount}</strong> graded</span>
-                <span style={{ color: '#d97706' }}><strong>{submissions.length - gradedCount}</strong> ungraded</span>
-                <span style={{ marginInlineStart: 'auto' }}>Total mark: <strong>{selected.totalMark}</strong></span>
+                <span><strong>{submissions.length}</strong> {t('instructor.assignmentsPage.submittedLower', 'submitted')}</span>
+                <span style={{ color: '#16a34a' }}><strong>{gradedCount}</strong> {t('instructor.assignmentsPage.gradedLower', 'graded')}</span>
+                <span style={{ color: '#d97706' }}><strong>{submissions.length - gradedCount}</strong> {t('instructor.assignmentsPage.ungradedLower', 'ungraded')}</span>
+                <span style={{ marginInlineStart: 'auto' }}>{t('instructor.assignmentsPage.totalMarkLabel', 'Total mark:')} <strong>{selected.totalMark}</strong></span>
               </div>
 
               <div className="lx-sub-panes" style={{ display: 'flex', alignItems: 'stretch', minHeight: 420, maxHeight: '62vh' }}>
@@ -683,7 +700,7 @@ const InstructorAssignment: React.FC = () => {
                       type="text"
                       value={subSearch}
                       onChange={e => setSubSearch(e.target.value)}
-                      placeholder="Search student…"
+                      placeholder={t('instructor.assignmentsPage.searchStudent', 'Search student…')}
                       style={{ width: '100%', padding: '7px 10px', borderRadius: 7, border: '1px solid rgba(107,29,42,0.14)', fontSize: 12.5, outline: 'none', background: '#fff' }}
                     />
                     <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
@@ -700,7 +717,7 @@ const InstructorAssignment: React.FC = () => {
                             color: subFilter === f ? '#fff' : 'var(--lx-text-mid)',
                           }}
                         >
-                          {f}
+                          {f === 'all' ? t('common.all', 'All') : f === 'graded' ? t('instructor.assignmentsPage.filterGraded', 'Graded') : t('instructor.assignmentsPage.filterUngraded', 'Ungraded')}
                         </button>
                       ))}
                     </div>
@@ -709,7 +726,7 @@ const InstructorAssignment: React.FC = () => {
                   <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px 10px' }}>
                     {visibleSubmissions.length === 0 ? (
                       <p style={{ fontSize: 12.5, color: 'var(--lx-text-muted)', textAlign: 'center', padding: '18px 6px', margin: 0 }}>
-                        No student matches
+                        {t('instructor.assignmentsPage.noStudentMatch', 'No student matches')}
                       </p>
                     ) : visibleSubmissions.map(sub => {
                       const active = sub.id === activeSubId
@@ -741,7 +758,7 @@ const InstructorAssignment: React.FC = () => {
                               {sub.studentName}
                             </span>
                             <span style={{ display: 'block', fontSize: 11, color: isGraded(sub) ? '#16a34a' : '#d97706', fontWeight: 600 }}>
-                              {isGraded(sub) ? `${sub.grade}/${sub.totalMark}` : 'Ungraded'}
+                              {isGraded(sub) ? `${sub.grade}/${sub.totalMark}` : t('instructor.assignmentsPage.filterUngraded', 'Ungraded')}
                             </span>
                           </span>
                           {sub.fileUrl && <i className="isax isax-paperclip-2" style={{ fontSize: 12, color: 'var(--lx-text-muted)' }} />}
@@ -761,7 +778,7 @@ const InstructorAssignment: React.FC = () => {
 
                   {!activeSub ? (
                     <p style={{ color: 'var(--lx-text-muted)', fontSize: 13.5, textAlign: 'center', paddingTop: 40 }}>
-                      Select a student on the left to review their work.
+                      {t('instructor.assignmentsPage.selectStudent', 'Select a student on the left to review their work.')}
                     </p>
                   ) : (
                     <>
@@ -775,17 +792,17 @@ const InstructorAssignment: React.FC = () => {
                           background: isGraded(activeSub) ? 'rgba(22,163,74,0.1)' : 'rgba(217,119,6,0.1)',
                           color: isGraded(activeSub) ? '#16a34a' : '#d97706',
                         }}>
-                          {isGraded(activeSub) ? `${activeSub.grade} / ${activeSub.totalMark}` : 'Ungraded'}
+                          {isGraded(activeSub) ? `${activeSub.grade} / ${activeSub.totalMark}` : t('instructor.assignmentsPage.filterUngraded', 'Ungraded')}
                         </span>
                       </div>
 
                       {/* Written answer */}
                       <div style={{ marginBottom: 16 }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text-mid)', display: 'block', marginBottom: 6 }}>
-                          <i className="isax isax-note-1" style={{ marginInlineEnd: 5 }} />Answer
+                          <i className="isax isax-note-1" style={{ marginInlineEnd: 5 }} />{t('instructor.assignmentsPage.answer', 'Answer')}
                         </span>
                         <div style={{ fontSize: 13.5, color: 'var(--lx-text)', background: 'rgba(107,29,42,0.025)', border: '1px solid rgba(107,29,42,0.08)', borderRadius: 8, padding: '11px 13px', whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
-                          {activeSub.content || <em style={{ color: 'var(--lx-text-muted)' }}>No written answer</em>}
+                          {activeSub.content || <em style={{ color: 'var(--lx-text-muted)' }}>{t('instructor.assignmentsPage.noWrittenAnswer', 'No written answer')}</em>}
                         </div>
                       </div>
 
@@ -794,7 +811,7 @@ const InstructorAssignment: React.FC = () => {
                         ? <AttachmentPreview url={activeSub.fileUrl} />
                         : (
                           <p style={{ fontSize: 12.5, color: 'var(--lx-text-muted)', fontStyle: 'italic', margin: '0 0 4px' }}>
-                            No attachment submitted
+                            {t('instructor.assignmentsPage.noAttachment', 'No attachment submitted')}
                           </p>
                         )}
 
@@ -802,7 +819,7 @@ const InstructorAssignment: React.FC = () => {
                       <div style={{ marginTop: 18, padding: '14px 16px', background: 'rgba(107,29,42,0.03)', borderRadius: 10, border: '1px solid rgba(107,29,42,0.08)' }}>
                         <div style={{ display: 'flex', gap: 12, marginBottom: 10, flexWrap: 'wrap' }}>
                           <div style={{ flex: '0 0 110px' }}>
-                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Mark (/{activeSub.totalMark})</label>
+                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>{t('instructor.assignmentsPage.markOutOf', 'Mark (/{{total}})', { total: activeSub.totalMark })}</label>
                             <input
                               type="number" min={0} max={activeSub.totalMark}
                               value={gradeValue}
@@ -811,12 +828,12 @@ const InstructorAssignment: React.FC = () => {
                             />
                           </div>
                           <div style={{ flex: 1, minWidth: 180 }}>
-                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Feedback (optional)</label>
+                            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>{t('instructor.assignmentsPage.feedbackOptional', 'Feedback (optional)')}</label>
                             <input
                               type="text"
                               value={gradeFeedback}
                               onChange={e => setGradeFeedback(e.target.value)}
-                              placeholder="Great work! / Needs improvement…"
+                              placeholder={t('instructor.assignmentsPage.feedbackPlaceholder', 'Great work! / Needs improvement…')}
                               style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1px solid rgba(107,29,42,0.16)', fontSize: 13, outline: 'none' }}
                             />
                           </div>
@@ -827,7 +844,7 @@ const InstructorAssignment: React.FC = () => {
                           disabled={grading || gradeValue === ''}
                           onClick={() => submitGrade(activeSub.id)}
                         >
-                          {grading ? 'Saving…' : isGraded(activeSub) ? 'Update Mark' : 'Save Mark'}
+                          {grading ? t('common.saving', 'Saving...') : isGraded(activeSub) ? t('instructor.assignmentsPage.updateMark', 'Update Mark') : t('instructor.assignmentsPage.saveMark', 'Save Mark')}
                         </button>
                       </div>
                     </>
@@ -838,7 +855,7 @@ const InstructorAssignment: React.FC = () => {
           )}
 
           <div style={{ padding: '14px 24px', borderTop: '1px solid rgba(107,29,42,0.08)', display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>Close</button>
+            <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.close', 'Close')}</button>
           </div>
         </GlassModal>
       )}
@@ -850,13 +867,13 @@ const InstructorAssignment: React.FC = () => {
             <div style={{ width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px', background: 'rgba(139, 35, 53, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
             </div>
-            <h4 style={{ fontSize: 18, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 8 }}>Delete Assignment</h4>
+            <h4 style={{ fontSize: 18, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 8 }}>{t('instructor.assignmentsPage.deleteTitle', 'Delete Assignment')}</h4>
             <p style={{ fontWeight: 500, color: 'var(--lx-text)', marginBottom: 4 }}>"{selected.title}"</p>
-            <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 24 }}>This cannot be undone.</p>
+            <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 24 }}>{t('instructor.assignmentsPage.deleteWarning', 'This cannot be undone.')}</p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal} disabled={deleteSubmitting}>Cancel</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal} disabled={deleteSubmitting}>{t('common.cancel', 'Cancel')}</button>
               <button type="button" className="lx-btn" style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }} onClick={handleDelete} disabled={deleteSubmitting}>
-                {deleteSubmitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #8B2335', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : 'Yes, Delete'}
+                {deleteSubmitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #8B2335', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : t('common.yesDelete', 'Yes, Delete')}
               </button>
             </div>
           </div>

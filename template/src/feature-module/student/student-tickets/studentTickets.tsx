@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
-import { Spin } from 'antd';
+import { Spin, message } from 'antd';
+import { Link } from 'react-router-dom';
+import { TFunction } from 'i18next';
+import { all_routes } from '../../router/all_routes';
 import {
   CATEGORY_LABELS,
   CreateTicketPayload,
@@ -27,22 +30,27 @@ const formatDateTime = (iso: string) =>
     minute: '2-digit',
   });
 
-const statusBadge = (status: TicketStatus) => {
+// Translated labels for backend enum values (falls back to the English label map).
+const statusLabel = (t: TFunction, s: TicketStatus) => t(`enums.ticketStatus.${s}`, STATUS_LABELS[s] ?? s);
+const priorityLabel = (t: TFunction, p: keyof typeof PRIORITY_LABELS) => t(`enums.ticketPriority.${p}`, PRIORITY_LABELS[p] ?? p);
+const categoryLabel = (t: TFunction, c: keyof typeof CATEGORY_LABELS) => t(`enums.ticketCategory.${c}`, CATEGORY_LABELS[c] ?? c);
+
+const statusBadge = (t: TFunction, status: TicketStatus) => {
   const map: Record<TicketStatus, string> = {
     OPEN: 'badge-info',
     IN_PROGRESS: 'badge-warning',
     CLOSED: 'badge-success',
   };
-  return <span className={`lx-badge ${map[status]}`}>{STATUS_LABELS[status]}</span>;
+  return <span className={`lx-badge ${map[status]}`}>{statusLabel(t, status)}</span>;
 };
 
-const priorityBadge = (priority: keyof typeof PRIORITY_LABELS) => {
+const priorityBadge = (t: TFunction, priority: keyof typeof PRIORITY_LABELS) => {
   const map: Record<keyof typeof PRIORITY_LABELS, string> = {
     HIGH: 'badge-danger',
     MEDIUM: 'badge-warning',
     LOW: 'badge-success',
   };
-  return <span className={`lx-badge ${map[priority]}`}>{PRIORITY_LABELS[priority]}</span>;
+  return <span className={`lx-badge ${map[priority]}`}>{priorityLabel(t, priority)}</span>;
 };
 
 const PAGE_SIZE = 10;
@@ -86,11 +94,11 @@ const StudentTickets: React.FC = () => {
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
     } catch {
-      setError('Failed to load tickets. Please try again.');
+      setError(t('student.tickets.loadError', "We couldn't load your tickets. Please try again."));
     } finally {
       setLoading(false);
     }
-  }, [page, filterStatus]);
+  }, [page, filterStatus, t]);
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
@@ -129,7 +137,9 @@ const StudentTickets: React.FC = () => {
       setActiveTicket(updated);
       setReplyText('');
       loadTickets();
-    } catch { /* ignore */ } finally {
+    } catch {
+      message.error(t('student.tickets.replyError', "Your reply couldn't be sent. Please try again."));
+    } finally {
       setReplying(false);
     }
   };
@@ -142,7 +152,9 @@ const StudentTickets: React.FC = () => {
       setActiveTicket((prev) => prev ? { ...prev, status: 'CLOSED' } : prev);
       loadTickets();
       loadStats();
-    } catch { /* ignore */ } finally {
+    } catch {
+      message.error(t('student.tickets.closeError', "The ticket couldn't be closed. Please try again."));
+    } finally {
       setClosing(false);
     }
   };
@@ -158,7 +170,7 @@ const StudentTickets: React.FC = () => {
       loadTickets();
       loadStats();
     } catch {
-      setError('Failed to create ticket.');
+      message.error(t('student.tickets.createError', "Your ticket couldn't be created. Please try again, or write to us from the Contact page."));
     } finally {
       setCreating(false);
     }
@@ -175,7 +187,7 @@ const StudentTickets: React.FC = () => {
     return (
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ marginTop: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>
-          Page {page + 1} of {totalPages} ({totalElements} tickets)
+          {t('common.pageOf', 'Page {{page}} of {{total}}', { page: page + 1, total: totalPages })} ({t('student.tickets.count', '{{count}} tickets', { count: totalElements })})
         </p>
         <div className="d-flex gap-1">
           {Array.from({ length: totalPages }, (_, i) => (
@@ -241,7 +253,7 @@ const StudentTickets: React.FC = () => {
               style={filterStatus === s ? { background: 'var(--lx-primary)', color: '#fff', border: '1.5px solid var(--lx-primary)' } : {}}
               onClick={() => handleFilterChange(s as TicketStatus | '')}
             >
-              {s === '' ? t('common.all', 'All') : STATUS_LABELS[s as TicketStatus]}
+              {s === '' ? t('common.all', 'All') : statusLabel(t, s as TicketStatus)}
             </button>
           ))}
         </div>
@@ -267,7 +279,15 @@ const StudentTickets: React.FC = () => {
             fontSize: 14,
           }}
         >
-          <i className="isax isax-warning-2" style={{ marginRight: 8 }} />{error}
+          <i className="isax isax-warning-2" style={{ marginInlineEnd: 8 }} />{error}
+          <div className="d-flex gap-2 mt-2 flex-wrap">
+            <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => loadTickets()}>
+              {t('common.tryAgain', 'Try Again')}
+            </button>
+            <Link to={all_routes.contactUs} className="lx-btn lx-btn-sm lx-btn-outline">
+              {t('common.contactUs', 'Contact us')}
+            </Link>
+          </div>
         </div>
       ) : tickets.length === 0 ? (
         <div className="lx-card">
@@ -309,9 +329,9 @@ const StudentTickets: React.FC = () => {
                           {ticket.subject}
                         </span>
                       </td>
-                      <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[ticket.category]}</span></td>
-                      <td>{priorityBadge(ticket.priority)}</td>
-                      <td>{statusBadge(ticket.status)}</td>
+                      <td><span className="lx-badge badge-slate">{categoryLabel(t, ticket.category)}</span></td>
+                      <td>{priorityBadge(t, ticket.priority)}</td>
+                      <td>{statusBadge(t, ticket.status)}</td>
                       <td>
                         <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(ticket)}>
                           <i className="isax isax-eye" /> {t('common.view', 'View')}
@@ -381,8 +401,8 @@ const StudentTickets: React.FC = () => {
                         value={form.category}
                         onChange={(e) => setForm(f => ({ ...f, category: e.target.value as any }))}
                       >
-                        {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-                          <option key={k} value={k}>{v}</option>
+                        {Object.keys(CATEGORY_LABELS).map((k) => (
+                          <option key={k} value={k}>{categoryLabel(t, k as keyof typeof CATEGORY_LABELS)}</option>
                         ))}
                       </select>
                     </div>
@@ -395,8 +415,8 @@ const StudentTickets: React.FC = () => {
                         value={form.priority}
                         onChange={(e) => setForm(f => ({ ...f, priority: e.target.value as any }))}
                       >
-                        {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
-                          <option key={k} value={k}>{v}</option>
+                        {Object.keys(PRIORITY_LABELS).map((k) => (
+                          <option key={k} value={k}>{priorityLabel(t, k as keyof typeof PRIORITY_LABELS)}</option>
                         ))}
                       </select>
                     </div>
@@ -461,9 +481,9 @@ const StudentTickets: React.FC = () => {
                       {activeTicket.ticketNumber} — {activeTicket.subject}
                     </h5>
                     <div className="d-flex gap-2 mt-2">
-                      {statusBadge(activeTicket.status)}
-                      {priorityBadge(activeTicket.priority)}
-                      <span className="lx-badge badge-slate">{CATEGORY_LABELS[activeTicket.category]}</span>
+                      {statusBadge(t, activeTicket.status)}
+                      {priorityBadge(t, activeTicket.priority)}
+                      <span className="lx-badge badge-slate">{categoryLabel(t, activeTicket.category)}</span>
                     </div>
                   </div>
                   <button onClick={() => setActiveTicket(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}>
@@ -559,7 +579,7 @@ const StudentTickets: React.FC = () => {
                       textAlign: 'center',
                     }}
                   >
-                    This ticket is closed. Replies are disabled.
+                    {t('student.tickets.closedNote', 'This ticket is closed, so replies are turned off. Need more help? Open a new ticket.')}
                   </div>
                 </div>
               )}

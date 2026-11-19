@@ -85,9 +85,9 @@ const StudentNotification = () => {
     setSaving(true);
     try {
       await profileService.updateNotificationPreferences(toggles as any);
-      message.success('Notification preferences saved');
+      message.success(t('student.notifications.saved', 'Notification preferences saved'));
     } catch (err) {
-      message.error(extractApiError(err, 'Failed to save preferences'));
+      message.error(extractApiError(err, t('student.notifications.saveError', "Your preferences couldn't be saved. Please try again.")));
     } finally {
       setSaving(false);
     }
@@ -120,8 +120,8 @@ const StudentNotification = () => {
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h6 style={{ margin: '0 0 2px', fontSize: 14, fontWeight: 600, color: 'var(--lx-text)' }}>{item.title}</h6>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)', lineHeight: 1.4 }}>{item.description}</p>
+              <h6 style={{ margin: '0 0 2px', fontSize: 14, fontWeight: 600, color: 'var(--lx-text)' }}>{t(`student.notifications.items.${item.id}Title`, item.title)}</h6>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)', lineHeight: 1.4 }}>{t(`student.notifications.items.${item.id}Desc`, item.description)}</p>
             </div>
             <ToggleSwitch checked={toggles[item.id] ?? false} onChange={() => toggle(item.id)} />
           </div>

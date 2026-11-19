@@ -7,12 +7,15 @@ import { all_routes } from '../feature-module/router/all_routes';
 import { getFileUrl } from '../environment';
 import BadgeAvatar from './BadgeAvatar';
 import { getBadgeForUser } from '../config/badges';
+import { openBadgeGuide } from './BadgeGuide';
 
 interface SidebarItem {
   title: string;
   icon: string;
   route: string;
   subRoute?: string;
+  /** Optional action instead of navigation (e.g. open the badge guide) */
+  onClick?: () => void;
 }
 
 interface SidebarGroup {
@@ -46,9 +49,10 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
         { title: t('sidebar.dashboard', 'Dashboard'),    icon: 'isax isax-category',     route: all_routes.studentDashboard },
         { title: t('sidebar.myCourses', 'My Courses'),   icon: 'isax isax-book',          route: all_routes.studentCourses },
         { title: t('sidebar.assignments', 'Assignments'), icon: 'isax isax-clipboard-text', route: all_routes.studentAssignments },
+        { title: t('sidebar.quizzes', 'Quizzes'),        icon: 'isax isax-award',         route: all_routes.studentQuiz, subRoute: all_routes.studentQuizQuestion },
         { title: t('ebooks.myLibrary', 'My Ebooks'), icon: 'isax isax-book-1',        route: all_routes.studentEbooks },
-        { title: t('sidebar.myProfile', 'My Profile'),   icon: 'isax isax-user',          route: all_routes.studentProfile },
         { title: t('sidebar.certificates', 'Certificates'), icon: 'isax isax-medal',     route: all_routes.studentCertificates },
+        { title: t('sidebar.badges', 'Badges'),          icon: 'isax isax-medal-star',    route: '', onClick: openBadgeGuide },
         { title: t('sidebar.wishlist', 'Wishlist'),      icon: 'isax isax-heart',         route: all_routes.studentWishlist },
         { title: t('sidebar.reviews', 'Reviews'),        icon: 'isax isax-star',          route: all_routes.studentReviews },
       ],
@@ -56,10 +60,19 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
     {
       label: t('sidebar.account', 'Account'),
       items: [
+        { title: t('sidebar.mySubscription', 'My subscription'), icon: 'isax isax-crown', route: all_routes.studentSubscription },
+        { title: t('sidebar.myProfile', 'My Profile'),   icon: 'isax isax-user',          route: all_routes.studentProfile },
         { title: t('sidebar.messages', 'Messages'),      icon: 'isax isax-messages-3',    route: all_routes.studentMessage },
         { title: t('sidebar.orderHistory', 'Order History'), icon: 'isax isax-shopping-cart', route: all_routes.studentOrderHistory },
         { title: t('sidebar.support', 'Support'),        icon: 'isax isax-ticket',        route: all_routes.studentTickets },
         { title: t('sidebar.settings', 'Settings'),      icon: 'isax isax-setting-2',     route: all_routes.studentSettings },
+      ],
+    },
+    {
+      label: t('sidebar.explore', 'Explore'),
+      items: [
+        { title: t('sidebar.browseCourses', 'Browse courses'), icon: 'isax isax-search-normal-1', route: all_routes.courseList },
+        { title: t('sidebar.backToSite', 'Back to site'),      icon: 'isax isax-home-2',          route: all_routes.homeone },
       ],
     },
   ];
@@ -146,6 +159,8 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
   };
 
   const isActive = (item: SidebarItem): boolean => {
+    if (item.onClick || !item.route) return false;
+    if (item.route === all_routes.homeone) return false;
     if (location.pathname === item.route) return true;
     if (item.subRoute && location.pathname === item.subRoute) return true;
     // Avoid marking "Dashboard" active for sub-pages
@@ -177,7 +192,13 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
   return (
     <aside className={`luxury-sidebar${collapsed ? ' collapsed' : ''}`}>
       {/* Desktop collapse toggle */}
-      <button className="sidebar-toggle-btn" onClick={onToggle} title={collapsed ? t('sidebar.expand', 'Expand') : t('sidebar.collapse', 'Collapse')}>
+      <button
+        type="button"
+        className="sidebar-toggle-btn"
+        onClick={onToggle}
+        title={collapsed ? t('sidebar.expand', 'Expand') : t('sidebar.collapse', 'Collapse')}
+        aria-label={collapsed ? t('sidebar.expand', 'Expand') : t('sidebar.collapse', 'Collapse')}
+      >
         <i className={`isax isax-arrow-${collapsed ? 'right' : 'left'}-1`} />
       </button>
 
@@ -213,14 +234,31 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
             <ul>
               {group.items.map((item, ii) => (
                 <li key={ii}>
-                  <Link
-                    to={item.route}
-                    className={`sidebar-link${isActive(item) ? ' active' : ''}`}
-                    title={collapsed ? item.title : undefined}
-                  >
-                    <i className={item.icon} />
-                    {!collapsed && <span>{item.title}</span>}
-                  </Link>
+                  {item.onClick ? (
+                    <button
+                      type="button"
+                      className="sidebar-link"
+                      onClick={item.onClick}
+                      title={collapsed ? item.title : undefined}
+                      aria-label={collapsed ? item.title : undefined}
+                      aria-haspopup="dialog"
+                      style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'start' }}
+                    >
+                      <i className={item.icon} aria-hidden="true" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </button>
+                  ) : (
+                    <Link
+                      to={item.route}
+                      className={`sidebar-link${isActive(item) ? ' active' : ''}`}
+                      title={collapsed ? item.title : undefined}
+                      aria-label={collapsed ? item.title : undefined}
+                      aria-current={isActive(item) ? 'page' : undefined}
+                    >
+                      <i className={item.icon} aria-hidden="true" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

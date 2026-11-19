@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { all_routes } from '../../router/all_routes';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import certificateService from '../../../services/api/certificate.service';
 import { Certificate } from '../../../services/api/types';
@@ -9,7 +11,7 @@ const CRIMSON = '#9D1C34';
 const CRIM_DK = '#781224';
 
 const StudentCertificates = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [certificates, setCertificates]   = useState<Certificate[]>([]);
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState<string | null>(null);
@@ -34,11 +36,11 @@ const StudentCertificates = () => {
       setCurrentPage(data?.page ?? 0);
     } catch (err) {
       console.error('Failed to load certificates:', err);
-      setError('Failed to load certificates. Please try again.');
+      setError(t('student.certificates.loadError', "We couldn't load your certificates. Check your connection and try again."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { fetchCertificates(0); }, [fetchCertificates]);
 
@@ -59,7 +61,7 @@ const StudentCertificates = () => {
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString(i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US', {
       day: '2-digit', month: 'long', year: 'numeric',
     });
   };
@@ -71,6 +73,7 @@ const StudentCertificates = () => {
       certificateService.triggerDownload(blob, `certificate-${cert.courseTitle.replace(/\s+/g, '-')}.pdf`);
     } catch (err) {
       console.error('Failed to download certificate:', err);
+      setError(t('student.certificates.downloadError', "The PDF couldn't be downloaded. Please try again in a moment."));
     } finally {
       setDownloadingId(null);
     }
@@ -81,7 +84,7 @@ const StudentCertificates = () => {
     return (
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ marginTop: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>
-          Page {currentPage + 1} of {totalPages} · {totalElements} certificates
+          {t('common.pageOf', 'Page {{page}} of {{total}}', { page: currentPage + 1, total: totalPages })} · {t('student.certificates.count', '{{count}} certificates', { count: totalElements })}
         </p>
         <div className="d-flex gap-1">
           <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => fetchCertificates(currentPage - 1)}
@@ -109,7 +112,7 @@ const StudentCertificates = () => {
       {/* ── Header ── */}
       <div className="d-flex align-items-center justify-content-between mb-4">
         <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>
-          My Certificates
+          {t('student.certificates.title', 'My Certificates')}
           {!loading && (
             <span style={{ color: 'var(--lx-text-muted)', fontSize: 14, fontWeight: 400, marginLeft: 8 }}>
               ({totalElements})
@@ -126,6 +129,9 @@ const StudentCertificates = () => {
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <i className="isax isax-warning-2" />{error}
+          <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 'auto' }} onClick={() => fetchCertificates(currentPage)}>
+            {t('common.tryAgain', 'Try Again')}
+          </button>
         </div>
       )}
 
@@ -137,7 +143,7 @@ const StudentCertificates = () => {
             animation: 'spin 1s linear infinite',
           }} />
           <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>
-            Loading your certificates...
+            {t('student.certificates.loading', 'Loading your certificates...')}
           </p>
         </div>
       ) : certificates.length === 0 ? (
@@ -145,8 +151,16 @@ const StudentCertificates = () => {
           <div className="lx-card-body">
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-medal-star" /></div>
-              <h6>No certificates yet.</h6>
-              <p>Complete a course to automatically earn your certificate!</p>
+              <h6>{t('student.certificates.noCertificates', 'No certificates yet')}</h6>
+              <p>{t('student.certificates.emptyText', 'Finish a course to earn your first certificate. It appears here automatically.')}</p>
+              <div className="d-flex gap-2 justify-content-center flex-wrap mt-2">
+                <Link to={all_routes.studentCourses} className="lx-btn lx-btn-gold lx-btn-sm">
+                  <i className="isax isax-teacher" /> {t('student.certificates.myCourses', 'My courses')}
+                </Link>
+                <Link to={all_routes.courseGrid} className="lx-btn lx-btn-outline lx-btn-sm">
+                  <i className="isax isax-book-1" /> {t('student.certificates.browseCourses', 'Browse courses')}
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -158,10 +172,10 @@ const StudentCertificates = () => {
                 <thead>
                   <tr>
                     <th style={{ width: 40 }}>#</th>
-                    <th>Certificate Name</th>
-                    <th>Date</th>
-                    <th>Certificate #</th>
-                    <th>Instructor</th>
+                    <th>{t('student.certificates.certificateName', 'Certificate Name')}</th>
+                    <th>{t('common.date', 'Date')}</th>
+                    <th>{t('student.certificates.certificateNo', 'Certificate #')}</th>
+                    <th>{t('common.instructor', 'Instructor')}</th>
                     <th style={{ width: 90 }} />
                   </tr>
                 </thead>
@@ -178,10 +192,10 @@ const StudentCertificates = () => {
                           style={{
                             background: 'none', border: 'none', padding: 0,
                             cursor: 'pointer', fontWeight: 600,
-                            color: 'var(--lx-primary)', fontSize: 13.5, textAlign: 'left',
+                            color: 'var(--lx-primary)', fontSize: 13.5, textAlign: 'start',
                           }}
                         >
-                          {cert.courseTitle} Certificate
+                          {t('student.certificates.certificateFor', '{{course}} Certificate', { course: cert.courseTitle })}
                         </button>
                       </td>
                       <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>
@@ -201,12 +215,12 @@ const StudentCertificates = () => {
                       <td>
                         <div className="d-flex align-items-center gap-2">
                           <button className="lx-btn lx-btn-outline lx-btn-sm"
-                            title="Preview certificate"
+                            title={t('student.certificates.preview', 'Preview certificate')}
                             onClick={() => handlePreview(cert)}>
                             <i className="isax isax-eye" />
                           </button>
                           <button className="lx-btn lx-btn-outline lx-btn-sm"
-                            title="Download PDF"
+                            title={t('student.certificates.downloadPdf', 'Download PDF')}
                             onClick={() => handleDownload(cert)}
                             disabled={downloadingId === cert.id}>
                             {downloadingId === cert.id
@@ -275,7 +289,7 @@ const StudentCertificates = () => {
                     fontWeight: 700, color: CRIM_DK, fontSize: 15,
                     letterSpacing: '0.05em',
                   }}>
-                    Certificate of Completion
+                    {t('student.certificates.ofCompletion', 'Certificate of Completion')}
                   </span>
                 </div>
                 <button
@@ -301,7 +315,7 @@ const StudentCertificates = () => {
                   <iframe title="Certificate" src={`${previewUrl}#toolbar=0&navpanes=0`} style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
                 ) : !previewLoading ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: CRIMSON, fontFamily: "'Cinzel', Georgia, serif", fontSize: 14 }}>
-                    Failed to load certificate preview
+                    {t('student.certificates.previewError', "The preview couldn't load. You can still download the PDF below.")}
                   </div>
                 ) : null}
               </div>
@@ -317,7 +331,7 @@ const StudentCertificates = () => {
                 <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                   <div>
                     <p style={{ fontSize: 10, color: `${CRIMSON}88`, margin: 0, letterSpacing: '0.1em' }}>
-                      COURSE
+                      {t('student.certificates.courseLabel', 'COURSE')}
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 600, color: CRIM_DK, margin: 0 }}>
                       {selected.courseTitle}
@@ -325,7 +339,7 @@ const StudentCertificates = () => {
                   </div>
                   <div>
                     <p style={{ fontSize: 10, color: `${CRIMSON}88`, margin: 0, letterSpacing: '0.1em' }}>
-                      ISSUED
+                      {t('student.certificates.issuedLabel', 'ISSUED')}
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 600, color: CRIM_DK, margin: 0 }}>
                       {formatDate(selected.issuedAt)}
@@ -338,7 +352,7 @@ const StudentCertificates = () => {
                     onClick={() => { if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setSelected(null); }}
                     style={{ borderColor: `${CRIMSON}44`, color: CRIMSON }}
                   >
-                    Close
+                    {t('common.close', 'Close')}
                   </button>
                   <button
                     onClick={() => handleDownload(selected)}
@@ -361,7 +375,7 @@ const StudentCertificates = () => {
                           animation: 'spin 1s linear infinite',
                         }} />
                       : <i className="isax isax-import" />}
-                    Download PDF
+                    {t('student.certificates.downloadPdf', 'Download PDF')}
                   </button>
                 </div>
               </div>

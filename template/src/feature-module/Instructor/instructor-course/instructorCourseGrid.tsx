@@ -64,7 +64,7 @@ const InstructorCourseGrid = () => {
       setStats(s);
     } catch (err) {
       console.error('Error fetching courses:', err);
-      message.error('Failed to load courses');
+      message.error(t('instructor.coursesPage.loadError', 'We couldn\'t load your courses. Refresh the page to try again.'));
     } finally {
       setLoading(false);
     }
@@ -79,12 +79,12 @@ const InstructorCourseGrid = () => {
     try {
       setDeleting(true);
       await instructorService.deleteCourse(selectedCourseId);
-      message.success('Course deleted successfully');
+      message.success(t('instructor.coursesPage.deleted', 'Course deleted successfully'));
       setDeleteModal(false);
       fetchCourses();
     } catch (err) {
       console.error('Error deleting course:', err);
-      message.error('Failed to delete course');
+      message.error(t('instructor.coursesPage.deleteError', 'The course couldn\'t be deleted. Please try again.'));
     } finally { setDeleting(false); setSelectedCourseId(null); }
   };
 
@@ -115,10 +115,10 @@ const InstructorCourseGrid = () => {
   });
 
   const statusMap: Record<string, { text: string; cls: string }> = {
-    PUBLISHED: { text: 'Published', cls: 'badge-success' },
-    PENDING_REVIEW: { text: 'Pending', cls: 'badge-warning' },
-    DRAFT: { text: 'Draft', cls: 'badge-slate' },
-    REJECTED: { text: 'Rejected', cls: 'badge-danger' },
+    PUBLISHED: { text: t('enums.courseStatus.PUBLISHED', 'Published'), cls: 'badge-success' },
+    PENDING_REVIEW: { text: t('enums.courseStatus.PENDING_REVIEW', 'Pending Review'), cls: 'badge-warning' },
+    DRAFT: { text: t('enums.courseStatus.DRAFT', 'Draft'), cls: 'badge-slate' },
+    REJECTED: { text: t('enums.courseStatus.REJECTED', 'Rejected'), cls: 'badge-danger' },
   };
 
   return (
@@ -158,7 +158,7 @@ const InstructorCourseGrid = () => {
             }}>
               <Link
                 to={all_routes.instructorCourse}
-                title="List View"
+                title={t('instructor.coursesPage.listView', 'List View')}
                 style={{
                   width: 34, height: 34, borderRadius: 8,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -528,7 +528,7 @@ const InstructorCourseGrid = () => {
                     <div style={{ display: 'flex', gap: 4 }}>
                       <Link
                         to={`${all_routes.addNewCourse}?edit=${course.id}`}
-                        title="Edit Course"
+                        title={t('instructor.coursesPage.editCourse', 'Edit Course')}
                         style={{
                           width: 34, height: 34, borderRadius: 8, textDecoration: 'none',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -551,7 +551,7 @@ const InstructorCourseGrid = () => {
                       </Link>
                       <button
                         type="button"
-                        title="Delete Course"
+                        title={t('instructor.coursesPage.deleteCourse', 'Delete Course')}
                         onClick={() => handleDeleteClick(course.id)}
                         style={{
                           width: 34, height: 34, borderRadius: 8, cursor: 'pointer',

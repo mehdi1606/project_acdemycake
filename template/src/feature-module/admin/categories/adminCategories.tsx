@@ -50,7 +50,7 @@ const AdminCategories = () => {
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      message.error('Failed to fetch categories');
+      message.error(t('admin.categories.loadError', "We couldn't load the categories. Refresh the page to try again."));
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +89,7 @@ const AdminCategories = () => {
     };
 
     if (!submitData.name) {
-      message.error('Category name is required');
+      message.error(t('admin.categories.nameRequired', 'Please enter a category name (English or Arabic).'));
       return;
     }
 
@@ -100,19 +100,19 @@ const AdminCategories = () => {
 
       if (isEditMode && editingCategory) {
         category = await adminService.updateCategory(editingCategory.id, submitData);
-        message.success('Category updated successfully');
+        message.success(t('admin.categories.updated', 'Category updated successfully'));
       } else {
         category = await adminService.createCategory(submitData);
-        message.success('Category created successfully');
+        message.success(t('admin.categories.created', 'Category created successfully'));
       }
 
       if (imageFile && category && category.id) {
         try {
           await adminService.uploadCategoryImage(category.id, imageFile);
-          message.success('Image uploaded successfully');
+          message.success(t('admin.categories.imageUploaded', 'Image uploaded successfully'));
         } catch (imgError) {
           console.error('Image upload error:', imgError);
-          message.warning('Category saved but image upload failed');
+          message.warning(t('admin.categories.imageUploadFailed', 'Category saved, but the image upload failed. Edit the category to try the image again.'));
         }
       }
 
@@ -123,7 +123,9 @@ const AdminCategories = () => {
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message ||
                           error?.message ||
-                          (isEditMode ? 'Failed to update category' : 'Failed to create category');
+                          (isEditMode
+                            ? t('admin.categories.updateError', "The category couldn't be updated. Please try again.")
+                            : t('admin.categories.createError', "The category couldn't be created. Please try again."));
       message.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -149,12 +151,12 @@ const AdminCategories = () => {
     try {
       setIsSubmitting(true);
       await adminService.deleteCategory(categoryToDelete.id);
-      message.success('Category deleted successfully');
+      message.success(t('admin.categories.deleted', 'Category deleted successfully'));
       setDeleteModalOpen(false);
       setCategoryToDelete(null);
       fetchCategories();
     } catch (error) {
-      message.error('Failed to delete category. It may have associated courses.');
+      message.error(t('admin.categories.deleteError', "This category couldn't be deleted. It probably still has courses: move them to another category first."));
     } finally {
       setIsSubmitting(false);
     }
@@ -274,7 +276,7 @@ const AdminCategories = () => {
                       <button
                         className="lx-btn lx-btn-outline lx-btn-sm"
                         onClick={() => openEditModal(category)}
-                        title="Edit"
+                        title={t('common.edit', 'Edit')}
                       >
                         <i className="isax isax-edit-2" />
                       </button>
@@ -282,7 +284,7 @@ const AdminCategories = () => {
                         className="lx-btn lx-btn-sm"
                         style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
                         onClick={() => openDeleteModal(category)}
-                        title="Delete"
+                        title={t('common.delete', 'Delete')}
                       >
                         <i className="isax isax-trash" />
                       </button>
@@ -326,7 +328,7 @@ const AdminCategories = () => {
               <Input
                 value={formData.nameEn}
                 onChange={(e) => setFormData({ ...formData, nameEn: e.target.value, name: formData.nameAr || e.target.value })}
-                placeholder="Category name in English"
+                placeholder={t('admin.categories.namePlaceholderEn', 'Category name in English')}
               />
             </div>
             <div style={{ flex: 1 }}>
@@ -352,7 +354,7 @@ const AdminCategories = () => {
               <TextArea
                 value={formData.descriptionEn}
                 onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value, description: formData.descriptionAr || e.target.value })}
-                placeholder="Description in English"
+                placeholder={t('admin.categories.descPlaceholderEn', 'Description in English')}
                 rows={3}
               />
             </div>
@@ -376,7 +378,7 @@ const AdminCategories = () => {
             type="number"
             value={formData.displayOrder}
             onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
-            placeholder="Enter display order"
+            placeholder={t('admin.categories.displayOrderPlaceholder', 'Enter display order')}
           />
         </div>
         <div style={{ marginBottom: 16 }}>
@@ -394,11 +396,11 @@ const AdminCategories = () => {
           </Upload>
           {isEditMode && editingCategory?.imageUrl && !imageFile && (
             <div style={{ marginTop: 8 }}>
-              <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 4 }}>Current image:</p>
+              <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 4 }}>{t('admin.categories.currentImage', 'Current image:')}</p>
               <img
                 src={getFileUrl(editingCategory.imageUrl) ?? editingCategory.imageUrl}
                 onError={hideOnError}
-                alt="Current"
+                alt={t('admin.categories.currentImageAlt', 'Current image')}
                 style={{ maxWidth: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 'var(--lx-radius)' }}
               />
             </div>

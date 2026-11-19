@@ -139,7 +139,7 @@ const StudentDashboard = () => {
                   <span className="course-pct-badge">{enr.progressPercentage}%</span>
                 </div>
                 <div className="course-info">
-                  <p className="course-cat">{enr.courseCategory || 'General'}</p>
+                  <p className="course-cat">{enr.courseCategory || t('student.courses.generalCategory', 'General')}</p>
                   <Link
                     to={`${all_routes.courseDetails}/${enr.courseSlug}`}
                     className="course-title"
@@ -199,7 +199,7 @@ const StudentDashboard = () => {
                     <div className="d-flex flex-column align-items-end gap-1">
                       <span className="txn-amount">{formatMAD(txn.amount, txn.currency || undefined)}</span>
                       <span className={`lx-badge ${statusBadgeClass(txn.status)}`}>
-                        {txn.status}
+                        {t(`enums.paymentStatus.${txn.status}`, String(txn.status))}
                       </span>
                     </div>
                   </div>

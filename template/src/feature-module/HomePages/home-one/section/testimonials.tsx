@@ -17,12 +17,26 @@ const Stars = () => (
     </div>
 )
 
+// Round gold arrow buttons (react-slick injects className/onClick)
+type ArrowProps = { className?: string; onClick?: React.MouseEventHandler<HTMLButtonElement>; dir: 'prev' | 'next'; label: string }
+const SlArrow: React.FC<ArrowProps> = ({ className, onClick, dir, label }) => (
+    <button
+        type="button"
+        className={`sl-tm-arrow sl-tm-arrow--${dir}${className && className.includes('slick-disabled') ? ' is-disabled' : ''}`}
+        onClick={onClick}
+        aria-label={label}
+        title={label}
+    >
+        <i className={`fa-solid fa-chevron-${dir === 'prev' ? 'left' : 'right'}`} aria-hidden="true" />
+    </button>
+)
+
 // First letters of the first two name-parts (works for AR & EN)
 const initialsOf = (name: string) =>
     name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('')
 
 const Testimonials = () => {
-    const { i18n } = useTranslation()
+    const { i18n, t } = useTranslation()
     const isRtl = i18n.language === 'ar'
 
     const content = {
@@ -75,10 +89,14 @@ const Testimonials = () => {
         slidesToShow: 3,
         slidesToScroll: 1,
         dots: true,
-        arrows: false,
+        arrows: true,
+        prevArrow: <SlArrow dir="prev" label={t('common.previous', 'Previous')} />,
+        nextArrow: <SlArrow dir="next" label={t('common.next', 'Next')} />,
         autoplay: true,
         autoplaySpeed: 5500,
         pauseOnHover: true,
+        pauseOnFocus: true,
+        pauseOnDotsHover: true,
         rtl: isRtl,
         responsive: [
             { breakpoint: 1100, settings: { slidesToShow: 2, slidesToScroll: 1 } },
@@ -135,7 +153,30 @@ const Testimonials = () => {
                 </div>
 
                 {/* Slider */}
-                <div className="sl-slider-wrap" data-aos="fade-up" data-aos-delay="100" data-aos-duration="900">
+                <style>{`
+                    .sl-tm-slider { position: relative; padding: 0 28px; }
+                    .sl-tm-arrow {
+                        position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+                        width: 40px; height: 40px; border-radius: 50%;
+                        border: 1px solid rgba(197,145,44,0.55);
+                        background: #C5912C; color: #fff; cursor: pointer;
+                        display: inline-flex; align-items: center; justify-content: center;
+                        font-size: 14px; box-shadow: 0 4px 14px rgba(101,28,50,0.18);
+                        transition: background 0.2s ease, transform 0.2s ease;
+                    }
+                    .sl-tm-arrow:hover, .sl-tm-arrow:focus-visible { background: #651C32; }
+                    .sl-tm-arrow:focus-visible { outline: 2px solid #651C32; outline-offset: 2px; }
+                    .sl-tm-arrow--prev { left: -6px; }
+                    .sl-tm-arrow--next { right: -6px; }
+                    .sl-tm-arrow.is-disabled { opacity: 0.4; cursor: default; }
+                    @media (max-width: 640px) {
+                        .sl-tm-slider { padding: 0 22px; }
+                        .sl-tm-arrow { width: 36px; height: 36px; }
+                        .sl-tm-arrow--prev { left: -10px; }
+                        .sl-tm-arrow--next { right: -10px; }
+                    }
+                `}</style>
+                <div className="sl-slider-wrap sl-tm-slider" data-aos="fade-up" data-aos-delay="100" data-aos-duration="900">
                     <Slider {...sliderSettings}>
                         {L.list.map((testimonial, i) => {
                             const dark = i % 3 === 1

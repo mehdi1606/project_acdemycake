@@ -76,7 +76,7 @@ const InstructorQuiz: React.FC = () => {
         const list: Course[] = Array.isArray(res?.content) ? res.content : [];
         setCourses(list.filter((c: Course) => c.status !== 'ARCHIVED' && c.status !== 'REJECTED'));
         setCoursesError(null);
-      } catch (e) { console.error(e); setCourses([]); setCoursesError('Failed to load courses.'); }
+      } catch (e) { console.error(e); setCourses([]); setCoursesError(t('instructor.quiz.coursesLoadError', "We couldn't load your courses. Refresh the page to try again.")); }
       finally { setLoadingCourses(false); }
     };
     const loadQuizzes = async () => {
@@ -136,7 +136,7 @@ const InstructorQuiz: React.FC = () => {
 
   const handleQuestionTypeChange = (type: QuestionType) => {
     if (type === 'true_false') {
-      setCurrentQuestion((prev) => ({ ...prev, type, options: [{ id: generateId(), text: 'True', isCorrect: false }, { id: generateId(), text: 'False', isCorrect: false }] }));
+      setCurrentQuestion((prev) => ({ ...prev, type, options: [{ id: generateId(), text: t('instructor.quiz.true', 'True'), isCorrect: false }, { id: generateId(), text: t('instructor.quiz.false', 'False'), isCorrect: false }] }));
       return;
     }
     setCurrentQuestion((prev) => ({
@@ -170,22 +170,22 @@ const InstructorQuiz: React.FC = () => {
   };
 
   const addQuestionToQuiz = () => {
-    if (!isCurrentQuestionValid) { message.error('Please complete the question and select correct answer(s).'); return; }
+    if (!isCurrentQuestionValid) { message.error(t('instructor.quiz.errQuestionIncomplete', 'Write the question, fill in the answers and tick the correct answer(s).')); return; }
     if (editingQuestionId) {
       setQuizForm((prev) => ({ ...prev, questions: prev.questions.map((q) => q.id === editingQuestionId ? { ...currentQuestion, id: editingQuestionId } : q) }));
-      message.success('Question updated.'); resetCurrentQuestion(); return;
+      message.success(t('instructor.quiz.questionUpdated', 'Question updated.')); resetCurrentQuestion(); return;
     }
     setQuizForm((prev) => ({ ...prev, questions: [...prev.questions, { ...currentQuestion, id: generateId() }] }));
-    message.success('Question added.'); resetCurrentQuestion();
+    message.success(t('instructor.quiz.questionAdded', 'Question added.')); resetCurrentQuestion();
   };
 
   const editQuestion = (q: Question) => { setCurrentQuestion({ ...q }); setEditingQuestionId(q.id); };
-  const deleteQuestion = (id: string) => { setQuizForm((prev) => ({ ...prev, questions: prev.questions.filter((q) => q.id !== id) })); message.success('Question deleted.'); };
+  const deleteQuestion = (id: string) => { setQuizForm((prev) => ({ ...prev, questions: prev.questions.filter((q) => q.id !== id) })); message.success(t('instructor.quiz.questionDeleted', 'Question deleted.')); };
   const moveQuestionUp = (i: number) => { if (i <= 0) return; setQuizForm((prev) => { const c = [...prev.questions]; [c[i - 1], c[i]] = [c[i], c[i - 1]]; return { ...prev, questions: c }; }); };
   const moveQuestionDown = (i: number) => { if (i >= quizForm.questions.length - 1) return; setQuizForm((prev) => { const c = [...prev.questions]; [c[i], c[i + 1]] = [c[i + 1], c[i]]; return { ...prev, questions: c }; }); };
 
   const handleSubmitQuiz = async () => {
-    if (!isStep1Valid || !isStep2Valid) { message.error('Please complete required fields.'); return; }
+    if (!isStep1Valid || !isStep2Valid) { message.error(t('instructor.quiz.errRequired', 'Some required fields are empty. Go back to steps 1 and 2 and fill in the fields marked *.')); return; }
     if (quizForm.questions.length === 0 && isCurrentQuestionValid) {
       setQuizForm((prev) => ({ ...prev, questions: [...prev.questions, { ...currentQuestion, id: generateId() }] }));
     }
@@ -205,16 +205,16 @@ const InstructorQuiz: React.FC = () => {
         ...(quizForm.lessonId ? { lessonId: quizForm.lessonId } : {}),
       };
       const created = await quizService.createQuiz(payload);
-      message.success('Quiz created successfully!');
+      message.success(t('instructor.quiz.created', 'Quiz created successfully!'));
       setQuizzes((prev) => [created, ...prev]);
       setShowQuizBuilder(false); setCurrentStep(1); setQuizForm(emptyQuizForm); resetCurrentQuestion();
-    } catch (e: any) { console.error(e); message.error(e?.response?.data?.message || 'Failed to create quiz.'); }
+    } catch (e: any) { console.error(e); message.error(e?.response?.data?.message || t('instructor.quiz.createError', "The quiz couldn't be saved. Your work is still here; please try again.")); }
     finally { setSubmitting(false); }
   };
 
   const handleDeleteQuiz = async (quizId: string) => {
-    try { await quizService.deleteQuiz(quizId); setQuizzes((prev) => prev.filter((q) => q.id !== quizId)); message.success('Quiz deleted.'); }
-    catch (e: any) { console.error(e); message.error(e?.response?.data?.message || 'Failed to delete quiz.'); }
+    try { await quizService.deleteQuiz(quizId); setQuizzes((prev) => prev.filter((q) => q.id !== quizId)); message.success(t('instructor.quiz.deleted', 'Quiz deleted.')); }
+    catch (e: any) { console.error(e); message.error(e?.response?.data?.message || t('instructor.quiz.deleteError', "The quiz couldn't be deleted. Please try again.")); }
   };
 
   const handleTogglePublish = async (quiz: Quiz) => {
@@ -224,9 +224,9 @@ const InstructorQuiz: React.FC = () => {
         ? await quizService.unpublishQuiz(quiz.id)
         : await quizService.publishQuiz(quiz.id);
       setQuizzes((prev) => prev.map((q) => q.id === quiz.id ? { ...q, status: updated.status } : q));
-      message.success(updated.status === 'PUBLISHED' ? 'Quiz published.' : 'Quiz moved to draft.');
+      message.success(updated.status === 'PUBLISHED' ? t('instructor.quiz.published', 'Quiz published.') : t('instructor.quiz.movedToDraft', 'Quiz moved to draft.'));
     } catch (e: any) {
-      message.error(e?.response?.data?.message || 'Failed to update quiz status.');
+      message.error(e?.response?.data?.message || t('instructor.quiz.statusError', "The quiz status couldn't be changed. Please try again."));
     } finally {
       setPublishingId(null);
     }
@@ -240,15 +240,26 @@ const InstructorQuiz: React.FC = () => {
       setLinkedQuiz(updated);
       setLinkingQuizId('');
       setShowLinkPanel(false);
-      message.success('Quiz linked to this lesson successfully!');
+      message.success(t('instructor.quiz.linked', 'Quiz linked to this lesson successfully!'));
     } catch (e: any) {
-      message.error(e?.response?.data?.message || 'Failed to link quiz.');
+      message.error(e?.response?.data?.message || t('instructor.quiz.linkError', "The quiz couldn't be linked to this lesson. Please try again."));
     } finally {
       setLinkingLoading(false);
     }
   };
 
-  const stepTitle = (n: number) => ['Basic Info', 'Questions', 'Settings', 'Review'][n - 1] || '';
+  const stepTitle = (n: number) => [
+    t('instructor.quiz.stepBasicInfo', 'Basic Info'),
+    t('instructor.quiz.stepQuestions', 'Questions'),
+    t('instructor.quiz.stepSettings', 'Settings'),
+    t('instructor.quiz.stepReview', 'Review'),
+  ][n - 1] || '';
+  const quizStatusLabel = (s?: string) =>
+    s === 'PUBLISHED' ? t('enums.quizStatus.PUBLISHED', 'Published')
+    : s === 'DRAFT' ? t('enums.quizStatus.DRAFT', 'Draft')
+    : s === 'CLOSED' ? t('enums.quizStatus.CLOSED', 'Closed')
+    : s === 'ARCHIVED' ? t('enums.quizStatus.ARCHIVED', 'Archived')
+    : (s ?? '');
 
   // Stepper
   const Stepper = () => (
@@ -279,7 +290,7 @@ const InstructorQuiz: React.FC = () => {
                 <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>{t('instructor.quiz.linkedQuiz', 'Linked Quiz')}: {linkedQuiz.title}</strong>
                 <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 12 }}>
                   {linkedQuiz.questionCount ?? 0} questions · {linkedQuiz.duration ?? 0} min · Pass at {linkedQuiz.passingScore ?? 70}% ·{' '}
-                  <span style={{ color: linkedQuiz.status === 'PUBLISHED' ? '#1a6e1a' : '#C5973E', fontWeight: 600 }}>{linkedQuiz.status}</span>
+                  <span style={{ color: linkedQuiz.status === 'PUBLISHED' ? '#1a6e1a' : '#C5973E', fontWeight: 600 }}>{quizStatusLabel(linkedQuiz.status)}</span>
                 </p>
               </div>
               <button
@@ -347,7 +358,7 @@ const InstructorQuiz: React.FC = () => {
                       .filter((q) => !q.lessonId) // only show unlinked quizzes
                       .map((q) => (
                         <option key={q.id} value={q.id}>
-                          {q.title} ({q.status}) · {q.questionCount ?? 0} questions
+                          {q.title} ({quizStatusLabel(q.status)}) · {t('instructor.quiz.nQuestions', '{{n}} questions', { n: q.questionCount ?? 0 })}
                         </option>
                       ))}
                   </select>
@@ -411,10 +422,10 @@ const InstructorQuiz: React.FC = () => {
                         <h6 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>
                           <Link to={all_routes.instructorQA} style={{ color: 'var(--lx-text)', textDecoration: 'none' }}>{quiz.title}</Link>
                         </h6>
-                        <span className={`lx-badge ${quiz.status === 'PUBLISHED' ? 'badge-success' : 'badge-warning'}`}>{quiz.status}</span>
+                        <span className={`lx-badge ${quiz.status === 'PUBLISHED' ? 'badge-success' : 'badge-warning'}`}>{quizStatusLabel(quiz.status)}</span>
                       </div>
                       <p style={{ margin: 0, color: 'var(--lx-text-muted)', fontSize: 13 }}>
-                        {quiz.courseName || 'Course'} · {quiz.questionCount ?? 0} questions · {quiz.duration ?? 0} min · {quiz.totalPoints ?? 0} pts
+                        {quiz.courseName || t('common.course', 'Course')} · {t('instructor.quiz.nQuestions', '{{n}} questions', { n: quiz.questionCount ?? 0 })} · {t('instructor.quiz.nMin', '{{n}} min', { n: quiz.duration ?? 0 })} · {t('instructor.quiz.nPts', '{{n}} pts', { n: quiz.totalPoints ?? 0 })}
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -426,7 +437,7 @@ const InstructorQuiz: React.FC = () => {
                           ? { background: 'rgba(107, 29, 42, 0.08)', color: '#6B1D2A', border: '1px solid rgba(107, 29, 42, 0.18)' }
                           : { background: 'rgba(34, 139, 34, 0.08)', color: '#1a6e1a', border: '1px solid rgba(34, 139, 34, 0.2)' }
                         }
-                        title={quiz.status === 'PUBLISHED' ? 'Move to Draft' : 'Publish Quiz'}
+                        title={quiz.status === 'PUBLISHED' ? t('instructor.quiz.moveToDraft', 'Move to Draft') : t('instructor.quiz.publishQuiz', 'Publish Quiz')}
                       >
                         {publishingId === quiz.id
                           ? <i className="isax isax-refresh" style={{ animation: 'spin 1s linear infinite' }} />

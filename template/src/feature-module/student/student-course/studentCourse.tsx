@@ -187,10 +187,19 @@ const StudentCourse: React.FC = () => {
                   ? t('student.dashboard.startLearning', 'Start your learning journey by enrolling in a course.')
                   : t('student.courses.keepLearning', 'Keep learning to see courses here.')}
               </p>
-              {activeTab === 'all' && (
-                <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
-                  {t('student.courses.browseNow', 'Browse Courses')}
-                </Link>
+              {activeTab === 'all' ? (
+                <div className="d-flex gap-2 justify-content-center flex-wrap">
+                  <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
+                    {t('student.courses.browseNow', 'Browse Courses')}
+                  </Link>
+                  <Link to={all_routes.pricingPlan} className="lx-btn lx-btn-outline">
+                    {t('student.orders.getPremium', 'Get Premium')}
+                  </Link>
+                </div>
+              ) : (
+                <button type="button" className="lx-btn lx-btn-outline" onClick={() => setActiveTab('all')}>
+                  {t('student.courses.showAll', 'Show all my courses')}
+                </button>
               )}
             </div>
           </div>
@@ -243,7 +252,7 @@ const StudentCourse: React.FC = () => {
 
                 <div className="course-info">
                   <div className="d-flex justify-content-between align-items-center mb-2">
-                    <p className="course-cat mb-0">{enrollment.courseCategory || 'General'}</p>
+                    <p className="course-cat mb-0">{enrollment.courseCategory || t('student.courses.generalCategory', 'General')}</p>
                     <span className="lx-badge badge-info">{enrollment.enrollmentType}</span>
                   </div>
 
@@ -294,7 +303,7 @@ const StudentCourse: React.FC = () => {
                     <Link
                       to={`${all_routes.courseDetails}/${enrollment.courseSlug}`}
                       className="lx-btn lx-btn-outline lx-btn-sm"
-                      title="View details"
+                      title={t('student.courses.viewDetails', 'View details')}
                     >
                       <i className="isax isax-eye" />
                     </Link>

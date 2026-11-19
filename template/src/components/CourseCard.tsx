@@ -61,15 +61,15 @@ const Stars: React.FC<{ rating: number; color: string }> = ({ rating, color }) =
       <i
         key={i}
         className="fa-solid fa-star"
-        style={{ color: i < Math.floor(rating) ? color : 'rgba(197,145,44,0.2)', fontSize: '0.65rem' }}
+        style={{ color: i < Math.floor(rating) ? color : 'rgba(197,145,44,0.25)', fontSize: '0.8rem' }}
       />
     ))}
   </>
 );
 
 const pill: React.CSSProperties = {
-  padding: '7px 14px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700,
-  textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5,
+  padding: '0 16px', minHeight: 40, borderRadius: 20, fontSize: '0.85rem', fontWeight: 700,
+  textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
   border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
 };
 
@@ -237,7 +237,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {course.price ?? 0} {currency}
         </span>
         {hasDiscount && (
-          <del style={{ fontSize: '0.75rem', color: 'rgba(58,30,32,0.35)' }}>
+          <del style={{ fontSize: '0.8rem', color: 'rgba(58,30,32,0.55)' }}>
             {course.originalPrice} {currency}
           </del>
         )}
@@ -272,7 +272,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         to={detailsHref}
         style={{ ...pill, background: `linear-gradient(135deg, ${BURG} 0%, #8B2335 100%)`, color: '#fff', boxShadow: '0 2px 8px rgba(101,28,50,0.25)' }}
       >
-        <i className="fa-solid fa-shield-halved" style={{ fontSize: 11 }} /> {t('courseTile.access', 'Access')}
+        <i className="fa-solid fa-shield-halved" style={{ fontSize: 12 }} /> {t('courseTile.openCourse', 'Open course')}
       </Link>
     );
   } else if (kind === 'RECORDED' && onCart) {
@@ -298,7 +298,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         to={detailsHref}
         style={{ ...pill, background: `linear-gradient(135deg, ${BURG_D} 0%, #6B1D2A 100%)`, color: '#fff', boxShadow: '0 2px 8px rgba(78,20,32,0.2)' }}
       >
-        {t('courseTile.view', 'View')} <i className="isax isax-arrow-right-1" style={{ fontSize: 11 }} />
+        {t('courseTile.seeDetails', 'See details')} <i className="isax isax-arrow-right-1" style={{ fontSize: 12 }} />
       </Link>
     );
   }
@@ -359,7 +359,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {badge}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {hasDiscount && (
-              <span style={{ background: BURG, color: '#fff', fontSize: '0.6rem', fontWeight: 700, padding: '3px 8px', borderRadius: 20 }}>
+              <span style={{ background: BURG, color: '#fff', fontSize: '0.78rem', fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>
                 -{discountPct}%
               </span>
             )}
@@ -367,15 +367,21 @@ const CourseCard: React.FC<CourseCardProps> = ({
               type="button"
               onClick={handleWishlistToggle}
               disabled={isLoadingWishlist}
-              aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+              aria-label={isWishlisted
+                ? t('courseDetails.removeFromWishlist', 'Remove from Wishlist')
+                : t('courseDetails.addToWishlist', 'Add to Wishlist')}
+              aria-pressed={isWishlisted}
+              title={isWishlisted
+                ? t('courseDetails.removeFromWishlist', 'Remove from Wishlist')
+                : t('courseDetails.addToWishlist', 'Add to Wishlist')}
               style={{
-                width: 30, height: 30, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer',
                 background: 'rgba(255,255,255,0.92)', color: isWishlisted ? '#DC2626' : BURG,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}
             >
-              <i className={`fa-${isWishlisted ? 'solid' : 'regular'} fa-heart`} style={{ fontSize: 13 }} />
+              <i className={`fa-${isWishlisted ? 'solid' : 'regular'} fa-heart`} style={{ fontSize: 16 }} />
             </button>
           </div>
         </div>
@@ -416,7 +422,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             color: kind === 'LIVE' ? '#146C35' : '#9A6F1A', background: accentTint,
             padding: '2px 8px', borderRadius: 10,
           }}>
-            {levelLabel ? levelLabel(course.level) : (course.level?.replace('_', ' ') || 'All Levels')}
+            {levelLabel ? levelLabel(course.level) : (course.level?.replace('_', ' ') || t('courses.list.allLevels', 'All Levels'))}
           </span>
         </Link>
 
@@ -436,13 +442,20 @@ const CourseCard: React.FC<CourseCardProps> = ({
         }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.9rem', flexWrap: 'wrap' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Stars rating={course.ratingAverage ?? 0} color={GOLD} />
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: GOLD, marginInlineStart: 3 }}>
-              {(course.ratingAverage ?? 0).toFixed(1)}
+          {(course.ratingCount ?? 0) > 0 ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}
+                  aria-label={t('courseTile.ratingAria', 'Rated {{rating}} out of 5 from {{count}} reviews', { rating: (course.ratingAverage ?? 0).toFixed(1), count: course.ratingCount })}>
+              <Stars rating={course.ratingAverage ?? 0} color={GOLD} />
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: GOLD, marginInlineStart: 3 }}>
+                {(course.ratingAverage ?? 0).toFixed(1)}
+              </span>
+              <span style={{ fontSize: '0.75rem', color: 'rgba(58,30,32,0.6)' }}>({course.ratingCount})</span>
             </span>
-            <span style={{ fontSize: '0.65rem', color: 'rgba(58,30,32,0.4)' }}>({course.ratingCount ?? 0})</span>
-          </span>
+          ) : (
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#9A6F1A', background: 'rgba(197,145,44,0.12)', padding: '2px 10px', borderRadius: 10 }}>
+              {t('common.new', 'New')}
+            </span>
+          )}
           <span style={{ color: 'rgba(197,145,44,0.4)', fontSize: '0.55rem' }}>✦</span>
           <span style={{ fontSize: '0.7rem', color: 'rgba(58,30,32,0.5)', display: 'flex', alignItems: 'center', gap: 4 }}>
             {kind === 'LIVE' ? (
@@ -453,7 +466,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 0 }}>{priceBlock}</div>
           {cta}
         </div>

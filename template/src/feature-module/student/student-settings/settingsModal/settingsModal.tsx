@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { all_routes } from "../../../router/all_routes";
 import CustomSelect from "../../../../core/common/commonSelect";
 import {
   City,
@@ -53,7 +54,7 @@ const SettingsModal = () => {
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5>Delete Account</h5>
+                <h5>{t('student.deleteAccount.title', 'Delete Account')}</h5>
                 <button
                   type="button"
                   className="btn-close custom-btn-close"
@@ -65,10 +66,9 @@ const SettingsModal = () => {
               </div>
               <div className="modal-body">
                 <div className="mb-3">
-                  <h6 className="mb-1">Why Are You Deleting Your Account?</h6>
+                  <h6 className="mb-1">{t('student.deleteAccount.why', 'Why are you deleting your account?')}</h6>
                   <p>
-                    We're sorry to see you go! To help us improve, please let us
-                    know your reason for deleting your account
+                    {t('student.deleteAccount.intro', "We're sorry to see you go! To help us improve, please let us know your reason for deleting your account.")}
                   </p>
                 </div>
                 <div>
@@ -83,11 +83,10 @@ const SettingsModal = () => {
                       className="fw-medium form-check-label text-gray-9"
                       htmlFor="Radio-sm-1"
                     >
-                      No longer using the service
+                      {t('student.deleteAccount.r1', 'No longer using the service')}
                     </label>
                     <p>
-                      I no longer need this service and won’t be using it in the
-                      future.
+                      {t('student.deleteAccount.r1Desc', "I no longer need this service and won't be using it in the future.")}
                     </p>
                   </div>
                   <div className="form-check mb-3">
@@ -101,11 +100,10 @@ const SettingsModal = () => {
                       className="fw-medium form-check-label text-gray-9"
                       htmlFor="Radio-sm-2"
                     >
-                      Privacy concerns
+                      {t('student.deleteAccount.r2', 'Privacy concerns')}
                     </label>
                     <p>
-                      I am concerned about how my data is handled and want to
-                      remove my information.
+                      {t('student.deleteAccount.r2Desc', 'I am concerned about how my data is handled and want to remove my information.')}
                     </p>
                   </div>
                   <div className="form-check mb-3">
@@ -119,11 +117,10 @@ const SettingsModal = () => {
                       className="fw-medium form-check-label text-gray-9"
                       htmlFor="Radio-sm-3"
                     >
-                      Too many notifications/emails
+                      {t('student.deleteAccount.r3', 'Too many notifications/emails')}
                     </label>
                     <p>
-                      I’m overwhelmed by the volume of notifications or emails
-                      and would like to reduce them.
+                      {t('student.deleteAccount.r3Desc', "I'm overwhelmed by the volume of notifications or emails and would like to reduce them.")}
                     </p>
                   </div>
                   <div className="form-check mb-3">
@@ -137,11 +134,10 @@ const SettingsModal = () => {
                       className="fw-medium form-check-label text-gray-9"
                       htmlFor="Radio-sm-4"
                     >
-                      Poor user experience
+                      {t('student.deleteAccount.r4', 'Poor user experience')}
                     </label>
                     <p>
-                      I’ve had difficulty using the platform, and it didn’t meet
-                      my expectations.
+                      {t('student.deleteAccount.r4Desc', "I've had difficulty using the platform, and it didn't meet my expectations.")}
                     </p>
                   </div>
                   <div className="form-check mb-3">
@@ -155,7 +151,7 @@ const SettingsModal = () => {
                       className="fw-medium form-check-label text-gray-9"
                       htmlFor="Radio-sm-5"
                     >
-                      Other (Please specify)
+                      {t('student.deleteAccount.r5', 'Other (please specify)')}
                     </label>
                   </div>
                   <div>
@@ -165,6 +161,10 @@ const SettingsModal = () => {
                       defaultValue={""}
                     />
                   </div>
+                  <p className="mt-3 mb-0 fs-13 text-muted">
+                    <i className="isax isax-info-circle me-1" />
+                    {t('student.deleteAccount.howTo', 'For your security, account deletion is handled by our team. Continue to the Contact page and send us your request; we will confirm by email.')}
+                  </p>
                 </div>
               </div>
               <div className="modal-footer">
@@ -173,15 +173,15 @@ const SettingsModal = () => {
                   type="button"
                   data-bs-dismiss="modal"
                 >
-                  Keep My Account
+                  {t('student.deleteAccount.keep', 'Keep My Account')}
                 </button>
-                <button
+                <Link
+                  to={all_routes.contactUs}
                   className="btn btn-secondary rounded-pill"
                   data-bs-dismiss="modal"
-                  type="button"
                 >
-                  Delete Account
-                </button>
+                  {t('student.deleteAccount.request', 'Request account deletion')}
+                </Link>
               </div>
             </div>
           </div>

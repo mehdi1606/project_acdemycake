@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import certificateService from '../../../services/api/certificate.service';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { all_routes } from '../../router/all_routes';
 import { Certificate } from '../../../services/api/types';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const InstructorCertificate = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,11 +32,11 @@ const InstructorCertificate = () => {
       setCurrentPage(data?.page ?? 0);
     } catch (err) {
       console.error('Failed to load certificates:', err);
-      setError('Failed to load certificates. Please try again.');
+      setError(t('instructor.certificatesPage.loadError', 'We couldn\'t load the certificates. Check your connection and try again.'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { fetchCertificates(0); }, [fetchCertificates]);
 
@@ -48,6 +50,7 @@ const InstructorCertificate = () => {
       );
     } catch (err) {
       console.error('Failed to download certificate:', err);
+      setError(t('instructor.certificatesPage.downloadError', 'The PDF couldn\'t be downloaded. Please try again in a moment.'));
     } finally {
       setDownloadingId(null);
     }
@@ -55,7 +58,7 @@ const InstructorCertificate = () => {
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString(i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US', {
       day: '2-digit', month: 'short', year: 'numeric',
     });
   };
@@ -65,7 +68,7 @@ const InstructorCertificate = () => {
     return (
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ marginTop: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>
-          Page {currentPage + 1} of {totalPages} · {totalElements} certificates
+          {t('common.pageOf', 'Page {{page}} of {{total}}', { page: currentPage + 1, total: totalPages })} · {t('student.certificates.count', '{{count}} certificates', { count: totalElements })}
         </p>
         <div className="d-flex gap-1">
           <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => fetchCertificates(currentPage - 1)}
@@ -94,15 +97,15 @@ const InstructorCertificate = () => {
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
         <div>
           <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>
-            Issued Certificates
+            {t('instructor.certificatesPage.title', 'Issued Certificates')}
             {!loading && totalElements > 0 && (
-              <span style={{ color: 'var(--lx-text-muted)', fontSize: 14, fontWeight: 400, marginLeft: 8 }}>
+              <span style={{ color: 'var(--lx-text-muted)', fontSize: 14, fontWeight: 400, marginInlineStart: 8 }}>
                 ({totalElements})
               </span>
             )}
           </h5>
           <p style={{ color: 'var(--lx-text-muted)', fontSize: 13, margin: '4px 0 0' }}>
-            Certificates automatically generated when students complete your courses
+            {t('instructor.certificatesPage.subtitle', 'Certificates automatically generated when students complete your courses')}
           </p>
         </div>
       </div>
@@ -115,9 +118,8 @@ const InstructorCertificate = () => {
       }}>
         <i className="isax isax-medal-star" style={{ color: '#C5973E', fontSize: 20, marginTop: 1, flexShrink: 0 }} />
         <div style={{ fontSize: 13.5, color: 'var(--lx-text-mid)', lineHeight: 1.6 }}>
-          <strong style={{ color: 'var(--lx-text)' }}>Automatic generation:</strong> When a student completes 100% of
-          your course, a personalized certificate is automatically generated with their name, course name,
-          your name as instructor, and the completion date — no setup required.
+          <strong style={{ color: 'var(--lx-text)' }}>{t('instructor.certificatesPage.autoTitle', 'Automatic generation:')}</strong>{' '}
+          {t('instructor.certificatesPage.autoDesc', 'When a student completes 100% of your course, a personalized certificate is automatically generated with their name, course name, your name as instructor, and the completion date — no setup required.')}
         </div>
       </div>
 
@@ -129,6 +131,9 @@ const InstructorCertificate = () => {
           color: '#8B2335', fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <i className="isax isax-warning-2" />{error}
+          <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 'auto' }} onClick={() => fetchCertificates(currentPage)}>
+            {t('common.tryAgain', 'Try Again')}
+          </button>
         </div>
       )}
 
@@ -136,15 +141,18 @@ const InstructorCertificate = () => {
       {loading ? (
         <div className="d-flex flex-column align-items-center justify-content-center py-5">
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-          <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading certificates…</p>
+          <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('student.certificates.loading', 'Loading your certificates...')}</p>
         </div>
       ) : certificates.length === 0 ? (
         <div className="lx-card">
           <div className="lx-card-body">
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-medal-star" /></div>
-              <h6>No certificates issued yet.</h6>
-              <p>Certificates will appear here as students complete your courses.</p>
+              <h6>{t('instructor.certificatesPage.emptyTitle', 'No certificates issued yet')}</h6>
+              <p>{t('instructor.certificatesPage.emptyDesc', 'Certificates will appear here as students complete your courses.')}</p>
+              <Link to={all_routes.studentsList} className="lx-btn lx-btn-outline lx-btn-sm">
+                <i className="isax isax-people" /> {t('instructor.certificatesPage.seeStudents', 'See your students\' progress')}
+              </Link>
             </div>
           </div>
         </div>
@@ -155,11 +163,11 @@ const InstructorCertificate = () => {
               <table className="lx-table">
                 <thead>
                   <tr>
-                    <th>Student</th>
-                    <th>Course</th>
-                    <th style={{ width: 175 }}>Certificate #</th>
-                    <th style={{ width: 120 }}>Issued Date</th>
-                    <th style={{ width: 90 }}>Action</th>
+                    <th>{t('common.student', 'Student')}</th>
+                    <th>{t('instructor.certificatesPage.course', 'Course')}</th>
+                    <th style={{ width: 175 }}>{t('student.certificates.certificateNo', 'Certificate #')}</th>
+                    <th style={{ width: 120 }}>{t('instructor.certificatesPage.issuedDate', 'Issued Date')}</th>
+                    <th style={{ width: 90 }}>{t('common.actions', 'Actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -182,11 +190,11 @@ const InstructorCertificate = () => {
                       <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(cert.issuedAt)}</td>
                       <td>
                         <div className="d-flex align-items-center gap-2">
-                          <button className="lx-btn lx-btn-outline lx-btn-sm" title="View certificate"
+                          <button className="lx-btn lx-btn-outline lx-btn-sm" title={t('instructor.certificatesPage.view', 'View certificate')}
                             onClick={() => setSelected(cert)}>
                             <i className="isax isax-eye" />
                           </button>
-                          <button className="lx-btn lx-btn-outline lx-btn-sm" title="Download PDF"
+                          <button className="lx-btn lx-btn-outline lx-btn-sm" title={t('student.certificates.downloadPdf', 'Download PDF')}
                             onClick={() => handleDownload(cert)} disabled={downloadingId === cert.id}>
                             {downloadingId === cert.id
                               ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid currentColor', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
@@ -231,7 +239,7 @@ const InstructorCertificate = () => {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <i className="isax isax-medal-star" style={{ fontSize: 22, color: '#C5973E' }} />
-                  <h5 style={{ fontWeight: 700, color: '#4B121C', margin: 0, fontSize: 16 }}>Certificate of Completion</h5>
+                  <h5 style={{ fontWeight: 700, color: '#4B121C', margin: 0, fontSize: 16 }}>{t('student.certificates.ofCompletion', 'Certificate of Completion')}</h5>
                 </div>
                 <button onClick={() => setSelected(null)} style={{
                   background: 'none', border: 'none', cursor: 'pointer',
@@ -371,8 +379,8 @@ const InstructorCertificate = () => {
               }}>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                   {[
-                    { label: 'Student', value: selected.studentName },
-                    { label: 'Instructor', value: selected.instructorName ?? '—' },
+                    { label: t('common.student', 'Student'), value: selected.studentName },
+                    { label: t('common.instructor', 'Instructor'), value: selected.instructorName ?? '—' },
                   ].map((item) => (
                     <div key={item.label}>
                       <p style={{ fontSize: 10, color: '#9e7a7a', margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>{item.label}</p>
@@ -381,13 +389,13 @@ const InstructorCertificate = () => {
                   ))}
                 </div>
                 <div className="d-flex gap-2">
-                  <button className="lx-btn lx-btn-outline" onClick={() => setSelected(null)}>Close</button>
+                  <button className="lx-btn lx-btn-outline" onClick={() => setSelected(null)}>{t('common.close', 'Close')}</button>
                   <button className="lx-btn lx-btn-gold" onClick={() => handleDownload(selected)}
                     disabled={downloadingId === selected.id}>
                     {downloadingId === selected.id
                       ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
                       : <i className="isax isax-import" />}
-                    Download PDF
+                    {t('student.certificates.downloadPdf', 'Download PDF')}
                   </button>
                 </div>
               </div>

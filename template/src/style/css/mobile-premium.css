@@ -71,12 +71,23 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    /* A thin gold scrollbar stays visible so visitors can see there is more to swipe. */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(197, 145, 44, 0.75) rgba(197, 145, 44, 0.14);
     margin-left: -12px !important;
     margin-right: -12px !important;
     padding: 6px 12px 18px;
   }
-  .row.sl-feat-row::-webkit-scrollbar { display: none; }
+  .row.sl-feat-row::-webkit-scrollbar { display: block; height: 4px; }
+  .row.sl-feat-row::-webkit-scrollbar-track {
+    background: rgba(197, 145, 44, 0.14);
+    border-radius: 4px;
+    margin-inline: 24px;
+  }
+  .row.sl-feat-row::-webkit-scrollbar-thumb {
+    background: rgba(197, 145, 44, 0.75);
+    border-radius: 4px;
+  }
   .row.sl-feat-row > .sl-feat-col {
     flex: 0 0 84%;
     max-width: 84%;
@@ -106,12 +117,8 @@
     overflow-y: auto;
     animation: slSheetUp 0.42s cubic-bezier(0.22, 0.8, 0.26, 1);
   }
-  html body .sl-prem-modal::before {
-    content: '';
-    position: absolute; top: 9px; left: 50%;
-    width: 42px; height: 4px; margin-left: -21px;
-    border-radius: 4px; background: rgba(197, 145, 44, 0.45);
-  }
+  /* No drag handle: the sheet can't be swiped away, it closes with its
+     close button, the backdrop or Escape. */
   @keyframes slSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
   /* ── Course player ────────────────────────────────────────────────────────

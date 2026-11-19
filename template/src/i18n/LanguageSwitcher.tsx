@@ -28,7 +28,7 @@ const Flag: React.FC<{ countryCode: string; size?: number }> = ({ countryCode, s
 );
 
 const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'dark' }) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,17 +36,44 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'dark' })
 
   const handleChange = (code: string) => {
     setOpen(false);
-    // Reload so dynamic DB content re-fetches in the new language (backend localises by Accept-Language).
-    i18n.changeLanguage(code).then(() => window.location.reload());
+    if (code === i18n.language) return;
+    // Detect text the visitor has typed but not submitted yet — a reload would wipe it.
+    const hasUnsavedInput = (() => {
+      try {
+        const fields = Array.from(
+          document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea'),
+        );
+        return fields.some((el) => {
+          if (el instanceof HTMLInputElement) {
+            const skip = ['hidden', 'checkbox', 'radio', 'submit', 'button', 'file', 'range', 'color', 'search'];
+            if (skip.includes(el.type)) return false;
+          }
+          return el.value.trim() !== '' && el.value !== el.defaultValue;
+        });
+      } catch {
+        return false;
+      }
+    })();
+    // i18n.ts already flips <html dir/lang>, the Arabic font and the Accept-Language header on
+    // 'languageChanged', so UI strings switch in place. A reload is only used to re-fetch
+    // DB content (localised by the backend) — and is skipped when it would lose typed text.
+    i18n.changeLanguage(code).then(() => {
+      if (!hasUnsavedInput) window.location.reload();
+    });
   };
 
-  // Close on outside click
+  // Close on outside click / Escape
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
 
   const isDark = variant === 'dark';
@@ -64,9 +91,13 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'dark' })
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
+        type="button"
         style={btnStyle}
         onClick={() => setOpen(!open)}
-        title="Change language"
+        title={t('nav.changeLanguage', 'Change language')}
+        aria-label={t('nav.changeLanguage', 'Change language')}
+        aria-haspopup="true"
+        aria-expanded={open}
         onMouseEnter={e => {
           (e.currentTarget as HTMLButtonElement).style.background =
             isDark ? 'rgba(255,255,255,0.15)' : 'rgba(101,28,50,0.12)';
@@ -100,6 +131,8 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'dark' })
             return (
               <button
                 key={lang.code}
+                type="button"
+                lang={lang.code}
                 onClick={() => handleChange(lang.code)}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12,

@@ -5,7 +5,7 @@
  * Sizes: 'sm' | 'md' | 'lg'
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BadgeDefinition, badgeSrcSet } from '../config/badges';
 
@@ -29,14 +29,59 @@ const UserBadge: React.FC<Props> = ({
   showTooltip = true,
 }) => {
   const { t } = useTranslation();
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered] = useState(false);   // mouse hover
+  const [pinned, setPinned] = useState(false);     // tap / click toggle (touch users)
+  const [focused, setFocused] = useState(false);   // keyboard focus
+  const rootRef = useRef<HTMLDivElement>(null);
+  const tooltipId = useId();
   const dim = SIZES[size];
+  const tooltipOpen = showTooltip && (hovered || pinned || focused);
+
+  /* Tapping/clicking outside closes a pinned tooltip; Escape closes it too. */
+  useEffect(() => {
+    if (!pinned) return;
+    const onDown = (e: Event) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setPinned(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPinned(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [pinned]);
 
   return (
     <div
-      style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6, position: 'relative' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      ref={rootRef}
+      style={{
+        display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6, position: 'relative',
+        ...(showTooltip ? { cursor: 'pointer', outline: 'none' } : {}),
+      }}
+      onPointerEnter={(e) => { if (e.pointerType === 'mouse') setHovered(true); }}
+      onPointerLeave={(e) => { if (e.pointerType === 'mouse') setHovered(false); }}
+      {...(showTooltip ? {
+        role: 'button',
+        tabIndex: 0,
+        'aria-expanded': tooltipOpen,
+        'aria-describedby': tooltipOpen ? tooltipId : undefined,
+        'aria-label': t(badge.nameKey),
+        onClick: () => { setPinned((p) => !p); setHovered(false); },
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPinned((p) => !p); }
+          if (e.key === 'Escape') { setPinned(false); setFocused(false); }
+        },
+        onFocus: (e: React.FocusEvent<HTMLDivElement>) => {
+          // keyboard focus only (avoid double-toggle on tap)
+          let kb = false;
+          try { kb = e.currentTarget.matches(':focus-visible'); } catch { kb = false; }
+          if (kb) setFocused(true);
+        },
+        onBlur: () => setFocused(false),
+      } : {})}
     >
       {/* Badge image */}
       <div
@@ -52,7 +97,7 @@ const UserBadge: React.FC<Props> = ({
           boxShadow: `0 0 ${dim.img / 3}px ${badge.color}33`,
           overflow: 'hidden',
           transition: 'box-shadow 0.3s',
-          ...(hovered ? { boxShadow: `0 0 ${dim.img / 2}px ${badge.color}77` } : {}),
+          ...(tooltipOpen || hovered ? { boxShadow: `0 0 ${dim.img / 2}px ${badge.color}77` } : {}),
         }}
       >
         <img
@@ -87,8 +132,10 @@ const UserBadge: React.FC<Props> = ({
       )}
 
       {/* Tooltip */}
-      {showTooltip && hovered && (
+      {tooltipOpen && (
         <div
+          id={tooltipId}
+          role="tooltip"
           style={{
             position: 'absolute',
             bottom: '100%',

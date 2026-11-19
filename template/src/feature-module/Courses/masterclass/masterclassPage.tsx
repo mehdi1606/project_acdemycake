@@ -53,12 +53,25 @@ const MasterclassPage: React.FC = () => {
     AOS.init({ once: true, easing: 'ease-out-cubic', duration: 800, offset: 40 });
   }, []);
 
-  // Load categories
+  // Load categories — only those with at least one masterclass get a filter button.
   useEffect(() => {
-    courseService.getCategories()
-      .then(cats => setCategories(cats ?? []))
+    let cancelled = false;
+    Promise.all([
+      courseService.getCategories(),
+      courseService.getCourses({ page: 0, size: 500, sortBy: 'newest', courseType: 'MASTERCLASS' } as any)
+        .then(r => r?.content ?? [])
+        .catch(() => null), // unknown → keep every category rather than hide them all
+    ])
+      .then(([cats, masterclasses]) => {
+        if (cancelled) return;
+        const all = cats ?? [];
+        if (!masterclasses) { setCategories(all); return; }
+        const used = new Set(masterclasses.map(c => c.category?.id).filter(Boolean));
+        setCategories(all.filter(cat => used.has(cat.id)));
+      })
       .catch(() => {})
-      .finally(() => setCatLoading(false));
+      .finally(() => { if (!cancelled) setCatLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   const fetchCourses = useCallback(async (categoryId: string, page: number, search?: string) => {

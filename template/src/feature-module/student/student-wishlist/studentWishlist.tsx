@@ -31,11 +31,11 @@ const StudentWishlist = () => {
       setTotalPages(response.totalPages);
       setTotalElements(response.totalElements);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load wishlist');
+      setError(err?.response?.data?.message || t('student.wishlist.loadError', "We couldn't load your wishlist. Please try again."));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadWishlist(page);
@@ -76,8 +76,8 @@ const StudentWishlist = () => {
     getFileUrl(url) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`;
 
   const formatPrice = (course: Course) => {
-    if (!course.requiresPurchase) return 'Free';
-    if (!course.price) return 'Free';
+    if (!course.requiresPurchase) return t('common.free', 'Free');
+    if (!course.price) return t('common.free', 'Free');
     return formatMAD(course.price, course.currency);
   };
 
@@ -138,6 +138,7 @@ const StudentWishlist = () => {
             </span>
             <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('student.wishlist.empty', 'Your wishlist is empty')}</h6>
             <p>{t('student.wishlist.emptyDesc', 'Save courses you\'re interested in and come back to them later.')}</p>
+            <p style={{ fontSize: 13 }}>{t('student.wishlist.emptyHow', 'Tap the heart on any course to add it here.')}</p>
             <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold">
               {t('student.wishlist.browseNow', 'Browse Courses')}
             </Link>
@@ -200,7 +201,7 @@ const StudentWishlist = () => {
                       onError={(e) => { (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/user/user-02.jpg`; }}
                     />
                     <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
-                      {course.instructor?.fullName || 'Instructor'}
+                      {course.instructor?.fullName || t('common.instructor', 'Instructor')}
                     </span>
                   </div>
                   {course.category?.name && (

@@ -4,7 +4,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { assignmentService, localizeAssignment } from '../../../services/api/assignment.service';
 import { Assignment, Submission, SubmitAssignmentRequest } from '../../../services/api/types';
 import { extractApiError } from '../../../services/api/error.utils';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { message } from 'antd';
 import { all_routes } from '../../router/all_routes';
 
@@ -61,11 +61,11 @@ const StudentAssignment = () => {
       setTotalPages(res?.totalPages ?? 0);
       setTotalElements(res?.totalElements ?? 0);
     } catch (e) {
-      setError(extractApiError(e, 'Failed to load assignments'));
+      setError(extractApiError(e, t('student.assignments.loadError', "We couldn't load your assignments. Please try again.")));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { load(page); }, [load, page]);
 
@@ -104,7 +104,7 @@ const StudentAssignment = () => {
       setFileUrl(url);
       setFileName(file.name);
     } catch (err) {
-      setSubmitError(extractApiError(err, 'Failed to upload file'));
+      setSubmitError(extractApiError(err, t('student.assignments.uploadError', "The file couldn't be uploaded. Check it is under 10MB and try again.")));
     } finally {
       setUploading(false);
     }
@@ -121,7 +121,7 @@ const StudentAssignment = () => {
       .catch(e => {
         setActiveTab('list');
         setLoadingSubmission(false);
-        setError(extractApiError(e, 'Failed to load assignment'));
+        setError(extractApiError(e, t('student.assignments.loadOneError', "We couldn't open this assignment. Please try again.")));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepLinkId]);
@@ -143,7 +143,7 @@ const StudentAssignment = () => {
         navigate(`${all_routes.courseWatch}/${returnCourse}`);
       }
     } catch (e) {
-      setSubmitError(extractApiError(e, 'Submission failed'));
+      setSubmitError(extractApiError(e, t('student.assignments.submitError', "Your work couldn't be submitted. Your answer is still here; please try again.")));
     } finally {
       setSubmitting(false);
     }
@@ -200,7 +200,11 @@ const StudentAssignment = () => {
         ) : assignments.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--lx-text-light)', fontSize: 14 }}>
             <i className="isax isax-document" style={{ fontSize: 40, display: 'block', marginBottom: 12, opacity: 0.4 }} />
-            {t('student.assignments.noAssignments', 'No assignments yet')}
+            <div style={{ fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>{t('student.assignments.noAssignments', 'No assignments yet')}</div>
+            <p style={{ margin: '0 0 16px' }}>{t('student.assignments.emptyText', 'Assignments appear here when a course you follow includes one. Continue your courses to find them.')}</p>
+            <Link to={all_routes.studentCourses} className="lx-btn lx-btn-sm lx-btn-gold">
+              <i className="isax isax-teacher" /> {t('student.assignments.goToCourses', 'Go to my courses')}
+            </Link>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -211,7 +215,12 @@ const StudentAssignment = () => {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lx-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} dir="auto">{localizeAssignment(a, i18n.language).title}</span>
-                      <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: `${statusColor[a.status]}18`, color: statusColor[a.status] }}>{a.status}</span>
+                      <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: `${statusColor[a.status]}18`, color: statusColor[a.status] }}>{
+                        a.status === 'PUBLISHED' ? t('enums.assignmentStatus.PUBLISHED', 'Open')
+                        : a.status === 'CLOSED' ? t('enums.assignmentStatus.CLOSED', 'Closed')
+                        : a.status === 'DRAFT' ? t('enums.assignmentStatus.DRAFT', 'Draft')
+                        : a.status
+                      }</span>
                     </div>
                     {a.courseTitle && <div style={{ fontSize: 12, color: 'var(--lx-text-light)', marginBottom: 4 }}>{a.courseTitle}</div>}
                     <div style={{ display: 'flex', gap: 16, fontSize: 12, color: past ? '#dc2626' : 'var(--lx-text-light)' }}>
@@ -237,7 +246,7 @@ const StudentAssignment = () => {
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
             <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" disabled={page === 0} onClick={() => setPage(p => p - 1)}>{t('common.previous', 'Previous')}</button>
-            <span style={{ lineHeight: '32px', fontSize: 13, color: 'var(--lx-text-light)' }}>Page {page + 1} of {totalPages}</span>
+            <span style={{ lineHeight: '32px', fontSize: 13, color: 'var(--lx-text-light)' }}>{t('common.pageOf', 'Page {{page}} of {{total}}', { page: page + 1, total: totalPages })}</span>
             <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>{t('common.next', 'Next')}</button>
           </div>
         )}

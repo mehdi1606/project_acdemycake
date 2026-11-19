@@ -187,6 +187,7 @@
     flex: 1; max-width: 480px;
     position: relative;
     display: flex; align-items: center;
+    margin: 0;
 
     > i {
       position: absolute; left: 15px;
@@ -246,19 +247,58 @@
     }
 
     .notif-badge {
-      position: absolute; top: 3px; right: 3px;
-      min-width: 16px; height: 16px;
-      padding: 0 4px; border-radius: 8px;
+      position: absolute; top: -4px; right: -4px;
+      min-width: 18px; height: 18px;
+      padding: 0 4px; border-radius: 9px;
       background: var(--lx-gold);
       color: #fff;
-      font-size: 9px; font-weight: 800;
+      font-size: 11px; font-weight: 800;
       display: flex; align-items: center; justify-content: center;
       border: 2px solid #fff;
       line-height: 1;
     }
   }
 
-  .notif-delete-btn { opacity: 0; transition: opacity 0.15s ease; }
+  /* Notification dismiss (×): 32px tap area. Revealed on hover/focus with a mouse,
+     always visible on touch screens (no hover there). */
+  .notif-delete-btn {
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; border: none; border-radius: 8px;
+    background: transparent;
+    color: #9ca3af; font-size: 16px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+
+    &:hover { background: rgba(107, 29, 42, 0.06); color: var(--lx-primary); }
+    &:focus-visible { opacity: 1; outline: 2px solid var(--lx-gold); outline-offset: 1px; }
+  }
+  .notif-item:hover .notif-delete-btn,
+  .notif-item:focus-within .notif-delete-btn { opacity: 1; }
+  @media (hover: none) {
+    .notif-delete-btn { opacity: 1; }
+  }
+
+  /* ─── Phone search toggle (shown ≤576px only) ─── */
+  .topbar-search-toggle { display: none; }
+
+  /* ─── Badge guide trigger: "My badge" label on wide screens ─── */
+  .topbar-badge-btn {
+    border-radius: 999px;
+    &:focus-visible { outline: 2px solid var(--lx-gold); outline-offset: 2px; }
+  }
+  .topbar-badge-label {
+    display: none;
+    font-size: 12px; font-weight: 700;
+    color: var(--lx-primary);
+    white-space: nowrap;
+    padding-inline-end: 4px;
+    @media (min-width: 1200px) { display: inline; }
+  }
+
+  /* Upgrade pill: full label on desktop, short label on small screens */
+  .upgrade-label-short { display: none; }
 
   /* ─── Premium / upgrade ─── */
   .premium-badge {
@@ -1102,12 +1142,52 @@
     padding: 0 16px; gap: 12px;
     .topbar-logo-text { display: none; }
     .topbar-search    { max-width: none; }
-    .upgrade-btn, .premium-badge { display: none; }
+    .premium-badge { display: none; }
+    /* Students on tablets/phones still need a way to upgrade: compact pill */
+    .upgrade-btn {
+      padding: 0 10px; min-height: 36px; gap: 4px;
+      font-size: 11px; white-space: nowrap;
+      .upgrade-label-full  { display: none; }
+      .upgrade-label-short { display: inline; }
+    }
   }
 }
 
 @media (max-width: 576px) {
-  .luxury-topbar .topbar-search { display: none; }
+  .luxury-topbar {
+    gap: 8px; padding: 0 12px;
+    .topbar-right { gap: 5px; }
+    .topbar-logo { display: none; }
+    .topbar-action-btn, .topbar-menu-btn { width: 36px; height: 36px; font-size: 17px; }
+    .topbar-search-toggle { display: flex; }
+    .topbar-badge-btn > span:first-child { width: 36px !important; height: 36px !important; }
+    .topbar-badge-btn img { width: 32px !important; height: 32px !important; }
+    .profile-trigger { padding: 3px; gap: 0; }
+    .profile-chevron { display: none; }
+
+    /* Search: hidden in the bar, expands full-width just under it via the search icon */
+    .topbar-search { display: none; }
+    .topbar-search.mobile-open {
+      display: flex;
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      max-width: none;
+      padding: 8px 12px;
+      background: var(--lx-topbar-bg, #fff);
+      border-bottom: 1px solid rgba(197, 145, 44, 0.18);
+      box-shadow: 0 8px 20px rgba(101, 28, 50, 0.08);
+      > i { left: 27px; }
+      input { height: 44px; }
+      [dir="rtl"] & > i { left: auto; right: 27px; }
+    }
+  }
+}
+@media (max-width: 420px) {
+  /* The sidebar has a "Badges" item, so the ring can go on very narrow phones */
+  .luxury-topbar .topbar-badge-btn { display: none !important; }
+}
+
+@media (max-width: 576px) {
   .luxury-main { padding: 14px 12px; }
   .lx-dashboard-welcome {
     padding: 22px 18px; flex-direction: column;

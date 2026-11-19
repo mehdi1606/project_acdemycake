@@ -52,20 +52,20 @@ const AdminCourses = () => {
   const handleDeleteCourse = async (courseId: string) => {
     try {
       await dispatch(deleteCourse(courseId)).unwrap();
-      message.success('Course deleted successfully');
+      message.success(t('admin.courses.deleted', 'Course deleted successfully'));
       dispatch(fetchCourses({ page: currentPage, size: 20, status: statusFilter || undefined }));
       loadCourseStats();
     } catch {
-      message.error('Failed to delete course');
+      message.error(t('admin.courses.deleteError', "The course couldn't be deleted. Refresh the page and try again."));
     }
   };
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      PUBLISHED:      { cls: 'badge-success', label: 'Published' },
-      DRAFT:          { cls: 'badge-warning', label: 'Draft' },
-      PENDING_REVIEW: { cls: 'badge-info',    label: 'Pending Review' },
-      ARCHIVED:       { cls: 'badge-slate',   label: 'Archived' },
+      PUBLISHED:      { cls: 'badge-success', label: t('enums.courseStatus.PUBLISHED', 'Published') },
+      DRAFT:          { cls: 'badge-warning', label: t('enums.courseStatus.DRAFT', 'Draft') },
+      PENDING_REVIEW: { cls: 'badge-info',    label: t('enums.courseStatus.PENDING_REVIEW', 'Pending Review') },
+      ARCHIVED:       { cls: 'badge-slate',   label: t('enums.courseStatus.ARCHIVED', 'Archived') },
     };
     const b = map[status] || { cls: 'badge-info', label: status };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
@@ -73,10 +73,10 @@ const AdminCourses = () => {
 
   const getLevelBadge = (level: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      BEGINNER:     { cls: 'badge-success', label: 'Beginner' },
-      INTERMEDIATE: { cls: 'badge-info',    label: 'Intermediate' },
-      ADVANCED:     { cls: 'badge-danger',  label: 'Advanced' },
-      ALL_LEVELS:   { cls: 'badge-slate',   label: 'All Levels' },
+      BEGINNER:     { cls: 'badge-success', label: t('enums.level.BEGINNER', 'Beginner') },
+      INTERMEDIATE: { cls: 'badge-info',    label: t('enums.level.INTERMEDIATE', 'Intermediate') },
+      ADVANCED:     { cls: 'badge-danger',  label: t('enums.level.ADVANCED', 'Advanced') },
+      ALL_LEVELS:   { cls: 'badge-slate',   label: t('enums.level.ALL_LEVELS', 'All Levels') },
     };
     const b = map[level] || { cls: 'badge-info', label: level };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
@@ -86,7 +86,7 @@ const AdminCourses = () => {
   const filteredCourses = courses;
 
   const formatCurrency = (amount: number | undefined | null) => {
-    if (!amount || amount === 0) return 'Free';
+    if (!amount || amount === 0) return t('common.free', 'Free');
     return formatMAD(amount);
   };
 
@@ -188,20 +188,20 @@ const AdminCourses = () => {
                               {course.title}
                             </p>
                             <small style={{ color: 'var(--lx-text-muted)', fontSize: 12 }}>
-                              {course.category?.name || 'Uncategorized'}
+                              {course.category?.name || t('admin.courses.uncategorized', 'Uncategorized')}
                             </small>
                           </div>
                         </div>
                       </td>
                       <td>
                         <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
-                          {course.instructor?.fullName || 'Unknown'}
+                          {course.instructor?.fullName || t('admin.courses.unknown', 'Unknown')}
                         </span>
                       </td>
                       <td>{getLevelBadge(course.level)}</td>
                       <td>
                         {!course.requiresPurchase ? (
-                          <span className="lx-badge badge-success">Free</span>
+                          <span className="lx-badge badge-success">{t('common.free', 'Free')}</span>
                         ) : (
                           <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--lx-text)' }}>
                             {formatCurrency(course.price)}
@@ -219,16 +219,16 @@ const AdminCourses = () => {
                           <Link
                             to={`${all_routes.courseDetails}/${course.slug || course.id}`}
                             className="lx-btn lx-btn-outline lx-btn-sm"
-                            title="View Course"
+                            title={t('admin.courses.viewCourse', 'View Course')}
                           >
                             <i className="isax isax-eye" />
                           </Link>
                           <Popconfirm
-                            title="Delete Course"
-                            description="Are you sure you want to delete this course? This action cannot be undone."
+                            title={t('admin.courses.deleteCourse', 'Delete Course')}
+                            description={t('admin.courses.deleteConfirm', 'Are you sure you want to delete this course? This action cannot be undone.')}
                             onConfirm={() => handleDeleteCourse(course.id)}
-                            okText="Yes, Delete"
-                            cancelText="Cancel"
+                            okText={t('common.yesDelete', 'Yes, Delete')}
+                            cancelText={t('common.cancel', 'Cancel')}
                             okButtonProps={{ danger: true }}
                           >
                             <button
@@ -238,7 +238,7 @@ const AdminCourses = () => {
                                 color: '#8B2335',
                                 border: '1.5px solid rgba(139, 35, 53, 0.15)',
                               }}
-                              title="Delete Course"
+                              title={t('admin.courses.deleteCourse', 'Delete Course')}
                             >
                               <i className="isax isax-trash" />
                             </button>

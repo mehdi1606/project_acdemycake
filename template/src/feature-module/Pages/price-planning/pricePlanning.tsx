@@ -4,14 +4,14 @@
  * Annual plan supports coupon codes (admin-generated, single-use per user).
  */
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import { useTranslation } from "react-i18next";
 import { subscriptionService } from "../../../services/api/subscription.service";
 import { paymentService } from "../../../services/api/payment.service";
 import { Subscription } from "../../../services/api/types";
 import { useAppSelector } from "../../../core/redux/hooks";
-import { Spin, Modal } from "antd";
+import { Spin, Modal, App } from "antd";
 import PaymentBadges from "../../common/PaymentBadges";
 
 // ── Plan shape ────────────────────────────────────────────────────────────────
@@ -364,7 +364,10 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
           position: 'relative',
         }}>
           <button
+            type="button"
             onClick={onCancel}
+            aria-label={t('common.close', 'Close')}
+            title={t('common.close', 'Close')}
             style={{
               position: 'absolute', top: 16, insetInlineEnd: 16,
               background: 'rgba(255,255,255,0.1)', border: 'none',
@@ -657,6 +660,14 @@ const PricePlanning: React.FC = () => {
   const { t } = useTranslation();
   const route = all_routes;
   const navigate = useNavigate();
+  const location = useLocation();
+  const { message } = App.useApp();
+  /** Where login should bring the visitor back to (this page), and why they were sent there. */
+  const loginState = { from: `${location.pathname}${location.search}`, reason: 'subscribe' as const };
+  const goToLogin = () => {
+    message.info(t('authPrompt.subscribe', "Create a free account or sign in to subscribe — you'll come right back here."));
+    navigate(route.login, { state: loginState });
+  };
 
   const [currentSubscription, setCurrentSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -853,7 +864,7 @@ const PricePlanning: React.FC = () => {
           {!isAuthenticated && (
             <p className="sl-pricing__login-nudge">
               {t('pricing.loginNudge', 'Already have an account?')}{" "}
-              <Link to={route.login} className="sl-pricing__login-link">{t('pricing.signIn', 'Sign in')}</Link>
+              <Link to={route.login} state={loginState} className="sl-pricing__login-link">{t('pricing.signIn', 'Sign in')}</Link>
               {" "}{t('pricing.toSubscribe', 'to subscribe instantly.')}
             </p>
           )}
@@ -972,14 +983,14 @@ const PricePlanning: React.FC = () => {
       {showLoginPrompt && (
         <div onClick={() => setShowLoginPrompt(false)} style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(20,7,14,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5vh 4vw' }}>
           <div onClick={e => e.stopPropagation()} style={{ width: 'min(420px,94vw)', background: '#fff', borderRadius: 20, padding: '32px 28px 24px', textAlign: 'center', boxShadow: '0 30px 80px rgba(0,0,0,0.45)', position: 'relative' }}>
-            <button onClick={() => setShowLoginPrompt(false)} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(101,28,50,0.06)', color: '#651C32', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
+            <button onClick={() => setShowLoginPrompt(false)} aria-label={t('common.close', 'Close')} style={{ position: 'absolute', top: 14, insetInlineEnd: 14, width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(101,28,50,0.06)', color: '#651C32', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
             <div style={{ width: 72, height: 72, borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#DEBB6B' }}>
               <i className="isax isax-lock-1" style={{ fontSize: 30 }} />
             </div>
             <h3 style={{ fontFamily: '"Playfair Display",serif', fontSize: 22, fontWeight: 800, color: '#651C32', margin: '0 0 8px' }}>{t('pricing.loginRequired.title', 'Login or Register')}</h3>
             <p style={{ color: '#7A6060', fontSize: 14, lineHeight: 1.7, margin: '0 0 22px' }}>{t('pricing.loginRequired.content', 'Please log in or create an account to start your subscription.')}</p>
-            <button onClick={() => navigate(route.login)} style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#C5973E,#A67825)', color: '#fff', fontWeight: 800, fontSize: 15, marginBottom: 10, boxShadow: '0 6px 18px rgba(197,151,62,0.3)' }}>{t('pricing.loginRequired.okText', 'Login')}</button>
-            <button onClick={() => navigate(route.register)} style={{ display: 'block', width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid rgba(101,28,50,0.22)', cursor: 'pointer', background: 'transparent', color: '#651C32', fontWeight: 700, fontSize: 14 }}>{t('pricing.loginRequired.registerText', 'Register')}</button>
+            <button onClick={goToLogin} style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#C5973E,#A67825)', color: '#fff', fontWeight: 800, fontSize: 15, marginBottom: 10, boxShadow: '0 6px 18px rgba(197,151,62,0.3)' }}>{t('pricing.loginRequired.okText', 'Login')}</button>
+            <button onClick={() => navigate(route.register, { state: loginState })} style={{ display: 'block', width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid rgba(101,28,50,0.22)', cursor: 'pointer', background: 'transparent', color: '#651C32', fontWeight: 700, fontSize: 14 }}>{t('pricing.loginRequired.registerText', 'Register')}</button>
           </div>
         </div>
       )}

@@ -64,7 +64,7 @@ const content = {
       sendAnother:  'Send Another Message',
       required:     'Required field',
       errorFill:    'Please fill in all required fields.',
-      errorFailed:  'Something went wrong. Please try again.',
+      errorFailed:  "Your message couldn't be sent. Please try again in a minute, or reach us directly by email or WhatsApp (details on this page).",
     },
     promise: {
       title:  'Our Promise to You',
@@ -121,7 +121,7 @@ const content = {
       sendAnother:  'إرسال رسالة أخرى',
       required:     'حقل مطلوب',
       errorFill:    'يرجى ملء جميع الحقول المطلوبة.',
-      errorFailed:  'حدث خطأ. يرجى المحاولة مرة أخرى.',
+      errorFailed:  'تعذّر إرسال رسالتك. يرجى المحاولة مرة أخرى بعد دقيقة، أو التواصل معنا مباشرة عبر البريد الإلكتروني أو واتساب (التفاصيل في هذه الصفحة).',
     },
     promise: {
       title:  'وعدنا لك',

@@ -65,11 +65,16 @@ const Error404 = () => {
               {t('auth.error404.heading', 'Oh No! Error')} <span className="text-secondary ms-1">404</span>
             </h3>
             <p className="h4 font-weight-normal">
-              {t('auth.error404.desc', 'This page you requested could not be found. May the force be with you!')}
+              {t('auth.error404.hint', "This page doesn't exist or has moved. Go back home or browse our courses.")}
             </p>
-            <Link to={route.homeone} className="btn back-to-home-btn">
-              <i className="isax isax-arrow-left-2 me-1" /> {t('common.backToHome', 'Back to Home')}
-            </Link>
+            <div className="d-flex gap-2 justify-content-center flex-wrap">
+              <Link to={route.homeone} className="btn back-to-home-btn">
+                <i className="isax isax-arrow-left-2 me-1" /> {t('common.backToHome', 'Back to Home')}
+              </Link>
+              <Link to={route.courseGrid} className="btn btn-outline-secondary rounded-pill d-inline-flex align-items-center">
+                {t('auth.error404.browseCourses', 'Browse courses')}
+              </Link>
+            </div>
           </div>
         </div>
         {/* /Main Wrapper */}

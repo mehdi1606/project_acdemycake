@@ -7,14 +7,14 @@ import UserBadge from '../../../components/UserBadge';
 import { getBadgeForUser } from '../../../config/badges';
 
 const InstructorProfile = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAppSelector((state) => state.auth);
   const instructorBadge = getBadgeForUser(user?.role || 'INSTRUCTOR', 0);
 
   const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return '—';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -66,10 +66,10 @@ const InstructorProfile = () => {
     <LuxuryDashboardLayout>
       {/* Header */}
       <div className="d-flex align-items-center justify-content-between mb-4">
-        <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>My Profile</h5>
+        <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>{t('instructor.profilePage.title', 'My Profile')}</h5>
         <Link to={all_routes.instructorsettings} className="lx-btn lx-btn-outline lx-btn-sm">
           <i className="isax isax-edit-2" />
-          Edit Profile
+          {t('instructor.profilePage.editProfile', 'Edit Profile')}
         </Link>
       </div>
 
@@ -119,53 +119,53 @@ const InstructorProfile = () => {
       <div className="lx-card mb-4">
         <div className="lx-card-body">
           <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
-            Basic Information
+            {t('instructor.profilePage.basicInfo', 'Basic Information')}
           </h6>
           <div className="row g-4">
             <div className="col-md-4">
-              <FieldCard label="First Name">
+              <FieldCard label={t('instructor.profilePage.firstName', 'First Name')}>
                 <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>{nameParts.firstName}</span>
               </FieldCard>
             </div>
             <div className="col-md-4">
-              <FieldCard label="Last Name">
+              <FieldCard label={t('instructor.profilePage.lastName', 'Last Name')}>
                 <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>{nameParts.lastName}</span>
               </FieldCard>
             </div>
             <div className="col-md-4">
-              <FieldCard label="Registration Date">
+              <FieldCard label={t('instructor.profilePage.registrationDate', 'Registration Date')}>
                 <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>{formatDate(user?.createdAt)}</span>
               </FieldCard>
             </div>
             <div className="col-md-4">
-              <FieldCard label="Role">
-                <span className="lx-badge badge-success">{user?.role || 'INSTRUCTOR'}</span>
+              <FieldCard label={t('instructor.profilePage.role', 'Role')}>
+                <span className="lx-badge badge-success">{t(`enums.role.${user?.role || 'INSTRUCTOR'}`, user?.role || 'INSTRUCTOR')}</span>
               </FieldCard>
             </div>
             <div className="col-md-4">
-              <FieldCard label="Phone Number">
-                <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>{user?.phone || 'Not provided'}</span>
+              <FieldCard label={t('instructor.profilePage.phone', 'Phone Number')}>
+                <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>{user?.phone || t('instructor.profilePage.notProvided', 'Not provided')}</span>
               </FieldCard>
             </div>
             <div className="col-md-4">
-              <FieldCard label="Email">
+              <FieldCard label={t('instructor.profilePage.email', 'Email')}>
                 <span className="d-inline-flex align-items-center gap-2" style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>
-                  {user?.email || 'N/A'}
+                  {user?.email || '—'}
                   {user?.isEmailVerified && (
-                    <i className="isax isax-verify5" style={{ color: 'var(--lx-green)', fontSize: 16 }} title="Verified" />
+                    <i className="isax isax-verify5" style={{ color: 'var(--lx-green)', fontSize: 16 }} title={t('instructor.profilePage.verified', 'Verified')} />
                   )}
                 </span>
               </FieldCard>
             </div>
             <div className="col-md-4">
-              <FieldCard label="Account Status">
+              <FieldCard label={t('instructor.profilePage.accountStatus', 'Account Status')}>
                 <span className={`lx-badge ${user?.isEmailVerified ? 'badge-success' : 'badge-warning'}`}>
-                  {user?.isEmailVerified ? 'Verified' : 'Pending Verification'}
+                  {user?.isEmailVerified ? t('instructor.profilePage.verified', 'Verified') : t('instructor.profilePage.pendingVerification', 'Pending Verification')}
                 </span>
               </FieldCard>
             </div>
             <div className="col-md-4">
-              <FieldCard label="Subscription Status">
+              <FieldCard label={t('instructor.profilePage.subscriptionStatus', 'Subscription Status')}>
                 <span
                   className={`lx-badge ${
                     user?.subscriptionStatus === 'ACTIVE' ? 'badge-success' :
@@ -173,21 +173,21 @@ const InstructorProfile = () => {
                     user?.subscriptionStatus === 'PAST_DUE' ? 'badge-warning' : 'badge-slate'
                   }`}
                 >
-                  {user?.subscriptionStatus || 'NONE'}
+                  {t(`enums.subscriptionStatus.${user?.subscriptionStatus || 'NONE'}`, user?.subscriptionStatus || 'None')}
                 </span>
               </FieldCard>
             </div>
             {user?.subscriptionEndDate && (
               <div className="col-md-4">
-                <FieldCard label="Subscription Ends">
+                <FieldCard label={t('instructor.profilePage.subscriptionEnds', 'Subscription Ends')}>
                   <span style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>{formatDate(user.subscriptionEndDate)}</span>
                 </FieldCard>
               </div>
             )}
             <div className="col-12">
-              <FieldCard label="Bio">
+              <FieldCard label={t('instructor.profilePage.bio', 'Bio')}>
                 <span style={{ fontSize: 14, color: user?.bio ? 'var(--lx-text)' : 'var(--lx-text-muted)', fontWeight: 400, lineHeight: 1.7 }}>
-                  {user?.bio || 'No bio provided. Click the edit button to add your bio.'}
+                  {user?.bio || t('instructor.profilePage.noBio', 'No bio yet. Click "Edit Profile" to add one: students see it on your courses.')}
                 </span>
               </FieldCard>
             </div>
@@ -200,11 +200,11 @@ const InstructorProfile = () => {
         <div className="lx-card mb-4">
           <div className="lx-card-body">
             <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
-              Social Links
+              {t('instructor.profilePage.socialLinks', 'Social Links')}
             </h6>
             <div className="d-flex flex-wrap gap-2">
               {[
-                { key: 'website', icon: 'isax isax-global', label: 'Website' },
+                { key: 'website', icon: 'isax isax-global', label: t('instructor.profilePage.website', 'Website') },
                 { key: 'linkedin', icon: 'isax isax-link', label: 'LinkedIn' },
                 { key: 'twitter', icon: 'isax isax-message-text', label: 'Twitter' },
                 { key: 'youtube', icon: 'isax isax-video-play', label: 'YouTube' },
@@ -233,7 +233,7 @@ const InstructorProfile = () => {
       <div className="lx-card">
         <div className="lx-card-body">
           <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
-            Account Information
+            {t('instructor.profilePage.accountInfo', 'Account Information')}
           </h6>
           <div className="row g-4">
             <div className="col-md-6">
@@ -253,8 +253,8 @@ const InstructorProfile = () => {
                   <i className="isax isax-user" style={{ fontSize: 20, color: 'var(--lx-primary)' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>User ID</p>
-                  <p style={{ color: 'var(--lx-text-mid)', marginBottom: 0, fontSize: 12, fontFamily: 'monospace' }}>{user?.id || 'N/A'}</p>
+                  <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('instructor.profilePage.userId', 'User ID')}</p>
+                  <p style={{ color: 'var(--lx-text-mid)', marginBottom: 0, fontSize: 12, fontFamily: 'monospace' }}>{user?.id || '—'}</p>
                 </div>
               </div>
             </div>
@@ -275,7 +275,7 @@ const InstructorProfile = () => {
                   <i className="isax isax-calendar" style={{ fontSize: 20, color: 'var(--lx-primary)' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member Since</p>
+                  <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('instructor.profilePage.memberSince', 'Member Since')}</p>
                   <p style={{ color: 'var(--lx-text-mid)', marginBottom: 0, fontSize: 14 }}>{formatDate(user?.createdAt)}</p>
                 </div>
               </div>
@@ -284,7 +284,7 @@ const InstructorProfile = () => {
           <div style={{ marginTop: 24 }}>
             <Link to={all_routes.instructorsettings} className="lx-btn lx-btn-gold" style={{ textDecoration: 'none' }}>
               <i className="isax isax-edit-2" />
-              Edit Profile
+              {t('instructor.profilePage.editProfile', 'Edit Profile')}
             </Link>
           </div>
         </div>

@@ -100,12 +100,12 @@ const AdminSettings = () => {
             }}>
               <AvatarImage
                 src={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
-                name={user?.fullName || 'Admin'}
+                name={user?.fullName || t('common.admin', 'Admin')}
               />
             </div>
             <div>
               <h5 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: 'var(--lx-text)' }}>
-                {user?.fullName || 'Administrator'}
+                {user?.fullName || t('admin.settings.administrator', 'Administrator')}
               </h5>
               <p style={{ margin: '0 0 6px', color: 'var(--lx-text-muted)', fontSize: 14 }}>{user?.email}</p>
               <span className="lx-badge badge-warning">

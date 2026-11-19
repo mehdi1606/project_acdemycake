@@ -189,7 +189,19 @@ public class UserServiceImpl implements UserService {
             users = userRepository.findByIsDeletedFalse(pageRequest);
         }
 
-        return PageResponse.from(users, UserResponse::fromEntity);
+        // Real badge levels: completed-course counts for the whole page in one query.
+        java.util.Map<UUID, Long> completed = new java.util.HashMap<>();
+        java.util.List<UUID> ids = users.getContent().stream().map(User::getId).toList();
+        if (!ids.isEmpty()) {
+            for (Object[] row : enrollmentRepository.countCompletedByUserIds(ids)) {
+                completed.put((UUID) row[0], ((Number) row[1]).longValue());
+            }
+        }
+        return PageResponse.from(users, u -> {
+            UserResponse r = UserResponse.fromEntity(u);
+            r.setCompletedCourses(completed.getOrDefault(u.getId(), 0L).intValue());
+            return r;
+        });
     }
 
     @Override

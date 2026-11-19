@@ -35,20 +35,21 @@ import Faq from './section/faq'
 
 // ── Gold marquee strip ────────────────────────────────────────────────────────
 const SlMarquee: React.FC = () => {
+    const { t } = useTranslation()
     const items = [
-        { script: 'Fondant Sculpting', mono: 'Master Class'  },
-        { script: 'Sugar Flowers',     mono: 'Atelier'       },
-        { script: 'Isomalt Art',       mono: 'Advanced'      },
-        { script: 'Wafer Paper',       mono: 'Techniques'    },
-        { script: 'Airbrushing',       mono: 'Essentials'    },
-        { script: 'Royal Icing',       mono: 'Couture'       },
-        { script: 'Wedding Cakes',     mono: 'Workshop'      },
-        { script: 'Chocolate Work',    mono: 'Masterclass'   },
+        { script: t('home.marquee.fondantSculpting', 'Fondant Sculpting'), mono: t('home.marquee.masterClass', 'Master Class') },
+        { script: t('home.marquee.sugarFlowers', 'Sugar Flowers'),         mono: t('home.marquee.atelier', 'Atelier')           },
+        { script: t('home.marquee.isomaltArt', 'Isomalt Art'),             mono: t('home.marquee.advanced', 'Advanced')         },
+        { script: t('home.marquee.waferPaper', 'Wafer Paper'),             mono: t('home.marquee.techniques', 'Techniques')     },
+        { script: t('home.marquee.airbrushing', 'Airbrushing'),            mono: t('home.marquee.essentials', 'Essentials')     },
+        { script: t('home.marquee.royalIcing', 'Royal Icing'),             mono: t('home.marquee.couture', 'Couture')           },
+        { script: t('home.marquee.weddingCakes', 'Wedding Cakes'),         mono: t('home.marquee.workshop', 'Workshop')         },
+        { script: t('home.marquee.chocolateWork', 'Chocolate Work'),       mono: t('home.marquee.masterclass', 'Masterclass')   },
     ]
     const track = [...items, ...items]
 
     return (
-        <div className="sl-marquee">
+        <div className="sl-marquee" aria-hidden="true">
             <div className="sl-marquee__track">
                 {track.map((item, i) => (
                     <div key={i} className="sl-marquee__item">

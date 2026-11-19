@@ -2,8 +2,8 @@
  * BadgeGuide
  *
  * Multi-step visual guide through ALL badges.
- * Shows automatically on first account open (localStorage flag per user).
- * Can be reopened at any time via the trigger icon in the topbar.
+ * Never opens by itself: users open it from the topbar badge button or the
+ * sidebar "Badges" item (both via the OPEN_BADGE_GUIDE_EVENT window event).
  *
  * Slides:
  *   0  – Welcome / intro
@@ -19,6 +19,12 @@ import { BADGES, BadgeDefinition, preloadBadge } from '../config/badges';
 import BadgeImage from './BadgeImage';
 
 const LS_KEY = 'slw_badge_guide_seen_';
+
+/** Window event that opens the badge guide from anywhere (e.g. the dashboard sidebar). */
+export const OPEN_BADGE_GUIDE_EVENT = 'sl:open-badge-guide';
+export const openBadgeGuide = () => {
+  window.dispatchEvent(new CustomEvent(OPEN_BADGE_GUIDE_EVENT));
+};
 
 interface Props {
   userId: string;
@@ -60,11 +66,16 @@ const BadgeGuide: React.FC<Props> = ({
 
   const total = slides.length;
 
-  /* Auto-open once per user */
+  /* No auto-open any more: users open the guide themselves (topbar badge icon,
+     sidebar "Badges" item, or anything dispatching OPEN_BADGE_GUIDE_EVENT). */
   useEffect(() => {
-    const seen = localStorage.getItem(`${LS_KEY}${userId}`);
-    if (!seen) setVisible(true);
-  }, [userId]);
+    const onOpen = () => {
+      setStep(0);
+      setVisible(true);
+    };
+    window.addEventListener(OPEN_BADGE_GUIDE_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_BADGE_GUIDE_EVENT, onOpen);
+  }, []);
 
   /* Open when forced from outside (icon click) */
   useEffect(() => {
@@ -93,10 +104,18 @@ const BadgeGuide: React.FC<Props> = ({
   }, [step]);
 
   const dismiss = useCallback(() => {
-    localStorage.setItem(`${LS_KEY}${userId}`, '1');
+    try { localStorage.setItem(`${LS_KEY}${userId}`, '1'); } catch { /* storage blocked */ }
     setVisible(false);
     onClose?.();
   }, [userId, onClose]);
+
+  /* Escape closes the guide */
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') dismiss(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [visible, dismiss]);
 
   const next = () => setStep((s) => Math.min(s + 1, total - 1));
   const prev = () => setStep((s) => Math.max(s - 1, 0));
@@ -352,6 +371,9 @@ const BadgeGuide: React.FC<Props> = ({
       {/* Modal */}
       <div
         dir={isRtl ? 'rtl' : 'ltr'}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('badgeGuide.intro.title', 'Badge Guide')}
         style={{
           position: 'fixed', top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
@@ -405,12 +427,16 @@ const BadgeGuide: React.FC<Props> = ({
 
             {/* Close */}
             <button
+              type="button"
               onClick={dismiss}
+              aria-label={t('common.close', 'Close')}
+              title={t('common.close', 'Close')}
+              autoFocus
               style={{
                 background: 'rgba(255,255,255,0.07)',
                 border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: '50%',
-                width: 30, height: 30,
+                width: 40, height: 40,
                 cursor: 'pointer',
                 color: 'rgba(255,255,255,0.55)',
                 fontSize: 17,

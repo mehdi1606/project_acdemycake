@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { Link, useSearchParams } from "react-router-dom";
+import { App } from "antd";
 
 
 
@@ -56,12 +57,14 @@ interface QuizResult {
   violated: boolean;
 }
 
-type Phase = "loading" | "error" | "quiz" | "result" | "violation";
+/** "intro" = the pre-quiz warning; the attempt (and its timer) only starts after it. */
+type Phase = "loading" | "error" | "intro" | "quiz" | "result" | "violation";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const StudentQuizQuestion = () => {
   const { t } = useTranslation()
+  const { modal } = App.useApp();
   const route = all_routes;
   const [searchParams] = useSearchParams();
   const quizId = searchParams.get("quizId") ?? "";
@@ -88,6 +91,10 @@ const StudentQuizQuestion = () => {
   // ── Result ────────────────────────────────────────────────────────────────
   const [result, setResult] = useState<QuizResult | null>(null);
 
+  // ── Pre-quiz warning ──────────────────────────────────────────────────────
+  const [ack, setAck] = useState(false);
+  const [starting, setStarting] = useState(false);
+
   // Ref so anti-cheat callbacks always see the latest values without stale closures
   const attemptIdRef = useRef<string | null>(null);
   const answersRef = useRef<Answer[]>([]);
@@ -101,7 +108,7 @@ const StudentQuizQuestion = () => {
   useEffect(() => {
     if (!quizId) {
       setPhase("error");
-      setErrorMsg("No quiz ID provided.");
+      setErrorMsg(t('quizPage.noQuizId', 'This quiz link is incomplete. Please open the quiz again from your course.'));
       return;
     }
 
@@ -115,26 +122,41 @@ const StudentQuizQuestion = () => {
           : (quizData.questions ?? []);
 
         setQuiz({ ...quizData, questions });
-
-        const attempt = await quizService.startQuizAttempt(quizId);
-        setAttemptId(attempt.attemptId);
-
-        // Timezone-proof countdown: the server sends startedAt/endsAt as naive timestamps
-        // (no zone), so new Date(endsAt) is read in the browser's TZ and can land in the
-        // past when server (UTC) ≠ browser (e.g. UTC+1) → instant auto-submit. Their
-        // DIFFERENCE is the true duration regardless of TZ, so anchor it to the browser clock.
-        const span = new Date(attempt.endsAt).getTime() - new Date(attempt.startedAt).getTime();
-        const spanMs = Number.isFinite(span) && span > 0 ? span : (quizData.duration ?? 30) * 60000;
-        setEndsAt(new Date(Date.now() + spanMs));
-        setTimeLeft(Math.round(spanMs / 1000));
-
-        setPhase("quiz");
+        // Show the warning first — the attempt starts when the student presses Start.
+        setPhase("intro");
       } catch (err: any) {
         setPhase("error");
-        setErrorMsg(err?.response?.data?.message ?? "Failed to load quiz. Please try again.");
+        setErrorMsg(err?.response?.data?.message ?? t('quiz.loadFailed', 'Could not load the quiz. Please try again.'));
       }
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
+
+  // ── Start the attempt (after the warning was acknowledged) ───────────────
+  const startAttempt = async () => {
+    if (!quiz || !ack || starting) return;
+    setStarting(true);
+    try {
+      const attempt = await quizService.startQuizAttempt(quizId);
+      setAttemptId(attempt.attemptId);
+
+      // Timezone-proof countdown: the server sends startedAt/endsAt as naive timestamps
+      // (no zone), so new Date(endsAt) is read in the browser's TZ and can land in the
+      // past when server (UTC) ≠ browser (e.g. UTC+1) → instant auto-submit. Their
+      // DIFFERENCE is the true duration regardless of TZ, so anchor it to the browser clock.
+      const span = new Date(attempt.endsAt).getTime() - new Date(attempt.startedAt).getTime();
+      const spanMs = Number.isFinite(span) && span > 0 ? span : (quiz.duration ?? 30) * 60000;
+      setEndsAt(new Date(Date.now() + spanMs));
+      setTimeLeft(Math.round(spanMs / 1000));
+
+      setPhase("quiz");
+    } catch (err: any) {
+      setPhase("error");
+      setErrorMsg(err?.response?.data?.message ?? t('quiz.loadFailed', 'Could not load the quiz. Please try again.'));
+    } finally {
+      setStarting(false);
+    }
+  };
 
   // ── Countdown timer ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -175,7 +197,7 @@ const StudentQuizQuestion = () => {
   }, []);
 
   useEffect(() => {
-    if (phase === "loading" || phase === "error") return;
+    if (phase === "loading" || phase === "error" || phase === "intro") return;
 
     const block = (e: Event) => e.preventDefault();
 
@@ -314,7 +336,7 @@ const StudentQuizQuestion = () => {
   const renderLoading = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
-      <p className="text-muted">Loading quiz…</p>
+      <p className="text-muted">{t('quiz.preparing', 'Preparing your quiz…')}</p>
     </div>
   );
 
@@ -323,10 +345,10 @@ const StudentQuizQuestion = () => {
       <div className="mb-3">
         <i className="isax isax-close-circle fs-1 text-danger" />
       </div>
-      <h5 className="text-danger mb-2">Unable to Load Quiz</h5>
+      <h5 className="text-danger mb-2">{t('quiz.unableToLoad', 'Unable to Load Quiz')}</h5>
       <p className="text-muted mb-4">{errorMsg}</p>
       <Link to={route.studentQuiz} className="btn btn-primary">
-        Back to Quizzes
+        {t('quizPage.backToQuizzes', 'Back to Quizzes')}
       </Link>
     </div>
   );
@@ -340,13 +362,12 @@ const StudentQuizQuestion = () => {
       }}>
         <i className="isax isax-warning-2" style={{ fontSize: 40, color: '#C5973E' }} />
       </div>
-      <h3 style={{ fontSize: 22, fontWeight: 800, color: '#8B2335', marginBottom: 12 }}>Quiz Terminated</h3>
+      <h3 style={{ fontSize: 22, fontWeight: 800, color: '#8B2335', marginBottom: 12 }}>{t('quiz.terminated', 'Quiz Terminated')}</h3>
       <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 6 }}>
-        You switched tabs or windows during the quiz. As per the anti-cheat policy,
-        your attempt has been submitted with a <strong style={{ color: '#8B2335' }}>score of 0</strong>.
+        {t('quizPage.violationBody', 'You left the quiz page (switched tab, app or window, or locked your screen), so your attempt was submitted automatically with a score of 0.')}
       </p>
       <p style={{ color: 'var(--lx-text-muted)', fontSize: 12, marginBottom: 28 }}>
-        This action is logged and cannot be reversed.
+        {t('quiz.actionLogged', 'This action is logged and cannot be reversed.')}
       </p>
       <Link
         to={route.studentQuiz}
@@ -358,7 +379,7 @@ const StudentQuizQuestion = () => {
         }}
       >
         <i className="isax isax-arrow-left" />
-        Back to Quizzes
+        {t('quizPage.backToQuizzes', 'Back to Quizzes')}
       </Link>
     </div>
   );
@@ -372,21 +393,21 @@ const StudentQuizQuestion = () => {
 
     const statCards = [
       {
-        label: 'Points Earned',
+        label: t('quiz.pointsEarned', 'Points Earned'),
         value: score,
         icon: 'isax-star',
         color: passed ? '#2D5F3F' : '#8B2335',
         bg: passed ? 'rgba(45,95,63,0.07)' : 'rgba(139,35,53,0.07)',
       },
       {
-        label: 'Total Points',
+        label: t('quiz.totalPoints', 'Total Points'),
         value: totalPts,
         icon: 'isax-chart',
         color: '#C5973E',
         bg: 'rgba(197,151,62,0.08)',
       },
       {
-        label: 'Your Score',
+        label: t('quiz.yourScore', 'Your Score'),
         value: `${pct}%`,
         icon: 'isax-percentage-square',
         color: passed ? '#2D5F3F' : '#8B2335',
@@ -413,12 +434,12 @@ const StudentQuizQuestion = () => {
             fontSize: 26, fontWeight: 800, margin: '0 0 8px',
             color: passed ? '#2D5F3F' : '#8B2335',
           }}>
-            {passed ? '🎉 You Passed!' : 'Not Passed'}
+            {passed ? t('quiz.youPassed', '🎉 You Passed!') : t('quiz.notPassed', 'Not Passed')}
           </h3>
           <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, margin: 0 }}>
             {passed
-              ? "Congratulations! You've successfully completed this quiz."
-              : `You need ${quiz.passingScore}% to pass. Keep practising and try again!`}
+              ? t('quiz.congrats', "Congratulations! You've completed this quiz.")
+              : t('quizPage.needToPassRetry', 'You need {{n}}% to pass. Keep practising and try again!', { n: quiz.passingScore })}
           </p>
         </div>
 
@@ -460,9 +481,9 @@ const StudentQuizQuestion = () => {
           marginBottom: 28,
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text)' }}>Your Score</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text)' }}>{t('quiz.yourScore', 'Your Score')}</span>
             <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
-              Passing threshold: <strong style={{ color: passed ? '#2D5F3F' : '#8B2335' }}>{quiz.passingScore}%</strong>
+              {t('quizPage.passingThreshold', 'Passing threshold:')} <strong style={{ color: passed ? '#2D5F3F' : '#8B2335' }}>{quiz.passingScore}%</strong>
             </span>
           </div>
           {/* Track */}
@@ -513,7 +534,7 @@ const StudentQuizQuestion = () => {
             }}
           >
             <i className="isax isax-arrow-left" />
-            Back to Quizzes
+            {t('quizPage.backToQuizzes', 'Back to Quizzes')}
           </Link>
           {!passed && (
             <button
@@ -527,7 +548,7 @@ const StudentQuizQuestion = () => {
               }}
             >
               <i className="isax isax-refresh" />
-              Try Again
+              {t('quizPage.tryAgain', 'Try Again')}
             </button>
           )}
         </div>
@@ -543,19 +564,36 @@ const StudentQuizQuestion = () => {
 
     return (
       <>
+        {/* ── Persistent reminder: leaving the page auto-submits ───────── */}
+        <div role="note" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', marginBottom: 14, borderRadius: 10, background: 'rgba(197,151,62,0.12)', border: '1px solid rgba(197,151,62,0.35)', color: '#7A5200', fontSize: 13, fontWeight: 700 }}>
+          <i className="isax isax-warning-2" style={{ color: '#C5973E' }} aria-hidden="true" />
+          {t('quizWarn.banner', 'Stay on this page until you submit')}
+        </div>
+
         {/* ── Quiz header ───────────────────────────────────────────────── */}
         <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
           <div>
             <h5 className="mb-0">{quiz.title}</h5>
             <span className="text-muted small">
-              Question {currentIdx + 1} of {totalQ}
+              {t('quizPage.questionOf', 'Question {{n}} of {{total}}', { n: currentIdx + 1, total: totalQ })}
             </span>
           </div>
-          <div
-            className={`d-flex align-items-center gap-2 px-3 py-2 rounded-3 border fw-semibold ${timeWarning ? "bg-danger bg-opacity-10 border-danger text-danger" : "bg-light border-light text-dark"}`}
-          >
-            <i className={`isax isax-timer${timeWarning ? " text-danger" : ""}`} />
-            <span>{formatTime(timeLeft)}</span>
+          <div className="d-flex align-items-center gap-2">
+            <div
+              className={`d-flex align-items-center gap-2 px-3 py-2 rounded-3 border fw-semibold ${timeWarning ? "bg-danger bg-opacity-10 border-danger text-danger" : "bg-light border-light text-dark"}`}
+            >
+              <i className={`isax isax-timer${timeWarning ? " text-danger" : ""}`} />
+              <span>{formatTime(timeLeft)}</span>
+            </div>
+            <button
+              type="button"
+              onClick={confirmExit}
+              aria-label={t('quizWarn.exitAria', 'Exit quiz')}
+              title={t('quizWarn.exitAria', 'Exit quiz')}
+              style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid rgba(107,29,42,0.15)', background: 'rgba(107,29,42,0.05)', color: '#651C32', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <i className="isax isax-close-circle" style={{ fontSize: 20 }} aria-hidden="true" />
+            </button>
           </div>
         </div>
 
@@ -576,14 +614,14 @@ const StudentQuizQuestion = () => {
             <div className="d-flex align-items-start justify-content-between mb-3 gap-2">
               <h6 className="mb-0 lh-base">{currentQuestion.text}</h6>
               <span className="badge bg-primary-subtle text-primary flex-shrink-0">
-                {currentQuestion.points} {currentQuestion.points === 1 ? "pt" : "pts"}
+                {t('quiz.points', '{{n}} pts', { n: currentQuestion.points })}
               </span>
             </div>
 
             {isMultiple && (
               <p className="text-muted small mb-3">
                 <i className="isax isax-info-circle me-1" />
-                Select all that apply
+                {t('quiz.selectAll', 'Select all that apply')}
               </p>
             )}
 
@@ -639,7 +677,7 @@ const StudentQuizQuestion = () => {
                 />
                 <div>
                   <p className={`fw-semibold mb-1 ${feedback.correct ? "text-success" : "text-danger"}`}>
-                    {feedback.correct ? "Correct!" : "Incorrect — try again!"}
+                    {feedback.correct ? t('quizPage.correct', 'Correct!') : t('quizPage.incorrect', 'Incorrect — try again!')}
                   </p>
                   {feedback.explanation && (
                     <p className="text-muted small mb-0">{feedback.explanation}</p>
@@ -661,7 +699,7 @@ const StudentQuizQuestion = () => {
               disabled={selectedIds.length === 0 || isChecking}
             >
               {isChecking && <span className="spinner-border spinner-border-sm" />}
-              Check Answer
+              {t('quizPage.checkAnswer', 'Check Answer')}
             </button>
           )}
 
@@ -673,7 +711,7 @@ const StudentQuizQuestion = () => {
               onClick={handleRetry}
             >
               <i className="isax isax-refresh" />
-              Try Again
+              {t('quizPage.tryAgain', 'Try Again')}
             </button>
           )}
 
@@ -684,7 +722,7 @@ const StudentQuizQuestion = () => {
               className="btn btn-success d-flex align-items-center gap-2"
               onClick={handleNext}
             >
-              Next Question
+              {t('quizPage.nextQuestion', 'Next Question')}
               <i className="isax isax-arrow-right-3" />
             </button>
           )}
@@ -697,11 +735,70 @@ const StudentQuizQuestion = () => {
               onClick={handleFinalSubmit}
             >
               <i className="isax isax-send-2" />
-              Submit Quiz
+              {t('quiz.submitQuiz', 'Submit Quiz')}
             </button>
           )}
         </div>
+        {!feedback && selectedIds.length === 0 && (
+          <p style={{ textAlign: 'end', fontSize: 13, color: '#7A5200', fontWeight: 600, margin: '8px 0 0' }}>
+            {t('quizPage.pickToCheck', 'Choose an answer to check it')}
+          </p>
+        )}
       </>
+    );
+  };
+
+  // ── Exit (= submit) with confirmation ─────────────────────────────────────
+  const confirmExit = () => {
+    modal.confirm({
+      title: t('quizWarn.exitTitle', 'Exit and submit your quiz?'),
+      content: t('quizWarn.exitBody', "Exiting submits your quiz now with the answers you have given so far. Unanswered questions score 0 and you can't retake it."),
+      okText: t('quizWarn.submitExit', 'Submit and exit'),
+      cancelText: t('quizWarn.keepGoing', 'Keep answering'),
+      okButtonProps: { style: { background: '#651C32', borderColor: '#651C32' } },
+      onOk: () => handleSubmit(false),
+    });
+  };
+
+  const renderIntro = () => {
+    if (!quiz) return null;
+    const minutes = quiz.duration ?? 0;
+    return (
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '16px 0' }}>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(197,151,62,0.12)', border: '3px solid rgba(197,151,62,0.3)' }}>
+          <i className="isax isax-warning-2" style={{ fontSize: 34, color: '#C5973E' }} aria-hidden="true" />
+        </div>
+        <h3 style={{ textAlign: 'center', fontSize: 22, fontWeight: 800, color: '#651C32', margin: '0 0 6px' }}>
+          {t('quizWarn.title', 'Before you start')}
+        </h3>
+        <p style={{ textAlign: 'center', color: 'var(--lx-text-muted)', fontSize: 14, margin: '0 0 16px' }}>
+          {quiz.title} · {t('quiz.questions', '{{n}} questions', { n: quiz.questions.length })}
+          {minutes > 0 && <> · {t('quiz.minutes', '{{n}} min', { n: minutes })}</>}
+        </p>
+        <p style={{ fontSize: 15, color: 'var(--lx-text)', lineHeight: 1.65, margin: '0 0 16px' }}>
+          {minutes > 0
+            ? t('quizWarn.body', "Stay on this page until you submit. If you leave this page, switch apps, take a call or lock your screen, your quiz is submitted automatically and can't be retaken. Make sure you have {{minutes}} minutes and turn on Do Not Disturb.", { minutes })
+            : t('quizWarn.bodyNoTime', "Stay on this page until you submit. If you leave this page, switch apps, take a call or lock your screen, your quiz is submitted automatically and can't be retaken. Make sure you have enough time and turn on Do Not Disturb.")}
+        </p>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 12, background: 'rgba(101,28,50,0.04)', border: '1px solid rgba(101,28,50,0.12)', cursor: 'pointer', fontSize: 15, fontWeight: 700, marginBottom: 16 }}>
+          <input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)} style={{ width: 20, height: 20, accentColor: '#651C32', flexShrink: 0 }} />
+          {t('quizWarn.ack', 'I understand')}
+        </label>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={startAttempt}
+            disabled={!ack || starting}
+            style={{ flex: '1 1 200px', minHeight: 48, borderRadius: 12, border: 'none', cursor: ack && !starting ? 'pointer' : 'not-allowed', background: ack ? 'linear-gradient(135deg,#C5973E,#A67825)' : 'rgba(0,0,0,0.08)', color: ack ? '#fff' : '#9A8080', fontWeight: 800, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+          >
+            {starting ? <span className="spinner-border spinner-border-sm" /> : <i className="isax isax-play" aria-hidden="true" />}
+            {t('quiz.startQuiz', 'Start Quiz')}
+          </button>
+          <Link to={route.studentQuiz} style={{ flex: '1 1 140px', minHeight: 48, borderRadius: 12, border: '1px solid rgba(107,29,42,0.18)', color: '#651C32', fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {t('quizWarn.notNow', 'Not now')}
+          </Link>
+        </div>
+      </div>
     );
   };
 
@@ -721,6 +818,7 @@ const StudentQuizQuestion = () => {
       }}>
         {phase === "loading" && renderLoading()}
         {phase === "error" && renderError()}
+        {phase === "intro" && renderIntro()}
         {phase === "violation" && renderViolation()}
         {phase === "result" && renderResult()}
         {phase === "quiz" && renderQuiz()}

@@ -14,7 +14,7 @@ import BadgeAvatar from '../../../components/BadgeAvatar'
 import { getBadgeFromRole } from '../../../config/badges'
 
 const StudentsDetails = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams()
   const studentId = searchParams.get('studentId')
 
@@ -36,14 +36,14 @@ const StudentsDetails = () => {
       })
       .catch((err) => {
         console.error('Failed to load student detail:', err)
-        setError('Failed to load student profile.')
+        setError(t('instructor.studentDetail.loadError', 'We couldn\'t load this student\'s profile. Go back to the list and try again.'))
       })
       .finally(() => setLoading(false))
   }, [studentId])
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString(i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -66,16 +66,16 @@ const StudentsDetails = () => {
         <div className="container">
           <Link to={all_routes.studentsList} className="d-flex align-items-center mb-3">
             <i className="isax isax-arrow-left me-1 fw-bold" />
-            Back to List
+            {t('instructor.studentDetail.backToList', 'Back to List')}
           </Link>
 
           {/* Loading */}
           {loading && (
             <div className="text-center py-5">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('common.loading', 'Loading...')}</span>
               </div>
-              <p className="mt-2 text-muted">Loading student profile...</p>
+              <p className="mt-2 text-muted">{t('instructor.studentDetail.loading', 'Loading student profile...')}</p>
             </div>
           )}
 
@@ -123,18 +123,18 @@ const StudentsDetails = () => {
                           <i className="isax isax-book5 text-primary me-1" />
                           <span className="fw-medium">{student.enrolledCoursesCount}</span>
                           <span className="text-muted ms-1">
-                            Course{student.enrolledCoursesCount !== 1 ? 's' : ''}
+                            {t('instructor.studentDetail.coursesWord', 'Courses')}
                           </span>
                         </div>
                         <div className="d-flex align-items-center">
                           <i className="isax isax-chart-2 text-success me-1" />
                           <span className="fw-medium">{(student.averageProgress ?? 0).toFixed(0)}%</span>
-                          <span className="text-muted ms-1">Avg. Progress</span>
+                          <span className="text-muted ms-1">{t('instructor.studentDetail.avgProgress', 'Avg. Progress')}</span>
                         </div>
                         <div className="d-flex align-items-center">
                           <i className="isax isax-calendar-add5 text-secondary me-1" />
                           <span className="text-muted fs-14">
-                            First enrolled: {formatDate(student.firstEnrolledAt)}
+                            {t('instructor.studentDetail.firstEnrolled', 'First enrolled: {{date}}', { date: formatDate(student.firstEnrolledAt) })}
                           </span>
                         </div>
                       </div>
@@ -147,7 +147,7 @@ const StudentsDetails = () => {
                   <div className="enrolled-courses-body">
                     <div className="page-title mb-3">
                       <h6 className="mb-0 fs-18 fw-bold">
-                        Enrolled Courses
+                        {t('instructor.studentDetail.enrolledCourses', 'Enrolled Courses')}
                         <span className="text-muted fs-14 fw-normal ms-2">
                           ({student.enrolledCourses.length})
                         </span>
@@ -155,7 +155,7 @@ const StudentsDetails = () => {
                     </div>
 
                     {student.enrolledCourses.length === 0 ? (
-                      <p className="text-muted">No courses enrolled yet.</p>
+                      <p className="text-muted">{t('instructor.studentDetail.noCourses', 'No courses enrolled yet.')}</p>
                     ) : (
                       <div className="row g-3">
                         {student.enrolledCourses.map((course: StudentCourseEnrollment) => (
@@ -180,7 +180,7 @@ const StudentsDetails = () => {
                                 {/* Progress */}
                                 <div className="mb-2">
                                   <div className="d-flex justify-content-between fs-13 mb-1">
-                                    <span className="text-muted">Progress</span>
+                                    <span className="text-muted">{t('instructor.studentDetail.progress', 'Progress')}</span>
                                     <span className="fw-medium">
                                       {(course.progressPercentage ?? 0).toFixed(0)}%
                                     </span>
@@ -220,13 +220,13 @@ const StudentsDetails = () => {
               <div className="col-lg-4">
                 <div className="contact-card border-0 mb-4">
                   <div className="contact-details-body">
-                    <h5 className="mb-3 fw-bold">Contact Details</h5>
+                    <h5 className="mb-3 fw-bold">{t('instructor.studentDetail.contactDetails', 'Contact Details')}</h5>
                     <div className="d-flex align-items-center mb-4">
                       <span className="contact-icon flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center me-3">
                         <i className="fa-regular fa-envelope" />
                       </span>
                       <div>
-                        <h6 className="mb-0">Email</h6>
+                        <h6 className="mb-0">{t('common.email', 'Email')}</h6>
                         <p className="fs-14 mb-0">{student.email}</p>
                       </div>
                     </div>
@@ -235,7 +235,7 @@ const StudentsDetails = () => {
                         <i className="isax isax-calendar-add5" />
                       </span>
                       <div>
-                        <h6 className="mb-0">Member Since</h6>
+                        <h6 className="mb-0">{t('instructor.studentDetail.memberSince', 'Member Since')}</h6>
                         <p className="fs-14 mb-0">{formatDate(student.joinedAt)}</p>
                       </div>
                     </div>
@@ -244,7 +244,7 @@ const StudentsDetails = () => {
                         <i className="isax isax-clock" />
                       </span>
                       <div>
-                        <h6 className="mb-0">Last Active</h6>
+                        <h6 className="mb-0">{t('instructor.studentDetail.lastActive', 'Last Active')}</h6>
                         <p className="fs-14 mb-0">{formatDate(student.lastAccessedAt)}</p>
                       </div>
                     </div>
@@ -254,7 +254,7 @@ const StudentsDetails = () => {
                 {/* Quick action */}
                 <div className="card border">
                   <div className="card-body text-center">
-                    <h6 className="fw-bold mb-3">Quick Actions</h6>
+                    <h6 className="fw-bold mb-3">{t('instructor.studentDetail.quickActions', 'Quick Actions')}</h6>
                     <Link
                       to={`${all_routes.instructorMessage}?studentId=${student.id}&studentName=${encodeURIComponent(
                         student.fullName
@@ -262,7 +262,7 @@ const StudentsDetails = () => {
                       className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
                     >
                       <i className="isax isax-messages" />
-                      Send Message
+                      {t('instructor.studentDetail.sendMessage', 'Send Message')}
                     </Link>
                   </div>
                 </div>

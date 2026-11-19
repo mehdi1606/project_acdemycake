@@ -29,8 +29,18 @@ interface SubscriptionRow {
   createdAt: string;
 }
 
+const SUB_STATUS_DEFAULTS: Record<string, string> = {
+  ACTIVE: 'Active', PAST_DUE: 'Past due', CANCELLED: 'Cancelled', EXPIRED: 'Expired',
+};
+const PLAN_DEFAULTS: Record<string, string> = { monthly: 'Monthly', yearly: 'Yearly', annual: 'Yearly' };
+
 const AdminSubscriptions: React.FC = () => {
   const { t } = useTranslation();
+  const subStatusLabel = (s?: string) => (s ? t(`enums.subscriptionStatus.${s}`, SUB_STATUS_DEFAULTS[s] ?? s.replace('_', ' ')) : '—');
+  const planLabel = (p?: string) => {
+    const k = (p || '').toLowerCase();
+    return PLAN_DEFAULTS[k] ? t(`enums.planType.${k}`, PLAN_DEFAULTS[k]) : (p || '—');
+  };
   const [rows, setRows] = useState<SubscriptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,11 +58,11 @@ const AdminSubscriptions: React.FC = () => {
       setTotalPages((res as any).totalPages ?? 0);
       setTotalElements((res as any).totalElements ?? 0);
     } catch (err) {
-      setError(extractApiError(err));
+      setError(extractApiError(err, t('admin.subscriptions.loadError', "We couldn't load the subscriptions. Please try again.")));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     load(page, statusFilter);
@@ -71,12 +81,19 @@ const AdminSubscriptions: React.FC = () => {
           <div>
             <h5 className="fw-bold mb-1">{t('admin.subscriptions.title', 'Subscriptions')}</h5>
             <p className="text-muted fs-13 mb-0">
-              {totalElements} total subscription{totalElements !== 1 ? 's' : ''}
+              {t('admin.subscriptions.totalCount', '{{n}} subscriptions in total', { n: totalElements })}
             </p>
           </div>
         </div>
 
-        {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
+        {error && (
+          <div className="alert alert-danger py-2 mb-3 d-flex align-items-center gap-2 flex-wrap">
+            <span className="flex-grow-1">{error}</span>
+            <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => load(page, statusFilter)}>
+              {t('common.tryAgain', 'Try Again')}
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="d-flex gap-2 flex-wrap mb-3">
@@ -86,7 +103,7 @@ const AdminSubscriptions: React.FC = () => {
               className={`btn btn-sm ${statusFilter === s ? 'btn-dark' : 'btn-outline-secondary'}`}
               onClick={() => handleStatus(s)}
             >
-              {s ? s.replace('_', ' ') : t('common.all', 'All')}
+              {s ? subStatusLabel(s) : t('common.all', 'All')}
             </button>
           ))}
         </div>
@@ -124,13 +141,13 @@ const AdminSubscriptions: React.FC = () => {
                           <div className="fw-semibold fs-14">{r.userFullName || '—'}</div>
                           <div className="text-muted fs-12">{r.userEmail}</div>
                         </td>
-                        <td className="py-3 fs-14 text-capitalize">{r.planType}</td>
+                        <td className="py-3 fs-14 text-capitalize">{planLabel(r.planType)}</td>
                         <td className="py-3">
                           <span className={`badge ${STATUS_BADGE[r.status] ?? 'badge-secondary'} rounded-pill`}>
-                            {r.status?.replace('_', ' ')}
+                            {subStatusLabel(r.status)}
                           </span>
                           {r.cancelAtPeriodEnd && (
-                            <span className="badge badge-warning rounded-pill ms-1 fs-11">Cancels at period end</span>
+                            <span className="badge badge-warning rounded-pill ms-1 fs-11">{t('admin.subscriptions.cancelsAtPeriodEnd', 'Cancels at period end')}</span>
                           )}
                         </td>
                         <td className="py-3 fs-13 text-muted">{fmt(r.currentPeriodStart)}</td>
@@ -150,7 +167,7 @@ const AdminSubscriptions: React.FC = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2">
-            <p className="text-muted fs-13 mb-0">Page {page + 1} of {totalPages}</p>
+            <p className="text-muted fs-13 mb-0">{t('common.pageOf', 'Page {{page}} of {{total}}', { page: page + 1, total: totalPages })}</p>
             <div className="d-flex gap-2">
               <button className="btn btn-outline-secondary btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
                 {t('common.previous', 'Previous')}

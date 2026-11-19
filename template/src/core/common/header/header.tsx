@@ -16,6 +16,8 @@ const Header = () => {
   const [academyMenuOpen, setAcademyMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const academyRef = useRef<HTMLDivElement>(null);
+  const academyBtnRef = useRef<HTMLButtonElement>(null);
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -50,13 +52,33 @@ const Header = () => {
   }, [dataTheme]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: Event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setProfileDropdownOpen(false);
       }
+      if (academyRef.current && !academyRef.current.contains(event.target as Node)) {
+        setAcademyMenuOpen(false);
+      }
+    };
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setAcademyMenuOpen((open) => {
+          if (open) academyBtnRef.current?.focus();
+          return false;
+        });
+        setProfileDropdownOpen(false);
+        setMobileMenuOpen(false);
+        document.documentElement.classList.remove("menu-opened");
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
   }, []);
 
   useEffect(() => {
@@ -176,17 +198,27 @@ const Header = () => {
                 type="button"
                 onClick={onHandleMobileMenu}
                 className="d-lg-none"
+                aria-label={t('nav.openMenu', 'Open menu')}
+                title={t('nav.openMenu', 'Open menu')}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="sl-mobile-menu"
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#fff', fontSize: 22, padding: 4,
+                  background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer',
+                  color: '#fff', fontSize: 20, padding: '0 10px',
+                  minWidth: 40, minHeight: 40, borderRadius: 10,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >
-                <i className="isax isax-menu" />
+                <i className="fa-solid fa-bars" aria-hidden="true" />
+                <span className="d-sm-none" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.02em' }}>
+                  {t('nav.menu', 'Menu')}
+                </span>
               </button>
 
               {/* Logo */}
               <Link
                 to={all_routes.homeone}
+                aria-label={t('nav.homeLogo', 'Saralöwe — home page')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   textDecoration: 'none',
@@ -201,7 +233,7 @@ const Header = () => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
-                <span style={{
+                <span className="sl-hdr-wordmark" style={{
                   fontFamily: '"Playfair Display", serif',
                   fontSize: 18, fontWeight: 700, color: 'var(--sl-blush, #F5DADF)',
                   letterSpacing: '0.12em', lineHeight: 1, textTransform: 'uppercase',
@@ -264,11 +296,32 @@ const Header = () => {
 
               {/* Academy dropdown */}
               <div
+                ref={academyRef}
                 style={{ position: 'relative' }}
-                onMouseEnter={() => setAcademyMenuOpen(true)}
-                onMouseLeave={() => setAcademyMenuOpen(false)}
+                onPointerEnter={(e) => { if (e.pointerType === 'mouse') setAcademyMenuOpen(true); }}
+                onPointerLeave={(e) => { if (e.pointerType === 'mouse') setAcademyMenuOpen(false); }}
+                onBlur={(e) => {
+                  const next = e.relatedTarget as Node | null;
+                  if (next && !e.currentTarget.contains(next)) setAcademyMenuOpen(false);
+                }}
               >
                 <button
+                  ref={academyBtnRef}
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded={academyMenuOpen}
+                  aria-controls="sl-academy-menu"
+                  onClick={() => setAcademyMenuOpen((o) => !o)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setAcademyMenuOpen(true);
+                      setTimeout(() => {
+                        const first = academyRef.current?.querySelector<HTMLAnchorElement>('#sl-academy-menu a');
+                        first?.focus();
+                      }, 0);
+                    }
+                  }}
                   style={{
                     padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     fontSize: 15, fontWeight: (isActive('/course') || isActive('/blog')) ? 600 : 500,
@@ -284,7 +337,7 @@ const Header = () => {
 
                 {/* Dropdown panel */}
                 {academyMenuOpen && (
-                  <div style={{
+                  <div id="sl-academy-menu" style={{
                     position: 'absolute', top: '100%', left: 0,
                     background: 'rgba(40, 8, 18, 0.97)',
                     border: '1px solid rgba(197,145,44,0.18)',
@@ -303,6 +356,7 @@ const Header = () => {
                       <Link
                         key={item.label}
                         to={item.to}
+                        onClick={() => setAcademyMenuOpen(false)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 10,
                           padding: '10px 18px',
@@ -337,7 +391,10 @@ const Header = () => {
               {/* Theme Toggle */}
               <button
                 type="button"
+                className="d-none d-sm-flex"
                 onClick={() => handleDataThemeChange(dataTheme === 'light' ? 'dark-mode' : 'light')}
+                aria-label={dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
+                title={dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
                 style={{
                   width: 38, height: 38, borderRadius: 10, border: 'none', cursor: 'pointer',
                   background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
@@ -347,12 +404,16 @@ const Header = () => {
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
               >
-                <i className={`isax ${dataTheme === 'light' ? 'isax-moon' : 'isax-sun-1'}`} />
+                <i className={`isax ${dataTheme === 'light' ? 'isax-moon' : 'isax-sun-1'}`} aria-hidden="true" />
               </button>
 
               {/* Cart */}
               <Link
                 to={all_routes.courseCart}
+                aria-label={cartCount > 0
+                  ? t('nav.cartWithCount', 'Cart ({{count}} items)', { count: cartCount })
+                  : t('nav.cart', 'Cart')}
+                title={t('nav.cart', 'Cart')}
                 style={{
                   width: 38, height: 38, borderRadius: 10, textDecoration: 'none',
                   background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
@@ -363,13 +424,13 @@ const Header = () => {
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
               >
-                <i className="isax isax-shopping-cart" />
+                <i className="isax isax-shopping-cart" aria-hidden="true" />
                 {cartCount > 0 && (
-                  <span style={{
-                    position: 'absolute', top: 4, right: 4,
-                    minWidth: 15, height: 15, borderRadius: 8,
+                  <span aria-hidden="true" style={{
+                    position: 'absolute', top: 1, right: 1,
+                    minWidth: 18, height: 18, borderRadius: 9,
                     background: '#C5973E', color: '#fff',
-                    fontSize: 9, fontWeight: 700,
+                    fontSize: 11, fontWeight: 700,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: '0 3px', lineHeight: 1,
                     border: '1.5px solid rgba(107,29,42,0.8)',
@@ -513,7 +574,7 @@ const Header = () => {
                               padding: '2px 8px', borderRadius: 10, letterSpacing: 0.3,
                               backgroundColor: getRoleBadgeColor(), color: '#fff',
                             }}>
-                              {user.role}
+                              {getRoleLabel()}
                             </span>
                           </div>
                         </div>
@@ -550,7 +611,23 @@ const Header = () => {
                   </div>
                 </>
               ) : (
-                /* ── Not Authenticated ── */
+                <>
+                {/* ── Not Authenticated: compact Sign in pill on phones/tablets ── */}
+                <Link
+                  to={all_routes.login}
+                  className="d-inline-flex d-lg-none"
+                  style={{
+                    alignItems: 'center', gap: 6, textDecoration: 'none',
+                    minHeight: 38, padding: '0 14px', borderRadius: 20, marginInlineStart: 2,
+                    fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+                    background: 'linear-gradient(135deg, #C5973E 0%, #DEBB6B 50%, #C5973E 100%)',
+                    color: '#4E1420',
+                  }}
+                >
+                  <i className="isax isax-login" aria-hidden="true" style={{ fontSize: 15 }} />
+                  {t('nav.signIn')}
+                </Link>
+                {/* ── Not Authenticated ── */}
                 <div className="d-none d-lg-flex" style={{ alignItems: 'center', gap: 8, marginLeft: 4 }}>
                   {/* Get Premium — visible to guests so they discover the plans */}
                   <Link
@@ -597,6 +674,7 @@ const Header = () => {
                     {t('nav.signUp')}
                   </Link>
                 </div>
+                </>
               )}
             </div>
           </nav>
@@ -613,9 +691,13 @@ const Header = () => {
           onClick={onhandleCloseMenu}
         >
           <div
+            id="sl-mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('nav.menu', 'Menu')}
             style={{
-              position: 'absolute', left: 0, top: 0, bottom: 0,
-              width: 280, background: '#4E1420',
+              position: 'absolute', insetInlineStart: 0, top: 0, bottom: 0,
+              width: 'min(300px, 86vw)', background: '#4E1420',
               boxShadow: '4px 0 24px rgba(78, 20, 32, 0.4)',
               overflowY: 'auto', padding: '20px 0',
             }}
@@ -635,9 +717,15 @@ const Header = () => {
                 </div>
                 <button
                   type="button" onClick={onhandleCloseMenu}
-                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 20, cursor: 'pointer', padding: 4 }}
+                  aria-label={t('nav.closeMenu', 'Close menu')}
+                  title={t('nav.closeMenu', 'Close menu')}
+                  style={{
+                    background: 'rgba(255,255,255,0.08)', border: 'none', color: 'rgba(255,255,255,0.8)',
+                    fontSize: 20, cursor: 'pointer', width: 40, height: 40, borderRadius: 10,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  }}
                 >
-                  <i className="isax isax-close-circle" />
+                  <i className="isax isax-close-circle" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -693,11 +781,51 @@ const Header = () => {
 
             {isAuthenticated && user ? (
               <>
+                {/* Signed-in identity */}
+                <div style={{ padding: '6px 24px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+                    backgroundColor: getRoleBadgeColor(), border: '2px solid rgba(255,255,255,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700,
+                  }}>
+                    <AvatarImage
+                      src={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
+                      name={user.fullName}
+                      bg="transparent"
+                    />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: '#fff', fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {user.fullName || t('common.student', 'Student')}
+                    </div>
+                    <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12 }}>{getRoleLabel()}</div>
+                  </div>
+                </div>
+                {user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR' && user.subscriptionStatus !== 'ACTIVE' && (
+                  <Link
+                    to={all_routes.pricingPlan}
+                    onClick={onhandleCloseMenu}
+                    className="sl-mm-link"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '14px 24px', color: '#C5973E',
+                      textDecoration: 'none', fontSize: 15, fontWeight: 700,
+                    }}
+                  >
+                    <i className="isax isax-crown-1" aria-hidden="true" style={{ fontSize: 18, width: 20, textAlign: 'center' }} />
+                    {t('nav.getPremium')}
+                  </Link>
+                )}
                 {[
-                  { label: t('nav.dashboard'), to: getDashboardRoute(), icon: 'isax-category' },
-                  { label: t('nav.myProfile'), to: getProfileRoute(), icon: 'isax-user' },
-                  { label: t('nav.settings'),  to: getSettingsRoute(), icon: 'isax-setting-2' },
-                ].map((link) => (
+                  { label: t('nav.dashboard'), to: getDashboardRoute(), icon: 'isax-category', show: true },
+                  { label: t('nav.myCourses'), to: user.role === 'INSTRUCTOR' ? all_routes.instructorCourse : all_routes.studentCourses, icon: 'isax-book', show: user.role !== 'ADMIN' },
+                  { label: t('nav.myEbooks', 'My Ebooks'), to: all_routes.studentEbooks, icon: 'isax-book-1', show: user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR' },
+                  { label: t('nav.wishlist'), to: all_routes.studentWishlist, icon: 'isax-heart', show: user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR' },
+                  { label: t('nav.mySubscription', 'My subscription'), to: all_routes.studentSubscription, icon: 'isax-crown', show: user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR' },
+                  { label: user.role === 'ADMIN' ? t('admin.settings.title') : t('nav.myProfile'), to: getProfileRoute(), icon: 'isax-user', show: true },
+                  { label: t('nav.settings'),  to: getSettingsRoute(), icon: 'isax-setting-2', show: user.role !== 'ADMIN' },
+                  { label: t('footer.contact', 'Contact Us'), to: all_routes.contactUs, icon: 'isax-message-question', show: true },
+                ].filter((l) => l.show).map((link) => (
                   <Link
                     key={link.label}
                     to={link.to}
@@ -764,8 +892,44 @@ const Header = () => {
                   <i className="isax isax-user-add" style={{ fontSize: 18, width: 20, textAlign: 'center' }} />
                   {t('nav.signUp')}
                 </Link>
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 20px' }} />
+                {[
+                  { label: t('footer.contact', 'Contact Us'), to: all_routes.contactUs, icon: 'isax-message-question' },
+                  { label: t('footer.faq', 'FAQs'), to: all_routes.FAQ, icon: 'isax-info-circle' },
+                ].map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.to}
+                    onClick={onhandleCloseMenu}
+                    className="sl-mm-link"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '14px 24px', color: 'rgba(255,255,255,0.8)',
+                      textDecoration: 'none', fontSize: 15, fontWeight: 500,
+                    }}
+                  >
+                    <i className={`isax ${link.icon}`} aria-hidden="true" style={{ fontSize: 18, width: 20, textAlign: 'center', color: 'rgba(255,255,255,0.4)' }} />
+                    {link.label}
+                  </Link>
+                ))}
               </>
             )}
+
+            {/* Theme toggle (the header button is hidden on very small phones) */}
+            <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 20px' }} />
+            <button
+              type="button"
+              onClick={() => handleDataThemeChange(dataTheme === 'light' ? 'dark-mode' : 'light')}
+              className="sl-mm-link"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                padding: '14px 24px', color: 'rgba(255,255,255,0.8)', background: 'none', border: 'none',
+                fontSize: 15, fontWeight: 500, cursor: 'pointer', textAlign: 'start',
+              }}
+            >
+              <i className={`isax ${dataTheme === 'light' ? 'isax-moon' : 'isax-sun-1'}`} aria-hidden="true" style={{ fontSize: 18, width: 20, textAlign: 'center', color: 'rgba(255,255,255,0.4)' }} />
+              {dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
+            </button>
           </div>
         </div>
       )}
@@ -774,6 +938,12 @@ const Header = () => {
         @keyframes fadeInDown {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 420px) {
+          .header-one .sl-hdr-wordmark { display: none; }
+        }
+        .sl-mm-link:focus-visible, .header-one a:focus-visible, .header-one button:focus-visible {
+          outline: 2px solid #C5973E; outline-offset: 2px;
         }
       `}</style>
     </>

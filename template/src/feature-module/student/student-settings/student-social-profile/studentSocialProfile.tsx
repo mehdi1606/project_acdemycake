@@ -63,9 +63,9 @@ const StudentSocialProfile = () => {
         socialLinks: JSON.stringify(links),
       });
       dispatch(setUser(updatedUser));
-      message.success('Social profiles saved');
+      message.success(t('student.socialProfile.saved', 'Social profiles saved'));
     } catch (err) {
-      message.error(extractApiError(err, 'Failed to save social profiles'));
+      message.error(extractApiError(err, t('student.socialProfile.saveError', "Your social links couldn't be saved. Check each link starts with https:// and try again.")));
     } finally {
       setSaving(false);
     }
@@ -74,17 +74,17 @@ const StudentSocialProfile = () => {
   return (
     <LuxuryDashboardLayout>
       <div className="lx-section-header" style={{ marginBottom: 20 }}>
-        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Settings</h5>
+        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.settings.title', 'Settings')}</h5>
       </div>
       <SettingsLinks />
 
       <div className="lx-card">
         <div className="lx-card-header">
           <h6 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>
-            Social Profiles
+            {t('student.settingsTabs.socialProfiles', 'Social Profiles')}
           </h6>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--lx-text-muted)' }}>
-            Connect your social media accounts for profile visibility
+            {t('student.socialProfile.desc', 'Connect your social media accounts for profile visibility')}
           </p>
         </div>
         <div className="lx-card-body">
@@ -118,7 +118,7 @@ const StudentSocialProfile = () => {
 
             <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid rgba(107, 29, 42, 0.06)' }}>
               <button className="lx-btn lx-btn-gold" type="submit" disabled={saving}>
-                {saving ? 'Saving...' : 'Save Social Profile'}
+                {saving ? t('student.settings.saving', 'Saving...') : t('student.socialProfile.save', 'Save Social Profile')}
               </button>
             </div>
           </form>

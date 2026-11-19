@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../router/all_routes';
@@ -51,6 +51,7 @@ const EbooksPage: React.FC = () => {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [turn, setTurn] = useState(0); // re-triggers the page-turn animation
+  const asideRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,9 +84,15 @@ const EbooksPage: React.FC = () => {
   const ownedFirst = ebooks.find(b => b.isOwned);
 
   const pick = (id: string) => {
-    if (id === selectedId) return;
-    setSelectedId(id);
-    setTurn(n => n + 1);
+    if (id !== selectedId) {
+      setSelectedId(id);
+      setTurn(n => n + 1);
+    }
+    // On phones/tablets the details panel sits below the list: bring it into view,
+    // so a single tap visibly does something.
+    if (window.innerWidth < 992) {
+      window.setTimeout(() => asideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    }
   };
 
   const openBook = (b: Ebook) =>
@@ -123,7 +130,13 @@ const EbooksPage: React.FC = () => {
         .sl-ebx__shelf { display: flex; gap: 46px; flex-wrap: wrap; align-items: flex-end; }
         .sl-ebx__shelf button { background: none; border: none; padding: 0; text-align: start; cursor: pointer; width: 196px; }
         .sl-ebx__shelf .sl-ebx__btitle { font-family: ${SERIF}; color: ${DARK}; font-weight: 700; font-size: .92rem; margin: 18px 0 2px; line-height: 1.3; }
-        .sl-ebx__shelf .sl-ebx__bsub { color: rgba(101,28,50,.6); font-size: .78rem; font-style: italic; }
+        .sl-ebx__shelf .sl-ebx__bsub { color: rgba(101,28,50,.6); font-size: .82rem; font-style: italic; }
+        .sl-ebx__pick { display: inline-block; margin: 8px 0 2px; padding: 4px 12px; border-radius: 999px; font-size: .78rem; font-weight: 700;
+          background: rgba(197,145,44,.14); color: ${BURG}; }
+        .sl-ebx__shelf button[aria-pressed="true"] .sl-ebx__pick { background: ${BURG}; color: #fff; }
+        .sl-ebx__rail a span { display: none; }
+        @media (max-width: 991px) { .sl-ebx__rail { gap: 6px; flex-wrap: wrap; } .sl-ebx__rail a { width: auto; height: auto; padding: 8px 12px; border-radius: 999px; gap: 6px; font-size: 16px; }
+          .sl-ebx__rail a span { display: inline; font-size: 12px; font-weight: 700; } }
 
         /* 3D printed book */
         .sl-book { position: relative; perspective: 900px; }
@@ -190,6 +203,7 @@ const EbooksPage: React.FC = () => {
           {rail.map(r => (
             <Link key={r.label} to={r.to} className={r.active ? 'is-active' : undefined} title={r.label} aria-label={r.label}>
               <i className={`isax ${r.icon}`} />
+              <span>{r.label}</span>
             </Link>
           ))}
         </nav>
@@ -250,16 +264,25 @@ const EbooksPage: React.FC = () => {
           ) : visible.length === 0 ? (
             <p style={{ color: 'rgba(101,28,50,.6)' }}>
               {ebooks.length === 0 ? t('ebooks.empty', 'No ebooks available yet.') : t('ebooksPage.noMatch', 'No ebook matches your search.')}
+              {ebooks.length > 0 && (
+                <button type="button" className="sl-ebx__btn" style={{ background: '#fff', color: BURG, border: `1px solid rgba(197,145,44,.35)`, marginInlineStart: 12 }}
+                  onClick={() => setQuery('')}>
+                  {t('ebooksPage.clearSearch', 'Show all ebooks')}
+                </button>
+              )}
             </p>
           ) : (
             <div className="sl-ebx__shelf">
               {visible.map(b => {
                 const { title } = localized(b, i18n.language);
                 return (
-                  <button key={b.id} type="button" onClick={() => pick(b.id)} onDoubleClick={() => openBook(b)}
-                    aria-pressed={b.id === selected?.id}>
+                  <button key={b.id} type="button" onClick={() => pick(b.id)}
+                    aria-pressed={b.id === selected?.id} aria-label={t('ebooksPage.selectBook', 'Show details of {{title}}', { title })}>
                     <BookCover src={b.coverUrl} title={title} selected={b.id === selected?.id} size={196} />
                     <div className="sl-ebx__btitle">{title}</div>
+                    <span className="sl-ebx__pick">
+                      {b.id === selected?.id ? t('ebooksPage.selected', 'Selected ✓') : t('ebooksPage.tapToSee', 'See details')}
+                    </span>
                     <div className="sl-ebx__bsub">
                       {b.isOwned
                         ? t('ebooks.owned', 'Owned')
@@ -311,7 +334,7 @@ const EbooksPage: React.FC = () => {
         </main>
 
         {/* ── Selected book: open-book preview + details ── */}
-        <aside className="sl-ebx__aside" aria-live="polite">
+        <aside className="sl-ebx__aside" aria-live="polite" ref={asideRef}>
           {selected && sel ? (
             <div key={selected.id} className="sl-ebx__fade">
               <div className="sl-open">
@@ -358,7 +381,7 @@ const EbooksPage: React.FC = () => {
                     </span>
                     <button type="button" className="sl-ebx__btn" style={{ background: `linear-gradient(135deg, ${GOLD}, #E0C56E)`, color: DARK }}
                       onClick={() => navigate(all_routes.ebookDetail.replace(':slug', selected.slug))}>
-                      {t('ebooks.seeMore', 'See more')} <i className="isax isax-arrow-right-3" />
+                      {t('ebooksPage.detailsBuy', 'Details & buy')} <i className="isax isax-arrow-right-3" />
                     </button>
                   </>
                 )}

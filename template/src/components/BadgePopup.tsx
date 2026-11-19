@@ -6,7 +6,7 @@
  * Fully bilingual (EN / AR) via i18next.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BadgeDefinition, BADGES, getNextBadge, badgeSrcSet } from '../config/badges';
 
@@ -26,16 +26,40 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
   useEffect(() => {
     // Show once per user — reset each time their badge level changes
     const lsKey = `${LS_KEY_PREFIX}${userId}_${badge.id}`;
-    if (!localStorage.getItem(lsKey)) {
-      setVisible(true);
-    }
+    let seen = false;
+    try { seen = !!localStorage.getItem(lsKey); } catch { seen = false; }
+    if (seen) return;
+    // Never stack on top of another modal/dialog: wait until the screen is clear.
+    const otherModalOpen = () => {
+      try {
+        return !!document.querySelector('.modal.show, [role="dialog"], [aria-modal="true"]');
+      } catch { return false; }
+    };
+    let timer: number | undefined;
+    const tryShow = () => {
+      if (otherModalOpen()) {
+        timer = window.setTimeout(tryShow, 1500);
+      } else {
+        setVisible(true);
+      }
+    };
+    timer = window.setTimeout(tryShow, 600);
+    return () => { if (timer) window.clearTimeout(timer); };
   }, [userId, badge.id]);
 
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     const lsKey = `${LS_KEY_PREFIX}${userId}_${badge.id}`;
-    localStorage.setItem(lsKey, '1');
+    try { localStorage.setItem(lsKey, '1'); } catch { /* storage blocked */ }
     setVisible(false);
-  };
+  }, [userId, badge.id]);
+
+  // Escape closes the popup
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') dismiss(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [visible, dismiss]);
 
   if (!visible) return null;
 
@@ -59,6 +83,9 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
       {/* Modal */}
       <div
         dir={isRtl ? 'rtl' : 'ltr'}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('badges.popup.yourBadge')}
         style={{
           position: 'fixed',
           top: '50%',
@@ -90,16 +117,20 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
 
           {/* Close button */}
           <button
+            type="button"
             onClick={dismiss}
+            aria-label={t('common.close', 'Close')}
+            title={t('common.close', 'Close')}
+            autoFocus
             style={{
               position: 'absolute',
-              top: 16,
-              [isRtl ? 'left' : 'right']: 16,
+              top: 12,
+              [isRtl ? 'left' : 'right']: 12,
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',
               borderRadius: '50%',
-              width: 32,
-              height: 32,
+              width: 40,
+              height: 40,
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.6)',
               fontSize: 18,
@@ -118,7 +149,7 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
               (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.6)';
             }}
           >
-            ×
+            <span aria-hidden="true">×</span>
           </button>
 
           {/* Content */}

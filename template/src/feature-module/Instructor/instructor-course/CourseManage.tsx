@@ -46,6 +46,7 @@ const focusHandlers = {
 /* ── Rich Text Toolbar ────────────────────────────────── */
 type RichToolbarProps = { editorRef: React.RefObject<HTMLDivElement | null> };
 const RichToolbar: React.FC<RichToolbarProps> = ({ editorRef }) => {
+  const { t } = useTranslation();
   const exec = (cmd: string, val?: string) => {
     editorRef.current?.focus();
     document.execCommand(cmd, false, val ?? undefined);
@@ -78,31 +79,31 @@ const RichToolbar: React.FC<RichToolbarProps> = ({ editorRef }) => {
       borderRadius: '8px 8px 0 0', border: '1.5px solid rgba(101,28,50,0.12)',
       borderBottom: 'none',
     }}>
-      {btn('fa-bold',          'bold',          'Bold')}
-      {btn('fa-italic',        'italic',        'Italic')}
-      {btn('fa-underline',     'underline',     'Underline')}
-      {btn('fa-strikethrough', 'strikeThrough', 'Strikethrough')}
+      {btn('fa-bold',          'bold',          t('instructor.courseManage.tbBold', 'Bold'))}
+      {btn('fa-italic',        'italic',        t('instructor.courseManage.tbItalic', 'Italic'))}
+      {btn('fa-underline',     'underline',     t('instructor.courseManage.tbUnderline', 'Underline'))}
+      {btn('fa-strikethrough', 'strikeThrough', t('instructor.courseManage.tbStrike', 'Strikethrough'))}
       {sep()}
-      {btn('H1', 'formatBlock', 'Heading 1', '<h1>', { fontSize: 12, fontWeight: 800 })}
-      {btn('H2', 'formatBlock', 'Heading 2', '<h2>', { fontSize: 12, fontWeight: 700 })}
-      {btn('H3', 'formatBlock', 'Heading 3', '<h3>', { fontSize: 12, fontWeight: 600 })}
-      {btn('¶',  'formatBlock', 'Paragraph', '<p>',  { fontSize: 14 })}
+      {btn('H1', 'formatBlock', t('instructor.courseManage.tbH1', 'Heading 1'), '<h1>', { fontSize: 12, fontWeight: 800 })}
+      {btn('H2', 'formatBlock', t('instructor.courseManage.tbH2', 'Heading 2'), '<h2>', { fontSize: 12, fontWeight: 700 })}
+      {btn('H3', 'formatBlock', t('instructor.courseManage.tbH3', 'Heading 3'), '<h3>', { fontSize: 12, fontWeight: 600 })}
+      {btn('¶',  'formatBlock', t('instructor.courseManage.tbParagraph', 'Paragraph'), '<p>',  { fontSize: 14 })}
       {sep()}
-      {btn('fa-list-ul',      'insertUnorderedList', 'Bullet List')}
-      {btn('fa-list-ol',      'insertOrderedList',   'Numbered List')}
+      {btn('fa-list-ul',      'insertUnorderedList', t('instructor.courseManage.tbBullets', 'Bullet List'))}
+      {btn('fa-list-ol',      'insertOrderedList',   t('instructor.courseManage.tbNumbered', 'Numbered List'))}
       {sep()}
-      {btn('fa-quote-left',   'formatBlock', 'Blockquote', '<blockquote>')}
-      {btn('fa-code',         'formatBlock', 'Code Block', '<pre>')}
+      {btn('fa-quote-left',   'formatBlock', t('instructor.courseManage.tbQuote', 'Blockquote'), '<blockquote>')}
+      {btn('fa-code',         'formatBlock', t('instructor.courseManage.tbCode', 'Code Block'), '<pre>')}
       {sep()}
-      {btn('fa-align-left',   'justifyLeft',   'Align Left')}
-      {btn('fa-align-center', 'justifyCenter', 'Align Center')}
-      {btn('fa-align-right',  'justifyRight',  'Align Right')}
+      {btn('fa-align-left',   'justifyLeft',   t('instructor.courseManage.tbAlignLeft', 'Align Left'))}
+      {btn('fa-align-center', 'justifyCenter', t('instructor.courseManage.tbAlignCenter', 'Align Center'))}
+      {btn('fa-align-right',  'justifyRight',  t('instructor.courseManage.tbAlignRight', 'Align Right'))}
       {sep()}
       <button
-        type="button" title="Insert Link"
+        type="button" title={t('instructor.courseManage.tbLink', 'Insert Link')}
         onMouseDown={(e) => {
           e.preventDefault();
-          const url = window.prompt('Enter URL:', 'https://');
+          const url = window.prompt(t('instructor.courseManage.enterUrl', 'Enter URL:'), 'https://');
           if (url) { editorRef.current?.focus(); document.execCommand('createLink', false, url); }
         }}
         style={{
@@ -165,11 +166,12 @@ const GlassModal = ({
 
 /* ── Confirm Modal ────────────────────────────────────── */
 const ConfirmModal = ({
-  open, onClose, onConfirm, title, text, confirmText = 'Delete', loading = false,
+  open, onClose, onConfirm, title, text, confirmText, loading = false,
 }: {
   open: boolean; onClose: () => void; onConfirm: () => void;
   title: string; text: string; confirmText?: string; loading?: boolean;
 }) => {
+  const { t } = useTranslation();
   if (!open) return null;
   return (
     <div
@@ -196,7 +198,7 @@ const ConfirmModal = ({
         <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{title}</h5>
         <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>{text}</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-          <button type="button" className="lx-btn lx-btn-outline" onClick={onClose}>Cancel</button>
+          <button type="button" className="lx-btn lx-btn-outline" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
           <button
             type="button" className="lx-btn" disabled={loading}
             style={{
@@ -205,7 +207,7 @@ const ConfirmModal = ({
             }}
             onClick={onConfirm}
           >
-            {loading ? 'Deleting...' : confirmText}
+            {loading ? t('common.deleting', 'Deleting...') : (confirmText ?? t('common.delete', 'Delete'))}
           </button>
         </div>
       </div>
@@ -242,7 +244,7 @@ const CourseManage: React.FC = () => {
 
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState<{
-    open: boolean; title: string; text: string; onConfirm: () => Promise<void>;
+    open: boolean; title: string; text: string; confirmText?: string; onConfirm: () => Promise<void>;
   }>({ open: false, title: '', text: '', onConfirm: async () => {} });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
@@ -310,15 +312,15 @@ const CourseManage: React.FC = () => {
         isFreePreview: textLesson.isFreePreview ?? false,
         textContent:  html,
       });
-      message.success('Content saved successfully!');
+      message.success(t('instructor.courseManage.contentSaved', 'Content saved successfully!'));
       setTextModalVisible(false);
     } catch (err: any) {
       const serverMsg: string = err?.response?.data?.message ?? '';
-      message.error(serverMsg || 'Failed to save content');
+      message.error(serverMsg || t('instructor.courseManage.contentSaveError', 'Your content couldn\'t be saved. Please try again.'));
     } finally {
       setSavingContent(false);
     }
-  }, [textLesson, message]);
+  }, [textLesson, message, t]);
 
   /* Upload a PDF that will be DISPLAYED inline as the lesson content (embedded viewer, no download) */
   const handleContentPdfUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -326,11 +328,11 @@ const CourseManage: React.FC = () => {
     e.target.value = '';
     if (!file || !textLesson) return;
     if (file.type !== 'application/pdf') {
-      message.error('Only PDF files can be displayed as content');
+      message.error(t('instructor.courseManage.onlyPdf', 'Only PDF files can be displayed as content. Choose a .pdf file.'));
       return;
     }
     if (file.size > 50 * 1024 * 1024) {
-      message.error('File too large (max 50MB)');
+      message.error(t('instructor.courseManage.fileTooLarge50', 'File too large (max 50MB). Please choose a smaller file.'));
       return;
     }
     try {
@@ -341,13 +343,13 @@ const CourseManage: React.FC = () => {
       if (editorRef.current) {
         editorRef.current.innerHTML += marker;
       }
-      message.success(`"${file.name}" will be displayed as lesson content. Click "Save Content" to confirm.`);
+      message.success(t('instructor.courseManage.pdfWillDisplay', '"{{name}}" will be displayed as lesson content. Click "Save Content" to confirm.', { name: file.name }));
     } catch {
-      message.error('Failed to upload PDF');
+      message.error(t('instructor.courseManage.pdfUploadError', 'The PDF couldn\'t be uploaded. Please try again.'));
     } finally {
       setUploadingResource(false);
     }
-  }, [textLesson, message]);
+  }, [textLesson, message, t]);
 
   const handleResourceUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -360,12 +362,12 @@ const CourseManage: React.FC = () => {
       'text/plain', 'image/png', 'image/jpeg', 'image/gif',
     ];
     if (!allowedTypes.includes(file.type)) {
-      message.error('Unsupported file type. Use PDF, DOC, DOCX, PPT, PPTX, TXT, or images.');
+      message.error(t('instructor.courseManage.unsupportedType', 'Unsupported file type. Use PDF, DOC, DOCX, PPT, PPTX, TXT, or images.'));
       if (pdfInputRef.current) pdfInputRef.current.value = '';
       return;
     }
     if (file.size > 50 * 1024 * 1024) {
-      message.error('File too large (max 50MB)');
+      message.error(t('instructor.courseManage.fileTooLarge50', 'File too large (max 50MB). Please choose a smaller file.'));
       if (pdfInputRef.current) pdfInputRef.current.value = '';
       return;
     }
@@ -373,30 +375,30 @@ const CourseManage: React.FC = () => {
       setUploadingResource(true);
       const res = await instructorService.uploadLessonResource(textLesson.id, file, file.name);
       setResources((prev) => [...prev, res]);
-      message.success(`"${file.name}" uploaded successfully!`);
+      message.success(t('instructor.courseManage.fileUploaded', '"{{name}}" uploaded successfully!', { name: file.name }));
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 500 || status === 501 || status === 404) {
-        message.warning('File attachment is not supported by the server yet. You can still write and save text content.');
+        message.warning(t('instructor.courseManage.attachUnsupported', 'File attachment is not supported by the server yet. You can still write and save text content.'));
       } else {
-        message.error('Failed to upload file. Please try again.');
+        message.error(t('instructor.courseManage.fileUploadError', 'The file couldn\'t be uploaded. Please try again.'));
       }
     } finally {
       setUploadingResource(false);
       if (pdfInputRef.current) pdfInputRef.current.value = '';
     }
-  }, [textLesson, message]);
+  }, [textLesson, message, t]);
 
   const handleDeleteResource = useCallback(async (resourceId: number, name: string) => {
     if (!textLesson) return;
     try {
       await instructorService.deleteLessonResource(textLesson.id, resourceId);
       setResources((prev) => prev.filter((r) => r.id !== resourceId));
-      message.success(`"${name}" removed`);
+      message.success(t('instructor.courseManage.fileRemoved', '"{{name}}" removed', { name }));
     } catch {
-      message.error('Failed to remove file');
+      message.error(t('instructor.courseManage.fileRemoveError', 'The file couldn\'t be removed. Please try again.'));
     }
-  }, [textLesson, message]);
+  }, [textLesson, message, t]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchCourseData = useCallback(async () => {
@@ -412,11 +414,11 @@ const CourseManage: React.FC = () => {
       setModules(modulesWithLessons);
     } catch (err) {
       console.error('Error fetching course:', err);
-      message.error('Failed to load course data');
+      message.error(t('instructor.courseManage.loadError', 'We couldn\'t load this course. Refresh the page to try again.'));
     } finally {
       setLoading(false);
     }
-  }, [courseId]);
+  }, [courseId, t]);
 
   useEffect(() => { fetchCourseData(); }, [fetchCourseData]);
 
@@ -455,7 +457,7 @@ const CourseManage: React.FC = () => {
           descriptionEn: moduleDesc, descriptionAr: moduleDescAr,
           orderIndex: editingModule.orderIndex,
         });
-        message.success('Module updated successfully');
+        message.success(t('instructor.courseManage.moduleUpdated', 'Module updated successfully'));
       } else {
         await instructorService.createModule(courseId, {
           title: moduleTitle, description: moduleDesc,
@@ -463,14 +465,14 @@ const CourseManage: React.FC = () => {
           descriptionEn: moduleDesc, descriptionAr: moduleDescAr,
           orderIndex: modules.length,
         });
-        message.success('Module created successfully');
+        message.success(t('instructor.courseManage.moduleCreated', 'Module created successfully'));
       }
       setModuleModalVisible(false);
       setEditingModule(null);
       fetchCourseData();
     } catch (err) {
       console.error('Error saving module:', err);
-      message.error(editingModule ? 'Failed to update module' : 'Failed to create module');
+      message.error(editingModule ? t('instructor.courseManage.moduleUpdateError', 'The module couldn\'t be updated. Please try again.') : t('instructor.courseManage.moduleCreateError', 'The module couldn\'t be created. Please try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -479,17 +481,17 @@ const CourseManage: React.FC = () => {
   const handleDeleteModule = (moduleId: string) => {
     setConfirmModal({
       open: true,
-      title: 'Delete Module?',
-      text: 'Are you sure you want to delete this module and all its lessons? This action cannot be undone.',
+      title: t('instructor.courseManage.deleteModuleTitle', 'Delete Module?'),
+      text: t('instructor.courseManage.deleteModuleText', 'Are you sure you want to delete this module and all its lessons? This action cannot be undone.'),
       onConfirm: async () => {
         try {
           setConfirmLoading(true);
           await instructorService.deleteModule(moduleId);
-          message.success('Module deleted');
+          message.success(t('instructor.courseManage.moduleDeleted', 'Module deleted'));
           setConfirmModal((prev) => ({ ...prev, open: false }));
           fetchCourseData();
         } catch {
-          message.error('Failed to delete module');
+          message.error(t('instructor.courseManage.moduleDeleteError', 'The module couldn\'t be deleted. Please try again.'));
         } finally {
           setConfirmLoading(false);
         }
@@ -525,7 +527,7 @@ const CourseManage: React.FC = () => {
           contentType: lessonType, orderIndex: editingLesson.orderIndex,
           isFreePreview: editingLesson.isFreePreview,
         });
-        message.success('Lesson updated successfully');
+        message.success(t('instructor.courseManage.lessonUpdated', 'Lesson updated successfully'));
       } else {
         const moduleData = modules.find((m) => m.id === selectedModuleId);
         await instructorService.createLesson(selectedModuleId, {
@@ -533,14 +535,14 @@ const CourseManage: React.FC = () => {
           contentType: lessonType, orderIndex: moduleData?.lessons?.length || 0,
           isFreePreview: false,
         });
-        message.success('Lesson created successfully');
+        message.success(t('instructor.courseManage.lessonCreated', 'Lesson created successfully'));
       }
       setLessonModalVisible(false);
       setEditingLesson(null);
       fetchCourseData();
     } catch (err) {
       console.error('Error saving lesson:', err);
-      message.error(editingLesson ? 'Failed to update lesson' : 'Failed to create lesson');
+      message.error(editingLesson ? t('instructor.courseManage.lessonUpdateError', 'The lesson couldn\'t be updated. Please try again.') : t('instructor.courseManage.lessonCreateError', 'The lesson couldn\'t be created. Please try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -548,17 +550,17 @@ const CourseManage: React.FC = () => {
 
   const handleDeleteLesson = (lessonId: string) => {
     setConfirmModal({
-      open: true, title: 'Delete Lesson?',
-      text: 'Are you sure you want to delete this lesson?',
+      open: true, title: t('instructor.courseManage.deleteLessonTitle', 'Delete Lesson?'),
+      text: t('instructor.courseManage.deleteLessonText', 'Are you sure you want to delete this lesson? This cannot be undone.'),
       onConfirm: async () => {
         try {
           setConfirmLoading(true);
           await instructorService.deleteLesson(lessonId);
-          message.success('Lesson deleted');
+          message.success(t('instructor.courseManage.lessonDeleted', 'Lesson deleted'));
           setConfirmModal((prev) => ({ ...prev, open: false }));
           fetchCourseData();
         } catch {
-          message.error('Failed to delete lesson');
+          message.error(t('instructor.courseManage.lessonDeleteError', 'The lesson couldn\'t be deleted. Please try again.'));
         } finally {
           setConfirmLoading(false);
         }
@@ -577,27 +579,27 @@ const CourseManage: React.FC = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (!file.type.startsWith('video/')) { message.error('Please select a valid video file'); return; }
-      if (file.size > 4 * 1024 * 1024 * 1024) { message.error('File size exceeds 4 GB limit'); return; }
+      if (!file.type.startsWith('video/')) { message.error(t('instructor.courseManage.invalidVideo', 'Please choose a video file (MP4, MOV, AVI or MKV).')); return; }
+      if (file.size > 4 * 1024 * 1024 * 1024) { message.error(t('instructor.courseManage.videoTooLarge', 'This video is larger than 4 GB. Please compress it or choose a smaller file.')); return; }
       setSelectedFile(file);
     }
   };
 
   const handleUploadVideo = async () => {
-    if (!selectedLessonId || !selectedFile) { message.error('Please select a video file'); return; }
+    if (!selectedLessonId || !selectedFile) { message.error(t('instructor.courseManage.selectVideo', 'Please choose a video file first.')); return; }
     try {
       setUploading(true);
       setUploadProgress(0);
       await instructorService.uploadVideo(selectedLessonId, selectedFile, (progress) => {
         setUploadProgress(progress);
       });
-      message.success('Video uploaded successfully! It is ready to stream immediately.');
+      message.success(t('instructor.courseManage.videoUploaded', 'Video uploaded successfully! It is ready to stream immediately.'));
       setVideoModalVisible(false);
       setSelectedFile(null);
       fetchCourseData();
     } catch (err) {
       console.error('Error uploading video:', err);
-      message.error('Failed to upload video');
+      message.error(t('instructor.courseManage.videoUploadError', 'The video couldn\'t be uploaded. Check your connection and try again.'));
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -607,8 +609,9 @@ const CourseManage: React.FC = () => {
   const handleCloseVideoModal = () => {
     if (uploading) {
       setConfirmModal({
-        open: true, title: 'Cancel Upload?',
-        text: 'Upload is in progress. Are you sure you want to cancel?',
+        open: true, title: t('instructor.courseManage.cancelUploadTitle', 'Cancel Upload?'),
+        text: t('instructor.courseManage.cancelUploadText', 'Upload is in progress. Are you sure you want to cancel?'),
+        confirmText: t('instructor.courseManage.cancelUploadConfirm', 'Yes, cancel upload'),
         onConfirm: async () => {
           setVideoModalVisible(false);
           setSelectedFile(null);
@@ -625,12 +628,12 @@ const CourseManage: React.FC = () => {
 
   const getVideoStatusBadge = (status: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      ready: { cls: 'badge-success', label: 'Ready' },
-      processing: { cls: 'badge-warning', label: 'Processing' },
-      uploading: { cls: 'badge-info', label: 'Uploading' },
-      error: { cls: 'badge-danger', label: 'Error' },
+      ready: { cls: 'badge-success', label: t('instructor.courseManage.videoReady', 'Ready') },
+      processing: { cls: 'badge-warning', label: t('instructor.courseManage.videoProcessing', 'Processing') },
+      uploading: { cls: 'badge-info', label: t('instructor.courseManage.videoUploading', 'Uploading') },
+      error: { cls: 'badge-danger', label: t('instructor.courseManage.videoError', 'Error') },
     };
-    const s = map[status] || { cls: 'badge-slate', label: 'No Video' };
+    const s = map[status] || { cls: 'badge-slate', label: t('instructor.courseManage.noVideo', 'No Video') };
     return <span className={`lx-badge ${s.cls}`} style={{ fontSize: 10 }}>{s.label}</span>;
   };
 
@@ -643,10 +646,10 @@ const CourseManage: React.FC = () => {
   };
 
   const statusLabel = (s: string) => {
-    if (s === 'PUBLISHED') return { text: 'Published', cls: 'badge-success' };
-    if (s === 'PENDING_REVIEW') return { text: 'Pending Review', cls: 'badge-warning' };
-    if (s === 'DRAFT') return { text: 'Draft', cls: 'badge-slate' };
-    if (s === 'REJECTED') return { text: 'Rejected', cls: 'badge-danger' };
+    if (s === 'PUBLISHED') return { text: t('enums.courseStatus.PUBLISHED', 'Published'), cls: 'badge-success' };
+    if (s === 'PENDING_REVIEW') return { text: t('enums.courseStatus.PENDING_REVIEW', 'Pending Review'), cls: 'badge-warning' };
+    if (s === 'DRAFT') return { text: t('enums.courseStatus.DRAFT', 'Draft'), cls: 'badge-slate' };
+    if (s === 'REJECTED') return { text: t('enums.courseStatus.REJECTED', 'Rejected'), cls: 'badge-danger' };
     return { text: s, cls: 'badge-info' };
   };
 
@@ -660,7 +663,7 @@ const CourseManage: React.FC = () => {
             borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto 16px',
           }} />
-          <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>Loading course...</p>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>{t('instructor.courseManage.loadingCourse', 'Loading course...')}</p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </LuxuryDashboardLayout>
@@ -679,12 +682,12 @@ const CourseManage: React.FC = () => {
           }}>
             <i className="isax isax-warning-2" style={{ fontSize: 28, color: '#8B2335' }} />
           </div>
-          <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>Course Not Found</h6>
+          <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courseManage.notFoundTitle', 'Course Not Found')}</h6>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--lx-text-muted)' }}>
-            The course you are looking for does not exist or has been removed.
+            {t('instructor.courseManage.notFoundText', 'The course you are looking for does not exist or has been removed.')}
           </p>
           <button className="lx-btn lx-btn-gold" onClick={() => navigate(all_routes.instructorCourse)}>
-            Back to Courses
+            {t('instructor.courseManage.backToCourses', 'Back to Courses')}
           </button>
         </div>
       </LuxuryDashboardLayout>
@@ -715,7 +718,7 @@ const CourseManage: React.FC = () => {
       {/* ── Curriculum Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-          Course Curriculum
+          {t('instructor.courseManage.curriculum', 'Course Curriculum')}
         </h6>
         <button
           className="lx-btn lx-btn-sm lx-btn-gold"
@@ -723,7 +726,7 @@ const CourseManage: React.FC = () => {
           style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13 }}
         >
           <i className="isax isax-add" style={{ fontSize: 15 }} />
-          Add Module
+          {t('instructor.courseManage.addModule', 'Add Module')}
         </button>
       </div>
 
@@ -737,9 +740,9 @@ const CourseManage: React.FC = () => {
           }}>
             <i className="isax isax-book-1" style={{ fontSize: 28, color: 'var(--lx-text-muted)' }} />
           </div>
-          <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>No Modules Yet</h6>
+          <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courseManage.noModulesTitle', 'No Modules Yet')}</h6>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--lx-text-muted)' }}>
-            Start by adding your first module to organize your course content.
+            {t('instructor.courseManage.noModulesText', 'Start by adding your first module to organize your course content.')}
           </p>
           <button className="lx-btn lx-btn-gold" onClick={handleAddModule}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -777,7 +780,7 @@ const CourseManage: React.FC = () => {
                       Module {index + 1}: {module.title}
                     </h6>
                     <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>
-                      {module.lessons?.length || 0} lesson{(module.lessons?.length || 0) !== 1 ? 's' : ''}
+                      {t('instructor.courseManage.lessonCount', '{{n}} lessons', { n: module.lessons?.length || 0 })}
                     </span>
                   </div>
                 </div>
@@ -790,8 +793,8 @@ const CourseManage: React.FC = () => {
                   >
                     <i className="isax isax-add" style={{ fontSize: 13 }} /> Add Lesson
                   </button>
-                  <ActionBtn icon="isax-edit-2" title="Edit" onClick={(e) => { e.stopPropagation(); handleEditModule(module); }} />
-                  <ActionBtn icon="isax-trash" title="Delete" danger onClick={() => handleDeleteModule(module.id)} />
+                  <ActionBtn icon="isax-edit-2" title={t('common.edit', 'Edit')} onClick={(e) => { e.stopPropagation(); handleEditModule(module); }} />
+                  <ActionBtn icon="isax-trash" title={t('common.delete', 'Delete')} danger onClick={() => handleDeleteModule(module.id)} />
                 </div>
               </div>
 
@@ -803,7 +806,7 @@ const CourseManage: React.FC = () => {
                       textAlign: 'center', padding: '28px 20px', margin: 0,
                       fontSize: 14, color: 'var(--lx-text-muted)',
                     }}>
-                      No lessons yet. Click "Add Lesson" to create one.
+                      {t('instructor.courseManage.noLessons', 'No lessons yet. Click "Add Lesson" to create one.')}
                     </p>
                   ) : (
                     module.lessons.map((lesson, li) => (
@@ -882,8 +885,8 @@ const CourseManage: React.FC = () => {
                               <i className="isax isax-award" style={{ fontSize: 13 }} /> Manage Quiz
                             </button>
                           )}
-                          <ActionBtn icon="isax-edit-2" title="Edit" onClick={() => handleEditLesson(lesson, module.id)} />
-                          <ActionBtn icon="isax-trash" title="Delete" danger onClick={() => handleDeleteLesson(lesson.id)} />
+                          <ActionBtn icon="isax-edit-2" title={t('common.edit', 'Edit')} onClick={() => handleEditLesson(lesson, module.id)} />
+                          <ActionBtn icon="isax-trash" title={t('common.delete', 'Delete')} danger onClick={() => handleDeleteLesson(lesson.id)} />
                         </div>
                       </div>
                     ))
@@ -900,16 +903,16 @@ const CourseManage: React.FC = () => {
       <GlassModal
         open={moduleModalVisible}
         onClose={() => { setModuleModalVisible(false); setEditingModule(null); }}
-        title={editingModule ? 'Edit Module' : 'Add New Module'}
+        title={editingModule ? t('instructor.courseManage.editModule', 'Edit Module') : t('instructor.courseManage.addNewModule', 'Add New Module')}
         maxWidth={720}
       >
         <form onSubmit={handleModuleSubmit}>
           {/* Module Title — EN / AR side by side */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Module Title (English) <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>{t('instructor.courseManage.moduleTitleEn', 'Module Title (English)')} <span style={{ color: '#8B2335' }}>*</span></label>
               <input
-                type="text" style={inputStyle} placeholder="e.g., Introduction to Cake Design"
+                type="text" style={inputStyle} placeholder={t('instructor.courseManage.moduleTitlePh', 'e.g., Introduction to Cake Design')}
                 value={moduleTitle} onChange={(e) => setModuleTitle(e.target.value)}
                 required {...focusHandlers}
               />
@@ -927,9 +930,9 @@ const CourseManage: React.FC = () => {
           {/* Description — EN / AR side by side */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Description (English) <span style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>(optional)</span></label>
+              <label style={labelStyle}>{t('instructor.courseManage.descriptionEn', 'Description (English)')} <span style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>({t('common.optional', 'Optional')})</span></label>
               <textarea
-                style={textareaStyle} placeholder="Brief description of this module" rows={3}
+                style={textareaStyle} placeholder={t('instructor.courseManage.moduleDescPh', 'Brief description of this module')} rows={3}
                 value={moduleDesc} onChange={(e) => setModuleDesc(e.target.value)}
                 {...focusHandlers}
               />
@@ -946,10 +949,10 @@ const CourseManage: React.FC = () => {
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button type="button" className="lx-btn lx-btn-outline" onClick={() => { setModuleModalVisible(false); setEditingModule(null); }}>
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </button>
             <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting} style={{ opacity: submitting ? 0.6 : 1 }}>
-              {submitting ? (editingModule ? 'Updating...' : 'Creating...') : (editingModule ? 'Update Module' : 'Create Module')}
+              {submitting ? (editingModule ? t('instructor.courseManage.updating', 'Updating...') : t('instructor.courseManage.creating', 'Creating...')) : (editingModule ? t('instructor.courseManage.updateModule', 'Update Module') : t('instructor.courseManage.createModule', 'Create Module'))}
             </button>
           </div>
         </form>
@@ -959,36 +962,36 @@ const CourseManage: React.FC = () => {
       <GlassModal
         open={lessonModalVisible}
         onClose={() => { setLessonModalVisible(false); setEditingLesson(null); }}
-        title={editingLesson ? 'Edit Lesson' : 'Add New Lesson'}
+        title={editingLesson ? t('instructor.courseManage.editLesson', 'Edit Lesson') : t('instructor.courseManage.addNewLesson', 'Add New Lesson')}
       >
         <form onSubmit={handleLessonSubmit}>
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Lesson Title <span style={{ color: '#8B2335' }}>*</span></label>
+            <label style={labelStyle}>{t('instructor.courseManage.lessonTitle', 'Lesson Title')} <span style={{ color: '#8B2335' }}>*</span></label>
             <input
-              type="text" style={inputStyle} placeholder="e.g., Setting Up Your Workspace"
+              type="text" style={inputStyle} placeholder={t('instructor.courseManage.lessonTitlePh', 'e.g., Setting Up Your Workspace')}
               value={lessonTitle} onChange={(e) => setLessonTitle(e.target.value)}
               required {...focusHandlers}
             />
           </div>
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Description <span style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>(optional)</span></label>
+            <label style={labelStyle}>{t('common.description', 'Description')} <span style={{ color: 'var(--lx-text-muted)', fontWeight: 400 }}>({t('common.optional', 'Optional')})</span></label>
             <textarea
-              style={textareaStyle} placeholder="Brief description of this lesson" rows={3}
+              style={textareaStyle} placeholder={t('instructor.courseManage.lessonDescPh', 'Brief description of this lesson')} rows={3}
               value={lessonDesc} onChange={(e) => setLessonDesc(e.target.value)}
               {...focusHandlers}
             />
           </div>
           <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Content Type <span style={{ color: '#8B2335' }}>*</span></label>
+            <label style={labelStyle}>{t('instructor.courseManage.contentType', 'Content Type')} <span style={{ color: '#8B2335' }}>*</span></label>
             <select
               style={selectStyle} value={lessonType}
               onChange={(e) => setLessonType(e.target.value as 'VIDEO' | 'TEXT' | 'QUIZ')}
               disabled={!!editingLesson}
               {...focusHandlers}
             >
-              <option value="VIDEO">Video Lesson</option>
-              <option value="TEXT">Text / Article</option>
-              <option value="QUIZ">Quiz</option>
+              <option value="VIDEO">{t('instructor.courseManage.typeVideo', 'Video Lesson')}</option>
+              <option value="TEXT">{t('instructor.courseManage.typeText', 'Text / Article')}</option>
+              <option value="QUIZ">{t('instructor.courseManage.typeQuiz', 'Quiz')}</option>
             </select>
           </div>
 
@@ -1000,17 +1003,17 @@ const CourseManage: React.FC = () => {
             }}>
               <i className="isax isax-info-circle" style={{ fontSize: 16, color: '#2D8CFF', flexShrink: 0 }} />
               <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
-                After creating the lesson, you can upload the video from the lesson list.
+                {t('instructor.courseManage.videoAfterCreate', 'After creating the lesson, you can upload the video from the lesson list.')}
               </span>
             </div>
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button type="button" className="lx-btn lx-btn-outline" onClick={() => { setLessonModalVisible(false); setEditingLesson(null); }}>
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </button>
             <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting} style={{ opacity: submitting ? 0.6 : 1 }}>
-              {submitting ? (editingLesson ? 'Updating...' : 'Creating...') : (editingLesson ? 'Update Lesson' : 'Create Lesson')}
+              {submitting ? (editingLesson ? t('instructor.courseManage.updating', 'Updating...') : t('instructor.courseManage.creating', 'Creating...')) : (editingLesson ? t('instructor.courseManage.updateLesson', 'Update Lesson') : t('instructor.courseManage.createLesson', 'Create Lesson'))}
             </button>
           </div>
         </form>
@@ -1020,7 +1023,7 @@ const CourseManage: React.FC = () => {
       <GlassModal
         open={videoModalVisible}
         onClose={handleCloseVideoModal}
-        title="Upload Lesson Video"
+        title={t('instructor.courseManage.uploadVideoTitle', 'Upload Lesson Video')}
         maxWidth={560}
         closable={!uploading}
       >
@@ -1052,10 +1055,10 @@ const CourseManage: React.FC = () => {
                 <i className="isax isax-video-play" style={{ fontSize: 24, color: 'var(--lx-text-muted)' }} />
               </div>
               <h6 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>
-                {selectedFile ? selectedFile.name : 'Click to select video file'}
+                {selectedFile ? selectedFile.name : t('instructor.courseManage.clickSelectVideo', 'Click to select video file')}
               </h6>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)' }}>
-                {selectedFile ? `Size: ${formatFileSize(selectedFile.size)}` : 'Supported: MP4, MOV, AVI, MKV (Max 2GB)'}
+                {selectedFile ? t('instructor.courseManage.fileSize', 'Size: {{size}}', { size: formatFileSize(selectedFile.size) }) : t('instructor.courseManage.supportedVideo', 'Supported: MP4, MOV, AVI, MKV (Max 2GB)')}
               </p>
             </div>
 
@@ -1093,7 +1096,7 @@ const CourseManage: React.FC = () => {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={handleCloseVideoModal}>
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="button" className="lx-btn lx-btn-gold" onClick={handleUploadVideo}
@@ -1113,10 +1116,10 @@ const CourseManage: React.FC = () => {
             }} />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-              Uploading Video...
+              {t('instructor.courseManage.uploadingVideo', 'Uploading Video...')}
             </h6>
             <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--lx-text-muted)' }}>
-              Please wait while your video is being uploaded.
+              {t('instructor.courseManage.pleaseWaitUpload', 'Please wait while your video is being uploaded.')}
             </p>
 
             {/* Progress Bar */}
@@ -1134,7 +1137,7 @@ const CourseManage: React.FC = () => {
               {uploadProgress}%
             </span>
             <p style={{ margin: '12px 0 0', fontSize: 12, color: 'var(--lx-text-muted)' }}>
-              Do not close this window until upload is complete.
+              {t('instructor.courseManage.doNotClose', 'Do not close this window until upload is complete.')}
             </p>
           </div>
         )}
@@ -1157,7 +1160,7 @@ const CourseManage: React.FC = () => {
       <GlassModal
         open={textModalVisible}
         onClose={() => { if (!savingContent) setTextModalVisible(false); }}
-        title={`✏️ Edit Content — ${textLessonTitle}`}
+        title={`✏️ ${t('instructor.courseManage.editContent', 'Edit Content — {{title}}', { title: textLessonTitle })}`}
         maxWidth={820}
         closable={!savingContent}
       >
@@ -1168,7 +1171,7 @@ const CourseManage: React.FC = () => {
               borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
               animation: 'spin 0.8s linear infinite', margin: '0 auto 12px',
             }} />
-            <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>Loading content…</p>
+            <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('instructor.courseManage.loadingContent', 'Loading content…')}</p>
           </div>
         ) : (
           <>
@@ -1177,7 +1180,7 @@ const CourseManage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
                 <label style={{ ...labelStyle, margin: 0 }}>
                   <i className="fa-solid fa-pen-to-square" style={{ marginRight: 6, color: '#6B1D2A' }} />
-                  Lesson Content
+                  {t('instructor.courseManage.lessonContent', 'Lesson Content')}
                 </label>
                 <label style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -1188,7 +1191,7 @@ const CourseManage: React.FC = () => {
                   opacity: uploadingResource ? 0.7 : 1,
                 }}>
                   <i className={`fa-solid ${uploadingResource ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} />
-                  {uploadingResource ? 'Uploading…' : 'Display PDF as content'}
+                  {uploadingResource ? t('instructor.courseManage.uploading', 'Uploading…') : t('instructor.courseManage.displayPdf', 'Display PDF as content')}
                   <input
                     type="file"
                     accept=".pdf,application/pdf"
@@ -1243,7 +1246,7 @@ const CourseManage: React.FC = () => {
                   opacity: uploadingResource ? 0.7 : 1,
                 }}>
                   <i className={`fa-solid ${uploadingResource ? 'fa-spinner fa-spin' : 'fa-plus'}`} />
-                  {uploadingResource ? 'Uploading…' : 'Attach File'}
+                  {uploadingResource ? t('instructor.courseManage.uploading', 'Uploading…') : t('instructor.courseManage.attachFile', 'Attach File')}
                   <input
                     ref={pdfInputRef}
                     type="file"
@@ -1267,7 +1270,7 @@ const CourseManage: React.FC = () => {
                   color: 'var(--lx-text-muted)',
                 }}>
                   <i className="fa-solid fa-file-arrow-up" style={{ fontSize: 28, marginBottom: 8, display: 'block', opacity: 0.4 }} />
-                  <p style={{ margin: 0, fontSize: 13 }}>No attachments yet. Click "Attach File" to add resources.</p>
+                  <p style={{ margin: 0, fontSize: 13 }}>{t('instructor.courseManage.noAttachments', 'No attachments yet. Click "Attach File" to add resources.')}</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1322,7 +1325,7 @@ const CourseManage: React.FC = () => {
                           <a
                             href={getFileUrl(res.url) ?? res.url}
                             target="_blank" rel="noopener noreferrer"
-                            title="Preview / Download"
+                            title={t('instructor.courseManage.previewDownload', 'Preview / Download')}
                             style={{
                               width: 30, height: 30, borderRadius: 7,
                               background: 'rgba(59,130,246,0.06)',
@@ -1335,7 +1338,7 @@ const CourseManage: React.FC = () => {
                           </a>
                           <button
                             type="button"
-                            title="Remove"
+                            title={t('common.remove', 'Remove')}
                             onClick={() => handleDeleteResource(res.id, res.name)}
                             style={{
                               width: 30, height: 30, borderRadius: 7, border: 'none',
@@ -1361,7 +1364,7 @@ const CourseManage: React.FC = () => {
                 onClick={() => setTextModalVisible(false)}
                 disabled={savingContent}
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="button" className="lx-btn lx-btn-gold"
@@ -1372,12 +1375,12 @@ const CourseManage: React.FC = () => {
                 {savingContent ? (
                   <>
                     <i className="fa-solid fa-spinner fa-spin" />
-                    Saving…
+                    {t('common.saving', 'Saving...')}
                   </>
                 ) : (
                   <>
                     <i className="fa-solid fa-floppy-disk" />
-                    Save Content
+                    {t('instructor.courseManage.saveContent', 'Save Content')}
                   </>
                 )}
               </button>
@@ -1393,6 +1396,7 @@ const CourseManage: React.FC = () => {
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         text={confirmModal.text}
+        confirmText={confirmModal.confirmText}
         loading={confirmLoading}
       />
     </LuxuryDashboardLayout>

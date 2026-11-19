@@ -36,6 +36,8 @@ export type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE'
 
 export interface User {
   id: string;
+  /** Courses completed (sent in admin user lists) — drives the real badge level. */
+  completedCourses?: number;
   email: string;
   fullName: string;
   avatarUrl?: string;
@@ -616,6 +618,8 @@ export interface AdminUser extends User {
   banReason?: string;
   enrollmentsCount: number;
   lastLoginAt?: string;
+  /** Courses completed — drives the real badge level. */
+  completedCourses?: number;
 }
 
 // ============================================

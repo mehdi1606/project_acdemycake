@@ -42,20 +42,20 @@ const ProfileCard = () => {
                 <i className="isax isax-edit-2" />
               </Link>
             </h5>
-            <p className="text-light">Instructor</p>
+            <p className="text-light">{t('common.instructor', 'Instructor')}</p>
           </div>
         </div>
       </div>
       <div className="col-md-6">
         <div className="d-flex align-items-center flex-wrap gap-3 justify-content-md-end">
           <Link to={all_routes.addNewCourse} className="btn btn-white rounded-pill">
-            Add New Course
+            {t('instructor.profileCard.addNewCourse', 'Add New Course')}
           </Link>
           <Link
             to={all_routes.studentDashboard}
             className="btn btn-secondary rounded-pill"
           >
-            Student Dashboard
+            {t('instructor.profileCard.studentDashboard', 'Student Dashboard')}
           </Link>
         </div>
       </div>

@@ -42,6 +42,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
 
   const [saving, setSaving] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
@@ -65,6 +66,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
   ) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    if (name === "fullName" && nameError) setNameError(null)
   }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,12 +74,12 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
     if (!file) return
 
     if (!file.type.startsWith("image/")) {
-      message.error("Please select an image file")
+      message.error(t('student.settings.errImageType', 'Please choose an image file (PNG or JPG).'))
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      message.error("Image size should be less than 5MB")
+      message.error(t('student.settings.errImageSize', 'This image is too large. Please choose one under 5MB.'))
       return
     }
 
@@ -87,9 +89,9 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
       if (user) {
         dispatch(setUser({ ...user, avatarUrl }))
       }
-      message.success("Profile photo updated successfully")
+      message.success(t('student.settings.photoUpdated', 'Profile photo updated successfully'))
     } catch (error) {
-      message.error(extractApiError(error, "Failed to upload profile photo. Please try again."))
+      message.error(extractApiError(error, t('student.settings.photoUploadError', 'Failed to upload profile photo. Please try again.')))
     } finally {
       setAvatarUploading(false)
     }
@@ -99,12 +101,12 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
     e.preventDefault()
 
     if (!formData.fullName.trim()) {
-      message.error("Full name is required")
+      setNameError(t('auth.errors.fullNameRequired', 'Please enter your full name.'))
       return
     }
 
-    if (formData.fullName.length < 2 || formData.fullName.length > 100) {
-      message.error("Full name must be between 2 and 100 characters")
+    if (formData.fullName.trim().length < 2 || formData.fullName.length > 100) {
+      setNameError(t('student.settings.errNameLength', 'Your name must be between 2 and 100 characters.'))
       return
     }
 
@@ -116,9 +118,9 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
         bio: formData.bio || undefined,
       })
       dispatch(setUser(updatedUser))
-      message.success("Profile updated successfully")
+      message.success(t('student.settings.profileUpdated', 'Profile updated successfully'))
     } catch (error) {
-      message.error(extractApiError(error, "Failed to update profile. Please try again."))
+      message.error(extractApiError(error, t('student.settings.profileUpdateError', 'Failed to update profile. Please try again.')))
     } finally {
       setSaving(false)
     }
@@ -135,7 +137,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
       {/* Profile Form Card */}
       <div className="lx-card" style={{ marginBottom: 24 }}>
         <div className="lx-card-body">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             {/* Avatar Upload */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 20, marginBottom: 32,
@@ -192,9 +194,12 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
             <div style={{ marginBottom: 24 }}>
               <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>{t('student.settings.personalDetails', 'Personal Details')}</h5>
               <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>{t('student.settings.personalDetailsDesc', 'Edit your personal information')}</p>
+              <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: '6px 0 0' }}>
+                <span style={{ color: '#8B2335' }}>*</span> {t('common.requiredFields', 'Required fields')}
+              </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
               <div>
                 <label style={labelStyle}>
                   {t('student.profile.fullName', 'Full Name')} <span style={{ color: '#8B2335' }}>*</span>
@@ -202,7 +207,8 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                 <input
                   type="text"
                   name="fullName"
-                  style={inputStyle}
+                  style={nameError ? { ...inputStyle, borderColor: '#B03060' } : inputStyle}
+                  aria-invalid={!!nameError}
                   value={formData.fullName}
                   onChange={handleInputChange}
                   placeholder={t('student.settings.enterFullName', 'Enter your full name')}
@@ -210,6 +216,11 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                   maxLength={100}
                   required
                 />
+                {nameError && (
+                  <small style={{ fontSize: 12, color: '#B03060', display: 'flex', alignItems: 'center', gap: 4, marginTop: 5 }}>
+                    <i className="isax isax-info-circle" />{nameError}
+                  </small>
+                )}
               </div>
 
               <div>
@@ -231,8 +242,12 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                   style={inputStyle}
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder={t('student.settings.enterPhone', 'Enter your phone number')}
+                  placeholder={t('auth.register.phoneExample', '+212 6 12 34 56 78')}
+                  dir="ltr"
                 />
+                <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>
+                  {t('auth.register.phoneHint', 'With country code, used for WhatsApp about your bookings (optional)')}
+                </small>
               </div>
 
               <div>
@@ -256,7 +271,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                   placeholder={t('student.settings.bioPlaceholder', 'Tell us about yourself...')}
                   maxLength={1000}
                 />
-                <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{formData.bio.length}/1000 characters</small>
+                <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{t('student.settings.charCount', '{{n}}/1000 characters', { n: formData.bio.length })}</small>
               </div>
             </div>
 

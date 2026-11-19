@@ -16,6 +16,7 @@ import {
   contactService,
 } from '../../../services/api/ticket.service';
 import { extractApiError } from '../../../services/api/error.utils';
+import { TFunction } from 'i18next';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -28,16 +29,21 @@ const formatDateTime = (iso: string) =>
     hour: '2-digit', minute: '2-digit',
   });
 
-const statusBadge = (status: TicketStatus) => {
+const statusLabel = (t: TFunction, s: TicketStatus) => t(`enums.ticketStatus.${s}`, STATUS_LABELS[s] ?? s);
+const priorityLabel = (t: TFunction, p: string) =>
+  t(`enums.ticketPriority.${p}`, PRIORITY_LABELS[p as keyof typeof PRIORITY_LABELS] ?? p);
+const categoryLabel = (t: TFunction, c: keyof typeof CATEGORY_LABELS) => t(`enums.ticketCategory.${c}`, CATEGORY_LABELS[c] ?? c);
+
+const statusBadge = (t: TFunction, status: TicketStatus) => {
   const map: Record<TicketStatus, string> = {
     OPEN: 'badge-info',
     IN_PROGRESS: 'badge-warning',
     CLOSED: 'badge-success',
   };
-  return <span className={`lx-badge ${map[status]}`}>{STATUS_LABELS[status]}</span>;
+  return <span className={`lx-badge ${map[status]}`}>{statusLabel(t, status)}</span>;
 };
 
-const priorityBadge = (priority: string) => {
+const priorityBadge = (t: TFunction, priority: string) => {
   const map: Record<string, string> = {
     HIGH: 'badge-danger',
     MEDIUM: 'badge-warning',
@@ -45,7 +51,7 @@ const priorityBadge = (priority: string) => {
   };
   return (
     <span className={`lx-badge ${map[priority] ?? 'badge-slate'}`}>
-      {PRIORITY_LABELS[priority as keyof typeof PRIORITY_LABELS] ?? priority}
+      {priorityLabel(t, priority)}
     </span>
   );
 };
@@ -119,8 +125,8 @@ const ContactMessagesPanel: React.FC = () => {
       {/* Stats row */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
         {[
-          { label: 'Total',  value: stats?.total  ?? 0, icon: 'isax-message-text', color: 'slate' },
-          { label: 'Unread', value: stats?.unread ?? 0, icon: 'isax-sms-notification', color: 'gold'  },
+          { label: t('common.total', 'Total'),  value: stats?.total  ?? 0, icon: 'isax-message-text', color: 'slate' },
+          { label: t('admin.contact.unread', 'Unread'), value: stats?.unread ?? 0, icon: 'isax-sms-notification', color: 'gold'  },
         ].map(s => (
           <div className="lx-stat-card" key={s.label} style={{ flex: '0 0 auto', minWidth: 140 }}>
             <span className={`stat-icon ${s.color}`}>
@@ -256,14 +262,14 @@ const ContactMessagesPanel: React.FC = () => {
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
           <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
-            Page {page + 1} of {totalPages} ({totalElements} messages)
+            {t('common.pageOf', 'Page {{page}} of {{total}}', { page: page + 1, total: totalPages })} ({t('admin.contact.messagesCount', '{{n}} messages', { n: totalElements })})
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</button>
+            <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>{t('common.previous', 'Previous')}</button>
             {Array.from({ length: totalPages }, (_, i) => i).map(i => (
               <button key={i} className={`lx-btn lx-btn-sm ${i === page ? 'lx-btn-gold' : 'lx-btn-outline'}`} onClick={() => setPage(i)}>{i + 1}</button>
             ))}
-            <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+            <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>{t('common.next', 'Next')}</button>
           </div>
         </div>
       )}
@@ -315,11 +321,11 @@ const AdminTickets = () => {
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
     } catch {
-      setError('Failed to load tickets.');
+      setError(t('admin.tickets.loadError', "We couldn't load the tickets. Check your connection and try again."));
     } finally {
       setLoading(false);
     }
-  }, [page, filterStatus]);
+  }, [page, filterStatus, t]);
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
@@ -396,7 +402,7 @@ const AdminTickets = () => {
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
         <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
-          Page {page + 1} of {totalPages} ({totalElements} tickets)
+          {t('common.pageOf', 'Page {{page}} of {{total}}', { page: page + 1, total: totalPages })} ({t('admin.tickets.ticketsCount', '{{n}} tickets', { n: totalElements })})
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
           <button className="lx-btn lx-btn-outline lx-btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>{t('common.previous', 'Previous')}</button>
@@ -488,7 +494,7 @@ const AdminTickets = () => {
             className={`lx-btn lx-btn-sm ${filterStatus === s ? 'lx-btn-gold' : 'lx-btn-outline'}`}
             onClick={() => handleFilterChange(s as TicketStatus | '')}
           >
-            {s === '' ? t('admin.tickets.all', 'All') : STATUS_LABELS[s as TicketStatus]}
+            {s === '' ? t('admin.tickets.all', 'All') : statusLabel(t, s as TicketStatus)}
             {s === 'OPEN' && stats && stats.open > 0 && (
               <span style={{
                 marginLeft: 6, padding: '1px 7px', borderRadius: 10,
@@ -509,6 +515,9 @@ const AdminTickets = () => {
           ) : error ? (
             <div style={{ padding: '12px 16px', margin: 16, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139, 35, 53, 0.06)', border: '1px solid rgba(139, 35, 53, 0.12)', color: '#8B2335', fontSize: 14 }}>
               {error}
+              <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 12 }} onClick={() => loadTickets()}>
+                {t('common.tryAgain', 'Try Again')}
+              </button>
             </div>
           ) : tickets.length === 0 ? (
             <div className="lx-empty-state">
@@ -544,9 +553,9 @@ const AdminTickets = () => {
                         {ticket.subject}
                       </span>
                     </td>
-                    <td><span className="lx-badge badge-slate">{CATEGORY_LABELS[ticket.category]}</span></td>
-                    <td>{priorityBadge(ticket.priority)}</td>
-                    <td>{statusBadge(ticket.status)}</td>
+                    <td><span className="lx-badge badge-slate">{categoryLabel(t, ticket.category)}</span></td>
+                    <td>{priorityBadge(t, ticket.priority)}</td>
+                    <td>{statusBadge(t, ticket.status)}</td>
                     <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(ticket.createdAt)}</td>
                     <td>
                       <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(ticket)}>
@@ -586,14 +595,14 @@ const AdminTickets = () => {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{activeTicket.ticketNumber}</h5>
-                    {statusBadge(activeTicket.status)}
-                    {priorityBadge(activeTicket.priority)}
+                    {statusBadge(t, activeTicket.status)}
+                    {priorityBadge(t, activeTicket.priority)}
                   </div>
                   <p style={{ margin: '4px 0 0', fontWeight: 600, color: 'var(--lx-text)' }}>{activeTicket.subject}</p>
                   <small style={{ color: 'var(--lx-text-muted)' }}>
                     <i className="isax isax-user" style={{ marginRight: 4 }} />
                     {activeTicket.studentName} ({activeTicket.studentEmail})
-                    {' · '}{CATEGORY_LABELS[activeTicket.category]}
+                    {' · '}{categoryLabel(t, activeTicket.category)}
                     {' · '}Opened {formatDate(activeTicket.createdAt)}
                   </small>
                 </div>
@@ -617,7 +626,7 @@ const AdminTickets = () => {
                   disabled={activeTicket.status === s || changingStatus}
                   onClick={() => handleStatusChange(s)}
                 >
-                  {STATUS_LABELS[s]}
+                  {statusLabel(t, s)}
                 </button>
               ))}
             </div>
@@ -629,7 +638,7 @@ const AdminTickets = () => {
                   <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
                 </div>
               ) : !activeTicket.messages?.length ? (
-                <p style={{ textAlign: 'center', color: 'var(--lx-text-muted)', padding: '24px 0' }}>No messages yet.</p>
+                <p style={{ textAlign: 'center', color: 'var(--lx-text-muted)', padding: '24px 0' }}>{t('admin.tickets.noMessages', 'No messages yet.')}</p>
               ) : (
                 activeTicket.messages.map((msg: TicketMessage) => (
                   <div

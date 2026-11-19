@@ -89,4 +89,8 @@ public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollme
     List<CourseEnrollment> findByInstructorAndStudent(
             @Param("instructor") User instructor,
             @Param("student") User student);
+
+    /** Completed courses per user, for many users at once (admin lists → real badges). */
+    @Query("SELECT e.user.id, COUNT(e) FROM CourseEnrollment e WHERE e.user.id IN :ids AND e.isCompleted = true GROUP BY e.user.id")
+    List<Object[]> countCompletedByUserIds(@Param("ids") java.util.Collection<UUID> ids);
 }

@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { TFunction } from 'i18next';
+import { all_routes } from '../../router/all_routes';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { paymentService } from '../../../services/api/payment.service';
 import { PaymentTransaction, PaymentStatus } from '../../../services/api/types';
@@ -10,37 +13,43 @@ const PAGE_SIZE = 10;
 
 type StatusFilter = 'ALL' | PaymentStatus;
 
-const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
-  { label: 'All',       value: 'ALL' },
-  { label: 'Completed', value: 'COMPLETED' },
-  { label: 'Pending',   value: 'PENDING' },
-  { label: 'Failed',    value: 'FAILED' },
-  { label: 'Cancelled', value: 'CANCELLED' },
-  { label: 'Refunded',  value: 'REFUNDED' },
-];
+const STATUS_OPTIONS: StatusFilter[] = ['ALL', 'COMPLETED', 'PENDING', 'FAILED', 'CANCELLED', 'REFUNDED'];
 
-const statusBadge = (status: PaymentStatus) => {
-  const map: Record<string, { cls: string; label: string }> = {
-    COMPLETED: { cls: 'badge-success',  label: 'Completed' },
-    PENDING:   { cls: 'badge-warning',  label: 'Pending' },
-    FAILED:    { cls: 'badge-danger',   label: 'Failed' },
-    CANCELLED: { cls: 'badge-slate',    label: 'Cancelled' },
-    REFUNDED:  { cls: 'badge-info',     label: 'Refunded' },
-  };
-  const s = map[status] ?? { cls: 'badge-slate', label: String(status) };
-  return <span className={`lx-badge ${s.cls}`}>{s.label}</span>;
+const paymentStatusLabel = (t: TFunction, status: string): string => {
+  switch (status) {
+    case 'ALL':       return t('common.all', 'All');
+    case 'COMPLETED': return t('enums.paymentStatus.COMPLETED', 'Completed');
+    case 'PENDING':   return t('enums.paymentStatus.PENDING', 'Pending');
+    case 'FAILED':    return t('enums.paymentStatus.FAILED', 'Failed');
+    case 'CANCELLED': return t('enums.paymentStatus.CANCELLED', 'Cancelled');
+    case 'REFUNDED':  return t('enums.paymentStatus.REFUNDED', 'Refunded');
+    default:          return String(status);
+  }
 };
 
-const formatDate = (iso?: string) => {
+const statusBadge = (t: TFunction, status: PaymentStatus) => {
+  const cls: Record<string, string> = {
+    COMPLETED: 'badge-success',
+    PENDING:   'badge-warning',
+    FAILED:    'badge-danger',
+    CANCELLED: 'badge-slate',
+    REFUNDED:  'badge-info',
+  };
+  return <span className={`lx-badge ${cls[status] ?? 'badge-slate'}`}>{paymentStatusLabel(t, status)}</span>;
+};
+
+const formatDate = (iso?: string, locale = 'en-US') => {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatAmount = (amount: number, currency: string) =>
   `${currency ?? ''} ${Number(amount ?? 0).toFixed(2)}`;
 
 const StudentOrder: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US';
+  const fmtDate = (iso?: string) => formatDate(iso, dateLocale);
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -61,11 +70,11 @@ const StudentOrder: React.FC = () => {
       setTotalPages(res.totalPages ?? 0);
       setTotalElements(res.totalElements ?? 0);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load order history');
+      setError(err?.response?.data?.message || t('student.orders.loadError', "We couldn't load your order history. Check your connection and try again."));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { load(page); }, [load, page]);
 
@@ -88,7 +97,7 @@ const StudentOrder: React.FC = () => {
     return (
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ marginTop: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>
-          Page {page + 1} of {totalPages}
+          {t('common.pageOf', 'Page {{page}} of {{total}}', { page: page + 1, total: totalPages })}
         </p>
         <div className="d-flex gap-1">
           <button
@@ -127,7 +136,7 @@ const StudentOrder: React.FC = () => {
       {/* Header */}
       <div className="d-flex align-items-center justify-content-between mb-4">
         <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>
-          Order History
+          {t('student.orders.title', 'Order History')}
           {totalElements > 0 && (
             <span className="lx-badge badge-info" style={{ marginLeft: 8, fontSize: 11 }}>{totalElements}</span>
           )}
@@ -139,13 +148,13 @@ const StudentOrder: React.FC = () => {
         <div className="d-flex gap-2 flex-wrap">
           {STATUS_OPTIONS.map((opt) => (
             <button
-              key={opt.value}
+              key={opt}
               type="button"
-              className={`lx-btn lx-btn-sm ${statusFilter === opt.value ? '' : 'lx-btn-outline'}`}
-              style={statusFilter === opt.value ? { background: 'var(--lx-primary)', color: '#fff', border: '1.5px solid var(--lx-primary)' } : {}}
-              onClick={() => setStatusFilter(opt.value)}
+              className={`lx-btn lx-btn-sm ${statusFilter === opt ? '' : 'lx-btn-outline'}`}
+              style={statusFilter === opt ? { background: 'var(--lx-primary)', color: '#fff', border: '1.5px solid var(--lx-primary)' } : {}}
+              onClick={() => setStatusFilter(opt)}
             >
-              {opt.label}
+              {paymentStatusLabel(t, opt)}
             </button>
           ))}
         </div>
@@ -153,7 +162,7 @@ const StudentOrder: React.FC = () => {
           <i className="isax isax-search-normal-1" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--lx-text-muted)', fontSize: 16 }} />
           <input
             type="text"
-            placeholder="Search order or course…"
+            placeholder={t('student.orders.searchPlaceholder', 'Search order or course…')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
@@ -188,7 +197,7 @@ const StudentOrder: React.FC = () => {
         >
           <i className="isax isax-warning-2" />{error}
           <button className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginLeft: 'auto' }} onClick={() => load(page)}>
-            Retry
+            {t('common.tryAgain', 'Try Again')}
           </button>
         </div>
       )}
@@ -203,8 +212,24 @@ const StudentOrder: React.FC = () => {
           <div className="lx-card-body">
             <div className="lx-empty-state">
               <div className="empty-icon"><i className="isax isax-receipt-item" /></div>
-              <h6>No orders found</h6>
-              <p>{totalElements === 0 ? "You haven't made any purchases yet." : 'No orders match the current filter.'}</p>
+              <h6>{totalElements === 0 ? t('student.orders.emptyTitle', 'No orders yet') : t('student.orders.noMatchTitle', 'No orders found')}</h6>
+              <p>{totalElements === 0
+                ? t('student.orders.emptyText', "You haven't made any purchases yet. Buy a course, or get Premium to unlock every course.")
+                : t('student.orders.noMatchText', 'No orders match the current filter.')}</p>
+              {totalElements === 0 ? (
+                <div className="d-flex gap-2 justify-content-center flex-wrap mt-2">
+                  <Link to={all_routes.courseGrid} className="lx-btn lx-btn-gold lx-btn-sm">
+                    <i className="isax isax-book-1" /> {t('student.orders.browseCourses', 'Browse courses')}
+                  </Link>
+                  <Link to={all_routes.pricingPlan} className="lx-btn lx-btn-outline lx-btn-sm">
+                    <i className="isax isax-crown-1" /> {t('student.orders.getPremium', 'Get Premium')}
+                  </Link>
+                </div>
+              ) : (
+                <button type="button" className="lx-btn lx-btn-outline lx-btn-sm mt-2" onClick={() => { setStatusFilter('ALL'); setSearch(''); }}>
+                  {t('student.orders.clearFilters', 'Show all orders')}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -215,11 +240,11 @@ const StudentOrder: React.FC = () => {
               <table className="lx-table">
                 <thead>
                   <tr>
-                    <th>Order ID</th>
-                    <th>Description</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Status</th>
+                    <th>{t('student.orders.orderId', 'Order ID')}</th>
+                    <th>{t('common.description', 'Description')}</th>
+                    <th>{t('student.orders.date', 'Date')}</th>
+                    <th>{t('student.orders.amount', 'Amount')}</th>
+                    <th>{t('common.status', 'Status')}</th>
                     <th style={{ width: 60 }} />
                   </tr>
                 </thead>
@@ -236,15 +261,15 @@ const StudentOrder: React.FC = () => {
                         </button>
                       </td>
                       <td style={{ fontSize: 13.5, color: 'var(--lx-text)' }}>
-                        {txn.transactionType === 'COURSE_PURCHASE' ? txn.courseName ?? 'Course Purchase' : 'Subscription'}
+                        {txn.transactionType === 'COURSE_PURCHASE' ? txn.courseName ?? t('enums.transactionType.COURSE_PURCHASE', 'Course Purchase') : t('enums.transactionType.SUBSCRIPTION', 'Subscription')}
                       </td>
-                      <td style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{formatDate(txn.createdAt)}</td>
+                      <td style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{fmtDate(txn.createdAt)}</td>
                       <td style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--lx-text)' }}>{formatAmount(txn.amount, txn.currency)}</td>
-                      <td>{statusBadge(txn.status)}</td>
+                      <td>{statusBadge(t, txn.status)}</td>
                       <td>
                         <button
                           className="lx-btn lx-btn-outline lx-btn-sm"
-                          title="View invoice"
+                          title={t('student.orders.viewInvoice', 'View invoice')}
                           onClick={() => setSelected(txn)}
                         >
                           <i className="isax isax-eye" />
@@ -287,7 +312,7 @@ const StudentOrder: React.FC = () => {
             >
               {/* Header */}
               <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>Invoice</h5>
+                <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>{t('student.orders.invoice', 'Invoice')}</h5>
                 <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}>
                   <i className="isax isax-close-circle" />
                 </button>
@@ -308,11 +333,11 @@ const StudentOrder: React.FC = () => {
                         #{selected.payzoneOrderId ?? selected.id.substring(0, 8).toUpperCase()}
                       </h6>
                       <p style={{ marginBottom: 2, fontSize: 13, color: 'var(--lx-text-muted)' }}>
-                        Date: <span style={{ color: 'var(--lx-text)' }}>{formatDate(selected.createdAt)}</span>
+                        {t('student.orders.dateLabel', 'Date:')} <span style={{ color: 'var(--lx-text)' }}>{fmtDate(selected.createdAt)}</span>
                       </p>
                       {selected.completedAt && (
                         <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)' }}>
-                          Paid on: <span style={{ color: 'var(--lx-text)' }}>{formatDate(selected.completedAt)}</span>
+                          {t('student.orders.paidOn', 'Paid on:')} <span style={{ color: 'var(--lx-text)' }}>{fmtDate(selected.completedAt)}</span>
                         </p>
                       )}
                     </div>
@@ -323,18 +348,18 @@ const StudentOrder: React.FC = () => {
                 <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
                   <div className="row g-4 align-items-center">
                     <div className="col-lg-6">
-                      <p style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Type</p>
+                      <p style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('common.type', 'Type')}</p>
                       <span className="lx-badge badge-info">
-                        {selected.transactionType === 'COURSE_PURCHASE' ? 'Course Purchase' : 'Subscription'}
+                        {selected.transactionType === 'COURSE_PURCHASE' ? t('enums.transactionType.COURSE_PURCHASE', 'Course Purchase') : t('enums.transactionType.SUBSCRIPTION', 'Subscription')}
                       </span>
                     </div>
                     <div className="col-lg-3">
-                      <p style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Payment Status</p>
-                      {statusBadge(selected.status)}
+                      <p style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('student.orders.paymentStatus', 'Payment Status')}</p>
+                      {statusBadge(t, selected.status)}
                     </div>
                     {selected.paymentMethod && (
                       <div className="col-lg-3">
-                        <p style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Method</p>
+                        <p style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('student.orders.method', 'Method')}</p>
                         <span style={{ fontSize: 14, color: 'var(--lx-text)' }}>{selected.paymentMethod}</span>
                       </div>
                     )}
@@ -342,7 +367,7 @@ const StudentOrder: React.FC = () => {
 
                   {selected.payzoneTransactionId && (
                     <p style={{ marginTop: 12, marginBottom: 0, fontSize: 13, color: 'var(--lx-text-muted)' }}>
-                      Transaction ref: <span style={{ color: 'var(--lx-text)', fontWeight: 500 }}>{selected.payzoneTransactionId}</span>
+                      {t('student.orders.transactionRef', 'Transaction ref:')} <span style={{ color: 'var(--lx-text)', fontWeight: 500 }}>{selected.payzoneTransactionId}</span>
                     </p>
                   )}
 
@@ -371,18 +396,18 @@ const StudentOrder: React.FC = () => {
                   <table className="lx-table">
                     <thead>
                       <tr>
-                        <th style={{ width: '50%' }}>Description</th>
-                        <th style={{ textAlign: 'center' }}>Qty</th>
-                        <th style={{ textAlign: 'right' }}>Total</th>
+                        <th style={{ width: '50%' }}>{t('common.description', 'Description')}</th>
+                        <th style={{ textAlign: 'center' }}>{t('student.orders.qty', 'Qty')}</th>
+                        <th style={{ textAlign: 'end' }}>{t('common.total', 'Total')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
                         <td style={{ color: 'var(--lx-text)' }}>
-                          {selected.transactionType === 'COURSE_PURCHASE' ? selected.courseName ?? 'Course Purchase' : 'Platform Subscription'}
+                          {selected.transactionType === 'COURSE_PURCHASE' ? selected.courseName ?? t('enums.transactionType.COURSE_PURCHASE', 'Course Purchase') : t('student.orders.platformSubscription', 'Platform Subscription')}
                         </td>
                         <td style={{ textAlign: 'center', color: 'var(--lx-text-muted)' }}>1</td>
-                        <td style={{ textAlign: 'right', color: 'var(--lx-text)' }}>{formatAmount(selected.amount, selected.currency)}</td>
+                        <td style={{ textAlign: 'end', color: 'var(--lx-text)' }}>{formatAmount(selected.amount, selected.currency)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -393,11 +418,11 @@ const StudentOrder: React.FC = () => {
                   <div className="d-flex justify-content-end">
                     <div style={{ width: 250 }}>
                       <div className="d-flex justify-content-between" style={{ padding: '8px 0', borderBottom: '1px solid rgba(107, 29, 42, 0.04)' }}>
-                        <span style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>Sub Total</span>
+                        <span style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('student.orders.subTotal', 'Sub Total')}</span>
                         <span style={{ fontWeight: 500, color: 'var(--lx-text)' }}>{formatAmount(selected.amount, selected.currency)}</span>
                       </div>
                       <div className="d-flex justify-content-between" style={{ paddingTop: 8 }}>
-                        <span style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 15 }}>Total Amount</span>
+                        <span style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 15 }}>{t('student.orders.totalAmount', 'Total Amount')}</span>
                         <span style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 15 }}>{formatAmount(selected.amount, selected.currency)}</span>
                       </div>
                     </div>
@@ -405,7 +430,7 @@ const StudentOrder: React.FC = () => {
                 </div>
 
                 <p style={{ color: 'var(--lx-text-muted)', fontSize: 13, margin: 0 }}>
-                  Full payment grants non-transferable access to the purchased content, subject to the provider&apos;s refund policy.
+                  {t('student.orders.invoiceNote', "Full payment grants non-transferable access to the purchased content, subject to the provider's refund policy.")}
                 </p>
               </div>
             </div>

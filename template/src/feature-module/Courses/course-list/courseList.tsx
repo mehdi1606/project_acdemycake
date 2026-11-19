@@ -430,7 +430,7 @@ const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, 
           <span className="sl-script" style={{ fontSize: '1.7rem' }}>{t('courseList.discover', 'Discover')}</span>
         </div>
         <h2 className="sl-cat-landing__title">{t('courseList.browseByCategory', 'Browse by Category')}</h2>
-        <p className="sl-cat-landing__sub">{t('courseList.browseByCategorySub', 'Choose the category that inspires you, and explore every programme inside it.')}</p>
+        <p className="sl-cat-landing__sub">{t('courseList.browseByCategorySubCourses', 'Choose the category that inspires you, and explore every course inside it.')}</p>
       </div>
 
       {loading && categories.length === 0 ? (
@@ -470,7 +470,7 @@ const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, 
                   <span className="sl-cat-card__overlay" />
                   <span className="sl-cat-card__corner" aria-hidden="true" />
                   <span className="sl-cat-card__count">
-                    <i className="isax isax-book-1" /> {cat.coursesCount ?? 0} {t('courseList.programmes', 'programmes')}
+                    <i className="isax isax-book-1" /> {t('courseList.courseCount', '{{count}} courses', { count: cat.coursesCount ?? 0 })}
                   </span>
                 </div>
                 <div className="sl-cat-card__body">
@@ -519,6 +519,13 @@ const CourseList: React.FC = () => {
     (searchParams.get('level') as CourseLevel) || null
   );
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
+
+  // A search from elsewhere (e.g. the home hero: /courses?search=…) fills and applies the search box,
+  // also when the visitor is already on this page.
+  const urlSearch = searchParams.get('search') || '';
+  useEffect(() => {
+    setSearchQuery(urlSearch);
+  }, [urlSearch]);
 
   const { isAuthenticated, user } = useAppSelector(s => s.auth);
 
@@ -598,7 +605,7 @@ const CourseList: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // From the category landing → open that category's programmes.
+  // From the category landing → open that category's courses.
   const handleSelectCategory = (id: string) => {
     setSelectedCategory(id);
     setCurrentPage(1);
@@ -665,7 +672,7 @@ const CourseList: React.FC = () => {
               data-aos-delay="80"
               data-aos-duration="700"
             >
-              {t('courseList.allProgrammes', 'All Programmes')}
+              {t('courseList.allCoursesTitle', 'All Courses')}
             </h1>
 
             <p
@@ -688,7 +695,7 @@ const CourseList: React.FC = () => {
               <i className="isax isax-search-normal-1" />
               <input
                 type="text"
-                placeholder={t('courseList.searchPlaceholder2', 'Search programmes, techniques, instructors…')}
+                placeholder={t('courseList.searchPlaceholderCourses', 'Search courses, techniques, instructors…')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
@@ -706,7 +713,7 @@ const CourseList: React.FC = () => {
             >
               <Link to={route.homeone}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
               <span>✦</span>
-              <span>{t('courseList.allProgrammes', 'All Programmes')}</span>
+              <span>{t('courseList.allCoursesTitle', 'All Courses')}</span>
             </nav>
           </div>
         </div>
@@ -773,8 +780,8 @@ const CourseList: React.FC = () => {
               {/* Toolbar */}
               <div className="sl-cl-toolbar" data-aos="fade-down" data-aos-duration="600">
                 <p className="sl-cl-toolbar__results">
-                  {loading ? t('courseList.loadingProgrammes', 'Loading programmes…') : (
-                    <>{t('courseList.showing', 'Showing')} <strong>{start}–{end}</strong> {t('courseList.of', 'of')} <strong>{totalElements}</strong> {t('courseList.programmes', 'programmes')}</>
+                  {loading ? t('courseList.loadingCourses', 'Loading courses…') : (
+                    <>{t('courseList.showing', 'Showing')} <strong>{start}–{end}</strong> {t('courseList.of', 'of')} <strong>{totalElements}</strong> {t('courseList.coursesWord', 'courses')}</>
                   )}
                 </p>
                 <div className="sl-cl-toolbar__controls">
@@ -841,12 +848,12 @@ const CourseList: React.FC = () => {
                     <span className="sl-script" style={{ fontSize: '2rem' }}>{t('courseList.oops', 'Oops')}</span>
                   </div>
                   <i className="isax isax-search-status sl-cl-empty__icon" />
-                  <h4 className="sl-cl-empty__title">{t('courseList.noProgrammesFound', 'No programmes found')}</h4>
+                  <h4 className="sl-cl-empty__title">{t('courses.list.noCoursesFound', 'No courses found')}</h4>
                   <p className="sl-cl-empty__text">
                     {t('courseList.adjustFilters', 'Adjust your filters or search terms to discover our full catalogue.')}
                   </p>
                   <button className="sl-btn-gold sl-btn-magnetic" onClick={clearFilters}>
-                    {t('courseList.browseAllProgrammes', 'Browse All Programmes')} <i className="isax isax-arrow-right-1" />
+                    {t('courseList.browseAllCourses', 'Browse all courses')} <i className="isax isax-arrow-right-1" />
                   </button>
                 </div>
               ) : (

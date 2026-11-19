@@ -113,7 +113,12 @@ const BrandGallery = () => {
                 opacity: 0; transform: translateY(8px);
                 transition: opacity 0.4s ease, transform 0.4s ease;
               }
-              .sl-hscroll__card:hover .sl-hscroll__cap { opacity: 1; transform: translateY(0); }
+              .sl-hscroll__card:hover .sl-hscroll__cap,
+              .sl-hscroll__card:focus-within .sl-hscroll__cap { opacity: 1; transform: translateY(0); }
+              /* Touch screens have no hover: always show the caption */
+              @media (hover: none) {
+                .sl-hscroll__cap { opacity: 1; transform: none; }
+              }
               .sl-hscroll__card::after {
                 content: '';
                 position: absolute; top: 0.6rem; right: 0.6rem;

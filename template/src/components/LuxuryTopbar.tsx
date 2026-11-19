@@ -68,6 +68,8 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const [searchFocused,  setSearchFocused]  = useState(false);
   const [searchQuery,    setSearchQuery]    = useState('');
   const [guideOpen,      setGuideOpen]      = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   /* notifications state */
   const [notifications,  setNotifications]  = useState<Notification[]>([]);
@@ -127,9 +129,25 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         setNotifOpen(false);
       }
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setDropdownOpen(false);
+        setNotifOpen(false);
+        setMobileSearchOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
+
+  /* ── collapse the phone search on navigation ── */
+  useEffect(() => {
+    setMobileSearchOpen(false);
+  }, [location.pathname]);
 
   /* ── close on route change ── */
   useEffect(() => {
@@ -295,14 +313,25 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
     const next = i18n.language === 'ar' ? 'en' : 'ar';
     // Reload so all dynamic DB content is re-fetched in the new language
     // (the backend localises responses by the Accept-Language header).
-    i18n.changeLanguage(next).then(() => window.location.reload());
+    // …but never wipe text the user has typed and not saved yet.
+    let hasUnsavedInput = false;
+    try {
+      const skip = ['hidden', 'checkbox', 'radio', 'submit', 'button', 'file', 'range', 'color', 'search'];
+      hasUnsavedInput = Array.from(
+        document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.luxury-main input, .luxury-main textarea'),
+      ).some((el) => {
+        if (el instanceof HTMLInputElement && skip.includes(el.type)) return false;
+        return el.value.trim() !== '' && el.value !== el.defaultValue;
+      });
+    } catch { hasUnsavedInput = false; }
+    i18n.changeLanguage(next).then(() => { if (!hasUnsavedInput) window.location.reload(); });
   };
 
   const roleColor = getRoleColor();
 
   return (
     <>
-    {/* Badge Guide – auto-open once + openable via icon */}
+    {/* Badge Guide – opened only on request (topbar badge button / sidebar "Badges") */}
     {user && (
       <BadgeGuide
         userId={user.id}
@@ -315,8 +344,14 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
     <header className="luxury-topbar">
       {/* ── Left: sidebar toggle + logo ── */}
       <div className="topbar-left">
-        <button className="topbar-menu-btn" onClick={onSidebarToggle} title={t('nav.toggleSidebar', 'Toggle sidebar')}>
-          <i className="isax isax-menu" />
+        <button
+          type="button"
+          className="topbar-menu-btn"
+          onClick={onSidebarToggle}
+          title={t('nav.toggleSidebar', 'Toggle sidebar')}
+          aria-label={t('nav.toggleSidebar', 'Toggle sidebar')}
+        >
+          <i className="isax isax-menu" aria-hidden="true" />
         </button>
 
         <Link to={all_routes.homeone} className="topbar-logo">
@@ -331,25 +366,58 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
       </div>
 
       {/* ── Center: search bar ── */}
-      <div className={`topbar-search${searchFocused ? ' focused' : ''}`}>
-        <i className="isax isax-search-normal-1" />
+      <form
+        role="search"
+        className={`topbar-search${searchFocused ? ' focused' : ''}${mobileSearchOpen ? ' mobile-open' : ''}`}
+        onSubmit={(e) => {
+          e.preventDefault();
+          const q = searchQuery.trim();
+          setMobileSearchOpen(false);
+          navigate(q ? `${all_routes.courseList}?search=${encodeURIComponent(q)}` : all_routes.courseList);
+        }}
+      >
+        <i className="isax isax-search-normal-1" aria-hidden="true" />
         <input
+          ref={searchInputRef}
           type="text"
+          aria-label={t('common.search', 'Search')}
           placeholder={t('topbar.searchPlaceholder', 'Search courses, quizzes, students…')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setMobileSearchOpen(false); }}
+          enterKeyHint="search"
         />
-      </div>
+      </form>
 
       {/* ── Right: actions + profile ── */}
       <div className="topbar-right">
 
+        {/* ── Search toggle (phones only, where the bar itself is hidden) ── */}
+        <button
+          type="button"
+          className="topbar-action-btn topbar-search-toggle"
+          aria-label={t('common.search', 'Search')}
+          title={t('common.search', 'Search')}
+          aria-expanded={mobileSearchOpen}
+          onClick={() => {
+            setMobileSearchOpen((o) => {
+              const next = !o;
+              if (next) setTimeout(() => searchInputRef.current?.focus(), 30);
+              return next;
+            });
+          }}
+        >
+          <i className={`isax ${mobileSearchOpen ? 'isax-close-circle' : 'isax-search-normal-1'}`} aria-hidden="true" />
+        </button>
+
         {/* ── Language switcher ── */}
         <button
+          type="button"
           className="topbar-action-btn"
           onClick={toggleLanguage}
+          aria-label={i18n.language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
           title={i18n.language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
           style={{ padding: '4px 6px', display: 'flex', alignItems: 'center' }}
         >
@@ -363,12 +431,17 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         {/* ── Notification bell ── */}
         <div style={{ position: 'relative' }} ref={notifRef}>
           <button
+            type="button"
             className="topbar-action-btn"
             title={t('notifications.title', 'Notifications')}
+            aria-label={unreadCount > 0
+              ? `${t('notifications.title', 'Notifications')} (${unreadCount} ${t('notifications.new', 'new')})`
+              : t('notifications.title', 'Notifications')}
+            aria-expanded={notifOpen}
             onClick={() => setNotifOpen((o) => !o)}
             style={{ position: 'relative' }}
           >
-            <i className="isax isax-notification" />
+            <i className="isax isax-notification" aria-hidden="true" />
             {unreadCount > 0 && (
               <span className="notif-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
             )}
@@ -455,6 +528,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                     return (
                       <div
                         key={notif.id}
+                        className="notif-item"
                         onClick={() => handleNotifClick(notif)}
                         style={{
                           display: 'flex', alignItems: 'flex-start', gap: 12,
@@ -467,13 +541,9 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = 'rgba(107, 29, 42, 0.04)';
-                          const btn = e.currentTarget.querySelector('.notif-delete-btn') as HTMLElement;
-                          if (btn) btn.style.opacity = '1';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = notif.isRead ? 'transparent' : 'rgba(107, 29, 42, 0.025)';
-                          const btn = e.currentTarget.querySelector('.notif-delete-btn') as HTMLElement;
-                          if (btn) btn.style.opacity = '0';
                         }}
                       >
                         {/* Icon */}
@@ -517,20 +587,20 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                         )}
 
                         {/* Delete button */}
+                        {/* Visibility handled in _luxury-dashboard.scss: hover/focus on mouse
+                            devices, always visible on touch (hover: none). */}
                         <button
+                          type="button"
                           onClick={(e) => handleDeleteNotif(e, notif.id)}
                           style={{
-                            position: 'absolute', top: 10,
-                            ...(i18n.dir() === 'rtl' ? { left: 12 } : { right: 12 }),
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            padding: 3, borderRadius: 4,
-                            opacity: 0, transition: 'opacity 0.15s',
-                            color: '#9ca3af', fontSize: 14,
+                            position: 'absolute', top: 4,
+                            ...(i18n.dir() === 'rtl' ? { left: 4 } : { right: 4 }),
                           }}
                           className="notif-delete-btn"
                           title={t('common.dismiss', 'Dismiss')}
+                          aria-label={t('common.dismiss', 'Dismiss')}
                         >
-                          <i className="isax isax-close-circle" />
+                          <i className="isax isax-close-circle" aria-hidden="true" />
                         </button>
                       </div>
                     );
@@ -566,43 +636,58 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         {/* ── Badge guide trigger icon ── */}
         {user && (
           <button
+            type="button"
+            className="topbar-badge-btn"
             onClick={() => setGuideOpen(true)}
-            title={t('badgeGuide.intro.title', 'Badge Guide')}
+            title={t('badgeGuide.openHint', 'My badge — see what each badge means')}
+            aria-label={t('badgeGuide.openHint', 'My badge — see what each badge means')}
             style={{
-              background: `radial-gradient(circle, ${userBadge.color}1f 0%, transparent 72%)`,
-              border: `1.5px solid ${userBadge.color}40`,
+              background: 'transparent',
+              border: 'none',
               cursor: 'pointer',
               padding: 0,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              boxShadow: `0 0 10px ${userBadge.color}33`,
+              gap: 8,
               flexShrink: 0,
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 16px ${userBadge.color}66`;
+              const ring = e.currentTarget.firstElementChild as HTMLElement | null;
+              if (ring) { ring.style.transform = 'scale(1.1)'; ring.style.boxShadow = `0 0 16px ${userBadge.color}66`; }
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 10px ${userBadge.color}33`;
+              const ring = e.currentTarget.firstElementChild as HTMLElement | null;
+              if (ring) { ring.style.transform = 'scale(1)'; ring.style.boxShadow = `0 0 10px ${userBadge.color}33`; }
             }}
           >
-            <img
-              src={userBadge.image}
-              alt=""
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            <span
+              aria-hidden="true"
               style={{
-                width: 42,
-                height: 42,
-                objectFit: 'contain',
-                filter: `drop-shadow(0 1px 5px ${userBadge.color}99)`,
+                background: `radial-gradient(circle, ${userBadge.color}1f 0%, transparent 72%)`,
+                border: `1.5px solid ${userBadge.color}40`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                boxShadow: `0 0 10px ${userBadge.color}33`,
               }}
-            />
+            >
+              <img
+                src={userBadge.image}
+                alt=""
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                style={{
+                  width: 42,
+                  height: 42,
+                  objectFit: 'contain',
+                  filter: `drop-shadow(0 1px 5px ${userBadge.color}99)`,
+                }}
+              />
+            </span>
+            <span className="topbar-badge-label">{t('badgeGuide.myBadge', 'My badge')}</span>
           </button>
         )}
 
@@ -614,9 +699,15 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
               {t('nav.premium', 'Premium')}
             </span>
           ) : (
-            <Link to={all_routes.pricingPlan} className="upgrade-btn">
-              <i className="isax isax-crown-1" />
-              {t('nav.getPremium', 'Upgrade')}
+            <Link
+              to={all_routes.pricingPlan}
+              className="upgrade-btn"
+              aria-label={t('nav.getPremium', 'Get Premium')}
+              title={t('nav.getPremium', 'Get Premium')}
+            >
+              <i className="isax isax-crown-1" aria-hidden="true" />
+              <span className="upgrade-label-full">{t('nav.getPremium', 'Get Premium')}</span>
+              <span className="upgrade-label-short" aria-hidden="true">{t('nav.upgrade', 'Upgrade')}</span>
             </Link>
           )
         )}

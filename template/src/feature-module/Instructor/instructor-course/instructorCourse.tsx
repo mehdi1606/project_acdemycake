@@ -63,7 +63,7 @@ const InstructorCourse = () => {
       setStats(s);
     } catch (err) {
       console.error('Error fetching courses:', err);
-      message.error('Failed to load courses');
+      message.error(t('instructor.coursesPage.loadError', 'We couldn\'t load your courses. Refresh the page to try again.'));
     } finally {
       setLoading(false);
     }
@@ -81,12 +81,12 @@ const InstructorCourse = () => {
     try {
       setDeleting(true);
       await instructorService.deleteCourse(selectedCourseId);
-      message.success('Course deleted successfully');
+      message.success(t('instructor.coursesPage.deleted', 'Course deleted successfully'));
       setDeleteModal(false);
       fetchCourses();
     } catch (err) {
       console.error('Error deleting course:', err);
-      message.error('Failed to delete course');
+      message.error(t('instructor.coursesPage.deleteError', 'The course couldn\'t be deleted. Please try again.'));
     } finally {
       setDeleting(false);
       setSelectedCourseId(null);
@@ -98,10 +98,10 @@ const InstructorCourse = () => {
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      PUBLISHED: { cls: 'badge-success', label: 'Published' },
-      PENDING_REVIEW: { cls: 'badge-warning', label: 'Pending' },
-      DRAFT: { cls: 'badge-slate', label: 'Draft' },
-      REJECTED: { cls: 'badge-danger', label: 'Rejected' },
+      PUBLISHED: { cls: 'badge-success', label: t('enums.courseStatus.PUBLISHED', 'Published') },
+      PENDING_REVIEW: { cls: 'badge-warning', label: t('enums.courseStatus.PENDING_REVIEW', 'Pending Review') },
+      DRAFT: { cls: 'badge-slate', label: t('enums.courseStatus.DRAFT', 'Draft') },
+      REJECTED: { cls: 'badge-danger', label: t('enums.courseStatus.REJECTED', 'Rejected') },
     };
     const b = map[status] || { cls: 'badge-info', label: status };
     return <span className={`lx-badge ${b.cls}`}>{b.label}</span>;
@@ -243,8 +243,8 @@ const InstructorCourse = () => {
       render: (_: any, record: any) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {[
-            { to: instructorManageHref(record), icon: 'isax-setting-2', title: 'Manage' },
-            { to: `${all_routes.addNewCourse}?edit=${record.id}`, icon: 'isax-edit-2', title: 'Edit' },
+            { to: instructorManageHref(record), icon: 'isax-setting-2', title: t('instructor.coursesPage.manage', 'Manage content') },
+            { to: `${all_routes.addNewCourse}?edit=${record.id}`, icon: 'isax-edit-2', title: t('common.edit', 'Edit') },
           ].map((a) => (
             <Link
               key={a.title}
@@ -271,7 +271,7 @@ const InstructorCourse = () => {
           <button
             type="button"
             onClick={() => handleDeleteClick(record.id)}
-            title="Delete"
+            title={t('common.delete', 'Delete')}
             style={{
               width: 30, height: 30, borderRadius: 6, border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -315,7 +315,7 @@ const InstructorCourse = () => {
             </div>
             <div>
               <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--lx-text-muted)', display: 'block', marginBottom: 2 }}>
-                {sc.label}
+                {t(`instructor.coursesPage.stat.${sc.key}`, sc.label)}
               </span>
               <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--lx-text)' }}>
                 {stats[sc.key]}

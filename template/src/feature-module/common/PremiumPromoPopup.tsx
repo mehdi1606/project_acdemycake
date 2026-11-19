@@ -1,22 +1,69 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '../../core/redux/hooks'
 import { all_routes } from '../router/all_routes'
 
-const STORAGE_KEY = 'sl_premium_popup_closed_at'
-const RESHOW_INTERVAL_MS = 10 * 60 * 1000 // re-show after 10 minutes within the same session
-const INITIAL_DELAY_MS = 2500
+/** Dismissed → stay quiet for 7 days (localStorage). */
+const DISMISS_KEY = 'sl_premium_popup_dismissed_at'
+const DISMISS_FOR_MS = 7 * 24 * 60 * 60 * 1000
+/** Shown already in this tab session → never again until a new session. */
+const SESSION_KEY = 'sl_premium_popup_shown'
+/** Visitor must have spent this long on the site (since this session started) AND scrolled once. */
+const MIN_TIME_ON_SITE_MS = 25 * 1000
+const SESSION_START_KEY = 'sl_session_started_at'
+
+const safeGet = (store: 'local' | 'session', key: string): string | null => {
+    try { return (store === 'local' ? window.localStorage : window.sessionStorage).getItem(key) } catch { return null }
+}
+const safeSet = (store: 'local' | 'session', key: string, value: string) => {
+    try { (store === 'local' ? window.localStorage : window.sessionStorage).setItem(key, value) } catch { /* storage blocked */ }
+}
+
+/** Exact paths where the promo must never interrupt. */
+const BLOCKED_EXACT = new Set<string>([
+    all_routes.connect,
+    all_routes.login,
+    all_routes.register,
+    all_routes.forgotpassword,
+    all_routes.resetPassword,
+    all_routes.verifyEmail,
+    all_routes.cart,
+    all_routes.courseCart,
+    all_routes.courseCheckout,
+    all_routes.paymentCallback,
+])
+/** Path prefixes / fragments: course player, quizzes, ebook reader, every dashboard. */
+const isBlockedPath = (pathname: string): boolean => {
+    const p = pathname.replace(/\/+$/, '') || '/'
+    if (BLOCKED_EXACT.has(p)) return true
+    if (/^\/(student|instructor|admin)(\/|$)/.test(p)) return true      // dashboards (incl. quizzes)
+    if (p.startsWith(all_routes.courseWatch)) return true                // course player
+    if (/\/(watch|player|lesson-player)(\/|$)/.test(p)) return true
+    if (/quiz/i.test(p)) return true                                     // any quiz route
+    if (/^\/ebooks\/[^/]+\/read(\/|$)/.test(p)) return true              // ebook reader
+    if (/checkout|\/payment\//.test(p)) return true
+    return false
+}
+
+/** Another modal/dialog is already on screen — never stack on top of it. */
+const anotherModalOpen = (): boolean => {
+    try {
+        return !!document.querySelector('.modal.show, [role="dialog"], [aria-modal="true"]')
+    } catch {
+        return false
+    }
+}
 
 const PremiumPromoPopup: React.FC = () => {
-    const { i18n } = useTranslation()
+    const { t, i18n } = useTranslation()
     const { user, isAuthenticated } = useAppSelector(s => s.auth)
     const { pathname } = useLocation()
     const [visible, setVisible] = useState(false)
     const isRtl = i18n.language === 'ar'
+    const hasScrolledRef = useRef(false)
 
-    // Never on the standalone link-in-bio page (/connect)
-    const isHiddenRoute = pathname === all_routes.connect
+    const isHiddenRoute = isBlockedPath(pathname)
 
     // Only guests and students WITHOUT an active premium plan should see this
     const isEligible =
@@ -24,56 +71,78 @@ const PremiumPromoPopup: React.FC = () => {
         (!isAuthenticated ||
         (user?.role === 'STUDENT' && user?.subscriptionStatus !== 'ACTIVE'))
 
+    // Remember when this browsing session began (time on site, not on the current page).
+    useEffect(() => {
+        if (!safeGet('session', SESSION_START_KEY)) safeSet('session', SESSION_START_KEY, String(Date.now()))
+    }, [])
+
+    // Track the first scroll anywhere on the site.
+    useEffect(() => {
+        if (hasScrolledRef.current) return
+        const onScroll = () => {
+            hasScrolledRef.current = true
+            window.removeEventListener('scroll', onScroll)
+        }
+        window.addEventListener('scroll', onScroll, { passive: true })
+        return () => window.removeEventListener('scroll', onScroll)
+    }, [])
+
+    // Leaving for a blocked route hides it immediately.
+    useEffect(() => {
+        if (!isEligible) setVisible(false)
+    }, [isEligible])
+
     useEffect(() => {
         if (!isEligible) return
 
-        const shouldShow = () => {
-            const closedAt = sessionStorage.getItem(STORAGE_KEY)
-            if (!closedAt) return true
-            return Date.now() - Number(closedAt) >= RESHOW_INTERVAL_MS
+        const canShow = () => {
+            if (safeGet('session', SESSION_KEY)) return false                 // max once per session
+            const dismissedAt = Number(safeGet('local', DISMISS_KEY) || 0)
+            if (dismissedAt && Date.now() - dismissedAt < DISMISS_FOR_MS) return false
+            const startedAt = Number(safeGet('session', SESSION_START_KEY) || Date.now())
+            if (Date.now() - startedAt < MIN_TIME_ON_SITE_MS) return false
+            if (!hasScrolledRef.current) return false
+            if (anotherModalOpen()) return false
+            return true
         }
 
-        const tryShow = () => {
-            if (shouldShow()) setVisible(true)
+        const tick = () => {
+            if (canShow()) {
+                safeSet('session', SESSION_KEY, '1')
+                setVisible(true)
+            }
         }
-
-        const initial = setTimeout(tryShow, INITIAL_DELAY_MS)
-        const interval = setInterval(tryShow, 30_000)
-        return () => { clearTimeout(initial); clearInterval(interval) }
+        const interval = window.setInterval(tick, 2000)
+        return () => window.clearInterval(interval)
     }, [isEligible])
+
+    const handleClose = useCallback(() => {
+        setVisible(false)
+        safeSet('local', DISMISS_KEY, String(Date.now()))
+    }, [])
+
+    // Escape closes it.
+    useEffect(() => {
+        if (!visible) return
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [visible, handleClose])
 
     if (!isEligible || !visible) return null
 
-    const handleClose = () => {
-        setVisible(false)
-        sessionStorage.setItem(STORAGE_KEY, String(Date.now()))
+    const L = {
+        title: t('premiumPopup.title', 'Join Premium Membership'),
+        subtitle: t('premiumPopup.subtitle', 'Get full access to all courses and masterclasses'),
+        features: [
+            t('premiumPopup.feature1', 'Unlimited access to all courses'),
+            t('premiumPopup.feature2', 'Certified completion certificates'),
+            t('premiumPopup.feature3', 'Academy community & instructor messaging'),
+            t('premiumPopup.feature4', 'Step-by-step progress tracking'),
+        ],
+        cta: t('premiumPopup.cta', 'Get Premium Now'),
+        later: t('premiumPopup.later', 'Maybe later'),
     }
-
-    const L = isRtl
-        ? {
-            title: 'انضم إلى العضوية المميزة',
-            subtitle: 'احصل على وصول كامل لجميع الدورات والماستر كلاس',
-            features: [
-                'وصول غير محدود لجميع الدورات',
-                'شهادات إتمام معتمدة',
-                'مجتمع الأكاديمية والتواصل مع المدربين',
-                'متابعة تقدمك خطوة بخطوة',
-            ],
-            cta: 'احصل على العضوية الآن',
-            later: 'لاحقاً',
-        }
-        : {
-            title: 'Join Premium Membership',
-            subtitle: 'Get full access to all courses and masterclasses',
-            features: [
-                'Unlimited access to all courses',
-                'Certified completion certificates',
-                'Academy community & instructor messaging',
-                'Step-by-step progress tracking',
-            ],
-            cta: 'Get Premium Now',
-            later: 'Maybe later',
-        }
 
     return (
         <>
@@ -100,7 +169,7 @@ const PremiumPromoPopup: React.FC = () => {
                 }
                 .sl-prem-close {
                     position: absolute; top: 12px; ${isRtl ? 'left' : 'right'}: 12px;
-                    width: 34px; height: 34px; border-radius: 50%;
+                    width: 40px; height: 40px; border-radius: 50%;
                     border: 1px solid rgba(197,145,44,0.3);
                     background: rgba(197,145,44,0.08);
                     color: #C5912C; font-size: 1rem; cursor: pointer;
@@ -163,16 +232,29 @@ const PremiumPromoPopup: React.FC = () => {
             `}</style>
 
             <div className="sl-prem-overlay" onClick={handleClose}>
-                <div className="sl-prem-modal" onClick={(e) => e.stopPropagation()}>
-                    <button className="sl-prem-close" onClick={handleClose} aria-label={isRtl ? 'إغلاق' : 'Close'}>
-                        ✕
+                <div
+                    className="sl-prem-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="sl-prem-title"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        type="button"
+                        className="sl-prem-close"
+                        onClick={handleClose}
+                        aria-label={t('common.close', 'Close')}
+                        title={t('common.close', 'Close')}
+                        autoFocus
+                    >
+                        <span aria-hidden="true">✕</span>
                     </button>
 
-                    <div className="sl-prem-crown">
+                    <div className="sl-prem-crown" aria-hidden="true">
                         <i className="isax isax-crown-1" />
                     </div>
 
-                    <div className="sl-prem-title">{L.title}</div>
+                    <div className="sl-prem-title" id="sl-prem-title">{L.title}</div>
                     <p className="sl-prem-sub">{L.subtitle}</p>
 
                     <ul className="sl-prem-features">
@@ -185,7 +267,7 @@ const PremiumPromoPopup: React.FC = () => {
                         {L.cta} 👑
                     </Link>
 
-                    <button className="sl-prem-later" onClick={handleClose}>
+                    <button type="button" className="sl-prem-later" onClick={handleClose}>
                         {L.later}
                     </button>
                 </div>

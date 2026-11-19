@@ -73,6 +73,10 @@ const Error500 = () => {
             >
               <i className="isax isax-arrow-left-2 me-1" /> {t('common.backToHome', 'Back to Home')}
             </Link>
+            <p className="mt-3 mb-0">
+              {t('auth.error500.stillBroken', 'Still not working?')}{' '}
+              <Link to={route.contactUs}>{t('common.contactUs', 'Contact us')}</Link>
+            </p>
           </div>
         </div>
         {/* /Main Wrapper */}

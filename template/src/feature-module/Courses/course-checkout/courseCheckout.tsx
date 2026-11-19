@@ -13,7 +13,7 @@
  */
 import React, { useState } from 'react';
 import { fallbackTo } from '../../../core/common/imageFallback';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector, useAppDispatch } from '../../../core/redux/hooks';
@@ -36,6 +36,7 @@ const CourseCheckout = () => {
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { message } = App.useApp();
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const { items } = useAppSelector((s) => s.cart);
@@ -49,13 +50,15 @@ const CourseCheckout = () => {
   const chargedNow = payable.length > 0 ? (payable[0].price ?? 0) : 0;
 
   const [processing, setProcessing] = useState(false);
+  /** Set when the payment could not be started: shown above the pay button with next steps. */
+  const [payError, setPayError] = useState<{ detail?: string } | null>(null);
 
   /* ── CMI checkout handler ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      message.warning(t('courseCheckout.loginToPurchase', 'Please login to complete your purchase'));
-      navigate(route.login);
+      message.info(t('authPrompt.checkout', "Create a free account or sign in to complete your order — you'll come right back here."));
+      navigate(route.login, { state: { from: `${location.pathname}${location.search}`, reason: 'checkout' } });
       return;
     }
     if (payable.length === 0) {
@@ -66,6 +69,7 @@ const CourseCheckout = () => {
     }
 
     setProcessing(true);
+    setPayError(null);
     try {
       // Take the first paid course; store the rest in a queue
       const [firstItem, ...remainingItems] = payable;
@@ -89,10 +93,8 @@ const CourseCheckout = () => {
     } catch (err: unknown) {
       setProcessing(false);
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      message.error(
-        axiosErr.response?.data?.message ||
-        t('courseCheckout.paymentFailed', 'Payment initiation failed. Please try again.')
-      );
+      setPayError({ detail: axiosErr.response?.data?.message });
+      message.error(t('courseCheckout.payFailedTitle', 'We could not start your payment.'));
     }
   };
 
@@ -444,6 +446,25 @@ const CourseCheckout = () => {
                       </p>
                     </div>
 
+                    {payError && (
+                      <div role="alert" style={{
+                        background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10,
+                        padding: '12px 14px', marginBottom: 14, fontSize: 13, color: '#7F1D1D', lineHeight: 1.55,
+                      }}>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                          <i className="fa-solid fa-circle-exclamation" style={{ marginInlineEnd: 6 }} />
+                          {t('courseCheckout.payFailedTitle', 'We could not start your payment.')}
+                        </div>
+                        {payError.detail && <div style={{ marginBottom: 4 }}>{payError.detail}</div>}
+                        <div>
+                          {t('courseCheckout.payFailedHelp', 'Your card was not charged. Check your card details or try another card.')}{' '}
+                          {t('courseCheckout.needHelp', 'Need help?')}{' '}
+                          <Link to={route.contactUs} style={{ color: BURG, fontWeight: 700, textDecoration: 'underline' }}>
+                            {t('courseCheckout.contactUs', 'Contact us')}
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                     {/* Submit */}
                     <button
                       type="submit"

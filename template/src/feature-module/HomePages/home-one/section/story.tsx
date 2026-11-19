@@ -187,6 +187,15 @@ const StorySection: React.FC = () => {
           .sl-story__tile::before { opacity: 1; }
         }
         @media (max-width: 480px) { .sl-story__mosaic { gap: .55rem; } .sl-story { padding: 60px 0 56px; } }
+        /* Touch screens have no hover: keep the caption + zoom affordance visible */
+        @media (hover: none) {
+          .sl-story__cap, .sl-story__corner { opacity: 1; transform: none; }
+          .sl-story__tile::before { opacity: 1; }
+          .sl-story__zoom { opacity: 1; transform: scale(1); }
+        }
+        .sl-story__tile:focus-visible { outline: 2px solid ${GOLD}; outline-offset: 3px; }
+        .sl-story__tile:focus-visible .sl-story__cap,
+        .sl-story__tile:focus-visible .sl-story__zoom { opacity: 1; transform: none; }
 
         .sl-story__cta { text-align: center; margin-top: 48px; }
 

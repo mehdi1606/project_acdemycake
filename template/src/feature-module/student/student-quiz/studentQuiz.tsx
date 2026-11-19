@@ -26,11 +26,11 @@ const StudentQuiz = () => {
       setTotalPages(response.totalPages);
       setTotalElements(response.totalElements);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load quizzes');
+      setError(err?.response?.data?.message || t('student.quiz.loadError', "We couldn't load your quizzes. Please try again."));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadQuizzes(page);
@@ -121,7 +121,7 @@ const StudentQuiz = () => {
                       {quiz.title}
                     </Link>
                   </h6>
-                  <span className="lx-badge badge-success">{quiz.status}</span>
+                  <span className="lx-badge badge-success">{t(`enums.quizStatus.${quiz.status}`, String(quiz.status ?? ''))}</span>
                 </div>
 
                 {quiz.courseName && (

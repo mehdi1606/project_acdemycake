@@ -33,6 +33,8 @@ public class UserResponse {
     private Long totalStudents;
     // Ban state — Lombok generates getIsBanned() for a Boolean, so the JSON key is "isBanned".
     private Boolean isBanned;
+    /** Courses this user has completed — drives their real badge level (admin lists). */
+    private Integer completedCourses;
     private LocalDateTime bannedAt;
     private String banReason;
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { fallbackTo } from '../../../core/common/imageFallback';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector, useAppDispatch } from '../../../core/redux/hooks';
@@ -23,6 +23,7 @@ const CourseCart = () => {
   const route    = all_routes;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { message } = App.useApp();
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const { items }           = useAppSelector((s) => s.cart);
@@ -42,7 +43,8 @@ const CourseCart = () => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      message.warning(t('courseCart.loginToCheckout', 'Please login to proceed to checkout'));
+      message.info(t('authPrompt.checkout', "Create a free account or sign in to complete your order — you'll come right back here."));
+      navigate(route.login, { state: { from: `${location.pathname}${location.search}`, reason: 'checkout' } });
       return;
     }
     navigate(route.courseCheckout);

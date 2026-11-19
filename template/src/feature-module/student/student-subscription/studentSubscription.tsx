@@ -35,6 +35,7 @@ interface ConfirmModalProps {
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
   open, title, message, confirmLabel, confirmClass = 'btn-danger', loading, onConfirm, onClose,
 }) => {
+  const { t } = useTranslation();
   if (!open) return null;
   return (
     <div
@@ -46,7 +47,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <p className="text-muted fs-14 mb-4">{message}</p>
         <div className="d-flex gap-2 justify-content-end">
           <button className="btn btn-outline-secondary btn-sm" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           <button className={`btn btn-sm ${confirmClass}`} onClick={onConfirm} disabled={loading}>
             {loading && <span className="spinner-border spinner-border-sm me-2" />}
@@ -63,6 +64,21 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 const StudentSubscription: React.FC = () => {
   const { t } = useTranslation();
   const _navigate = useNavigate();
+  const subStatus: Record<string, string> = {
+    ACTIVE: t('enums.subscriptionStatus.ACTIVE', 'Active'),
+    CANCELLED: t('enums.subscriptionStatus.CANCELLED', 'Cancelled'),
+    EXPIRED: t('enums.subscriptionStatus.EXPIRED', 'Expired'),
+    PENDING: t('enums.subscriptionStatus.PENDING', 'Pending'),
+    PAST_DUE: t('enums.subscriptionStatus.PAST_DUE', 'Past due'),
+  };
+  const planName = (p?: string) => {
+    const k = (p || 'yearly').toLowerCase();
+    if (k.startsWith('month')) return t('enums.planType.monthly', 'Monthly');
+    if (k.startsWith('year') || k.startsWith('annual')) return t('enums.planType.yearly', 'Yearly');
+    return (p || '').toUpperCase();
+  };
+  const loadErrorText = t('student.subscription.loadError', "We couldn't load your subscription. Refresh the page, or contact us if it keeps happening.");
+  const actionErrorText = t('student.subscription.actionError', "That didn't work. Please try again, or contact us if it keeps happening.");
 
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -85,11 +101,12 @@ const StudentSubscription: React.FC = () => {
         setSubscription(sub);
         setPlans(pl);
       } catch (err) {
-        setError(extractApiError(err));
+        setError(extractApiError(err, loadErrorText));
       } finally {
         setLoading(false);
       }
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCancel = async () => {
@@ -101,7 +118,7 @@ const StudentSubscription: React.FC = () => {
       setSubscription(updated);
       setCancelModal(false);
     } catch (err) {
-      setActionError(extractApiError(err));
+      setActionError(extractApiError(err, actionErrorText));
     } finally {
       setActionLoading(false);
     }
@@ -115,7 +132,7 @@ const StudentSubscription: React.FC = () => {
       setSubscription(updated);
       setReactivateModal(false);
     } catch (err) {
-      setActionError(extractApiError(err));
+      setActionError(extractApiError(err, actionErrorText));
     } finally {
       setActionLoading(false);
     }
@@ -128,7 +145,7 @@ const StudentSubscription: React.FC = () => {
         window.location.href = res.paymentUrl;
       }
     } catch (err) {
-      setError(extractApiError(err));
+      setError(extractApiError(err, t('student.subscription.subscribeError', "We couldn't start the payment. Please try again in a moment.")));
     }
   };
 
@@ -145,40 +162,44 @@ const StudentSubscription: React.FC = () => {
   return (
     <LuxuryDashboardLayout>
       <div className="container-fluid py-4" style={{ maxWidth: 860 }}>
-        <h5 className="fw-bold mb-1">Subscription</h5>
-        <p className="text-muted fs-14 mb-4">Manage your current plan and billing.</p>
+        <h5 className="fw-bold mb-1">{t('student.subscription.title', 'My Subscription')}</h5>
+        <p className="text-muted fs-14 mb-4">{t('student.subscription.subtitle', 'Manage your current plan and billing.')}</p>
 
-        {error && <div className="alert alert-danger py-2 mb-4">{error}</div>}
-        {actionError && <div className="alert alert-danger py-2 mb-4">{actionError}</div>}
+        {(error || actionError) && (
+          <div className="alert alert-danger py-2 mb-4 d-flex align-items-center gap-2 flex-wrap">
+            <span className="flex-grow-1">{error || actionError}</span>
+            <Link to={all_routes.contactUs} className="btn btn-sm btn-outline-danger">{t('common.contactUs', 'Contact us')}</Link>
+          </div>
+        )}
 
         {/* Current plan card */}
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body p-4">
             <div className="d-flex align-items-start justify-content-between gap-3 flex-wrap">
               <div>
-                <h6 className="fw-bold mb-1">Current Plan</h6>
+                <h6 className="fw-bold mb-1">{t('student.subscription.currentPlan', 'Current Plan')}</h6>
                 {subscription ? (
                   <>
                     <div className="d-flex align-items-center gap-2 mb-2">
                       <span className="fs-18 fw-bold" style={{ color: 'var(--lx-gold)' }}>
-                        {subscription.planType?.toUpperCase() ?? 'YEARLY'}
+                        {planName(subscription.planType)}
                       </span>
                       <span className={`badge ${statusBadge[subscription.status] ?? 'badge-secondary'} rounded-pill`}>
-                        {subscription.status}
+                        {subStatus[subscription.status] ?? subscription.status}
                       </span>
                     </div>
                     <p className="text-muted fs-14 mb-1">
                       <i className="isax isax-calendar me-1" />
-                      Started: {fmt(subscription.currentPeriodStart)}
+                      {t('student.subscription.started', 'Started:')} {fmt(subscription.currentPeriodStart)}
                     </p>
                     <p className="text-muted fs-14 mb-0">
                       <i className="isax isax-calendar-2 me-1" />
-                      {subscription.status === 'CANCELLED' ? 'Access until' : 'Renews on'}:{' '}
+                      {subscription.status === 'CANCELLED' ? t('student.subscription.accessUntil', 'Access until:') : t('student.subscription.renewsOn', 'Renews on:')}{' '}
                       <strong>{fmt(subscription.currentPeriodEnd)}</strong>
                     </p>
                   </>
                 ) : (
-                  <p className="text-muted fs-14 mb-0">No active subscription.</p>
+                  <p className="text-muted fs-14 mb-0">{t('student.subscription.noSubscriptionText', 'No active subscription. Premium unlocks every course for one price.')}</p>
                 )}
               </div>
 
@@ -188,7 +209,7 @@ const StudentSubscription: React.FC = () => {
                     className="btn btn-outline-danger btn-sm"
                     onClick={() => setCancelModal(true)}
                   >
-                    Cancel Plan
+                    {t('student.subscription.cancelPlan', 'Cancel Plan')}
                   </button>
                 )}
                 {subscription?.status === 'CANCELLED' && (
@@ -196,12 +217,12 @@ const StudentSubscription: React.FC = () => {
                     className="btn btn-primary btn-sm"
                     onClick={() => setReactivateModal(true)}
                   >
-                    Reactivate
+                    {t('student.subscription.reactivate', 'Reactivate')}
                   </button>
                 )}
                 {!subscription && (
                   <Link to={all_routes.pricingPlan} className="btn btn-primary btn-sm">
-                    View Plans
+                    {t('student.subscription.viewPlans', 'View Plans')}
                   </Link>
                 )}
               </div>
@@ -212,7 +233,7 @@ const StudentSubscription: React.FC = () => {
         {/* Available plans (shown when no active subscription) */}
         {(!subscription || subscription.status !== 'ACTIVE') && plans.length > 0 && (
           <div className="mb-4">
-            <h6 className="fw-bold mb-3">Available Plans</h6>
+            <h6 className="fw-bold mb-3">{t('student.subscription.availablePlans', 'Available Plans')}</h6>
             <div className="row g-3">
               {plans.map((plan) => (
                 <div key={plan.planId} className="col-md-6 col-lg-4">
@@ -221,7 +242,7 @@ const StudentSubscription: React.FC = () => {
                       <h6 className="fw-bold mb-1">{plan.name}</h6>
                       <div className="fs-22 fw-bold mb-1" style={{ color: 'var(--lx-gold)' }}>
                         {plan.currency} {plan.price}
-                        <span className="fs-13 fw-normal text-muted ms-1">{String(plan.billingPeriod || plan.planId).toLowerCase().startsWith('month') ? '/ month' : '/ year'}</span>
+                        <span className="fs-13 fw-normal text-muted ms-1">{String(plan.billingPeriod || plan.planId).toLowerCase().startsWith('month') ? t('student.subscription.perMonth', '/ month') : t('student.subscription.perYear', '/ year')}</span>
                       </div>
                       {plan.description && (
                         <p className="text-muted fs-13 mb-3">{plan.description}</p>
@@ -230,7 +251,7 @@ const StudentSubscription: React.FC = () => {
                         className="btn btn-primary w-100 btn-sm"
                         onClick={() => handleSubscribe(plan.planId)}
                       >
-                        Subscribe
+                        {t('student.subscription.subscribe', 'Subscribe')}
                       </button>
                     </div>
                   </div>
@@ -244,9 +265,9 @@ const StudentSubscription: React.FC = () => {
       {/* Cancel Confirm */}
       <ConfirmModal
         open={cancelModal}
-        title="Cancel Subscription?"
-        message="Your access will remain active until the end of the current billing period. You can reactivate at any time."
-        confirmLabel="Yes, Cancel"
+        title={t('student.subscription.cancelTitle', 'Cancel Subscription?')}
+        message={t('student.subscription.cancelMessage', 'Your access will remain active until the end of the current billing period. You can reactivate at any time.')}
+        confirmLabel={t('student.subscription.cancelConfirm', 'Yes, Cancel')}
         confirmClass="btn-danger"
         loading={actionLoading}
         onConfirm={handleCancel}
@@ -256,9 +277,9 @@ const StudentSubscription: React.FC = () => {
       {/* Reactivate Confirm */}
       <ConfirmModal
         open={reactivateModal}
-        title="Reactivate Subscription?"
-        message="Your subscription will be reactivated and you will retain access beyond the current billing period."
-        confirmLabel="Yes, Reactivate"
+        title={t('student.subscription.reactivateTitle', 'Reactivate Subscription?')}
+        message={t('student.subscription.reactivateMessage', 'Your subscription will be reactivated and you will retain access beyond the current billing period.')}
+        confirmLabel={t('student.subscription.reactivateConfirm', 'Yes, Reactivate')}
         confirmClass="btn-primary"
         loading={actionLoading}
         onConfirm={handleReactivate}

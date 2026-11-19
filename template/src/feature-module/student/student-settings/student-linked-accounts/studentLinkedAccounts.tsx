@@ -40,17 +40,17 @@ const StudentLinkedAccounts = () => {
   return (
     <LuxuryDashboardLayout>
       <div className="lx-section-header" style={{ marginBottom: 20 }}>
-        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Settings</h5>
+        <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.settings.title', 'Settings')}</h5>
       </div>
       <SettingsLinks />
 
       <div className="lx-card">
         <div className="lx-card-header">
           <h6 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>
-            Linked Accounts
+            {t('student.settingsTabs.linkedAccounts', 'Linked Accounts')}
           </h6>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--lx-text-muted)' }}>
-            Connect third-party accounts for quick sign-in
+            {t('student.linkedAccounts.desc', 'Connect third-party accounts for quick sign-in')}
           </p>
         </div>
         <div className="lx-card-body">
@@ -82,11 +82,11 @@ const StudentLinkedAccounts = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                     <h6 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--lx-text)' }}>{acct.name}</h6>
                     {acct.connected && (
-                      <span className="lx-badge badge-success">Connected</span>
+                      <span className="lx-badge badge-success">{t('student.linkedAccounts.connected', 'Connected')}</span>
                     )}
                   </div>
                   <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)', lineHeight: 1.4 }}>
-                    {acct.description}
+                    {t(`student.linkedAccounts.about${acct.name}`, acct.description)}
                   </p>
                 </div>
 
@@ -99,7 +99,7 @@ const StudentLinkedAccounts = () => {
                     border: '1px solid rgba(139, 35, 53, 0.1)', flexShrink: 0,
                   } : { flexShrink: 0 }}
                 >
-                  {acct.connected ? 'Remove' : 'Link Account'}
+                  {acct.connected ? t('student.linkedAccounts.remove', 'Remove') : t('student.linkedAccounts.link', 'Link Account')}
                 </button>
               </div>
             ))}

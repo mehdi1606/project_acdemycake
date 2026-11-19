@@ -33,7 +33,7 @@ const InstructorDashboard = () => {
         setDashboardData(dashboard);
         setRecentCourses(coursesRes.content);
       } catch {
-        message.error('Failed to load dashboard data');
+        message.error(t('instructor.dashboard.loadError', "We couldn't load your dashboard. Refresh the page to try again."));
       } finally {
         setLoading(false);
       }

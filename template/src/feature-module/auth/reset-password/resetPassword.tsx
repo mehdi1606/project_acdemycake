@@ -184,6 +184,11 @@ const ResetPassword: React.FC = () => {
               {apiError && (
                 <Alert
                   message={apiError}
+                  description={
+                    <Link to={route.forgotpassword} style={{ color: '#651C32', fontWeight: 600 }}>
+                      {t('auth.resetPassword.requestNewLink', 'Request a new reset link')}
+                    </Link>
+                  }
                   type="error"
                   showIcon
                   closable

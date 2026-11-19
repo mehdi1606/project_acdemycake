@@ -191,6 +191,13 @@ const CourseGrid: React.FC = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
   const [sortBy,     setSortBy]     = useState(searchParams.get('sort') || 'newest');
 
+  // A search from elsewhere (e.g. the home hero: ?search=…) fills and applies the search box,
+  // also when the visitor is already on this page.
+  const urlSearch = searchParams.get('search') || '';
+  useEffect(() => {
+    setSearchQuery(urlSearch);
+  }, [urlSearch]);
+
   const { isAuthenticated, user } = useAppSelector(s => s.auth);
 
   useEffect(() => {
@@ -324,7 +331,7 @@ const CourseGrid: React.FC = () => {
               <span className="sl-script" style={{ fontSize: '1.7rem' }}>{t('courseList.catalogue', 'Catalogue')}</span>
             </div>
             <h1 className="sl-cl-hero__title" data-aos="fade-up" data-aos-delay="80" data-aos-duration="700">
-              {t('courseList.allProgrammes', 'All Programmes')}
+              {t('courseList.allCoursesTitle', 'All Courses')}
             </h1>
             <p className="sl-cl-hero__sub" data-aos="fade-up" data-aos-delay="160" data-aos-duration="700">
               {t('courseList.heroSubtitle', 'Curated by master pastry artists — discover your perfect atelier experience')}
@@ -339,7 +346,7 @@ const CourseGrid: React.FC = () => {
               <i className="isax isax-search-normal-1" />
               <input
                 type="text"
-                placeholder={t('courseList.searchPlaceholder2', 'Search programmes, techniques, instructors…')}
+                placeholder={t('courseList.searchPlaceholderCourses', 'Search courses, techniques, instructors…')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
@@ -350,7 +357,7 @@ const CourseGrid: React.FC = () => {
             <nav className="sl-cl-hero__breadcrumb" data-aos="fade-up" data-aos-delay="300" data-aos-duration="700">
               <Link to={route.homeone}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
               <span>✦</span>
-              <span>{t('courseList.allProgrammes', 'All Programmes')}</span>
+              <span>{t('courseList.allCoursesTitle', 'All Courses')}</span>
             </nav>
           </div>
         </div>
@@ -391,8 +398,8 @@ const CourseGrid: React.FC = () => {
                 {/* Toolbar */}
                 <div className="sl-cl-toolbar" data-aos="fade-down" data-aos-duration="600">
                   <p className="sl-cl-toolbar__results">
-                    {loading ? t('courseList.loadingProgrammes', 'Loading programmes…') : (
-                      <>{t('courseList.showing', 'Showing')} <strong>{start}–{end}</strong> {t('courseList.of', 'of')} <strong>{totalElements}</strong> {t('courseList.programmes', 'programmes')}</>
+                    {loading ? t('courseList.loadingCourses', 'Loading courses…') : (
+                      <>{t('courseList.showing', 'Showing')} <strong>{start}–{end}</strong> {t('courseList.of', 'of')} <strong>{totalElements}</strong> {t('courseList.coursesWord', 'courses')}</>
                     )}
                   </p>
                   <div className="sl-cl-toolbar__controls">
@@ -471,12 +478,12 @@ const CourseGrid: React.FC = () => {
                       <span className="sl-script" style={{ fontSize: '2rem' }}>{t('courseList.oops', 'Oops')}</span>
                     </div>
                     <i className="isax isax-search-status sl-cl-empty__icon" />
-                    <h4 className="sl-cl-empty__title">{t('courseList.noProgrammesFound', 'No programmes found')}</h4>
+                    <h4 className="sl-cl-empty__title">{t('courses.list.noCoursesFound', 'No courses found')}</h4>
                     <p className="sl-cl-empty__text">
                       {t('courseList.adjustFilters', 'Adjust your filters or search terms to discover our full catalogue.')}
                     </p>
                     <button className="sl-btn-gold sl-btn-magnetic" onClick={clearFilters}>
-                      {t('courseList.browseAllProgrammes', 'Browse All Programmes')} <i className="isax isax-arrow-right-1" />
+                      {t('courseList.browseAllCourses', 'Browse all courses')} <i className="isax isax-arrow-right-1" />
                     </button>
                   </div>
                 ) : (
