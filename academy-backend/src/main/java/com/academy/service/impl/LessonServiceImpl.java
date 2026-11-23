@@ -296,19 +296,19 @@ public class LessonServiceImpl implements LessonService {
         }
 
         // ── Local (self-hosted) video — generate signed streaming URL ──────────
-        if (lesson.getVideoFilePath() != null) {
+        if (lesson.getVideoFilePath() != null || lesson.isLocalVideo()) {
             String token     = videoTokenService.generateToken(lessonId, user.getId());
             String streamUrl = fileBaseUrl + "/api/v1/videos/" + lessonId + "/stream?token=" + token;
             return VideoUrlResponse.builder()
                     .playbackUrl(streamUrl)
                     .tokenId(token)
                     .durationSeconds(lesson.getVideoDurationSeconds())
-                    .expiresAt(LocalDateTime.now().plusHours(2))
+                    .expiresAt(LocalDateTime.now().plusMinutes(30))
                     .build();
         }
 
         // ── Legacy Mux video ──────────────────────────────────────────────────
-        return muxService.getSignedPlaybackUrl(lesson);
+        return muxService.getSignedPlaybackUrl(lesson, user.getId());
     }
 
     @Override
@@ -482,6 +482,28 @@ public class LessonServiceImpl implements LessonService {
         Course       course = lesson.getModule().getCourse();
         if (!course.getInstructor().getId().equals(userId)) {
             throw new ForbiddenException("You don't have permission to modify this lesson's video");
+        }
+    }
+
+    @Override
+    public boolean canUserStreamLesson(UUID lessonId, UUID userId) {
+        if (lessonId == null || userId == null) {
+            return false;
+        }
+        try {
+            CourseLesson lesson = findById(lessonId);
+            User user = userService.findById(userId);
+            if (Boolean.TRUE.equals(user.getIsBanned()) || Boolean.TRUE.equals(user.getIsDeleted())) {
+                return false;
+            }
+            if (Boolean.TRUE.equals(lesson.getIsPreview())) {
+                return true;
+            }
+            Course course = lesson.getModule().getCourse();
+            return enrollmentService.hasAccess(user, course);
+        } catch (Exception e) {
+            log.debug("Stream authorization check failed for lesson {} and user {}: {}", lessonId, userId, e.getMessage());
+            return false;
         }
     }
 

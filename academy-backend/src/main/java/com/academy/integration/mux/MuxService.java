@@ -46,6 +46,7 @@ public class MuxService {
 
     private final CourseLessonRepository lessonRepository;
     private final ObjectMapper objectMapper;
+    private final com.academy.service.VideoTokenService videoTokenService;
 
     @Value("${mux.token-id}")
     private String muxTokenId;
@@ -135,22 +136,27 @@ public class MuxService {
     }
 
     public VideoUrlResponse getSignedPlaybackUrl(CourseLesson lesson) {
+        return getSignedPlaybackUrl(lesson, null);
+    }
+
+    public VideoUrlResponse getSignedPlaybackUrl(CourseLesson lesson, UUID userId) {
         String playbackId = lesson.getMuxPlaybackId();
 
         if (playbackId == null) {
             throw new BadRequestException("Video is not ready yet");
         }
 
-        // Handle local video storage
+        // Handle local video storage — always route through the protected HTTP Range streaming endpoint
         if (playbackId.startsWith(LOCAL_VIDEO_PREFIX)) {
-            String localPath = playbackId.substring(LOCAL_VIDEO_PREFIX.length());
-            String videoUrl = baseUrl + "/files/" + localPath;
+            String token = videoTokenService.generateToken(lesson.getId(), userId);
+            String videoUrl = baseUrl + "/api/v1/videos/" + lesson.getId() + "/stream?token=" + token;
 
             return VideoUrlResponse.builder()
                     .playbackUrl(videoUrl)
+                    .tokenId(token)
                     .thumbnailUrl(null)
                     .durationSeconds(lesson.getVideoDurationSeconds())
-                    .expiresAt(LocalDateTime.now().plusHours(24))
+                    .expiresAt(LocalDateTime.now().plusMinutes(30))
                     .build();
         }
 
@@ -396,6 +402,7 @@ public class MuxService {
 
             lesson.setMuxAssetId(LOCAL_VIDEO_PREFIX + relativePath);
             lesson.setMuxPlaybackId(LOCAL_VIDEO_PREFIX + relativePath);
+            lesson.setVideoFilePath(relativePath);
             lesson.setVideoStatus("ready");
             lesson.setMuxUploadId("local");
             lessonRepository.save(lesson);

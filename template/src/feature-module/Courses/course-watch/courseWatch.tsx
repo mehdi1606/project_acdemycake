@@ -136,6 +136,9 @@ const CourseWatch: React.FC = () => {
   const [selectedLesson,  setSelectedLesson]  = useState<CourseLesson | null>(null);
   const [lessonDetail,    setLessonDetail]    = useState<LessonDetail | null>(null);
   const [videoUrl,        setVideoUrl]        = useState<string | null>(null);
+  const [videoStartAt,    setVideoStartAt]    = useState<number>(0);
+  const [videoAutoPlay,   setVideoAutoPlay]   = useState<boolean>(false);
+  const [videoAuthError,  setVideoAuthError]  = useState<string>('');
   const [loading,         setLoading]         = useState(true);
   const [lessonLoading,   setLessonLoading]   = useState(false);
   const [error,           setError]           = useState('');
@@ -196,6 +199,11 @@ const CourseWatch: React.FC = () => {
   const quizPhaseRef     = useRef<QuizPhase>('loading');
   /** Timestamp (ms) of the last progress update sent to the backend. */
   const lastProgressRef  = useRef<number>(0);
+  /** Tracks current video position and token renewal retries for seamless recovery. */
+  const videoPositionRef = useRef<number>(0);
+  const tokenRenewCountRef = useRef<number>(0);
+  const tokenRenewInFlightRef = useRef<boolean>(false);
+  const tokenRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Localized course content — auto-translates via API if no DB translation ──
   const localCourse = useLocalizedCourse(course, i18n.language);
@@ -256,11 +264,67 @@ const CourseWatch: React.FC = () => {
     return () => { cancelled = true; };
   }, [course?.id, user?.role]);
 
+  // ── Clear token refresh timer on unmount ──────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (tokenRefreshTimerRef.current) {
+        clearTimeout(tokenRefreshTimerRef.current);
+      }
+    };
+  }, []);
+
+  // ── Schedule proactive video token renewal before expiry ──────────────────
+  const scheduleVideoTokenRenewal = useCallback((lessonId: string, expiresAtIso?: string) => {
+    if (tokenRefreshTimerRef.current) {
+      clearTimeout(tokenRefreshTimerRef.current);
+      tokenRefreshTimerRef.current = null;
+    }
+    // Default renewal after 25 minutes if expiresAt is missing or unparsable
+    let delayMs = 25 * 60 * 1000;
+    if (expiresAtIso) {
+      const expMs = new Date(expiresAtIso).getTime();
+      if (Number.isFinite(expMs)) {
+        const remainingMs = expMs - Date.now();
+        if (remainingMs > 120_000) {
+          // Renew 2 minutes before expiry
+          delayMs = remainingMs - 120_000;
+        }
+      }
+    }
+    tokenRefreshTimerRef.current = setTimeout(async () => {
+      if (tokenRenewInFlightRef.current) return;
+      tokenRenewInFlightRef.current = true;
+      try {
+        const res = await courseService.getLessonVideoUrl(lessonId);
+        if (res?.playbackUrl) {
+          setVideoStartAt(videoPositionRef.current);
+          setVideoUrl(res.playbackUrl);
+          tokenRenewCountRef.current = 0;
+          scheduleVideoTokenRenewal(lessonId, res.expiresAt);
+        }
+      } catch {
+        // Reactive onError handler will recover if playback is interrupted
+      } finally {
+        tokenRenewInFlightRef.current = false;
+      }
+    }, delayMs);
+  }, []);
+
   // ── Select a lesson ───────────────────────────────────────────────────────
   const doSelectLesson = useCallback(async (lesson: CourseLesson) => {
+    if (tokenRefreshTimerRef.current) {
+      clearTimeout(tokenRefreshTimerRef.current);
+      tokenRefreshTimerRef.current = null;
+    }
+    videoPositionRef.current = 0;
+    tokenRenewCountRef.current = 0;
+    tokenRenewInFlightRef.current = false;
     setSelectedLesson(lesson);
     setLessonDetail(null);
     setVideoUrl(null);
+    setVideoStartAt(0);
+    setVideoAutoPlay(false);
+    setVideoAuthError('');
     setLessonLoading(true);
     setActiveTab('overview');
     setLessonQuiz(null);
@@ -283,15 +347,18 @@ const CourseWatch: React.FC = () => {
       setLessonDetail(detail);
       if (detail.contentType === 'VIDEO') {
         try {
-          const { playbackUrl } = await courseService.getLessonVideoUrl(lesson.id);
+          const { playbackUrl, expiresAt } = await courseService.getLessonVideoUrl(lesson.id);
           setVideoUrl(playbackUrl || null);
+          if (playbackUrl) {
+            scheduleVideoTokenRenewal(lesson.id, expiresAt);
+          }
         } catch {
           setVideoUrl(null);
         }
       }
     } catch { setLessonDetail(null); }
     finally { setLessonLoading(false); }
-  }, []);
+  }, [scheduleVideoTokenRenewal]);
 
   // ── Refresh progress ──────────────────────────────────────────────────────
   const refreshProgress = useCallback(async () => {
@@ -456,6 +523,9 @@ const CourseWatch: React.FC = () => {
   // ── Video progress tracking ───────────────────────────────────────────────
   // Throttled to one backend call per 30 s via the lastProgressRef timestamp.
   const handleVideoTimeUpdate = useCallback((currentTime: number, _duration: number) => {
+    if (currentTime > 0) {
+      videoPositionRef.current = currentTime;
+    }
     if (!lessonDetail?.id) return;
     const now = Date.now();
     if (now - lastProgressRef.current >= 30_000) {
@@ -463,6 +533,41 @@ const CourseWatch: React.FC = () => {
       courseService.updateLessonProgress(lessonDetail.id, Math.floor(currentTime)).catch(() => {});
     }
   }, [lessonDetail?.id]);
+
+  // ── Transparent streaming token renewal on playback error ────────────────
+  const handleVideoError = useCallback(async (failedAtTime: number, wasPlaying: boolean) => {
+    if (!selectedLesson?.id || tokenRenewInFlightRef.current) return;
+    const resumePos = failedAtTime > 0 ? failedAtTime : videoPositionRef.current;
+
+    if (tokenRenewCountRef.current >= 2) {
+      setVideoAuthError(
+        t('courseWatch.videoStreamExpired', 'Video stream session expired or is temporarily unavailable. Please try again.')
+      );
+      return;
+    }
+
+    tokenRenewInFlightRef.current = true;
+    tokenRenewCountRef.current += 1;
+    try {
+      const res = await courseService.getLessonVideoUrl(selectedLesson.id);
+      if (res?.playbackUrl) {
+        setVideoAuthError('');
+        setVideoStartAt(resumePos);
+        setVideoAutoPlay(wasPlaying);
+        setVideoUrl(res.playbackUrl);
+        scheduleVideoTokenRenewal(selectedLesson.id, res.expiresAt);
+      } else {
+        setVideoAuthError(
+          t('courseWatch.videoStreamExpired', 'Video stream session expired or is temporarily unavailable. Please try again.')
+        );
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || t('courseWatch.videoStreamExpired', 'Video stream session expired or is temporarily unavailable. Please try again.');
+      setVideoAuthError(msg);
+    } finally {
+      tokenRenewInFlightRef.current = false;
+    }
+  }, [selectedLesson?.id, scheduleVideoTokenRenewal, t]);
 
   const onVideoEnded = useCallback(async () => {
     if (!lessonDetail) return;
@@ -818,12 +923,55 @@ const CourseWatch: React.FC = () => {
 
                 {/* VIDEO — full-width 16:9, height follows width naturally */}
                 {selectedLesson.contentType === 'VIDEO' && (
-                  <VideoPlayer
-                    src={videoUrl}
-                    title={selectedLesson.title}
-                    onTimeUpdate={handleVideoTimeUpdate}
-                    onEnded={onVideoEnded}
-                  />
+                  <>
+                    <VideoPlayer
+                      src={videoUrl}
+                      title={selectedLesson.title}
+                      startAt={videoStartAt}
+                      autoPlay={videoAutoPlay}
+                      onTimeUpdate={handleVideoTimeUpdate}
+                      onEnded={onVideoEnded}
+                      onError={handleVideoError}
+                    />
+                    {videoAuthError && (
+                      <div style={{
+                        padding: '12px 20px',
+                        background: 'rgba(139,35,53,0.18)',
+                        borderTop: '1px solid rgba(197,151,62,0.22)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: 12,
+                      }}>
+                        <span style={{ color: '#F5E6C8', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <i className="fa-solid fa-circle-exclamation" style={{ color: '#F87171' }} />
+                          {videoAuthError}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            tokenRenewCountRef.current = 0;
+                            setVideoAuthError('');
+                            handleVideoError(videoPositionRef.current, true);
+                          }}
+                          style={{
+                            padding: '6px 16px',
+                            borderRadius: 8,
+                            border: 'none',
+                            background: `linear-gradient(135deg,${GOLD},#A67825)`,
+                            color: WHITE,
+                            fontWeight: 700,
+                            fontSize: 12.5,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <i className="fa-solid fa-rotate-right" style={{ marginInlineEnd: 6 }} />
+                          {t('courseWatch.tryAgain', 'Try again')}
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* TEXT */}
@@ -1293,8 +1441,26 @@ const CourseWatch: React.FC = () => {
                                       <iframe src={v.url} title={res.name} style={{ width:'100%', height:560, border:'none', display:'block' }} />
                                     )}
                                     {v.type==='video' && (
-                                      <div style={{ background:'#000' }}>
-                                        <video src={v.url} controls style={{ width:'100%', maxHeight:420, display:'block' }} />
+                                      <div
+                                        onContextMenu={e => e.preventDefault()}
+                                        onDragStart={e => e.preventDefault()}
+                                        style={{
+                                          background:'#000',
+                                          userSelect:'none',
+                                          WebkitUserSelect:'none',
+                                          WebkitTouchCallout:'none',
+                                        } as React.CSSProperties}
+                                      >
+                                        <video
+                                          src={v.url}
+                                          controls
+                                          controlsList="nodownload"
+                                          disablePictureInPicture
+                                          disableRemotePlayback
+                                          draggable={false}
+                                          onContextMenu={e => e.preventDefault()}
+                                          style={{ width:'100%', maxHeight:420, display:'block' }}
+                                        />
                                       </div>
                                     )}
                                     {v.type==='none' && (

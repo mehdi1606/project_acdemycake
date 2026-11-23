@@ -48,38 +48,49 @@ const MuxVideoPlayer: React.FC<MuxVideoPlayerProps> = ({
     : playbackId;
 
   return (
-    <MuxPlayer
-      playbackId={playbackUrl}
-      metadata={{
-        video_title: title || 'Course Video',
-        viewer_user_id: localStorage.getItem('userId') || 'anonymous',
-      }}
-      streamType="on-demand"
-      autoPlay={autoPlay}
-      muted={muted}
-      loop={loop}
-      primaryColor="#C9A227" // SARALÖWE gold
-      secondaryColor="#1A1A1A"
-      accentColor="#C9A227"
+    <div
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
       style={{
         width: '100%',
-        aspectRatio: '16/9',
-        borderRadius: '8px',
-        overflow: 'hidden',
-        ...style,
-      }}
-      className={className}
-      poster={poster}
-      onTimeUpdate={(e: any) => {
-        if (onTimeUpdate && e.target) {
-          onTimeUpdate(e.target.currentTime, e.target.duration);
-        }
-      }}
-      onEnded={onEnded}
-      onError={onError}
-      // Mux Data configuration for analytics
-      envKey={envKey}
-    />
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+      } as React.CSSProperties}
+    >
+      <MuxPlayer
+        playbackId={playbackUrl}
+        metadata={{
+          video_title: title || 'Course Video',
+          viewer_user_id: localStorage.getItem('userId') || 'anonymous',
+        }}
+        streamType="on-demand"
+        autoPlay={autoPlay}
+        muted={muted}
+        loop={loop}
+        primaryColor="#C9A227" // SARALÖWE gold
+        secondaryColor="#1A1A1A"
+        accentColor="#C9A227"
+        style={{
+          width: '100%',
+          aspectRatio: '16/9',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          ...style,
+        }}
+        className={className}
+        poster={poster}
+        onTimeUpdate={(e: any) => {
+          if (onTimeUpdate && e.target) {
+            onTimeUpdate(e.target.currentTime, e.target.duration);
+          }
+        }}
+        onEnded={onEnded}
+        onError={onError}
+        // Mux Data configuration for analytics
+        envKey={envKey}
+      />
+    </div>
   );
 };
 

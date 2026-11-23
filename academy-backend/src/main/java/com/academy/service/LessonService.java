@@ -53,6 +53,13 @@ public interface LessonService {
     void verifyInstructorCanModifyLesson(UUID lessonId, UUID userId, UserRole userRole);
 
     /**
+     * Returns {@code true} if the user associated with a streaming token is still
+     * active (not banned, not soft-deleted) and still holds valid access to the
+     * lesson's course (or the lesson is a free preview).
+     */
+    boolean canUserStreamLesson(UUID lessonId, UUID userId);
+
+    /**
      * Persist a freshly stored local video: creates/replaces the VideoAsset row
      * and updates {@code course_lessons.video_file_path}.
      * Runs in a single atomic transaction.

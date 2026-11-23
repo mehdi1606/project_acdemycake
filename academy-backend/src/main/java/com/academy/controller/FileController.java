@@ -76,10 +76,18 @@ public class FileController {
             Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
             Path filePath   = uploadPath.resolve(relativePath).normalize();
 
-            // Security: prevent path traversal
-            if (!filePath.startsWith(uploadPath)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+        // Security: prevent path traversal
+        if (!filePath.startsWith(uploadPath)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // All self-hosted course video files (under {uploadDir}/videos/**) must be
+        // served exclusively through VideoStreamingController, never as raw files
+        // through /files/** (even if a legacy or signed link is presented).
+        Path videosPath = uploadPath.resolve("videos").normalize();
+        if (filePath.startsWith(videosPath)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
             Resource resource = new UrlResource(filePath.toUri());
             if (!resource.exists() || !resource.isReadable()) {
