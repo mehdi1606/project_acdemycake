@@ -192,6 +192,8 @@ export interface Course {
   isEnrolled?: boolean;
   isWishlisted?: boolean;
   enrollmentProgress?: number;
+  /** True when the current user already holds a certificate for this course. */
+  hasMyCertificate?: boolean;
   // multilingual translation fields
   titleEn?: string;
   descriptionEn?: string;
@@ -840,7 +842,35 @@ export interface Assignment {
   /** Student views: the current student's submission state for this assignment. */
   mySubmissionStatus?: 'NONE' | 'SUBMITTED' | 'GRADED';
   myGrade?: number | null;
+  /** Student views: null while not marked; true when the mark reaches passPercentage. */
+  myPassed?: boolean | null;
+  /** Student views: one resubmission is allowed after a failing first mark. */
+  myCanResubmit?: boolean;
+  myAttemptNumber?: number;
+  /** A mark of at least this % of totalMark passes (70). */
+  passPercentage?: number;
+  maxAttempts?: number;
+  /** Every course of the assignment, primary first. */
+  courseIds?: string[];
+  courses?: { id: string; title: string; titleAr?: string; slug?: string }[];
+  /** Printed on the certificate; null = primary course name. */
+  certificateTitle?: string | null;
+  /** Student views: true once every linked course is finished (lessons + published quizzes). */
+  myUnlocked?: boolean;
+  /** Student views: what is still missing, per linked course. */
+  myMissing?: AssignmentRequirement[];
   createdAt: string;
+}
+
+/** One linked course a student still has to finish before an assignment unlocks. */
+export interface AssignmentRequirement {
+  courseId: string;
+  courseTitle: string;
+  courseTitleAr?: string;
+  courseSlug?: string;
+  noAccess: boolean;
+  lessonsLeft: number;
+  quizzesLeft: number;
 }
 
 export interface CreateAssignmentRequest {
@@ -881,4 +911,14 @@ export interface Submission {
   gradedAt?: string;
   gradedByName?: string;
   submittedAt: string;
+  /** 1, or 2 after the one resubmission allowed after a failing mark. */
+  attemptNumber?: number;
+  maxAttempts?: number;
+  passPercentage?: number;
+  /** null while not marked yet. */
+  passed?: boolean | null;
+  canResubmit?: boolean;
+  /** First attempt's mark and feedback, once resubmitted. */
+  previousGrade?: number | null;
+  previousFeedback?: string | null;
 }

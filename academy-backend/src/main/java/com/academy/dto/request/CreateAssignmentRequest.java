@@ -10,8 +10,15 @@ import java.util.UUID;
 @Data
 public class CreateAssignmentRequest {
 
-    @NotNull(message = "Course ID is required")
+    /** Single course (older clients). Ignored when {@link #courseIds} is sent. */
     private UUID courseId;
+
+    /** Every course this assignment belongs to; the first one is the primary course. */
+    private java.util.List<UUID> courseIds;
+
+    /** Printed on the certificate; required when the assignment has several courses. */
+    @Size(max = 255, message = "Certificate title cannot exceed 255 characters")
+    private String certificateTitle;
 
     @NotBlank(message = "Assignment title is required")
     @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")

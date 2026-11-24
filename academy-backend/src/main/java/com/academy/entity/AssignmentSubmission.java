@@ -51,4 +51,30 @@ public class AssignmentSubmission {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    /** 1 for the first submission, 2 after the one allowed resubmission. */
+    @Column(name = "attempt_number", nullable = false)
+    @Builder.Default
+    private Integer attemptNumber = 1;
+
+    /** Mark and feedback of the first attempt, kept when the student resubmits. */
+    @Column(name = "previous_grade")
+    private Integer previousGrade;
+
+    @Column(name = "previous_feedback", columnDefinition = "TEXT")
+    private String previousFeedback;
+
+    public boolean isGraded() {
+        return grade != null;
+    }
+
+    public boolean isPassed() {
+        return assignment != null && assignment.isPassingGrade(grade);
+    }
+
+    /** A failing mark on the first attempt reopens the assignment once. */
+    public boolean canResubmit() {
+        int attempt = attemptNumber != null ? attemptNumber : 1;
+        return isGraded() && !isPassed() && attempt < Assignment.MAX_ATTEMPTS;
+    }
 }

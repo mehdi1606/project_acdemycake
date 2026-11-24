@@ -8,8 +8,13 @@ import com.academy.entity.User;
 import com.academy.exception.BadRequestException;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
+import com.academy.entity.Assignment;
+import com.academy.entity.AssignmentSubmission;
 import com.academy.repository.AssignmentRepository;
+import com.academy.repository.AssignmentSubmissionRepository;
 import com.academy.repository.CertificateRepository;
+import com.academy.service.AssignmentRequirementsService;
+import java.util.List;
 import com.academy.security.UserPrincipal;
 import com.academy.service.CertificateService;
 import com.academy.service.UserService;
@@ -62,6 +67,8 @@ public class CertificateServiceImpl implements CertificateService {
     private final CertificateRepository certificateRepository;
     private final UserService userService;
     private final AssignmentRepository assignmentRepository;
+    private final AssignmentSubmissionRepository assignmentSubmissionRepository;
+    private final AssignmentRequirementsService assignmentRequirementsService;
 
     @Value("${app.file.upload-dir:./uploads}")
     private String uploadDir;
@@ -146,38 +153,66 @@ public class CertificateServiceImpl implements CertificateService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CertificateResponse generateCertificate(User user, Course course) {
-        if (certificateRepository.existsByUserAndCourse(user, course)) {
-            Certificate existing = certificateRepository.findFirstByUserAndCourseOrderByIssuedAtAsc(user, course)
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Certificate", "user and course", null));
+    public CertificateResponse issueForAssignment(User user, Assignment assignment) {
+        Certificate existing = certificateRepository
+                .findFirstByUserAndAssignmentOrderByIssuedAtAsc(user, assignment).orElse(null);
+        if (existing != null) {
             return CertificateResponse.fromEntity(existing);
         }
 
-        // A course with assignments is only certified once every published assignment has
-        // been marked for this student. Callers catch this and treat it as "not yet".
-        long unmarked = assignmentRepository.countUngradedPublishedForStudent(course, user);
-        if (unmarked > 0) {
-            throw new BadRequestException("Certificate withheld: " + unmarked + " assignment(s) not yet marked");
+        // The one gate: the assignment is passed (70%+) and every linked course is finished
+        // (lessons + published quizzes). Lessons and quizzes alone never issue a certificate.
+        AssignmentSubmission submission = assignmentSubmissionRepository
+                .findByAssignmentAndStudent(assignment, user).orElse(null);
+        if (submission == null || !submission.isPassed()) {
+            throw new BadRequestException("Certificate withheld: the assignment is not passed yet (a mark of "
+                    + Assignment.PASS_PERCENTAGE + "% or more is required)");
         }
+        if (!assignmentRequirementsService.isUnlocked(user, assignment)) {
+            throw new BadRequestException("Certificate withheld: the courses of this assignment are not all finished");
+        }
+        return CertificateResponse.fromEntity(create(user, assignment));
+    }
 
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public List<CertificateResponse> issuePendingForCourse(User user, Course course) {
+        // Assignments passed earlier whose linked courses have only now all been finished.
+        List<CertificateResponse> issued = new java.util.ArrayList<>();
+        for (Assignment assignment : assignmentRepository.findPublishedLinkedToCourse(course)) {
+            if (certificateRepository.findFirstByUserAndAssignmentOrderByIssuedAtAsc(user, assignment).isPresent()) {
+                continue;
+            }
+            boolean passed = assignmentSubmissionRepository.findByAssignmentAndStudent(assignment, user)
+                    .map(AssignmentSubmission::isPassed).orElse(false);
+            if (passed && assignmentRequirementsService.isUnlocked(user, assignment)) {
+                issued.add(CertificateResponse.fromEntity(create(user, assignment)));
+            }
+        }
+        return issued;
+    }
+
+    private Certificate create(User user, Assignment assignment) {
+        Course course = assignment.getCourse();   // primary course: selects the certificate design
         String certificateNumber = generateCertificateNumber();
         Certificate certificate = Certificate.builder()
                 .user(user)
                 .course(course)
+                .assignment(assignment)
+                .customTitle(assignment.getCertificateTitle() != null && !assignment.getCertificateTitle().isBlank()
+                        ? assignment.getCertificateTitle().trim() : null)
                 .certificateNumber(certificateNumber)
                 .studentName(user.getFullName())
-                .courseTitle(course.getTitleEn() != null && !course.getTitleEn().isBlank()
-                        ? course.getTitleEn() : course.getTitle())
+                .courseTitle(assignment.certificateDisplayTitle())
                 .instructorName(course.getInstructor().getFullName())
                 .completionDate(LocalDateTime.now())
                 .issuedAt(LocalDateTime.now())
                 .build();
 
         certificate = certificateRepository.save(certificate);
-        log.info("Certificate generated: {} for user: {} course: {}",
-                certificateNumber, user.getEmail(), course.getTitle());
-        return CertificateResponse.fromEntity(certificate);
+        log.info("Certificate generated: {} for user: {} assignment: {} ({})",
+                certificateNumber, user.getEmail(), assignment.getId(), certificate.displayTitle());
+        return certificate;
     }
 
     // ── Instructor methods ─────────────────────────────────────────────────────
@@ -228,11 +263,7 @@ public class CertificateServiceImpl implements CertificateService {
         String dateStr = certificate.getCompletionDate() != null
                 ? certificate.getCompletionDate().format(fmt).toUpperCase(Locale.ENGLISH) : "";
         String name    = certificate.getStudentName() != null ? certificate.getStudentName() : "";
-        String courseTitle = certificate.getCourseTitle();
-        if (certificate.getCourse() != null && certificate.getCourse().getTitleEn() != null
-                && !certificate.getCourse().getTitleEn().isBlank()) {
-            courseTitle = certificate.getCourse().getTitleEn();
-        }
+        String courseTitle = certificate.displayTitle();
         String course  = courseTitle != null
                 ? courseTitle.toUpperCase(Locale.ENGLISH) : "";
 
@@ -354,11 +385,7 @@ public class CertificateServiceImpl implements CertificateService {
         PdfFont latoFont   = loadFont("/fonts/Lato-Regular.ttf");          // body text
         PdfFont latoItalic = loadFont("/fonts/Lato-Italic.ttf");           // italic body
 
-        String enTitle = certificate.getCourseTitle();
-        if (certificate.getCourse() != null && certificate.getCourse().getTitleEn() != null
-                && !certificate.getCourse().getTitleEn().isBlank()) {
-            enTitle = certificate.getCourse().getTitleEn();
-        }
+        String enTitle = certificate.displayTitle();
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
         String dateStr = certificate.getCompletionDate() != null

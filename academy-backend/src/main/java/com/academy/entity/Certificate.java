@@ -10,6 +10,7 @@ import java.util.UUID;
 @Table(name = "certificates", indexes = {
         @Index(name = "idx_certificates_user_id", columnList = "user_id"),
         @Index(name = "idx_certificates_course_id", columnList = "course_id"),
+        @Index(name = "idx_certificates_assignment_id", columnList = "assignment_id"),
         @Index(name = "idx_certificates_certificate_number", columnList = "certificate_number", unique = true)
 })
 @Getter
@@ -52,4 +53,26 @@ public class Certificate {
 
     @Column(name = "completion_date", nullable = false)
     private LocalDateTime completionDate;
+
+    /**
+     * The passed assignment that earned this certificate. NULL for certificates issued before
+     * certificates became per-assignment (they stay valid). {@link #course} is then the
+     * assignment's primary course, which selects the certificate design.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignment_id")
+    private Assignment assignment;
+
+    /** Title written by the instructor on the assignment; printed instead of the course name. */
+    @Column(name = "custom_title", length = 255)
+    private String customTitle;
+
+    /** The title printed on the certificate: the custom title, else the English course title. */
+    public String displayTitle() {
+        if (customTitle != null && !customTitle.isBlank()) return customTitle;
+        if (course != null && course.getTitleEn() != null && !course.getTitleEn().isBlank()) {
+            return course.getTitleEn();
+        }
+        return courseTitle;
+    }
 }

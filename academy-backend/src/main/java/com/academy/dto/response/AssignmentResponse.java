@@ -35,8 +35,43 @@ public class AssignmentResponse {
     /** Student views only: NONE | SUBMITTED | GRADED for the current student. */
     private String mySubmissionStatus;
     private Integer myGrade;
+    /** Student views only: null while not marked; true when the mark reaches passPercentage. */
+    private Boolean myPassed;
+    /** Student views only: true after a failing first attempt (one resubmission allowed). */
+    private Boolean myCanResubmit;
+    private Integer myAttemptNumber;
+
+    /** A mark of at least this percentage of totalMark passes the assignment. */
+    private Integer passPercentage;
+    private Integer maxAttempts;
+
+    /** Every course of the assignment, primary first (courseId/courseTitle = the primary course). */
+    private java.util.List<UUID> courseIds;
+    private java.util.List<CourseRef> courses;
+    /** Printed on the certificate (instructor's title); null = primary course name. */
+    private String certificateTitle;
+
+    /** Student views only: true when every linked course is finished (lessons + published quizzes). */
+    private Boolean myUnlocked;
+    /** Student views only: what is still missing, per linked course. */
+    private java.util.List<AssignmentRequirementResponse> myMissing;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CourseRef {
+        private UUID id;
+        private String title;
+        private String titleAr;
+        private String slug;
+    }
 
     public static AssignmentResponse fromEntity(Assignment assignment) {
+        java.util.List<CourseRef> refs = assignment.linkedCourses().stream()
+                .map(c -> CourseRef.builder().id(c.getId()).title(c.getTitle())
+                        .titleAr(c.getTitleAr()).slug(c.getSlug()).build())
+                .toList();
         return AssignmentResponse.builder()
                 .id(assignment.getId())
                 .courseId(assignment.getCourse().getId())
@@ -52,6 +87,11 @@ public class AssignmentResponse {
                 .status(assignment.getStatus())
                 .createdAt(assignment.getCreatedAt())
                 .updatedAt(assignment.getUpdatedAt())
+                .passPercentage(Assignment.PASS_PERCENTAGE)
+                .maxAttempts(Assignment.MAX_ATTEMPTS)
+                .courseIds(refs.stream().map(CourseRef::getId).toList())
+                .courses(refs)
+                .certificateTitle(assignment.getCertificateTitle())
                 .build();
     }
 }

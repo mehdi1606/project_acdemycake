@@ -10,7 +10,10 @@ import { message } from 'antd'
 type ModalState = 'none' | 'add' | 'view' | 'edit' | 'delete' | 'submissions'
 
 interface AssignmentForm {
-  courseId: string
+  /** Every course of the assignment; the first ticked is the primary course. */
+  courseIds: string[]
+  /** Printed on the certificate; required when 2+ courses are ticked. */
+  certificateTitle: string
   title: string
   description: string
   instructions: string
@@ -23,7 +26,8 @@ interface AssignmentForm {
 }
 
 const emptyForm = (): AssignmentForm => ({
-  courseId: '',
+  courseIds: [],
+  certificateTitle: '',
   title: '',
   description: '',
   instructions: '',
@@ -78,10 +82,15 @@ const LANG_FIELDS: Record<FormLang, {
 
 const hasTitle = (f: AssignmentForm) => !!(f.title.trim() || f.titleAr.trim())
 const tooLong = (f: AssignmentForm) =>
-  f.title.length > TITLE_MAX || f.titleAr.length > TITLE_MAX ||
+  f.title.length > TITLE_MAX || f.titleAr.length > TITLE_MAX || f.certificateTitle.length > TITLE_MAX ||
   [f.description, f.descriptionAr, f.instructions, f.instructionsAr].some(v => v.length > TEXT_MAX)
+/** At least one course, and a certificate title when the assignment covers several. */
+const coursesValid = (f: AssignmentForm) =>
+  f.courseIds.length > 0 && (f.courseIds.length < 2 || !!f.certificateTitle.trim())
 
 const toPayload = (f: AssignmentForm) => ({
+  courseIds: f.courseIds,
+  certificateTitle: f.certificateTitle.trim(),
   // `title` is required server-side; an Arabic-only assignment reuses its Arabic title.
   title: f.title.trim() || f.titleAr.trim(),
   titleAr: f.titleAr.trim(),
@@ -119,9 +128,10 @@ interface FormFieldsProps {
   form: AssignmentForm
   courses: Course[]
   onChange: (field: keyof AssignmentForm, value: string) => void
+  onCoursesChange: (courseIds: string[]) => void
 }
 
-const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChange }) => {
+const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChange, onCoursesChange }) => {
   const { t } = useTranslation()
   const [lang, setLang] = useState<FormLang>('en')
   const keys = LANG_FIELDS[lang]
@@ -139,11 +149,52 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
-        <label style={labelStyle}>{t('instructor.assignmentsPage.course', 'Course')} <span style={{ color: '#8B2335' }}>*</span></label>
-        <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.courseId} onChange={(e) => onChange('courseId', e.target.value)} required>
-          <option value="">{t('instructor.assignmentsPage.selectCourse', 'Select a course')}</option>
-          {courses.map((c: Course) => (<option key={c.id} value={c.id}>{c.title}</option>))}
-        </select>
+        <label style={labelStyle}>{t('instructor.assignmentsPage.courses', 'Courses')} <span style={{ color: '#8B2335' }}>*</span></label>
+        <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--lx-text-muted)' }}>
+          {t('instructor.assignmentsPage.coursesHint', 'Tick every course this assignment belongs to. Students can submit it only after finishing all of them — every lesson and every quiz.')}
+        </p>
+        <div style={{ maxHeight: 180, overflowY: 'auto', border: '1.5px solid rgba(107, 29, 42, 0.12)', borderRadius: 'var(--lx-radius-sm)', padding: '6px 10px', background: 'rgba(255,255,255,0.6)' }}>
+          {courses.length === 0 ? (
+            <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{t('instructor.assignmentsPage.noCourses', 'You have no courses yet.')}</span>
+          ) : courses.map((c: Course) => {
+            const checked = form.courseIds.includes(c.id)
+            return (
+              <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', fontSize: 13.5, cursor: 'pointer', color: 'var(--lx-text)' }}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => onCoursesChange(checked ? form.courseIds.filter(id => id !== c.id) : [...form.courseIds, c.id])}
+                />
+                <span dir="auto">{c.title}</span>
+                {checked && form.courseIds[0] === c.id && form.courseIds.length > 1 && (
+                  <span style={{ fontSize: 11, color: 'var(--lx-text-muted)' }}>· {t('instructor.assignmentsPage.primaryCourse', 'main course (certificate design)')}</span>
+                )}
+              </label>
+            )
+          })}
+        </div>
+      </div>
+
+      <div>
+        <FieldLabel
+          text={t('instructor.assignmentsPage.certificateTitle', 'Certificate title')}
+          value={form.certificateTitle}
+          max={TITLE_MAX}
+          required={form.courseIds.length > 1}
+        />
+        <input
+          type="text"
+          style={inputStyle}
+          value={form.certificateTitle}
+          onChange={(e) => onChange('certificateTitle', e.target.value)}
+          placeholder={t('instructor.assignmentsPage.certificateTitlePh', 'e.g. French Pastry Diploma')}
+          {...NO_WRITING_ASSIST}
+        />
+        <p style={{ margin: '6px 0 0', fontSize: 12, color: form.courseIds.length > 1 && !form.certificateTitle.trim() ? '#8B2335' : 'var(--lx-text-muted)' }}>
+          {form.courseIds.length > 1
+            ? t('instructor.assignmentsPage.certificateTitleRequired', 'Required for an assignment with several courses: students who pass it get one certificate with this title.')
+            : t('instructor.assignmentsPage.certificateTitleHint', 'Printed on the certificate of students who pass. Leave empty to use the course name.')}
+        </p>
       </div>
 
       {/* Language tabs — the same assignment written in English and Arabic */}
@@ -390,6 +441,9 @@ const InstructorAssignment: React.FC = () => {
   const updateForm = useCallback((field: keyof AssignmentForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }, [])
+  const updateCourses = useCallback((courseIds: string[]) => {
+    setForm((prev) => ({ ...prev, courseIds }))
+  }, [])
 
   const formatDate = (dateStr?: string) =>
     dateStr ? new Date(dateStr).toLocaleDateString(i18n.language?.startsWith('ar') ? 'ar-MA' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
@@ -456,7 +510,8 @@ const InstructorAssignment: React.FC = () => {
   const openEdit = (a: Assignment) => {
     setSelected(a);
     setForm({
-      courseId: a.courseId || '',
+      courseIds: a.courseIds && a.courseIds.length > 0 ? a.courseIds : (a.courseId ? [a.courseId] : []),
+      certificateTitle: a.certificateTitle || '',
       // An Arabic-only assignment also stores its Arabic title in `title` (the column is
       // required) — keep that copy out of the English tab.
       title: a.titleAr && a.title === a.titleAr ? '' : (a.title || ''),
@@ -474,14 +529,14 @@ const InstructorAssignment: React.FC = () => {
   const openDelete = (a: Assignment) => { setSelected(a); setModal('delete'); }
   const closeModal = () => { setModal('none'); setSelected(null); }
 
-  const formValid = hasTitle(form) && !tooLong(form)
+  const formValid = hasTitle(form) && !tooLong(form) && coursesValid(form)
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formValid || !form.courseId) return
+    if (!formValid) return
     setSubmitting(true)
     try {
-      await instructorService.createAssignment({ courseId: form.courseId, ...toPayload(form) })
+      await instructorService.createAssignment(toPayload(form))
       closeModal()
       fetchAssignments(0)
     } catch (err) { message.error(extractApiError(err, t('instructor.assignmentsPage.createError', 'The assignment couldn\'t be created. Please try again.'))) }
@@ -578,7 +633,9 @@ const InstructorAssignment: React.FC = () => {
                 {assignments.map((a) => (
                   <tr key={a.id}>
                     <td><span style={{ fontWeight: 500 }}>{a.title}</span></td>
-                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{a.courseTitle || '—'}</td>
+                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>
+                      {a.courses && a.courses.length > 0 ? a.courses.map(c => c.title).join(', ') : (a.courseTitle || '—')}
+                    </td>
                     <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(a.dueDate)}</td>
                     <td style={{ fontWeight: 600 }}>{a.totalMark}</td>
                     <td><StatusBadge status={a.status} /></td>
@@ -605,10 +662,10 @@ const InstructorAssignment: React.FC = () => {
         <GlassModal maxWidth={700} onClose={closeModal}>
           <ModalHeader title={t('instructor.assignmentsPage.addTitle', 'Add New Assignment')} onClose={closeModal} />
           <form onSubmit={handleAdd}>
-            <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
+            <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} onCoursesChange={updateCourses} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
-              <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !formValid || !form.courseId}>
+              <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !formValid}>
                 {submitting ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} /> : t('common.create', 'Create')}
               </button>
             </div>
@@ -624,7 +681,8 @@ const InstructorAssignment: React.FC = () => {
             {[
               { label: t('common.title', 'Title'), value: selected.titleAr && selected.title === selected.titleAr ? '—' : selected.title },
               { label: t('instructor.assignmentsPage.titleAr', 'Title (Arabic)'), value: selected.titleAr || '—' },
-              { label: t('instructor.assignmentsPage.course', 'Course'), value: selected.courseTitle || '—' },
+              { label: t('instructor.assignmentsPage.courses', 'Courses'), value: selected.courses && selected.courses.length > 0 ? selected.courses.map(c => c.title).join(', ') : (selected.courseTitle || '—') },
+              { label: t('instructor.assignmentsPage.certificateTitle', 'Certificate title'), value: selected.certificateTitle || t('instructor.assignmentsPage.certificateTitleDefault', 'Course name') },
               { label: t('common.description', 'Description'), value: selected.description || '—' },
               { label: t('instructor.assignmentsPage.descriptionAr', 'Description (Arabic)'), value: selected.descriptionAr || '—' },
               { label: t('instructor.assignmentsPage.instructions', 'Instructions'), value: selected.instructions || '—' },
@@ -654,7 +712,7 @@ const InstructorAssignment: React.FC = () => {
         <GlassModal maxWidth={700} onClose={closeModal}>
           <ModalHeader title={t('instructor.assignmentsPage.editTitle', 'Edit Assignment')} onClose={closeModal} />
           <form onSubmit={handleEdit}>
-            <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} /></div>
+            <div style={{ padding: 24, maxHeight: '68vh', overflowY: 'auto' }}><AssignmentFormFields form={form} courses={courses} onChange={updateForm} onCoursesChange={updateCourses} /></div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
               <button type="submit" className="lx-btn lx-btn-gold" disabled={submitting || !formValid}>
@@ -757,8 +815,11 @@ const InstructorAssignment: React.FC = () => {
                             <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--lx-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {sub.studentName}
                             </span>
-                            <span style={{ display: 'block', fontSize: 11, color: isGraded(sub) ? '#16a34a' : '#d97706', fontWeight: 600 }}>
-                              {isGraded(sub) ? `${sub.grade}/${sub.totalMark}` : t('instructor.assignmentsPage.filterUngraded', 'Ungraded')}
+                            <span style={{ display: 'block', fontSize: 11, color: !isGraded(sub) ? '#d97706' : sub.passed ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
+                              {isGraded(sub)
+                                ? `${sub.grade}/${sub.totalMark} · ${sub.passed ? t('instructor.assignmentsPage.passed', 'Passed') : t('instructor.assignmentsPage.notPassed', 'Not passed')}`
+                                : t('instructor.assignmentsPage.filterUngraded', 'Ungraded')}
+                              {(sub.attemptNumber ?? 1) > 1 && ` · ${t('instructor.assignmentsPage.attemptShort', 'Attempt {{n}}', { n: sub.attemptNumber })}`}
                             </span>
                           </span>
                           {sub.fileUrl && <i className="isax isax-paperclip-2" style={{ fontSize: 12, color: 'var(--lx-text-muted)' }} />}
@@ -789,11 +850,21 @@ const InstructorAssignment: React.FC = () => {
                         </div>
                         <span style={{
                           fontSize: 12.5, fontWeight: 700, padding: '4px 12px', borderRadius: 20,
-                          background: isGraded(activeSub) ? 'rgba(22,163,74,0.1)' : 'rgba(217,119,6,0.1)',
-                          color: isGraded(activeSub) ? '#16a34a' : '#d97706',
+                          background: !isGraded(activeSub) ? 'rgba(217,119,6,0.1)' : activeSub.passed ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)',
+                          color: !isGraded(activeSub) ? '#d97706' : activeSub.passed ? '#16a34a' : '#dc2626',
                         }}>
-                          {isGraded(activeSub) ? `${activeSub.grade} / ${activeSub.totalMark}` : t('instructor.assignmentsPage.filterUngraded', 'Ungraded')}
+                          {isGraded(activeSub)
+                            ? `${activeSub.grade} / ${activeSub.totalMark} · ${activeSub.passed ? t('instructor.assignmentsPage.passed', 'Passed') : t('instructor.assignmentsPage.notPassed', 'Not passed')}`
+                            : t('instructor.assignmentsPage.filterUngraded', 'Ungraded')}
                         </span>
+                      </div>
+
+                      <div style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 14 }}>
+                        {t('instructor.assignmentsPage.attemptOf', 'Attempt {{n}} of {{max}}', { n: activeSub.attemptNumber ?? 1, max: activeSub.maxAttempts ?? 2 })}
+                        {activeSub.previousGrade !== undefined && activeSub.previousGrade !== null && (
+                          <> · {t('instructor.assignmentsPage.previousAttempt', 'First attempt: {{grade}}/{{total}}', { grade: activeSub.previousGrade, total: activeSub.totalMark })}
+                            {activeSub.previousFeedback ? ` — “${activeSub.previousFeedback}”` : ''}</>
+                        )}
                       </div>
 
                       {/* Written answer */}
@@ -838,6 +909,13 @@ const InstructorAssignment: React.FC = () => {
                             />
                           </div>
                         </div>
+                        <p style={{ fontSize: 11.5, color: 'var(--lx-text-muted)', margin: '0 0 10px' }}>
+                          {t('instructor.assignmentsPage.passMarkHint', 'Pass mark: {{min}}/{{total}} ({{pct}}%). Passing gives the student the course certificate once all lessons are done; a lower mark lets them resubmit once.', {
+                            min: Math.ceil(((activeSub.passPercentage ?? 70) * activeSub.totalMark) / 100),
+                            total: activeSub.totalMark,
+                            pct: activeSub.passPercentage ?? 70,
+                          })}
+                        </p>
                         <button
                           type="button"
                           className="lx-btn lx-btn-sm lx-btn-primary"

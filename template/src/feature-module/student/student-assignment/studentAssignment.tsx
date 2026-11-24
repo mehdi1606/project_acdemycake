@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import AssignmentLockedNotice from '../../../components/AssignmentLockedNotice';
 import { assignmentService, localizeAssignment } from '../../../services/api/assignment.service';
 import { Assignment, Submission, SubmitAssignmentRequest } from '../../../services/api/types';
 import { extractApiError } from '../../../services/api/error.utils';
@@ -222,7 +223,14 @@ const StudentAssignment = () => {
                         : a.status
                       }</span>
                     </div>
-                    {a.courseTitle && <div style={{ fontSize: 12, color: 'var(--lx-text-light)', marginBottom: 4 }}>{a.courseTitle}</div>}
+                    <div style={{ fontSize: 12, color: 'var(--lx-text-light)', marginBottom: 4 }}>
+                      {a.courses && a.courses.length > 0 ? a.courses.map(c => c.title).join(', ') : a.courseTitle}
+                      {a.myUnlocked === false && (
+                        <span style={{ marginInlineStart: 8, color: '#8B2335', fontWeight: 600 }}>
+                          <i className="fa-solid fa-lock" style={{ marginInlineEnd: 4 }} />{t('assignmentLock.locked', 'Locked')}
+                        </span>
+                      )}
+                    </div>
                     <div style={{ display: 'flex', gap: 16, fontSize: 12, color: past ? '#dc2626' : 'var(--lx-text-light)' }}>
                       <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />{t('student.assignments.due', 'Due')}: {fmt(a.dueDate)}</span>
                       <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />{t('student.assignments.marks', 'Marks')}: {a.totalMark}</span>
@@ -285,7 +293,7 @@ const StudentAssignment = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(197,151,62,0.08)', border: '1px solid rgba(197,151,62,0.2)', fontSize: 13, color: '#8a6516' }}>
             <i className="fa-solid fa-award" />
-            {t('student.assignments.certificateNote', 'Your course certificate is issued once this assignment has been marked.')}
+            {t('student.assignments.certificateNotePass', 'Your course certificate is issued once you pass this assignment (a mark of {{pct}}% or more) and finish every lesson.', { pct: selected.passPercentage ?? 70 })}
           </div>
         </div>
       )}
@@ -302,12 +310,21 @@ const StudentAssignment = () => {
               <div style={{ fontSize: 32, fontWeight: 800, color: gradeColor(submission.grade, submission.totalMark) }}>
                 {submission.grade}/{submission.totalMark}
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: gradeColor(submission.grade, submission.totalMark) }}>
                   {Math.round((submission.grade / submission.totalMark) * 100)}%
                 </div>
                 {submission.gradedByName && <div style={{ fontSize: 12, color: 'var(--lx-text-light)' }}>{t('student.assignments.gradedBy', 'Graded by')} {submission.gradedByName}</div>}
               </div>
+              <span style={{
+                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                background: submission.passed ? 'rgba(22,163,74,0.12)' : 'rgba(220,38,38,0.10)',
+                color: submission.passed ? '#16a34a' : '#dc2626',
+              }}>
+                {submission.passed
+                  ? t('student.assignments.passed', 'Passed')
+                  : t('student.assignments.notPassed', 'Not passed')}
+              </span>
             </div>
           ) : (
             <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(217,119,6,0.08)', color: '#d97706', fontSize: 13, fontWeight: 600 }}>
@@ -336,15 +353,45 @@ const StudentAssignment = () => {
             </div>
           )}
 
+          {submission.previousGrade !== undefined && submission.previousGrade !== null && (
+            <div style={{ marginTop: 12, fontSize: 12, color: 'var(--lx-text-light)' }}>
+              {t('student.assignments.previousAttempt', 'First attempt: {{grade}}/{{total}}', { grade: submission.previousGrade, total: submission.totalMark })}
+            </div>
+          )}
+
           <div style={{ marginTop: 14, fontSize: 12, color: 'var(--lx-text-light)' }}>
             {t('student.assignments.submitted', 'Submitted')}: {fmt(submission.submittedAt)}
+            {' · '}
+            {t('student.assignments.attemptOf', 'Attempt {{n}} of {{max}}', { n: submission.attemptNumber ?? 1, max: submission.maxAttempts ?? 2 })}
           </div>
+
+          {submission.passed === false && (
+            <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: submission.canResubmit ? 'rgba(197,151,62,0.08)' : 'rgba(220,38,38,0.06)', border: `1px solid ${submission.canResubmit ? 'rgba(197,151,62,0.25)' : 'rgba(220,38,38,0.15)'}`, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: submission.canResubmit ? '#8a6516' : '#dc2626' }}>
+                {submission.canResubmit
+                  ? t('student.assignments.resubmitHint', 'A mark of {{pct}}% is needed to pass. Read the feedback and send an improved version — you have one more attempt.', { pct: submission.passPercentage ?? 70 })
+                  : t('student.assignments.noAttemptsLeft', 'A mark of {{pct}}% is needed to pass, and you have no attempts left for this assignment.', { pct: submission.passPercentage ?? 70 })}
+              </span>
+              {submission.canResubmit && selected?.myUnlocked !== false && (
+                <button type="button" className="lx-btn lx-btn-sm lx-btn-primary" onClick={() => { setContent(''); clearFile(); setSubmitError(null); setActiveTab('submit'); }}>
+                  <i className="isax isax-refresh" /> {t('student.assignments.resubmit', 'Resubmit')}
+                </button>
+              )}
+            </div>
+          )}
         </div>
+      ) : selected && selected.myUnlocked === false ? (
+        // ── Locked: the linked courses are not all finished yet ──
+        <AssignmentLockedNotice missing={selected.myMissing ?? []} />
       ) : (
         // ── Submit Form ──
         <form onSubmit={handleSubmit}>
           <div style={{ background: 'var(--lx-card)', border: '1px solid var(--lx-border)', borderRadius: 'var(--lx-radius)', padding: '20px 24px' }}>
-            <h6 style={{ fontWeight: 700, marginBottom: 16 }}>{t('student.assignments.submitWork', 'Submit Your Work')}</h6>
+            <h6 style={{ fontWeight: 700, marginBottom: 16 }}>
+              {submission?.canResubmit
+                ? t('student.assignments.resubmitTitle', 'Resubmit your work — attempt 2 of 2')
+                : t('student.assignments.submitWork', 'Submit Your Work')}
+            </h6>
 
             {submitError && (
               <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.12)', color: '#dc2626', fontSize: 13 }}>
@@ -406,7 +453,7 @@ const StudentAssignment = () => {
               <button type="submit" className="lx-btn lx-btn-primary" disabled={submitting || uploading || !content.trim()}>
                 {submitting ? t('common.loading', 'Submitting…') : t('student.assignments.submitAssignment', 'Submit Assignment')}
               </button>
-              <button type="button" className="lx-btn lx-btn-outline" onClick={back}>{t('common.cancel', 'Cancel')}</button>
+              <button type="button" className="lx-btn lx-btn-outline" onClick={submission ? () => setActiveTab('result') : back}>{t('common.cancel', 'Cancel')}</button>
             </div>
           </div>
         </form>

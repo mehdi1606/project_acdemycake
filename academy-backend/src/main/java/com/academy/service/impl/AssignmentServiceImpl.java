@@ -23,7 +23,10 @@ import com.academy.repository.CourseRepository;
 import com.academy.security.FileUrlSigner;
 import com.academy.security.UserPrincipal;
 import com.academy.service.AssignmentService;
+import com.academy.dto.response.AssignmentRequirementResponse;
+import com.academy.service.AssignmentRequirementsService;
 import com.academy.service.CertificateService;
+import com.academy.service.EnrollmentService;
 import com.academy.service.NotificationService;
 import com.academy.service.FileStorageService;
 import com.academy.service.UserService;
@@ -60,6 +63,9 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final FileStorageService fileStorageService;
     private final UserService userService;
     private final CertificateService certificateService;
+    private final com.academy.repository.CertificateRepository certificateRepository;
+    private final EnrollmentService enrollmentService;
+    private final AssignmentRequirementsService assignmentRequirementsService;
     private final NotificationService notificationService;
     private final PlatformTransactionManager transactionManager;
 
@@ -86,15 +92,17 @@ public class AssignmentServiceImpl implements AssignmentService {
     public AssignmentResponse createAssignment(CreateAssignmentRequest request) {
         User instructor = getCurrentUser();
 
-        Course course = courseRepository.findById(request.getCourseId())
-                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", request.getCourseId()));
-
-        if (!course.getInstructor().getId().equals(instructor.getId())) {
-            throw new ForbiddenException("You don't have access to this course");
+        List<Course> linked = resolveCourses(request, instructor);
+        if (linked.isEmpty()) {
+            throw new BadRequestException("Choose at least one course for this assignment");
         }
+        String certificateTitle = blankToNull(request.getCertificateTitle());
+        requireCertificateTitle(linked, certificateTitle);
 
         Assignment assignment = Assignment.builder()
-                .course(course)
+                .course(linked.get(0))
+                .courses(new java.util.LinkedHashSet<>(linked))
+                .certificateTitle(certificateTitle)
                 .instructor(instructor)
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -122,14 +130,18 @@ public class AssignmentServiceImpl implements AssignmentService {
             throw new ForbiddenException("You don't have access to this assignment");
         }
 
-        if (request.getCourseId() != null && !request.getCourseId().equals(assignment.getCourse().getId())) {
-            Course course = courseRepository.findById(request.getCourseId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Course", "id", request.getCourseId()));
-            if (!course.getInstructor().getId().equals(instructor.getId())) {
-                throw new ForbiddenException("You don't have access to this course");
-            }
-            assignment.setCourse(course);
+        // Courses: courseIds (or the single courseId of older clients) replaces the links when sent.
+        List<Course> linked = resolveCourses(request, instructor);
+        if (!linked.isEmpty()) {
+            assignment.setCourse(linked.get(0));
+            assignment.getCourses().clear();
+            assignment.getCourses().addAll(linked);
         }
+        // null = not sent (unchanged); "" clears it.
+        if (request.getCertificateTitle() != null) {
+            assignment.setCertificateTitle(blankToNull(request.getCertificateTitle()));
+        }
+        requireCertificateTitle(assignment.linkedCourses(), assignment.getCertificateTitle());
 
         if (request.getTitle() != null) assignment.setTitle(request.getTitle());
         if (request.getDescription() != null) assignment.setDescription(request.getDescription());
@@ -168,9 +180,9 @@ public class AssignmentServiceImpl implements AssignmentService {
         User student = getCurrentUser();
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        // Fetch assignments from courses the student is enrolled in and that are PUBLISHED
+        // Published assignments linked to any course the student is enrolled in
         Page<Assignment> assignments = assignmentRepository.findPublishedByEnrolledStudent(student, pageRequest);
-        return PageResponse.from(assignments, AssignmentResponse::fromEntity);
+        return PageResponse.from(assignments, a -> withMySubmission(a, student));
     }
 
     @Override
@@ -189,8 +201,12 @@ public class AssignmentServiceImpl implements AssignmentService {
         if (assignment.getStatus() != AssignmentStatus.PUBLISHED) {
             throw new ResourceNotFoundException("Assignment", "id", assignmentId);
         }
-        if (!courseEnrollmentRepository.existsByUserAndCourse(student, assignment.getCourse())) {
-            throw new ForbiddenException("You are not enrolled in this course");
+        // Visible to a student who can access at least one of its courses; whether they may
+        // submit is shown by myUnlocked / myMissing.
+        boolean anyAccess = assignment.linkedCourses().stream()
+                .anyMatch(c -> enrollmentService.hasAccess(student, c));
+        if (!anyAccess) {
+            throw new ForbiddenException("You don't have access to this assignment's courses");
         }
         return withMySubmission(assignment, student);
     }
@@ -215,20 +231,30 @@ public class AssignmentServiceImpl implements AssignmentService {
             throw new BadRequestException("Assignment is not open for submission");
         }
 
+        // The assignment unlocks only when every linked course is finished: access, every lesson
+        // completed and every published quiz passed (an expired subscription or a refund locks it).
+        List<AssignmentRequirementResponse> missing = assignmentRequirementsService.missingFor(student, assignment);
+        if (!missing.isEmpty()) {
+            if (missing.stream().allMatch(AssignmentRequirementResponse::isNoAccess)
+                    && missing.size() == assignment.linkedCourses().size()) {
+                throw new ForbiddenException("You don't have access to this assignment's courses");
+            }
+            throw new BadRequestException("Finish these courses first (all lessons and quizzes): "
+                    + missing.stream().map(AssignmentRequirementResponse::getCourseTitle)
+                            .collect(java.util.stream.Collectors.joining(", ")));
+        }
+
+        AssignmentSubmission existing = assignmentSubmissionRepository
+                .findByAssignmentAndStudent(assignment, student).orElse(null);
+        if (existing != null) {
+            return resubmit(existing, request);
+        }
+
         // The due date is a whole day — the student keeps it until 23:59:59, so compare
         // against the END of that day (atStartOfDay() would reject the due date itself).
         if (assignment.getDueDate() != null
                 && LocalDateTime.now().isAfter(assignment.getDueDate().atTime(LocalTime.MAX))) {
             throw new BadRequestException("Assignment due date has passed");
-        }
-
-        boolean enrolled = courseEnrollmentRepository.existsByUserAndCourse(student, assignment.getCourse());
-        if (!enrolled) {
-            throw new ForbiddenException("You are not enrolled in this course");
-        }
-
-        if (assignmentSubmissionRepository.existsByAssignmentAndStudent(assignment, student)) {
-            throw new BadRequestException("You have already submitted this assignment");
         }
 
         AssignmentSubmission submission = AssignmentSubmission.builder()
@@ -240,6 +266,39 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         AssignmentSubmission saved = assignmentSubmissionRepository.save(submission);
         log.info("Assignment {} submitted by student: {}", assignmentId, student.getEmail());
+        return toResponse(saved);
+    }
+
+    /**
+     * The one retry allowed after a failing mark on the first attempt. The same row is reused:
+     * the first attempt's mark and feedback move to previous_*, the new work awaits a mark.
+     * The due date does not apply — the failing mark reopened the assignment.
+     */
+    private SubmissionResponse resubmit(AssignmentSubmission submission, SubmitAssignmentRequest request) {
+        if (!submission.isGraded()) {
+            throw new BadRequestException("Your submission is waiting for the instructor's mark");
+        }
+        if (submission.isPassed()) {
+            throw new BadRequestException("You have already passed this assignment");
+        }
+        if (!submission.canResubmit()) {
+            throw new BadRequestException("You have no submission attempts left for this assignment");
+        }
+
+        submission.setPreviousGrade(submission.getGrade());
+        submission.setPreviousFeedback(submission.getFeedback());
+        submission.setGrade(null);
+        submission.setFeedback(null);
+        submission.setGradedAt(null);
+        submission.setGradedBy(null);
+        submission.setContent(request.getContent());
+        submission.setFileUrl(validatedFileUrl(request.getFileUrl()));
+        submission.setAttemptNumber(Assignment.MAX_ATTEMPTS);
+        submission.setSubmittedAt(LocalDateTime.now());
+
+        AssignmentSubmission saved = assignmentSubmissionRepository.save(submission);
+        log.info("Assignment {} resubmitted (attempt {}) by student: {}",
+                saved.getAssignment().getId(), saved.getAttemptNumber(), saved.getStudent().getEmail());
         return toResponse(saved);
     }
 
@@ -292,13 +351,64 @@ public class AssignmentServiceImpl implements AssignmentService {
         submission.setGradedBy(instructor);
 
         AssignmentSubmission saved = assignmentSubmissionRepository.save(submission);
-        log.info("Submission {} graded by instructor: {}", submissionId, instructor.getEmail());
+        log.info("Submission {} graded by instructor: {} ({}/{}, {})", submissionId, instructor.getEmail(),
+                saved.getGrade(), totalMark, saved.isPassed() ? "passed" : "not passed");
 
-        // This mark may complete the requirements for a withheld certificate. Issue it only
+        notifyStudentOfMark(saved);
+
+        // A passing mark may complete the requirements for the certificate. Issue it only
         // after this transaction commits, so the certificate check can see the grade.
-        issueCertificateAfterCommit(saved.getStudent().getId(), saved.getAssignment().getCourse().getId());
+        if (saved.isPassed()) {
+            issueCertificateAfterCommit(saved.getStudent().getId(), saved.getAssignment().getId());
+        }
 
         return toResponse(saved);
+    }
+
+    /** Tell the student their mark, whether it passed, and whether they may resubmit. */
+    private void notifyStudentOfMark(AssignmentSubmission s) {
+        Assignment a = s.getAssignment();
+        String mark = s.getGrade() + "/" + a.getTotalMark();
+        String title;
+        String body;
+        if (s.isPassed()) {
+            title = "Assignment passed";
+            body = "\"" + a.getTitle() + "\" was marked " + mark + ". Well done — you passed.";
+        } else if (s.canResubmit()) {
+            title = "Assignment not passed — you can resubmit";
+            body = "\"" + a.getTitle() + "\" was marked " + mark + ". A mark of " + Assignment.PASS_PERCENTAGE
+                    + "% is needed to pass. Read the feedback and send a new version (one more attempt).";
+        } else {
+            title = "Assignment not passed";
+            body = "\"" + a.getTitle() + "\" was marked " + mark + ". A mark of " + Assignment.PASS_PERCENTAGE
+                    + "% is needed to pass, and no attempts are left.";
+        }
+        UUID studentId = s.getStudent().getId();
+        UUID submissionId = s.getId();
+        String link = "/student/student-assignments?assignment=" + a.getId();
+
+        // Sent after the mark is committed, in its own transaction: a failing notification
+        // must never roll back (and lose) the instructor's mark.
+        Runnable send = () -> {
+            try {
+                TransactionTemplate tx = new TransactionTemplate(transactionManager);
+                tx.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                tx.executeWithoutResult(status -> notificationService.createNotification(
+                        userService.findById(studentId), title, body, NotificationType.COURSE, link));
+            } catch (Exception e) {
+                log.warn("Mark notification not sent for submission {}: {}", submissionId, e.getMessage());
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    send.run();
+                }
+            });
+        } else {
+            send.run();
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -334,18 +444,57 @@ public class AssignmentServiceImpl implements AssignmentService {
         assignmentSubmissionRepository.findByAssignmentAndStudent(assignment, student).ifPresentOrElse(s -> {
             response.setMySubmissionStatus(s.getGrade() != null ? "GRADED" : "SUBMITTED");
             response.setMyGrade(s.getGrade());
-        }, () -> response.setMySubmissionStatus("NONE"));
+            response.setMyPassed(s.isGraded() ? s.isPassed() : null);
+            response.setMyCanResubmit(s.canResubmit());
+            response.setMyAttemptNumber(s.getAttemptNumber());
+        }, () -> {
+            response.setMySubmissionStatus("NONE");
+            response.setMyCanResubmit(false);
+        });
+        // Locked until every linked course is finished (lessons + published quizzes).
+        List<AssignmentRequirementResponse> missing = assignmentRequirementsService.missingFor(student, assignment);
+        response.setMyUnlocked(missing.isEmpty());
+        response.setMyMissing(missing);
+        if (!missing.isEmpty()) {
+            response.setMyCanResubmit(false);
+        }
         return response;
     }
 
     /**
-     * If the student already finished the course and this was the last missing mark,
-     * issue the certificate that was withheld and tell the student.
-     *
-     * Runs after commit because generateCertificate uses its own transaction, which
-     * could not see an uncommitted grade and would refuse again.
+     * Linked courses from the request, in the order sent (first = primary). Uses courseIds, or the
+     * single courseId of older clients; empty when neither is sent. Every course must belong to
+     * the instructor.
      */
-    private void issueCertificateAfterCommit(UUID studentId, UUID courseId) {
+    private List<Course> resolveCourses(CreateAssignmentRequest request, User instructor) {
+        List<UUID> ids = request.getCourseIds() != null && !request.getCourseIds().isEmpty()
+                ? request.getCourseIds()
+                : (request.getCourseId() != null ? List.of(request.getCourseId()) : List.of());
+        List<Course> courses = new java.util.ArrayList<>();
+        for (UUID id : new java.util.LinkedHashSet<>(ids)) {
+            Course course = courseRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Course", "id", id));
+            if (!course.getInstructor().getId().equals(instructor.getId())) {
+                throw new ForbiddenException("You can only add your own courses to an assignment");
+            }
+            courses.add(course);
+        }
+        return courses;
+    }
+
+    private static void requireCertificateTitle(List<Course> linked, String certificateTitle) {
+        if (linked.size() > 1 && (certificateTitle == null || certificateTitle.isBlank())) {
+            throw new BadRequestException(
+                    "Write the certificate title: it is required when the assignment covers several courses");
+        }
+    }
+
+    /**
+     * A passing mark: issue the student's certificate for this assignment (once every linked
+     * course is finished) and tell them. Runs after commit because issueForAssignment uses its own
+     * transaction, which could not see an uncommitted grade and would refuse.
+     */
+    private void issueCertificateAfterCommit(UUID studentId, UUID assignmentId) {
         Runnable issue = () -> {
             try {
                 // REQUIRES_NEW: in afterCommit the finished transaction is still bound,
@@ -355,29 +504,37 @@ public class AssignmentServiceImpl implements AssignmentService {
                 tx.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
                 tx.executeWithoutResult(status -> {
                     User student = userService.findById(studentId);
-                    Course course = courseRepository.findById(courseId).orElse(null);
-                    if (course == null) return;
-                    CourseEnrollment enrollment = courseEnrollmentRepository
-                            .findByUserAndCourse(student, course).orElse(null);
-                    if (enrollment == null || !Boolean.TRUE.equals(enrollment.getIsCompleted())
-                            || enrollment.getCertificateId() != null) return;
-                    if (assignmentRepository.countUngradedPublishedForStudent(course, student) > 0) return;
+                    Assignment assignment = assignmentRepository.findById(assignmentId).orElse(null);
+                    if (assignment == null) return;
+                    if (certificateRepository.findFirstByUserAndAssignmentOrderByIssuedAtAsc(student, assignment).isPresent()) {
+                        return;   // already issued (e.g. the mark was edited)
+                    }
+                    // Normally unlocked (submitting needs it); if a course gained lessons meanwhile,
+                    // the certificate is issued when the student finishes them.
+                    if (!assignmentRequirementsService.isUnlocked(student, assignment)) return;
 
-                    var certificate = certificateService.generateCertificate(student, course);
-                    enrollment.setCertificateId(certificate.getId());
-                    courseEnrollmentRepository.save(enrollment);
+                    var certificate = certificateService.issueForAssignment(student, assignment);
+                    for (Course course : assignment.linkedCourses()) {
+                        courseEnrollmentRepository.findByUserAndCourse(student, course).ifPresent(e -> {
+                            if (e.getCertificateId() == null) {
+                                e.setCertificateId(certificate.getId());
+                                courseEnrollmentRepository.save(e);
+                            }
+                        });
+                    }
 
                     notificationService.createNotification(
                             student,
                             "Your certificate is ready",
-                            "Your assignment for \"" + course.getTitle() + "\" has been marked. Your certificate is now available.",
+                            "You passed \"" + assignment.getTitle() + "\". Your certificate \""
+                                    + certificate.getCourseTitle() + "\" is now available.",
                             NotificationType.COURSE,
                             "/student/student-certificates"
                     );
-                    log.info("Certificate issued after grading: {} → {}", course.getTitle(), student.getEmail());
+                    log.info("Certificate issued after grading: assignment {} → {}", assignmentId, student.getEmail());
                 });
             } catch (Exception e) {
-                log.warn("Certificate not issued after grading (course {}): {}", courseId, e.getMessage());
+                log.warn("Certificate not issued after grading (assignment {}): {}", assignmentId, e.getMessage());
             }
         };
 

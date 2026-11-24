@@ -37,4 +37,15 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
 
     @Query("SELECT COUNT(c) FROM Certificate c WHERE c.course.instructor = :instructor")
     long countByInstructor(@Param("instructor") User instructor);
+
+    /** The certificate a student earned with a given assignment (at most one). */
+    Optional<Certificate> findFirstByUserAndAssignmentOrderByIssuedAtAsc(User user, com.academy.entity.Assignment assignment);
+
+    /**
+     * True when the student holds a certificate for this course: an older per-course certificate, or one
+     * earned with an assignment that is linked to this course.
+     */
+    @Query("SELECT COUNT(c) > 0 FROM Certificate c WHERE c.user = :user AND (c.course = :course " +
+           "OR EXISTS (SELECT a FROM Assignment a JOIN a.courses lc WHERE a = c.assignment AND lc = :course))")
+    boolean existsForUserAndCourse(@Param("user") User user, @Param("course") Course course);
 }

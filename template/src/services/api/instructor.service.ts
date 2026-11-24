@@ -151,6 +151,11 @@ export interface Assignment {
   status: AssignmentStatus;
   createdAt: string;
   updatedAt?: string;
+  /** Every course of the assignment, primary first (courseId/courseTitle = primary). */
+  courseIds?: string[];
+  courses?: { id: string; title: string; titleAr?: string; slug?: string }[];
+  /** Printed on the certificate; null = primary course name. */
+  certificateTitle?: string | null;
 }
 
 interface AssignmentsPageResponse {
@@ -161,7 +166,12 @@ interface AssignmentsPageResponse {
 }
 
 interface CreateAssignmentRequest {
-  courseId: string;
+  /** Older single-course form; courseIds wins when sent. */
+  courseId?: string;
+  /** Every course of the assignment; the first one is the primary course. */
+  courseIds?: string[];
+  /** Printed on the certificate; required for 2+ courses. "" clears it. */
+  certificateTitle?: string;
   title: string;
   description?: string;
   instructions?: string;

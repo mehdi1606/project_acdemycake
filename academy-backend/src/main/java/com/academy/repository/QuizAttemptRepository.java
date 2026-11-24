@@ -28,4 +28,11 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, UUID> 
 
     /** Returns all attempts a student made on a quiz, newest first */
     List<QuizAttempt> findByQuizAndStudentOrderByCreatedAtDesc(Quiz quiz, User student);
+
+    /** True when the student has at least one passed, submitted attempt on the quiz. */
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT COUNT(qa) > 0 FROM QuizAttempt qa WHERE qa.quiz = :quiz AND qa.student = :student " +
+            "AND qa.passed = true AND qa.status = com.academy.entity.enums.AttemptStatus.SUBMITTED")
+    boolean hasPassed(@org.springframework.data.repository.query.Param("quiz") Quiz quiz,
+                      @org.springframework.data.repository.query.Param("student") User student);
 }

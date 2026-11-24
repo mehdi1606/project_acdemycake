@@ -20,6 +20,8 @@ public class CertificateResponse {
     private String studentEmail;
     private UUID courseId;
     private String courseTitle;
+    /** The passed assignment that earned the certificate (null for older certificates). */
+    private UUID assignmentId;
     private String instructorName;
     private String pdfUrl;
     private LocalDateTime completionDate;
@@ -32,11 +34,9 @@ public class CertificateResponse {
                 .studentName(certificate.getStudentName())
                 .studentEmail(certificate.getUser().getEmail())
                 .courseId(certificate.getCourse().getId())
-                .courseTitle(certificate.getCourse() != null
-                        && certificate.getCourse().getTitleEn() != null
-                        && !certificate.getCourse().getTitleEn().isBlank()
-                        ? certificate.getCourse().getTitleEn()
-                        : certificate.getCourseTitle())
+                // The printed title: the instructor's certificate title, else the course name.
+                .courseTitle(certificate.displayTitle())
+                .assignmentId(certificate.getAssignment() != null ? certificate.getAssignment().getId() : null)
                 .instructorName(certificate.getInstructorName())
                 .pdfUrl(certificate.getPdfUrl())
                 .completionDate(certificate.getCompletionDate())

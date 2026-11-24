@@ -72,6 +72,8 @@ public class CourseResponse {
     // ── Authenticated-user fields (set at request time, never cached) ──────────
     private Boolean isEnrolled;
     private Integer enrollmentProgress; // 0–100
+    /** True when the current user already holds a certificate for this course. */
+    private Boolean hasMyCertificate;
 
     // ── Multilingual translation fields ──────────────────────────────────────
     private String titleEn;

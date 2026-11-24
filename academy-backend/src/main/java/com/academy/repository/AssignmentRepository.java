@@ -23,23 +23,25 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
 
     long countByInstructor(User instructor);
 
-    @Query("SELECT a FROM Assignment a WHERE a.status = 'PUBLISHED' " +
-           "AND EXISTS (SELECT e FROM CourseEnrollment e WHERE e.user = :student AND e.course = a.course AND e.isActive = true)")
+    /** Published assignments linked to any course the student is actively enrolled in. */
+    @Query(value = "SELECT a FROM Assignment a WHERE a.status = 'PUBLISHED' " +
+           "AND EXISTS (SELECT lc FROM Assignment a2 JOIN a2.courses lc WHERE a2 = a AND EXISTS " +
+           "(SELECT e FROM CourseEnrollment e WHERE e.user = :student AND e.course = lc AND e.isActive = true))",
+           countQuery = "SELECT COUNT(a) FROM Assignment a WHERE a.status = 'PUBLISHED' " +
+           "AND EXISTS (SELECT lc FROM Assignment a2 JOIN a2.courses lc WHERE a2 = a AND EXISTS " +
+           "(SELECT e FROM CourseEnrollment e WHERE e.user = :student AND e.course = lc AND e.isActive = true))")
     Page<Assignment> findPublishedByEnrolledStudent(@Param("student") User student, Pageable pageable);
 
-    /** Published assignments of ONE course the student is actively enrolled in. */
-    @Query("SELECT a FROM Assignment a WHERE a.status = 'PUBLISHED' AND a.course.id = :courseId " +
-           "AND EXISTS (SELECT e FROM CourseEnrollment e WHERE e.user = :student AND e.course = a.course AND e.isActive = true) " +
+    /** Published assignments linked to ONE course the student is actively enrolled in. */
+    @Query("SELECT a FROM Assignment a WHERE a.status = 'PUBLISHED' " +
+           "AND EXISTS (SELECT lc FROM Assignment a2 JOIN a2.courses lc WHERE a2 = a AND lc.id = :courseId) " +
+           "AND EXISTS (SELECT e FROM CourseEnrollment e WHERE e.user = :student AND e.course.id = :courseId AND e.isActive = true) " +
            "ORDER BY a.dueDate ASC NULLS LAST, a.createdAt DESC")
     List<Assignment> findPublishedByEnrolledStudentAndCourse(@Param("student") User student,
                                                              @Param("courseId") UUID courseId);
 
-    /**
-     * Published assignments of a course this student has NOT yet been given a mark on.
-     * The course certificate is withheld while this is above zero.
-     */
-    @Query("SELECT COUNT(a) FROM Assignment a WHERE a.course = :course AND a.status = 'PUBLISHED' " +
-           "AND NOT EXISTS (SELECT s FROM AssignmentSubmission s " +
-           "WHERE s.assignment = a AND s.student = :student AND s.grade IS NOT NULL)")
-    long countUngradedPublishedForStudent(@Param("course") Course course, @Param("student") User student);
+    /** Published assignments linked to a course (shared assignments included). */
+    @Query("SELECT a FROM Assignment a WHERE a.status = 'PUBLISHED' " +
+           "AND EXISTS (SELECT lc FROM Assignment a2 JOIN a2.courses lc WHERE a2 = a AND lc = :course)")
+    List<Assignment> findPublishedLinkedToCourse(@Param("course") Course course);
 }

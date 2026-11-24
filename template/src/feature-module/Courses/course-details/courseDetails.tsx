@@ -141,12 +141,13 @@ const CourseDetails = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  // The certificate is only issued once every assignment of the course has a mark.
+  // The certificate is only issued once every assignment of the course is passed (70%+).
+  // A course without any assignment has no certificate at all.
   useEffect(() => {
     if (!course?.id || !course.isEnrolled || user?.role !== 'STUDENT') { setCertPendingMark(false); return; }
     let cancelled = false;
     assignmentService.getAssignmentsForCourse(course.id)
-      .then(list => { if (!cancelled) setCertPendingMark((list ?? []).some(a => a.mySubmissionStatus !== 'GRADED')); })
+      .then(list => { if (!cancelled) setCertPendingMark((list ?? []).some(a => a.myPassed !== true)); })
       .catch(() => { if (!cancelled) setCertPendingMark(false); });
     return () => { cancelled = true; };
   }, [course?.id, course?.isEnrolled, user?.role]);
@@ -1024,7 +1025,7 @@ const CourseDetails = () => {
                 <div style={{ padding: '16px 18px' }}>
                   {c.isEnrolled ? (
                     <>
-                    {(c.enrollmentProgress ?? 0) >= 100 && certPendingMark && (
+                    {(c.enrollmentProgress ?? 0) >= 100 && !c.hasMyCertificate && certPendingMark && (
                       <Link to={`${route.courseWatch}/${c.slug}`} style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                         width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 13,
@@ -1032,10 +1033,10 @@ const CourseDetails = () => {
                         border: '1px solid rgba(197,151,62,0.35)', marginBottom: 10, boxSizing: 'border-box',
                       }}>
                         <i className="fa-regular fa-clock" style={{ fontSize: 14 }} />
-                        <span>{t('courseWatch.certPendingBanner', 'Certificate after your assignment is marked')}</span>
+                        <span>{t('courseWatch.certPendingPassBanner', 'Pass your assignment (70% or more) to get your certificate')}</span>
                       </Link>
                     )}
-                    {(c.enrollmentProgress ?? 0) >= 100 && !certPendingMark && (
+                    {c.hasMyCertificate && (
                       <Link to={route.studentCertificates} style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                         width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 14,

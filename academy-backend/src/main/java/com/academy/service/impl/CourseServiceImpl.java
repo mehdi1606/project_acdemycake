@@ -102,6 +102,8 @@ public class CourseServiceImpl implements CourseService {
                         response.setEnrollmentProgress(
                             e.getProgressPercentage() != null ? e.getProgressPercentage().intValue() : 0));
                 }
+                // Lets the course page show "Get your certificate" only when one really exists.
+                response.setHasMyCertificate(certificateRepository.existsForUserAndCourse(user, course));
             }
         } catch (Exception ignored) { /* unauthenticated — skip */ }
         return response;

@@ -17,8 +17,20 @@ public interface CertificateService {
 
     byte[] downloadCertificate(UUID id);
 
-    /** Auto-called when a student completes a course — generates the certificate */
-    CertificateResponse generateCertificate(User user, Course course);
+    /**
+     * Certificates are earned only by passing an assignment (mark of at least
+     * {@link com.academy.entity.Assignment#PASS_PERCENTAGE}%) after finishing every course it is
+     * linked to (lessons + published quizzes). One certificate per student and assignment, printed
+     * with the assignment's certificate title. Returns the existing certificate if there is one;
+     * throws {@code BadRequestException} when the requirements are not met.
+     */
+    CertificateResponse issueForAssignment(User user, com.academy.entity.Assignment assignment);
+
+    /**
+     * Issues the certificates of assignments linked to this course that the student already passed
+     * and whose courses are now all finished. Returns the certificates issued (possibly none).
+     */
+    java.util.List<CertificateResponse> issuePendingForCourse(User user, Course course);
 
     /** Instructor: list all certificates issued for their courses */
     PageResponse<CertificateResponse> getInstructorCertificates(int page, int size);

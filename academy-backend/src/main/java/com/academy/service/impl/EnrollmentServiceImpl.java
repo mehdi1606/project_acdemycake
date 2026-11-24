@@ -352,13 +352,17 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             // Save completion status first — independent of certificate generation
             enrollmentRepository.save(enrollment);
 
-            // Auto-generate certificate in its own separate transaction (REQUIRES_NEW).
-            // If certificate generation fails it rolls back only itself and never
-            // poisons this transaction, so lesson progress is always saved correctly.
+            // Finishing the lessons (and their quizzes) never issues a certificate by itself:
+            // certificates come from passed assignments. This only issues those of assignments
+            // passed earlier whose linked courses are now all finished. Runs in its own
+            // transaction (REQUIRES_NEW), so a failure never poisons the progress update.
             try {
-                var cert = certificateService.generateCertificate(
+                var issued = certificateService.issuePendingForCourse(
                         enrollment.getUser(), enrollment.getCourse());
-                // Link the certificate ID and save again
+                if (issued.isEmpty()) {
+                    return;
+                }
+                var cert = issued.get(0);
                 enrollment.setCertificateId(cert.getId());
                 enrollmentRepository.save(enrollment);
                 log.info("Certificate auto-generated: {} for user: {} course: {}",
@@ -399,10 +403,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.info("Course completed by user: {} - Course: {}",
                 enrollment.getUser().getEmail(), enrollment.getCourse().getTitle());
 
-        // Auto-generate certificate
+        // Certificates come only from passed assignments whose courses are all finished.
         try {
-            var cert = certificateService.generateCertificate(
+            var issued = certificateService.issuePendingForCourse(
                     enrollment.getUser(), enrollment.getCourse());
+            if (issued.isEmpty()) {
+                return;
+            }
+            var cert = issued.get(0);
             enrollment.setCertificateId(cert.getId());
             enrollmentRepository.save(enrollment);
             log.info("Certificate auto-generated: {} for user: {} course: {}",
