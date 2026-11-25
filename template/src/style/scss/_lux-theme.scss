@@ -69,7 +69,7 @@
     background: rgba(251, 248, 243, 0.9);
     border-bottom: 1px solid var(--slx-line);
     box-shadow: 0 8px 30px rgba(43, 15, 30, 0.05);
-    .topbar-search input { border-radius: 999px; background: #fff; border-color: var(--slx-line); height: 42px; }
+    .topbar-search { background: #fff; border-color: var(--slx-line); &.open { border-color: rgba(197,145,44,0.40); } }
     .topbar-menu-btn, .topbar-action-btn { border-radius: 50%; background: #fff; border-color: var(--slx-line); }
     .profile-trigger { border-radius: 999px; background: #fff; border-color: var(--slx-line); }
     .profile-dropdown { border-radius: var(--slx-r-lg); background: var(--slx-panel); box-shadow: var(--slx-shadow); }

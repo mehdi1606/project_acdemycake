@@ -2547,7 +2547,9 @@
     "new": "new"
   },
   "topbar": {
-    "searchPlaceholder": "Search courses, quizzes, students…"
+    "searchPlaceholder": "Search courses, quizzes, students…",
+    "siteNav": "Site navigation",
+    "siteMenu": "Go to the website"
   },
   "messages": {
     "title": "Messages",

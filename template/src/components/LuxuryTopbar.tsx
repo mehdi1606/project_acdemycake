@@ -68,8 +68,16 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const [searchFocused,  setSearchFocused]  = useState(false);
   const [searchQuery,    setSearchQuery]    = useState('');
   const [guideOpen,      setGuideOpen]      = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  /** Search is a round icon that opens into a field (hover on computers, tap on touch screens). */
+  const [searchOpen,     setSearchOpen]     = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchRef      = useRef<HTMLFormElement>(null);
+  const searchHoverRef = useRef(false);
+  /** Public-site navigation (Home, Masterclasses, Ebooks, Academy) so users can leave the dashboard easily. */
+  const [academyOpen,    setAcademyOpen]    = useState(false);
+  const [siteMenuOpen,   setSiteMenuOpen]   = useState(false);
+  const siteNavRef     = useRef<HTMLDivElement>(null);
+  const siteMenuRef    = useRef<HTMLDivElement>(null);
 
   /* notifications state */
   const [notifications,  setNotifications]  = useState<Notification[]>([]);
@@ -85,6 +93,17 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const { user }     = useAppSelector((s) => s.auth);
   const { stats }    = useAppSelector((s) => s.student);
   const userBadge    = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
+
+  /* ── public-site links shown in the dashboard top bar ── */
+  const siteLinks = [
+    { label: t('nav.home'),             to: all_routes.homeone,     icon: 'isax-home-2' },
+    { label: t('nav.masterclasses'),    to: all_routes.masterclass, icon: 'isax-video-play' },
+    { label: t('nav.ebooks', 'Ebooks'), to: all_routes.ebooks,      icon: 'isax-book-1' },
+  ];
+  const academyLinks = [
+    { label: t('nav.courses'),   to: all_routes.courseList, icon: 'isax-book' },
+    { label: t('nav.community'), to: all_routes.blogGrid,   icon: 'isax-people' },
+  ];
 
   /* ── fetch unread count silently (poll every 60s) ── */
   const fetchUnreadCount = useCallback(async () => {
@@ -128,12 +147,24 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifOpen(false);
       }
+      if (siteNavRef.current && !siteNavRef.current.contains(e.target as Node)) {
+        setAcademyOpen(false);
+      }
+      if (siteMenuRef.current && !siteMenuRef.current.contains(e.target as Node)) {
+        setSiteMenuOpen(false);
+      }
+      // Tapping/clicking elsewhere folds the search back into its icon (unless something is typed).
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        if (!searchInputRef.current?.value) setSearchOpen(false);
+      }
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setDropdownOpen(false);
         setNotifOpen(false);
-        setMobileSearchOpen(false);
+        setSearchOpen(false);
+        setAcademyOpen(false);
+        setSiteMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -144,9 +175,11 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
     };
   }, []);
 
-  /* ── collapse the phone search on navigation ── */
+  /* ── fold the search and site menus on navigation ── */
   useEffect(() => {
-    setMobileSearchOpen(false);
+    setSearchOpen(false);
+    setAcademyOpen(false);
+    setSiteMenuOpen(false);
   }, [location.pathname]);
 
   /* ── close on route change ── */
@@ -365,52 +398,127 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         </Link>
       </div>
 
-      {/* ── Center: search bar ── */}
-      <form
-        role="search"
-        className={`topbar-search${searchFocused ? ' focused' : ''}${mobileSearchOpen ? ' mobile-open' : ''}`}
-        onSubmit={(e) => {
-          e.preventDefault();
-          const q = searchQuery.trim();
-          setMobileSearchOpen(false);
-          navigate(q ? `${all_routes.courseList}?search=${encodeURIComponent(q)}` : all_routes.courseList);
-        }}
-      >
-        <i className="isax isax-search-normal-1" aria-hidden="true" />
-        <input
-          ref={searchInputRef}
-          type="text"
-          aria-label={t('common.search', 'Search')}
-          placeholder={t('topbar.searchPlaceholder', 'Search courses, quizzes, students…')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setSearchFocused(false)}
-          onKeyDown={(e) => { if (e.key === 'Escape') setMobileSearchOpen(false); }}
-          enterKeyHint="search"
-        />
-      </form>
+      {/* ── Center: the public site's main links (same as the home page header) ── */}
+      <nav className="topbar-sitenav" ref={siteNavRef} aria-label={t('topbar.siteNav', 'Site navigation')}>
+        {siteLinks.map((l) => (
+          <Link key={l.to} to={l.to} className="topbar-sitenav__link">
+            <i className={`isax ${l.icon}`} aria-hidden="true" />
+            <span>{l.label}</span>
+          </Link>
+        ))}
+        <div className="topbar-sitenav__group">
+          <button
+            type="button"
+            className={`topbar-sitenav__link${academyOpen ? ' is-open' : ''}`}
+            aria-expanded={academyOpen}
+            aria-haspopup="menu"
+            onClick={() => setAcademyOpen((o) => !o)}
+          >
+            <i className="isax isax-teacher" aria-hidden="true" />
+            <span>{t('nav.academy')}</span>
+            <i className="isax isax-arrow-down-1 topbar-sitenav__caret" aria-hidden="true" />
+          </button>
+          {academyOpen && (
+            <div className="topbar-sitenav__menu" role="menu">
+              {academyLinks.map((l) => (
+                <Link key={l.to} to={l.to} role="menuitem" onClick={() => setAcademyOpen(false)}>
+                  <i className={`isax ${l.icon}`} aria-hidden="true" />
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </nav>
 
       {/* ── Right: actions + profile ── */}
       <div className="topbar-right">
 
-        {/* ── Search toggle (phones only, where the bar itself is hidden) ── */}
-        <button
-          type="button"
-          className="topbar-action-btn topbar-search-toggle"
-          aria-label={t('common.search', 'Search')}
-          title={t('common.search', 'Search')}
-          aria-expanded={mobileSearchOpen}
-          onClick={() => {
-            setMobileSearchOpen((o) => {
-              const next = !o;
-              if (next) setTimeout(() => searchInputRef.current?.focus(), 30);
-              return next;
-            });
+        {/* ── Site menu (tablets & phones, where the centre links don't fit) ── */}
+        <div className="topbar-sitemenu" ref={siteMenuRef}>
+          <button
+            type="button"
+            className="topbar-action-btn"
+            aria-label={t('topbar.siteMenu', 'Go to the website')}
+            title={t('topbar.siteMenu', 'Go to the website')}
+            aria-expanded={siteMenuOpen}
+            aria-haspopup="menu"
+            onClick={() => setSiteMenuOpen((o) => !o)}
+          >
+            <i className="isax isax-global" aria-hidden="true" />
+          </button>
+          {siteMenuOpen && (
+            <div className="topbar-sitenav__menu topbar-sitemenu__panel" role="menu">
+              {[...siteLinks, ...academyLinks].map((l) => (
+                <Link key={l.to} to={l.to} role="menuitem" onClick={() => setSiteMenuOpen(false)}>
+                  <i className={`isax ${l.icon}`} aria-hidden="true" />
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Search: a round icon that opens into a field (hover on computers, tap on phones) ── */}
+        <form
+          ref={searchRef}
+          role="search"
+          className={`topbar-search${searchOpen ? ' open' : ''}${searchFocused ? ' focused' : ''}`}
+          onMouseEnter={() => {
+            searchHoverRef.current = true;
+            if (window.matchMedia('(hover: hover)').matches) {
+              setSearchOpen(true);
+              setTimeout(() => searchInputRef.current?.focus({ preventScroll: true }), 60);
+            }
+          }}
+          onMouseLeave={() => {
+            searchHoverRef.current = false;
+            if (window.matchMedia('(hover: hover)').matches && !searchQuery) {
+              searchInputRef.current?.blur();
+              setSearchOpen(false);
+            }
+          }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const q = searchQuery.trim();
+            setSearchOpen(false);
+            navigate(q ? `${all_routes.courseList}?search=${encodeURIComponent(q)}` : all_routes.courseList);
           }}
         >
-          <i className={`isax ${mobileSearchOpen ? 'isax-close-circle' : 'isax-search-normal-1'}`} aria-hidden="true" />
-        </button>
+          <button
+            type="button"
+            className="topbar-search__btn"
+            aria-label={t('common.search', 'Search')}
+            title={t('common.search', 'Search')}
+            aria-expanded={searchOpen}
+            onClick={() => {
+              if (searchOpen && searchQuery.trim()) { searchRef.current?.requestSubmit(); return; }
+              setSearchOpen((o) => {
+                const next = !o || searchHoverRef.current;
+                if (next) setTimeout(() => searchInputRef.current?.focus(), 30);
+                return next;
+              });
+            }}
+          >
+            <i className="isax isax-search-normal-1" aria-hidden="true" />
+          </button>
+          <input
+            ref={searchInputRef}
+            type="text"
+            tabIndex={searchOpen ? 0 : -1}
+            aria-label={t('common.search', 'Search')}
+            placeholder={t('topbar.searchPlaceholder', 'Search courses, quizzes, students…')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => { setSearchFocused(true); setSearchOpen(true); }}
+            onBlur={() => {
+              setSearchFocused(false);
+              if (!searchQuery && !searchHoverRef.current) setSearchOpen(false);
+            }}
+            onKeyDown={(e) => { if (e.key === 'Escape') { setSearchOpen(false); (e.target as HTMLInputElement).blur(); } }}
+            enterKeyHint="search"
+          />
+        </form>
 
         {/* ── Language switcher ── */}
         <button
