@@ -383,8 +383,8 @@ const CourseCheckout = () => {
                       </div>
                       {savedTotal > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: '#4caf50', fontSize: 13 }}>{t('courseCart.discount', 'Discount')}</span>
-                          <span style={{ color: '#4caf50', fontWeight: 600, fontSize: 13 }}>-{savedTotal.toFixed(2)} MAD</span>
+                          <span style={{ color: '#8A6416', fontSize: 13 }}>{t('courseCart.discount', 'Discount')}</span>
+                          <span style={{ color: '#8A6416', fontWeight: 600, fontSize: 13 }}>-{savedTotal.toFixed(2)} MAD</span>
                         </div>
                       )}
                     </div>

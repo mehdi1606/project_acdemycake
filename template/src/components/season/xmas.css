@@ -11,8 +11,10 @@
 .sl-clip { fill: #173020; stroke: rgba(255, 255, 255, 0.15); stroke-width: 0.5; }
 .sl-ridge { stroke: rgba(255, 255, 255, 0.18); stroke-width: 0.6; }
 .sl-glass { stroke: rgba(255, 255, 255, 0.28); stroke-width: 0.5; }
-.sl-halo, .sl-spill { opacity: var(--o, 1); animation: sl-breathe 4.5s ease-in-out infinite alternate; }
-.sl-core { opacity: 0.9; animation: sl-core 4.5s ease-in-out infinite alternate; }
+/* one animated layer per bulb keeps it light on phones; the spill and core stay still */
+.sl-spill { opacity: var(--o, 1); }
+.sl-halo { opacity: var(--o, 1); animation: sl-breathe 4.5s ease-in-out infinite alternate; }
+.sl-core { opacity: 0.9; }
 /* restrained: a few percent of brightness, each bulb on its own clock */
 @keyframes sl-breathe { 0% { opacity: calc(var(--o, 1) * 0.72); } 60% { opacity: var(--o, 1); } 100% { opacity: calc(var(--o, 1) * 0.9); } }
 @keyframes sl-core { 0% { opacity: 0.7; } 60% { opacity: 0.95; } 100% { opacity: 0.85; } }

@@ -653,7 +653,7 @@ const CourseDetails = () => {
                               const isQuiz  = lesson.contentType === 'QUIZ';
                               const isVideo = lesson.contentType === 'VIDEO';
                               const iconCls   = isQuiz ? 'fa-circle-question' : isVideo ? 'fa-circle-play' : 'fa-file-lines';
-                              const iconColor = isQuiz ? '#F59E0B' : isVideo ? '#3B82F6' : '#6B7280';
+                              const iconColor = isQuiz ? '#C5973E' : isVideo ? '#A6192E' : '#8B6D5E';
                               const durMin    = Math.floor((lesson.videoDurationSeconds ?? 0) / 60);
                               return (
                                 <div key={lesson.id} style={{
@@ -728,10 +728,10 @@ const CourseDetails = () => {
                       )}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginBottom: 16 }}>
                         {[
-                          { icon: 'fa-star',    color: '#F59E0B', val: (instructor?.averageRating ?? 0).toFixed(1), label: t('common.rating', 'Rating') },
-                          { icon: 'fa-users',   color: '#3B82F6', val: (instructor?.totalStudents ?? 0).toLocaleString(), label: t('common.students', 'students') },
-                          { icon: 'fa-book',    color: '#10B981', val: instructor?.totalCourses ?? 0, label: t('nav.courses', 'Courses') },
-                          { icon: 'fa-comment', color: '#8B5CF6', val: instructor?.totalReviews ?? 0, label: t('common.reviews', 'reviews') },
+                          { icon: 'fa-star',    color: '#C5973E', val: (instructor?.averageRating ?? 0).toFixed(1), label: t('common.rating', 'Rating') },
+                          { icon: 'fa-users',   color: '#A6192E', val: (instructor?.totalStudents ?? 0).toLocaleString(), label: t('common.students', 'students') },
+                          { icon: 'fa-book',    color: '#651C32', val: instructor?.totalCourses ?? 0, label: t('nav.courses', 'Courses') },
+                          { icon: 'fa-comment', color: '#8A6416', val: instructor?.totalReviews ?? 0, label: t('common.reviews', 'reviews') },
                         ].map((s) => (
                           <div key={s.label} style={{ textAlign: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'center' }}>
@@ -951,10 +951,10 @@ const CourseDetails = () => {
                     </div>
                   ) : isOwnInstructor ? (
                     <div>
-                      <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(59,130,246,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-                        <i className="fa-solid fa-chalkboard-teacher" style={{ fontSize: 24, color: '#3B82F6' }} />
+                      <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(197,151,62,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                        <i className="fa-solid fa-chalkboard-teacher" style={{ fontSize: 24, color: '#C5973E' }} />
                       </div>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: '#1D4ED8' }}>{t('courseDetails.instructorView', 'Instructor view')}</div>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: '#651C32' }}>{t('courseDetails.instructorView', 'Instructor view')}</div>
                       <p style={{ fontSize: 12, color: '#9A8080', margin: '6px 0 0' }}>{t('courseDetails.instructorViewSub', 'You can preview this course')}</p>
                     </div>
                   ) : isAdmin ? (
@@ -1054,8 +1054,8 @@ const CourseDetails = () => {
                     <Link to={`${route.courseWatch}/${c.slug}`} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       width: '100%', padding: '13px 16px', borderRadius: 12, fontWeight: 800, fontSize: 14, boxSizing: 'border-box' as const,
-                      background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: '#fff', textDecoration: 'none',
-                      boxShadow: '0 6px 20px rgba(29,78,216,0.28)', marginBottom: 10,
+                      background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#fff', textDecoration: 'none',
+                      boxShadow: '0 6px 20px rgba(101,28,50,0.28)', marginBottom: 10,
                     }}>
                       <i className="fa-solid fa-eye" />{t('courseDetails.previewCourse', 'Preview course')}
                     </Link>
@@ -1173,22 +1173,22 @@ const CourseDetails = () => {
                   </h6>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {(isLiveMasterclass ? [
-                      { icon: 'fa-video',              color: '#1DA851', text: t('courseDetails.liveIncludeSessionV2', 'In-person live session with the instructor') },
+                      { icon: 'fa-video',              color: '#A6192E', text: t('courseDetails.liveIncludeSessionV2', 'In-person live session with the instructor') },
                       { icon: 'fa-users',              color: '#C5973E', text: seatsLeft !== null
                           ? t('courseDetails.placesLeftOf', '{{count}} of {{capacity}} places left', { count: seatsLeft, capacity: seatCap })
                           : t('courseDetails.limitedPlaces', 'Limited places') },
-                      { icon: 'fa-signal',             color: '#8B5CF6', text: levelLabel(c.level, t as TFn) },
-                      { icon: 'fa-globe',              color: '#10B981', text: c.language ?? t('courseDetails.defaultLanguage', 'English') },
+                      { icon: 'fa-signal',             color: '#8A6416', text: levelLabel(c.level, t as TFn) },
+                      { icon: 'fa-globe',              color: '#651C32', text: c.language ?? t('courseDetails.defaultLanguage', 'English') },
                       ...(Number(c.price ?? 0) > 0
                         ? [{ icon: 'fa-credit-card', color: '#651C32', text: t('courseDetails.liveIncludeCard', 'Secure online card payment') }]
                         : []),
                       { icon: 'fa-brands fa-whatsapp', color: '#1DA851', text: t('courseDetails.liveIncludeWhatsappV2', 'Questions & reservations on WhatsApp') },
                     ] : [
-                      { icon: 'fa-video',          color: '#3B82F6', text: t('courseDetails.onDemandVideo', '{{duration}} on-demand video', { duration: fmtDuration(c.durationMinutes) }) },
-                      { icon: 'fa-file-lines',     color: '#6B7280', text: `${t('courseDetails.lessonCount', '{{count}} lessons', { count: totalLessons })} · ${t('courseDetails.moduleCount', '{{count}} modules', { count: curriculum.length })}` },
-                      ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', color: '#F59E0B', text: t('courseDetails.quizCount', '{{count}} quizzes', { count: quizLessons }) }] : []),
-                      { icon: 'fa-signal',         color: '#8B5CF6', text: levelLabel(c.level, t as TFn) },
-                      { icon: 'fa-globe',          color: '#10B981', text: c.language ?? t('courseDetails.defaultLanguage', 'English') },
+                      { icon: 'fa-video',          color: '#A6192E', text: t('courseDetails.onDemandVideo', '{{duration}} on-demand video', { duration: fmtDuration(c.durationMinutes) }) },
+                      { icon: 'fa-file-lines',     color: '#8B6D5E', text: `${t('courseDetails.lessonCount', '{{count}} lessons', { count: totalLessons })} · ${t('courseDetails.moduleCount', '{{count}} modules', { count: curriculum.length })}` },
+                      ...(quizLessons > 0 ? [{ icon: 'fa-circle-question', color: '#C5973E', text: t('courseDetails.quizCount', '{{count}} quizzes', { count: quizLessons }) }] : []),
+                      { icon: 'fa-signal',         color: '#8A6416', text: levelLabel(c.level, t as TFn) },
+                      { icon: 'fa-globe',          color: '#651C32', text: c.language ?? t('courseDetails.defaultLanguage', 'English') },
                       { icon: 'fa-infinity',       color: '#C5973E', text: t('courses.details.fullLifetimeAccess', 'Full lifetime access') },
                       { icon: 'fa-mobile-screen',  color: '#651C32', text: t('courses.details.accessOnMobile', 'Access on mobile and desktop') },
                       { icon: 'fa-certificate',    color: '#C5973E', text: t('courses.details.certificate', 'Certificate of completion') },
@@ -1333,7 +1333,7 @@ const CourseDetails = () => {
         } else if (isOwnInstructor) {
           label = t('courseDetails.instructorView', 'Instructor view');
           action = (
-            <Link to={`${route.courseWatch}/${c.slug}`} style={{ ...barBtn, background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
+            <Link to={`${route.courseWatch}/${c.slug}`} style={{ ...barBtn, background: 'linear-gradient(135deg,#651C32,#8B2335)' }}>
               <i className="fa-solid fa-eye" />{t('courseDetails.preview', 'Preview')}
             </Link>
           );

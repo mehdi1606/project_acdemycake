@@ -57,8 +57,6 @@ const Snowfall: React.FC<{ density?: number }> = ({ density = 1 }) => {
         if (f.y > h + 6) { flakes[i] = make(false); continue; }
         ctx.beginPath();
         ctx.fillStyle = `rgba(255,255,255,${f.a})`;
-        ctx.shadowColor = 'rgba(166,25,46,0.35)';
-        ctx.shadowBlur = 2;
         ctx.arc(x, f.y, f.r, 0, Math.PI * 2);
         ctx.fill();
       }

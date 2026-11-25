@@ -9,7 +9,7 @@
   color: var(--ink); font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
   animation: exc-in 1s ease both;
 }
-html[dir='rtl'] .exc { font-family: 'Noto Kufi Arabic', 'Segoe UI', Tahoma, sans-serif; }
+html[dir='rtl'] .exc { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; }
 @keyframes exc-in { from { opacity: 0; } }
 .exc__sky { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .exc__sky span {

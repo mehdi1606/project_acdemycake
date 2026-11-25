@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './i18n/i18n'; // ← must be imported before any component
+import { i18nReady } from './i18n/i18n'; // ← must be imported before any component
 import "../src/style/css/iconsax.css";
 import ALLRoutes from './feature-module/router/router';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -61,11 +61,14 @@ const renderApp = () => root.render(
 /** Mobile chosen on a computer → the phone stage; otherwise the app itself. */
 const renderExperience = () => (isStage() ? root.render(<MobileStage />) : renderApp());
 
-if (needsChoice()) {
-  root.render(<ExperienceChooser onChoose={(mode) => { applyExperience(mode); renderExperience(); }} />);
-} else {
-  renderExperience();
-}
+// Draw once the visitor's language is ready (instant for English, one small chunk for Arabic).
+i18nReady.finally(() => {
+  if (needsChoice()) {
+    root.render(<ExperienceChooser onChoose={(mode) => { applyExperience(mode); renderExperience(); }} />);
+  } else {
+    renderExperience();
+  }
+});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

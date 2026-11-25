@@ -4,7 +4,6 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import axios from 'axios';
 
 import en from './locales/en.json';
-import ar from './locales/ar.json';
 
 /** Apply RTL layout + Arabic font when language changes */
 const applyDirection = (lng: string) => {
@@ -32,9 +31,9 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    // Arabic is loaded on demand (its own chunk): most visits only need one language.
     resources: {
       en: { translation: en },
-      ar: { translation: ar },
     },
     fallbackLng: 'en',
     supportedLngs: ['en', 'ar'],
@@ -45,6 +44,27 @@ i18n
       lookupLocalStorage: 'i18nextLng',
     },
   });
+
+/** Load the Arabic strings once, the first time Arabic is needed. */
+let arabic: Promise<void> | null = null;
+const loadArabic = (): Promise<void> => {
+  if (!arabic) {
+    arabic = import(/* webpackChunkName: "i18n-ar" */ './locales/ar.json').then((m) => {
+      i18n.addResourceBundle('ar', 'translation', (m as { default: object }).default ?? m, true, true);
+    });
+  }
+  return arabic;
+};
+
+// Switching to Arabic waits for its strings, so the page never flashes English.
+const changeLanguage = i18n.changeLanguage.bind(i18n);
+i18n.changeLanguage = ((lng?: string, cb?: Parameters<typeof changeLanguage>[1]) =>
+  (lng && lng.startsWith('ar') ? loadArabic() : Promise.resolve()).then(() => changeLanguage(lng, cb))) as typeof i18n.changeLanguage;
+
+/** Resolves once the starting language is ready to draw (immediate for English). */
+export const i18nReady: Promise<unknown> = (i18n.language || '').startsWith('ar')
+  ? loadArabic().then(() => changeLanguage('ar'))
+  : Promise.resolve();
 
 // Apply initial state
 applyDirection(i18n.language);

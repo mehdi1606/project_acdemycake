@@ -753,7 +753,7 @@ const CourseWatch: React.FC = () => {
                 position:'absolute', left:0, top:0, height:'100%', borderRadius:3,
                 width:`${pct}%`, transition:'width 0.6s ease',
                 background: pct === 100
-                  ? 'linear-gradient(90deg,#22C55E,#4ADE80)'
+                  ? `linear-gradient(90deg,${GOLD},#F3D58E)`
                   : `linear-gradient(90deg,${BURG},${GOLD})`,
               }} />
             </div>
