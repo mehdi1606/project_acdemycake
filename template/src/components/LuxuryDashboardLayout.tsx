@@ -5,6 +5,7 @@ import LuxurySidebar from './LuxurySidebar';
 import WhatsNewModal from './WhatsNewModal';
 import { useAppDispatch } from '../core/redux/hooks';
 import { fetchCurrentUser } from '../core/redux/authSlice';
+import { ChallengeDashboardCard } from './challenge/ChallengeBanners';
 
 const USER_REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes
 
@@ -76,7 +77,7 @@ const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children 
         />
 
         {/* Page content */}
-        <main className="luxury-main">{children}</main>
+        <main className="luxury-main"><ChallengeDashboardCard />{children}</main>
       </div>
 
       {/* Floating WhatsApp community button */}

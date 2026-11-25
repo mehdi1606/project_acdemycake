@@ -140,7 +140,8 @@
     "mySubscription": "My subscription",
     "changeLanguage": "Change language",
     "upgrade": "Upgrade",
-    "homeLogo": "Saralöwe — home page"
+    "homeLogo": "Saralöwe — home page",
+    "challenge": "Challenge"
   },
   "common": {
     "search": "Search",
@@ -312,7 +313,9 @@
     "mySubscription": "My subscription",
     "explore": "Explore",
     "browseCourses": "Browse courses",
-    "backToSite": "Back to site"
+    "backToSite": "Back to site",
+    "challenge": "New Year Challenge",
+    "challengeAdmin": "Cake Challenge"
   },
   "auth": {
     "comingSoon": {
@@ -4372,5 +4375,277 @@
       "adminTitle": "Manage Users: badges with their numbers",
       "adminText": "Each student shows their badge, certificates, quiz and assignment averages and days as a member. From Master Chef, an \"Approve Elite showpiece\" button appears."
     }
+  },
+  "challenge": {
+    "eyebrow": "SARALÖWE Academy presents",
+    "title": "The New Year Cake Challenge",
+    "lead": "One tier. One night of celebration. Show the academy how you welcome the new year, and let everyone vote for the most beautiful cake.",
+    "loadError": "The challenge could not be loaded. Please try again.",
+    "voteError": "Your vote could not be saved.",
+    "phase": {
+      "upcoming": "Opening soon",
+      "submissions": "Entries open until {{date}}",
+      "between": "Entries are closed. Voting opens at midnight.",
+      "voting": "Voting is open until {{date}}",
+      "tallying": "Votes are being counted. Results on {{date}}",
+      "results": "The winners are announced",
+      "closed": "This challenge is closed"
+    },
+    "countdown": "Time left",
+    "days": "days",
+    "hours": "hours",
+    "minutes": "min",
+    "seconds": "sec",
+    "dShort": "d",
+    "ctaEnter": "Enter the challenge",
+    "ctaVote": "Vote now",
+    "ctaGallery": "See the cakes",
+    "ctaRules": "Read the rules",
+    "statsRegistered": "{{count}} registered",
+    "statsCakes": "{{count}} cakes in the gallery",
+    "datesTitle": "Key dates",
+    "t1": "Register & submit",
+    "t1n": "until 23:59",
+    "t2": "Voting",
+    "t2n": "live ranking",
+    "t3": "Winners",
+    "t3n": "announced on the platform",
+    "tz": "All times are Morocco local time.",
+    "howKicker": "How to take part",
+    "howTitle": "Four steps to the gallery",
+    "step1": {
+      "title": "Register",
+      "text": "Join the challenge from this page before 25 December."
+    },
+    "step2": {
+      "title": "Create one tier",
+      "text": "One single tier, real or dummy, in any technique: fondant, buttercream, ganache, modelling, airbrush, painting…"
+    },
+    "step3": {
+      "title": "Photograph on white",
+      "text": "3 to 5 photos on a completely white background and white surface, with at least one full front view."
+    },
+    "step4": {
+      "title": "Submit & certify",
+      "text": "Upload your photos, certify that you made the cake yourself, and wait for the academy to approve it."
+    },
+    "ptStudent": "point for a student vote",
+    "ptStaff": "points for an instructor or admin vote",
+    "ptMin": "different accounts must vote for a cake before it can win",
+    "liveRanking": "Live ranking",
+    "galleryKicker": "The gallery",
+    "winnersTitle": "Our New Year champions",
+    "galleryTitle": "The cakes of 2027",
+    "galleryWait": "Approved cakes appear here. Voting opens on 26 December.",
+    "galleryEmpty": "The first approved cakes will appear here soon.",
+    "points": "{{count}} pts",
+    "pts": "pts",
+    "voters": "{{count}} voters",
+    "by": "by {{name}}",
+    "openCake": "Open {{title}}",
+    "yourCake": "Your cake",
+    "signInToVote": "Sign in to vote",
+    "verifyToVote": "Confirm your email to vote",
+    "verifyShort": "Confirm email",
+    "vote": "Vote",
+    "voted": "Voted",
+    "close": "Close",
+    "prevPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
+    "later": "Later",
+    "takeTitle": "Take part",
+    "takeSignedOut": "Sign in or create a free account to enter the challenge and vote for your favourite cakes.",
+    "signIn": "Sign in",
+    "createAccount": "Create a free account",
+    "staffTitle": "Your role in the challenge",
+    "staffText": "The challenge is for students. As a member of the academy team, your vote counts 10 points during the voting week.",
+    "verifyFirst": "Confirm your email address first: open the email we sent you when you created your account. Then come back to register.",
+    "registerText": "Participation is free. Register now, then submit your cake before 25 December at 23:59.",
+    "registerBtn": "Register for the challenge",
+    "registerClosed": "Registrations are closed. You can still enjoy the gallery and vote during the voting week.",
+    "yourEntry": "Your entry",
+    "submitTitle": "Submit your cake",
+    "saved": "Saved. The academy will review your cake before it appears in the gallery.",
+    "noEntryClosed": "Submissions are closed. Thank you for registering!",
+    "st": {
+      "pending": "Waiting for review",
+      "approved": "Approved: your cake is in the gallery",
+      "changes": "The academy asks for a change",
+      "rejected": "Not accepted",
+      "disqualified": "Disqualified"
+    },
+    "tooMany": "You can add {{max}} photos at most.",
+    "needPhotos": "Add between {{min}} and {{max}} photos.",
+    "fTitle": "Name of your cake",
+    "fTitlePh": "e.g. Midnight in Marrakech",
+    "fDesc": "Tell us about it (optional)",
+    "fDescPh": "Your idea, techniques, the story behind the design…",
+    "fPhotos": "Photos ({{min}} to {{max}})",
+    "tip1": "Completely white background and white table or surface",
+    "tip2": "At least one full front view; close-ups of details are welcome",
+    "tip3": "No collages, filters that change the cake, or watermarks",
+    "mainPhoto": "Main photo",
+    "makeMain": "Make main",
+    "removePhoto": "Remove photo",
+    "uploading": "Uploading…",
+    "addPhotos": "Add photos",
+    "certify": "I certify that this cake was created and decorated by me.",
+    "consent": "I agree that my photos are shown in the challenge gallery inside the academy, with my display name.",
+    "update": "Save changes",
+    "submit": "Submit my cake",
+    "editNote": "You can edit your entry until 25 December at 23:59. Every change is reviewed again before it appears.",
+    "rulesKicker": "Official competition rules",
+    "rulesTitle": "The rules",
+    "rules": {
+      "r1": {
+        "title": "Theme",
+        "items": [
+          "Theme: New Year / end-of-year celebration 2026–2027.",
+          "The design must represent the New Year celebration.",
+          "You have complete creative freedom in interpreting the theme."
+        ]
+      },
+      "r2": {
+        "title": "Cake requirements",
+        "items": [
+          "Only ONE-TIER cakes are accepted. No two-tier or multi-tier cakes.",
+          "Both real edible cakes and dummy cakes are allowed.",
+          "No restrictions on size, height or shape.",
+          "All cake design techniques are allowed: fondant, buttercream, ganache, modelling, airbrush, painting, sculpting, etc.",
+          "Decorations must be created and assembled by the participating student."
+        ]
+      },
+      "r3": {
+        "title": "Photography",
+        "items": [
+          "Upload 3 to 5 photographs of your final creation.",
+          "The background must be completely white.",
+          "The table or surface under the cake must also be completely white.",
+          "The cake must be clearly visible, with at least one full front-view photograph.",
+          "Close-up photographs of details are encouraged.",
+          "No collages, distracting decorations, filters that alter the cake, or watermarks."
+        ]
+      },
+      "r4": {
+        "title": "Authenticity & AI policy",
+        "items": [
+          "AI-generated cakes are strictly forbidden.",
+          "AI-generated or digitally fabricated decorations in submitted photographs are not accepted.",
+          "You must confirm: “I certify that this cake was created and decorated by me.”",
+          "Using another person's work or photographs means immediate disqualification.",
+          "The academy may ask for more photographs or a short making-of video to verify authenticity."
+        ]
+      },
+      "r5": {
+        "title": "Participation",
+        "items": [
+          "Open to SARALÖWE Academy members with a confirmed email address.",
+          "Participation is free.",
+          "One submission per student.",
+          "Register for the challenge before submitting.",
+          "You can edit your submission until the deadline.",
+          "Late submissions are not accepted."
+        ]
+      },
+      "r6": {
+        "title": "Dates",
+        "items": [
+          "Submission deadline: 25 December 2026 at 23:59.",
+          "Voting: 26 December 2026 to 1 January 2027.",
+          "Results: 5 January 2027.",
+          "All deadlines follow Morocco local time."
+        ]
+      },
+      "r7": {
+        "title": "Voting",
+        "items": [
+          "Voting takes place directly on the SARALÖWE Academy platform, with a live ranking.",
+          "Any account with a confirmed email can vote, including accounts created during the challenge.",
+          "Each account can vote only once for the same cake, and can vote for several cakes.",
+          "Student vote = 1 point. Instructor vote = 10 points. Administrator vote = 10 points.",
+          "A staff member's vote is never counted twice.",
+          "A cake needs votes from at least three different accounts to be eligible to win.",
+          "Fake accounts, automated voting, vote manipulation and buying votes are prohibited; such votes are removed.",
+          "You cannot vote for your own creation."
+        ]
+      },
+      "r8": {
+        "title": "Winners & fairness",
+        "items": [
+          "Winners are decided by the total weighted score.",
+          "In case of a tie, the academy jury decides on creativity, technical execution and interpretation of the theme.",
+          "All submissions need administrator approval.",
+          "SARALÖWE Academy may disqualify entries that break the rules.",
+          "Winners receive official recognition and rewards announced by the academy."
+        ]
+      },
+      "r9": {
+        "title": "Publication & permissions",
+        "items": [
+          "Approved creations may be shown in the challenge gallery with the student's display name.",
+          "You agree to the publication of your submitted photographs within the academy.",
+          "Any promotional use outside the platform requires your permission."
+        ]
+      },
+      "goal": "The goal is to celebrate creativity, originality, technical skill and the artistic talent of SARALÖWE Academy students."
+    },
+    "b": {
+      "tag": "New Year Cake Challenge",
+      "subTitle": "Bake the cake of the new year",
+      "subLine": "Entries are open until {{date}}. Free, one tier, open to every student.",
+      "subCta": "Enter the challenge",
+      "voteTitle": "Voting is open",
+      "voteLine": "Choose your favourite cakes until {{date}}. Every vote counts.",
+      "voteCta": "Vote now",
+      "countTitle": "Votes are being counted",
+      "countLine": "The winners will be announced on {{date}}.",
+      "countCta": "See the ranking",
+      "resTitle": "The winners are announced",
+      "resLine": "Discover the champions of the New Year Cake Challenge 2027.",
+      "resCta": "See the winners"
+    }
+  },
+  "challengeAdmin": {
+    "title": "New Year Cake Challenge",
+    "sub": "Approve cakes before they appear in the gallery, follow the live scores, and check who voted.",
+    "refresh": "Refresh",
+    "all": "All",
+    "out": "Rejected / disqualified",
+    "empty": "Nothing here.",
+    "st": {
+      "pending": "To review",
+      "approved": "Approved",
+      "changes": "Changes asked",
+      "rejected": "Rejected",
+      "disqualified": "Disqualified"
+    },
+    "noteNeeded": "Write a short note for the student first (it is sent to them).",
+    "member": "member since {{date}}",
+    "certified": "certified own work",
+    "consent": "publication accepted",
+    "updated": "updated {{date}}",
+    "lastNote": "Last note to the student:",
+    "notePh": "Note to the student (needed to ask for changes, reject or disqualify)",
+    "approve": "Approve",
+    "askChanges": "Ask for changes / more photos",
+    "reject": "Reject",
+    "disqualify": "Disqualify",
+    "pointsFrom": "points from {{count}} accounts",
+    "flagHelp": "Votes from accounts created after the challenge started",
+    "newAccounts": "{{count}} new accounts",
+    "seeVotes": "See votes",
+    "votesFor": "Votes for “{{title}}”",
+    "votesHelp": "⚑ marks accounts created after the challenge opened. Many votes from the same network address can also be a sign of fake accounts. Removed votes no longer count.",
+    "noVotes": "No votes yet.",
+    "voter": "Voter",
+    "role": "Role",
+    "pts": "Pts",
+    "account": "Account created",
+    "ip": "Network",
+    "when": "Voted",
+    "restore": "Restore",
+    "void": "Remove",
+    "voidWhy": "Write why this vote is removed first.",
+    "voidReasonPh": "Reason"
   }
 }

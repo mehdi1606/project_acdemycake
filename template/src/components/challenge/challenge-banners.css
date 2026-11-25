@@ -1,0 +1,131 @@
+/* Challenge banners: midnight burgundy + champagne gold foil. */
+:root {
+  --slc-night: #1d0812;
+  --slc-night-2: #2B0F1E;
+  --slc-gold-l: #F3D58E;
+  --slc-foil: linear-gradient(100deg, #9b6a17 0%, #f6dc9a 22%, #c5912c 42%, #fff1c4 58%, #b98424 78%, #f3d58e 100%);
+}
+.slc-tag {
+  display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.26em; text-transform: uppercase; color: var(--slc-gold-l);
+}
+.slc-clock { display: inline-flex; align-items: baseline; gap: 1px; font-variant-numeric: tabular-nums; color: #fff; font-size: 13px; }
+.slc-clock b { font-family: 'Playfair Display', Georgia, serif; font-size: 1.25rem; }
+.slc-clock--compact b { font-size: 0.95rem; }
+.slc-btn {
+  display: inline-flex; align-items: center; justify-content: center; padding: 13px 24px; border-radius: 999px;
+  background: var(--slc-foil); background-size: 200% 100%; color: #3a0f18 !important; text-decoration: none;
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+  box-shadow: 0 10px 26px rgba(197, 145, 44, 0.35); transition: transform 0.25s ease, background-position 0.4s ease;
+}
+.slc-btn:hover { transform: translateY(-2px); background-position: 100% 0; }
+
+/* ── floating seal ────────────────────────────────────────────────────────── */
+.slc-seal { position: fixed; left: 18px; bottom: 18px; z-index: 1045; display: flex; align-items: flex-start; }
+body:has(.sl-promobar) .slc-seal { bottom: 92px; }
+.slc-seal__link {
+  display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; border-radius: 999px; text-decoration: none;
+  background: linear-gradient(145deg, #3a0f1e, var(--slc-night));
+  border: 1px solid rgba(243, 213, 142, 0.45);
+  box-shadow: 0 14px 34px rgba(29, 8, 18, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 0.25s ease;
+}
+.slc-seal__link:hover { transform: translateY(-2px); }
+.slc-seal__medal {
+  position: relative; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--slc-foil); background-size: 200% 100%; animation: slc-foil 6s ease-in-out infinite alternate;
+  box-shadow: inset 0 0 0 3px rgba(58, 15, 24, 0.35);
+}
+.slc-seal__medal span { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 12.5px; color: #3a0f18; }
+@keyframes slc-foil { from { background-position: 0 0; } to { background-position: 100% 0; } }
+.slc-seal__text { display: grid; line-height: 1.15; }
+.slc-seal__text small { font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slc-gold-l); }
+.slc-seal__text b { color: #fff; font-size: 12px; }
+.slc-seal__x {
+  margin-inline-start: -10px; margin-top: -6px; width: 22px; height: 22px; border-radius: 50%; border: 0; cursor: pointer;
+  background: #fff; color: #651C32; font-size: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* ── dashboard banner ─────────────────────────────────────────────────────── */
+.slc-dash {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+  margin: 0 0 22px; padding: 18px 24px; border-radius: 22px; text-decoration: none;
+  background: radial-gradient(ellipse at 15% 0%, #4a1428 0%, var(--slc-night-2) 55%, var(--slc-night) 100%);
+  border: 1px solid rgba(243, 213, 142, 0.35);
+  box-shadow: 0 18px 44px rgba(43, 15, 30, 0.22);
+  color: #fff;
+}
+.slc-dash__sky {
+  position: absolute; inset: 0; z-index: -1; opacity: 0.7;
+  background-image:
+    radial-gradient(1.4px 1.4px at 20px 30px, rgba(243, 213, 142, 0.95) 50%, transparent),
+    radial-gradient(1px 1px at 120px 70px, rgba(255, 255, 255, 0.8) 50%, transparent),
+    radial-gradient(1.6px 1.6px at 200px 20px, rgba(243, 213, 142, 0.7) 50%, transparent);
+  background-size: 240px 100px;
+}
+.slc-dash__year {
+  font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 3rem; line-height: 1;
+  background: var(--slc-foil); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.slc-dash__body { flex: 1 1 260px; display: grid; gap: 2px; }
+.slc-dash__body strong { font-family: 'Playfair Display', Georgia, serif; font-size: 1.3rem; color: #fff; }
+.slc-dash__line { font-size: 13px; color: rgba(255, 245, 238, 0.78); }
+.slc-dash .slc-clock { padding: 8px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(243, 213, 142, 0.3); }
+.slc-dash__cta {
+  padding: 11px 20px; border-radius: 999px; background: var(--slc-foil); color: #3a0f18;
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
+}
+.slc-dash:hover .slc-dash__cta { box-shadow: 0 8px 20px rgba(197, 145, 44, 0.4); }
+
+/* ── home section ─────────────────────────────────────────────────────────── */
+.slc-home {
+  display: grid; grid-template-columns: 1.1fr 1fr; align-items: stretch;
+  width: min(1180px, 100% - 32px); margin: 70px auto; border-radius: 28px; overflow: hidden;
+  background: radial-gradient(ellipse at 80% 0%, #4a1428 0%, var(--slc-night-2) 55%, var(--slc-night) 100%);
+  box-shadow: 0 30px 70px rgba(43, 15, 30, 0.25); border: 1px solid rgba(243, 213, 142, 0.3);
+}
+.slc-home__media { position: relative; min-height: 340px; background: radial-gradient(circle at 50% 40%, #4a1428, var(--slc-night)); }
+.slc-home__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slc-home__year {
+  position: absolute; left: 24px; bottom: 10px; font-family: 'Playfair Display', Georgia, serif; font-weight: 700;
+  font-size: clamp(3.5rem, 8vw, 6rem); line-height: 1;
+  background: var(--slc-foil); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+}
+[dir='rtl'] .slc-home__year { left: auto; right: 24px; }
+.slc-home__body { padding: clamp(26px, 4vw, 48px); display: grid; align-content: center; gap: 12px; color: #fff; }
+.slc-home__body h2 { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.8rem, 3.4vw, 2.6rem); color: #fff; }
+.slc-home__body p { margin: 0; color: rgba(255, 245, 238, 0.8); line-height: 1.7; }
+.slc-home .slc-btn { justify-self: start; }
+@media (max-width: 760px) { .slc-home { grid-template-columns: 1fr; } .slc-home__media { min-height: 220px; } }
+
+/* ── popup ────────────────────────────────────────────────────────────────── */
+.slc-pop { position: fixed; inset: 0; z-index: 2050; display: grid; place-items: center; padding: 16px; background: rgba(20, 5, 12, 0.7); backdrop-filter: blur(6px); animation: slc-in 0.35s ease; }
+@keyframes slc-in { from { opacity: 0; } }
+.slc-pop__box {
+  position: relative; width: min(760px, 100%); display: grid; grid-template-columns: 1fr 1.1fr; overflow: hidden; border-radius: 26px;
+  background: radial-gradient(ellipse at 80% 0%, #4a1428 0%, var(--slc-night-2) 55%, var(--slc-night) 100%);
+  border: 1px solid rgba(243, 213, 142, 0.4); box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+  animation: slc-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes slc-rise { from { transform: translateY(18px) scale(0.98); opacity: 0; } }
+.slc-pop__x { position: absolute; top: 12px; right: 12px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: 0; cursor: pointer; background: rgba(255, 255, 255, 0.9); color: #651C32; }
+[dir='rtl'] .slc-pop__x { right: auto; left: 12px; }
+.slc-pop__media { position: relative; min-height: 300px; background: radial-gradient(circle at 50% 40%, #4a1428, var(--slc-night)); }
+.slc-pop__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slc-pop__year {
+  position: absolute; left: 18px; bottom: 6px; font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 4.2rem; line-height: 1;
+  background: var(--slc-foil); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+}
+.slc-pop__body { padding: 34px 30px 28px; display: grid; align-content: center; gap: 12px; color: #fff; }
+.slc-pop__body h2 { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.9rem; color: #fff; }
+.slc-pop__body p { margin: 0; color: rgba(255, 245, 238, 0.8); line-height: 1.65; }
+.slc-pop__actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+.slc-later { border: 0; background: none; color: rgba(255, 245, 238, 0.7); cursor: pointer; font-size: 13px; text-decoration: underline; }
+@media (max-width: 640px) {
+  .slc-pop__box { grid-template-columns: 1fr; }
+  .slc-pop__media { min-height: 180px; }
+  .slc-seal { left: 12px; bottom: 12px; }
+  .slc-seal__text small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .slc-seal__medal, .slc-pop, .slc-pop__box { animation: none; } }

@@ -6,6 +6,7 @@ import PromoBar from '../components/promo/PromoBar';
 import WhatsNewModal from '../components/WhatsNewModal';
 import Footer from "./HomePages/home-one/footer";
 import ChristmasDecor from '../components/season/ChristmasDecor';
+import { ChallengePopup, ChallengeSeal } from '../components/challenge/ChallengeBanners';
 
 /* Prefixes for dashboard/instructor/admin pages — they provide their
    own luxury layout (topbar + sidebar) via LuxuryDashboardLayout.
@@ -37,6 +38,8 @@ const Feature = () => {
       <div className="main-wrapper">
         <Outlet />
         <ChristmasDecor />
+        <ChallengeSeal />
+        <ChallengePopup />
         <div className="sidebar-overlay" />
       </div>
     );
@@ -58,6 +61,8 @@ const Feature = () => {
           <PromoBar />
           <WhatsNewModal />
           <ChristmasDecor />
+          <ChallengeSeal />
+          <ChallengePopup />
         </div>
         <div className="sidebar-overlay" />
       </div>

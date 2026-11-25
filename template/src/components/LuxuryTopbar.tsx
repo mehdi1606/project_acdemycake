@@ -17,6 +17,7 @@ import { openWhatsNew } from '../config/whatsNew';
 import ChristmasLights from './season/ChristmasLights';
 import { SantaHat } from './season/ChristmasDecor';
 import './luxury-topbar-color.css';
+import { useChallenge } from './challenge/useChallenge';
 
 interface LuxuryTopbarProps {
   onSidebarToggle: () => void;
@@ -99,10 +100,12 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const userBadge    = getBadgeForUser(user?.role || 'STUDENT', progressOf(stats, user));
 
   /* ── public-site links shown in the dashboard top bar ── */
+  const challengeOn = !!useChallenge().challenge;
   const siteLinks = [
     { label: t('nav.home'),             to: all_routes.homeone,     icon: 'isax-home-2' },
     { label: t('nav.masterclasses'),    to: all_routes.masterclass, icon: 'isax-video-play' },
     { label: t('nav.ebooks', 'Ebooks'), to: all_routes.ebooks,      icon: 'isax-book-1' },
+    ...(challengeOn ? [{ label: t('nav.challenge', 'Challenge'), to: all_routes.challenge, icon: 'isax-cake' }] : []),
   ];
   const academyLinks = [
     { label: t('nav.courses'),   to: all_routes.courseList, icon: 'isax-book' },

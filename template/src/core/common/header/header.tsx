@@ -11,6 +11,7 @@ import AvatarImage from "../../../components/AvatarImage";
 import ChristmasLights from "../../../components/season/ChristmasLights";
 import { HangingOrnaments, SantaHat } from "../../../components/season/ChristmasDecor";
 import "./header.css";
+import { useChallenge } from "../../../components/challenge/useChallenge";
 
 const Header = () => {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ const Header = () => {
   const dataTheme = useAppSelector((state) => state.themeSetting.dataTheme);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const cartCount = useAppSelector((state) => state.cart.items.length);
+  const challengeOn = !!useChallenge().challenge;
 
   const handleDataThemeChange = (theme: string) => {
     dispatch(setDataTheme(theme));
@@ -198,7 +200,7 @@ const Header = () => {
             }}
           >
             {/* ── Left: Hamburger + Logo ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
               {/* Mobile Hamburger */}
               <button
                 type="button"
@@ -300,6 +302,24 @@ const Header = () => {
               >
                 {t('nav.ebooks', 'Ebooks')}
               </Link>
+
+              {/* New Year Cake Challenge (only while it runs) */}
+              {challengeOn && (
+                <Link
+                  to={all_routes.challenge}
+                  className="sl-hdr-challenge"
+                  style={{
+                    padding: '8px 14px', borderRadius: 999,
+                    fontSize: 14.5, fontWeight: 700, textDecoration: 'none',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    color: isActive('/challenge') ? '#A6192E' : '#651C32',
+                    background: isActive('/challenge') ? 'rgba(166,25,46,0.1)' : 'transparent',
+                  }}
+                >
+                  <span aria-hidden="true" className="sl-hdr-challenge__spark">✦</span>
+                  {t('nav.challenge', 'Challenge')}
+                </Link>
+              )}
 
               {/* Academy dropdown */}
               <div
@@ -747,6 +767,7 @@ const Header = () => {
               { label: t('nav.home'),          to: all_routes.homeone,      icon: 'isax-home' },
               { label: t('nav.masterclasses'), to: all_routes.masterclass, icon: 'isax-video-play' },
               { label: t('nav.ebooks', 'Ebooks'), to: all_routes.ebooks,   icon: 'isax-book-1' },
+              ...(challengeOn ? [{ label: t('nav.challenge', 'Challenge'), to: all_routes.challenge, icon: 'isax-cake' }] : []),
             ].map((link) => (
               <Link
                 key={link.label}

@@ -7,6 +7,8 @@ export const all_routes = {
     //Course Modules
     masterclass: "/masterclass",
     ebooks: "/ebooks",
+    challenge: "/challenge",
+    adminChallenge: "/admin/challenge",
     ebookDetail: "/ebooks/:slug",
     ebookRead: "/ebooks/:id/read",
     studentEbooks: "/student/student-ebooks",

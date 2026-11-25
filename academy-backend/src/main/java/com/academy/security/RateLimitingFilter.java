@@ -82,7 +82,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
      * A direct request uses its socket address — a spoofed header can no longer
      * give an attacker a fresh rate-limit bucket on every request.
      */
-    static String clientIp(HttpServletRequest request) {
+    public static String clientIp(HttpServletRequest request) {
         String remote = request.getRemoteAddr();
         if (isTrustedProxy(remote)) {
             String realIp = request.getHeader("X-Real-IP");

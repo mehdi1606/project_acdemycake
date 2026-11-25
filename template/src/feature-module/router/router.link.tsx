@@ -57,6 +57,8 @@ const StudentQuizQuestion           = lazy(() => import("../student/student-quiz
 const StudentAssignment             = lazy(() => import("../student/student-assignment/studentAssignment"));
 const StudentSubscription           = lazy(() => import("../student/student-subscription/studentSubscription"));
 const EbooksPage                    = lazy(() => import("../Ebooks/ebooksPage"));
+const ChallengePage                 = lazy(() => import("../Challenge/ChallengePage"));
+const AdminChallenge                = lazy(() => import("../admin/challenge/adminChallenge"));
 const EbookDetail                   = lazy(() => import("../Ebooks/ebookDetail"));
 const EbookReader                   = lazy(() => import("../Ebooks/ebookReader"));
 const StudentEbooks                 = lazy(() => import("../student/student-ebooks/studentEbooks"));
@@ -489,6 +491,12 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    // The New Year Cake Challenge: public page, actions need an account.
+    path: routes.challenge,
+    element: <ChallengePage />,
+    route: Route,
+  },
+  {
     path: routes.ebookDetail,
     element: <EbookDetail />,
     route: Route,
@@ -569,6 +577,11 @@ export const publicRoutes = [
   {
     path: routes.adminReports,
     element: <RoleGuard allowedRoles={['ADMIN']}><AdminReports /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.adminChallenge,
+    element: <RoleGuard allowedRoles={['ADMIN']}><AdminChallenge /></RoleGuard>,
     route: Route,
   },
   {

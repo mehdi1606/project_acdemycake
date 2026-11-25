@@ -16,3 +16,10 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 18px rgba(101, 28, 50, 0.3);
 }
 .sl-hdr .sl-hdr-btn--pill { padding: 4px 10px 4px 4px !important; }
+.sl-hdr .sl-hdr-challenge:hover { color: #A6192E !important; }
+.sl-hdr-challenge__spark {
+  display: inline-block; color: #C5912C; font-size: 12px;
+  animation: sl-hdr-spark 2.4s ease-in-out infinite;
+}
+@keyframes sl-hdr-spark { 0%, 100% { transform: scale(1) rotate(0); opacity: 0.8; } 50% { transform: scale(1.3) rotate(45deg); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sl-hdr-challenge__spark { animation: none; } }

@@ -55,6 +55,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
         { title: t('sidebar.badges', 'Badges'),          icon: 'isax isax-medal-star',    route: '', onClick: openBadgeGuide },
         { title: t('sidebar.wishlist', 'Wishlist'),      icon: 'isax isax-heart',         route: all_routes.studentWishlist },
         { title: t('sidebar.reviews', 'Reviews'),        icon: 'isax isax-star',          route: all_routes.studentReviews },
+        { title: t('sidebar.challenge', 'New Year Challenge'), icon: 'isax isax-cake',     route: all_routes.challenge },
       ],
     },
     {
@@ -85,6 +86,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
         { title: t('sidebar.dashboard', 'Dashboard'),        icon: 'isax isax-category',      route: all_routes.instructorDashboard },
         { title: t('sidebar.myCourses', 'My Courses'),       icon: 'isax isax-book',           route: all_routes.instructorCourse },
         { title: t('sidebar.createCourse', 'Create Course'), icon: 'isax isax-add-circle',     route: all_routes.addNewCourse },
+        { title: t('sidebar.challenge', 'New Year Challenge'), icon: 'isax isax-cake',        route: all_routes.challenge },
         { title: t('sidebar.announcements', 'Announcements'),icon: 'isax isax-volume-high',   route: all_routes.instructorAnnouncements },
         { title: t('sidebar.assignments', 'Assignments'),    icon: 'isax isax-clipboard-text', route: all_routes.instructorAssignment },
       ],
@@ -146,6 +148,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
       label: t('sidebar.account', 'Account'),
       items: [
         { title: t('sidebar.supportTickets', 'Support Tickets'), icon: 'isax isax-ticket',          route: all_routes.adminTickets },
+        { title: t('sidebar.challengeAdmin', 'Cake Challenge'),   icon: 'isax isax-cake',             route: all_routes.adminChallenge },
         { title: t('sidebar.coupons', 'Coupons'),                icon: 'isax isax-discount-shape',   route: all_routes.adminCoupons },
         { title: t('sidebar.siteSettings', 'Site Settings'),     icon: 'isax isax-setting-2',        route: all_routes.adminSettings },
       ],

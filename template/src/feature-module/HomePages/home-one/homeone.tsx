@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next'
 import BannerSection from './section/banner'
 import PromoTakeover, { PromoTape, SnowLayer } from '../../../components/promo/PromoTakeover'
 import { useActivePromo } from '../../../components/promo/usePromo'
+import { ChallengeHomeSection } from '../../../components/challenge/ChallengeBanners'
 import { promoDiscountPercent } from '../../../config/promo'
 import Benefits from './section/benefits'
 import StorySection from './section/story'
@@ -125,6 +126,9 @@ const HomeOne: React.FC = () => {
 
             {/* 2 — Marquee discipline strip */}
             <SlMarquee />
+
+            {/* The New Year Cake Challenge (shows itself only while it runs) */}
+            <ChallengeHomeSection />
 
             {/* 3 — Featured Courses (hidden until courses are published) */}
             {/* <Featuredcourse /> */}
