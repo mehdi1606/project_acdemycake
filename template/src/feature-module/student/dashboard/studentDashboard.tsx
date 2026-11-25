@@ -14,7 +14,7 @@ import {
 } from '../../../core/redux/studentSlice';
 import { getFileUrl } from '../../../environment';
 import BadgePopup from '../../../components/BadgePopup';
-import { getBadgeForUser } from '../../../config/badges';
+import { getBadgeForUser, isBadgeEarned, progressOf } from '../../../config/badges';
 
 const StudentDashboard = () => {
   const { t, i18n } = useTranslation();
@@ -41,7 +41,7 @@ const StudentDashboard = () => {
   };
 
   const firstName = user?.fullName?.split(' ')[0] || 'Student';
-  const userBadge = getBadgeForUser(user?.role || 'STUDENT', stats.completedCourses ?? 0);
+  const userBadge = getBadgeForUser(user?.role || 'STUDENT', progressOf(stats, user));
 
   return (
     <LuxuryDashboardLayout>
@@ -51,6 +51,8 @@ const StudentDashboard = () => {
           badge={userBadge}
           userId={user.id}
           completedCourses={stats.completedCourses ?? 0}
+          progress={progressOf(stats, user)}
+          earned={!!stats.badgeStats && isBadgeEarned(user.role || 'STUDENT', progressOf(stats, user))}
         />
       )}
       {/* ── Welcome Banner ── */}

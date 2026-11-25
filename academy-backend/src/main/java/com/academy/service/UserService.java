@@ -44,5 +44,8 @@ public interface UserService {
 
     void unbanUser(UUID userId);
 
+    /** Elite badge: the chef approves (true) or withdraws (false) a student's Elite approval. */
+    UserResponse setEliteApproval(UUID userId, boolean approved);
+
     void deleteUser(UUID userId);
 }

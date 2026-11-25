@@ -12,7 +12,7 @@ import { notificationService } from '../services/api/notification.service';
 import { Notification } from '../services/api/types';
 import BadgeAvatar from './BadgeAvatar';
 import BadgeGuide from './BadgeGuide';
-import { getBadgeForUser } from '../config/badges';
+import { getBadgeForUser, progressOf } from '../config/badges';
 
 interface LuxuryTopbarProps {
   onSidebarToggle: () => void;
@@ -92,7 +92,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const location     = useLocation();
   const { user }     = useAppSelector((s) => s.auth);
   const { stats }    = useAppSelector((s) => s.student);
-  const userBadge    = getBadgeForUser(user?.role || 'STUDENT', stats?.completedCourses ?? 0);
+  const userBadge    = getBadgeForUser(user?.role || 'STUDENT', progressOf(stats, user));
 
   /* ── public-site links shown in the dashboard top bar ── */
   const siteLinks = [
@@ -370,6 +370,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         userId={user.id}
         currentBadge={userBadge}
         completedCourses={stats?.completedCourses ?? 0}
+        progress={progressOf(stats, user)}
         forceOpen={guideOpen}
         onClose={() => setGuideOpen(false)}
       />

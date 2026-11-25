@@ -41,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
+    private final BadgeStatsService badgeStatsService;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
     private final EmailService emailService;
@@ -189,19 +190,10 @@ public class UserServiceImpl implements UserService {
             users = userRepository.findByIsDeletedFalse(pageRequest);
         }
 
-        // Real badge levels: completed-course counts for the whole page in one query.
-        java.util.Map<UUID, Long> completed = new java.util.HashMap<>();
-        java.util.List<UUID> ids = users.getContent().stream().map(User::getId).toList();
-        if (!ids.isEmpty()) {
-            for (Object[] row : enrollmentRepository.countCompletedByUserIds(ids)) {
-                completed.put((UUID) row[0], ((Number) row[1]).longValue());
-            }
-        }
-        return PageResponse.from(users, u -> {
-            UserResponse r = UserResponse.fromEntity(u);
-            r.setCompletedCourses(completed.getOrDefault(u.getId(), 0L).intValue());
-            return r;
-        });
+        // Real badge levels: the badge numbers for the whole page in a few grouped queries.
+        PageResponse<UserResponse> result = PageResponse.from(users, UserResponse::fromEntity);
+        badgeStatsService.apply(result.getContent());
+        return result;
     }
 
     @Override
@@ -268,6 +260,19 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         log.info("User unbanned: {}", user.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public UserResponse setEliteApproval(UUID userId, boolean approved) {
+        User user = findById(userId);
+        if (user.getRole() != com.academy.entity.enums.UserRole.STUDENT) {
+            throw new com.academy.exception.BadRequestException("Only students can receive the Elite badge");
+        }
+        user.setEliteApprovedAt(approved ? LocalDateTime.now() : null);
+        userRepository.save(user);
+        log.info("Elite approval {} for user {}", approved ? "granted" : "withdrawn", user.getEmail());
+        return badgeStatsService.apply(UserResponse.fromEntity(user));
     }
 
     @Override

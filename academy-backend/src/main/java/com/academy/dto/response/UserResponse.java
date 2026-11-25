@@ -35,6 +35,27 @@ public class UserResponse {
     private Boolean isBanned;
     /** Courses this user has completed — drives their real badge level (admin lists). */
     private Integer completedCourses;
+    /** Badge ladder numbers (students) — filled by BadgeStatsService for /auth/me and admin lists. */
+    private Integer enrolledCourses;
+    private Integer completedLessons;
+    private Integer certificates;
+    private Integer quizzesTaken;
+    /** Average best quiz score, 0-100 (null = no quiz yet). */
+    private Integer avgQuizScore;
+    private Integer gradedAssignments;
+    /** Assignment marks as % of their total (null = none marked yet). */
+    private Integer avgAssignmentScore;
+    private Integer bestAssignmentScore;
+    /** Calendar weeks with learning activity (lessons, quizzes, assignments). */
+    private Integer activeWeeks;
+    private Integer communityPosts;
+    /** Community posts + comments. */
+    private Integer communityContributions;
+    private Integer reviews;
+    private Integer completedMasterclasses;
+    private Integer liveMasterclasses;
+    /** Elite badge: the chef's personal approval (null = not approved). */
+    private LocalDateTime eliteApprovedAt;
     private LocalDateTime bannedAt;
     private String banReason;
 
@@ -56,6 +77,7 @@ public class UserResponse {
                 .isBanned(Boolean.TRUE.equals(user.getIsBanned()))
                 .bannedAt(user.getBannedAt())
                 .banReason(user.getBanReason())
+                .eliteApprovedAt(user.getEliteApprovedAt())
                 .build();
     }
 }

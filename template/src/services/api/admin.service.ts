@@ -142,6 +142,11 @@ class AdminService {
     await api.post(`/admin/users/${userId}/ban`, null, { params: { reason } });
   }
 
+  /** Elite badge: the chef approves (true) or withdraws (false) a student's Elite approval. */
+  async setEliteApproval(userId: string | number, approved: boolean): Promise<void> {
+    await api.post(`/admin/users/${userId}/elite`, null, { params: { approved } });
+  }
+
   // Unban user
   async unbanUser(userId: string | number): Promise<void> {
     await api.post(`/admin/users/${userId}/unban`);

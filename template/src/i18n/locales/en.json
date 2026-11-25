@@ -1938,7 +1938,15 @@
       "confirmExtend": "Add 1 year",
       "confirmActivate": "Activate Plan",
       "completedCourses": "{{n}} courses completed",
-      "completedShort": "{{n}} completed"
+      "completedShort": "{{n}} completed",
+      "badgeNumbers2_one": "{{count}} certificate · quiz {{quiz}} · assignments {{assign}} · {{days}} days",
+      "badgeNumbers2": "{{count}} certificates · quiz {{quiz}} · assignments {{assign}} · {{days}} days",
+      "badgeInProgress": "in progress",
+      "eliteApprove": "Approve Elite showpiece",
+      "eliteWithdraw": "Withdraw Elite approval",
+      "eliteApproved": "Elite approved",
+      "eliteWithdrawn": "Elite approval withdrawn",
+      "eliteFailed": "Could not change the Elite approval"
     },
     "courses": {
       "title": "Course Management",
@@ -3897,45 +3905,98 @@
     },
     "apprentice": {
       "name": "Apprentice",
-      "desc": "Welcome to SARALÖWE Academy! Your culinary journey begins here. Complete your first course to earn your Commis Chef badge."
+      "desc": "Your journey starts here. Verify your email, join your first course and finish your first lesson to earn your Apprentice badge.",
+      "motto": "Welcome to the kitchen"
     },
     "commisChef": {
       "name": "Commis Chef",
-      "desc": "Excellent start! You have completed your first course. Keep learning and refining your culinary skills to advance further."
+      "desc": "You earned your first certificate. A real start: keep learning to grow in the brigade.",
+      "motto": "Your first plate goes out"
     },
     "sousChef": {
       "name": "Sous Chef",
-      "desc": "Impressive dedication! You have completed 3 courses. Your culinary knowledge is growing — continue to reach Chef de Partie."
+      "desc": "Two certificates, strong quiz results and several weeks of practice: you cook with consistency.",
+      "motto": "Consistency"
     },
     "chefDePartie": {
       "name": "Chef de Partie",
-      "desc": "Outstanding commitment! With 6 courses completed, you are mastering your station. Keep pushing to reach Executive Chef."
+      "desc": "Three certificates, an assignment marked 85% or more and your work shared with others: you run your own station.",
+      "motto": "Your own station"
     },
     "executiveChef": {
       "name": "Executive Chef",
-      "desc": "Remarkable achievement! You have completed 12 courses and demonstrated true culinary mastery. The Master Chef title awaits."
+      "desc": "Four certificates, high marks in quizzes and assignments, and a masterclass: you lead with skill.",
+      "motto": "You lead the brigade"
     },
     "masterChef": {
       "name": "Master Chef",
-      "desc": "Extraordinary skill! With 20 courses completed, you stand among the finest culinary students. Only the Elite level remains."
+      "desc": "Five certificates, an excellence mark of 95%, two masterclasses and an active voice in the community: your signature is recognised.",
+      "motto": "Your signature creation"
     },
     "elite": {
       "name": "Elite",
-      "desc": "The pinnacle of excellence. You have completed 35+ courses and earned the highest honor at SARALÖWE Academy. You are truly Elite."
+      "desc": "The rarest badge: six certificates, outstanding marks, three masterclasses including one live in the atelier, a full year with us, and your signature showpiece approved by Chef Sara.",
+      "motto": "The chef's blessing"
     },
     "instructor": {
       "name": "Instructor",
-      "desc": "You are a certified SARALÖWE instructor, empowering students to master the art of culinary excellence."
+      "desc": "Black Onyx, reserved for SARALÖWE Academy instructors."
     },
     "admin": {
       "name": "Admin",
-      "desc": "You are a SARALÖWE administrator, managing and maintaining the academy platform."
+      "desc": "Imperial Topaz, reserved for the SARALÖWE Academy team."
+    },
+    "req": {
+      "emailVerified": "Verify your email address",
+      "enrolledCourses_one": "Join your first course",
+      "enrolledCourses": "Join {{count}} courses",
+      "completedLessons_one": "Finish your first lesson",
+      "completedLessons": "Finish {{count}} lessons",
+      "certificates_one": "Earn {{count}} certificate (pass the course assignment)",
+      "certificates": "Earn {{count}} certificates (pass the course assignment)",
+      "quizAvg": "Quiz average {{n}}% or more",
+      "activeWeeks_one": "Learn in {{count}} week",
+      "activeWeeks": "Learn in {{count}} different weeks",
+      "bestAssignment": "Get {{n}}% or more on one assignment",
+      "avgAssignment": "Assignment average {{n}}% or more",
+      "shareOrReview": "Share a creation in the community or review a course",
+      "contributions_one": "{{count}} community post or answer",
+      "contributions": "{{count}} community posts or answers",
+      "masterclasses_one": "Join {{count}} masterclass",
+      "masterclasses": "Join {{count}} masterclasses",
+      "liveMasterclasses": "Including 1 live masterclass in the atelier",
+      "days_one": "Member for {{count}} day",
+      "days": "Member for {{count}} days",
+      "chefApproval": "Your signature showpiece approved by Chef Sara",
+      "summaryApprentice": "Verify your email · join a course · finish a lesson",
+      "certificatesShort_one": "{{count}} certificate",
+      "certificatesShort": "{{count}} certificates",
+      "quizShort": "quizzes {{n}}%",
+      "bestAssignmentShort": "one assignment {{n}}%",
+      "avgAssignmentShort": "assignments {{n}}%",
+      "activeWeeksShort_one": "{{count}} active week",
+      "activeWeeksShort": "{{count}} active weeks",
+      "shareShort": "share or review",
+      "contributionsShort_one": "{{count}} contribution",
+      "contributionsShort": "{{count}} contributions",
+      "masterclassesShort_one": "{{count}} masterclass",
+      "masterclassesShort": "{{count}} masterclasses",
+      "daysShort_one": "{{count}} day",
+      "daysShort": "{{count}} days",
+      "chefShort": "chef's approval",
+      "yours": "yours: {{n}}%",
+      "noQuizYet": "no quiz yet",
+      "noMarkYet": "no mark yet",
+      "notYet": "not yet",
+      "done": "done",
+      "toEarn": "To earn",
+      "allNeeded": "You need all of these:"
     }
   },
   "badgeGuide": {
     "intro": {
       "title": "Your Culinary Badge Journey",
-      "body": "At SARALÖWE Academy, every course you complete earns you a higher chef rank. Discover all 7 student levels plus special badges for instructors and admins."
+      "body": "Every badge is a step in a pastry chef's career. Earn certificates by passing course assignments, keep good marks, practise week after week, share with the community and join masterclasses. The top badge, Elite, is approved by Chef Sara herself."
     },
     "badge": {
       "level": "Level {{n}}",
@@ -3947,7 +4008,8 @@
     "current": {
       "subtitle": "Your Badge Right Now",
       "title": "You are",
-      "elite": "You have reached the highest level!"
+      "elite": "You have reached the highest level!",
+      "earning": "Earn your first badge:"
     },
     "nav": {
       "previous": "Previous",

@@ -16,7 +16,7 @@ import adminService, { UserRoleFilter, UserStats } from '../../../services/api/a
 import { extractApiError } from '../../../services/api/error.utils';
 import { getFileUrl } from '../../../environment';
 import BadgeAvatar from '../../../components/BadgeAvatar';
-import { getBadgeForUser } from '../../../config/badges';
+import { getBadgeForUser, progressOf, memberDays, studentLevel } from '../../../config/badges';
 
 const { Search } = Input;
 
@@ -55,6 +55,21 @@ interface User {
   createdAt: string;
   /** Courses completed — drives the user's real badge level. */
   completedCourses?: number;
+  enrolledCourses?: number;
+  completedLessons?: number;
+  certificates?: number;
+  quizzesTaken?: number;
+  avgQuizScore?: number | null;
+  gradedAssignments?: number;
+  avgAssignmentScore?: number | null;
+  bestAssignmentScore?: number | null;
+  activeWeeks?: number;
+  communityPosts?: number;
+  communityContributions?: number;
+  reviews?: number;
+  completedMasterclasses?: number;
+  liveMasterclasses?: number;
+  eliteApprovedAt?: string | null;
 }
 
 const AdminUsers: React.FC = () => {
@@ -136,6 +151,18 @@ const AdminUsers: React.FC = () => {
       } catch {
         message.error('Failed to ban user');
       }
+    }
+  };
+
+  const handleEliteApproval = async (userId: string, approved: boolean) => {
+    try {
+      await adminService.setEliteApproval(userId, approved);
+      message.success(approved
+        ? t('admin.users.eliteApproved', 'Elite approved')
+        : t('admin.users.eliteWithdrawn', 'Elite approval withdrawn'));
+      reloadUsers();
+    } catch {
+      message.error(t('admin.users.eliteFailed', 'Could not change the Elite approval'));
     }
   };
 
@@ -317,7 +344,7 @@ const AdminUsers: React.FC = () => {
                           <BadgeAvatar
                             avatarUrl={user.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : undefined}
                             name={user.fullName}
-                            badge={getBadgeForUser(user.role, user.completedCourses ?? 0)}
+                            badge={getBadgeForUser(user.role, progressOf(null, user))}
                             size="sm"
                           />
                           <div>
@@ -333,20 +360,40 @@ const AdminUsers: React.FC = () => {
                       <td>
                         {getRoleBadge(user.role)}
                         {(() => {
-                          const bd = getBadgeForUser(user.role, user.completedCourses ?? 0);
+                          const bd = getBadgeForUser(user.role, progressOf(null, user));
                           return (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}
-                              title={user.role === 'STUDENT' ? t('admin.users.completedCourses', '{{n}} courses completed', { n: user.completedCourses ?? 0 }) : undefined}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
                               <img src={bd.image} alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text)' }}>{t(bd.nameKey)}</span>
-                              {user.role === 'STUDENT' && (
-                                <span style={{ fontSize: 11.5, color: 'var(--lx-text-muted)' }}>
-                                  · {t('admin.users.completedShort', '{{n}} completed', { n: user.completedCourses ?? 0 })}
-                                </span>
+                              {user.role === 'STUDENT' && studentLevel(progressOf(null, user)) < 1 && (
+                                <span style={{ fontSize: 11, color: 'var(--lx-text-muted)' }}>· {t('admin.users.badgeInProgress', 'in progress')}</span>
                               )}
                             </div>
                           );
                         })()}
+                        {user.role === 'STUDENT' && (
+                          <div style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginTop: 3 }}>
+                            {t('admin.users.badgeNumbers2', '{{count}} certificates · quiz {{quiz}} · assignments {{assign}} · {{days}} days', {
+                              count: user.certificates ?? 0,
+                              quiz: (user.quizzesTaken ?? 0) > 0 ? `${user.avgQuizScore ?? 0}%` : '—',
+                              assign: (user.gradedAssignments ?? 0) > 0 ? `${user.avgAssignmentScore ?? 0}%` : '—',
+                              days: memberDays(user.createdAt),
+                            })}
+                          </div>
+                        )}
+                        {/* Elite needs the chef's approval: offered once the student reached Master Chef */}
+                        {user.role === 'STUDENT' && (user.eliteApprovedAt || studentLevel(progressOf(null, user)) >= 6) && (
+                          <button
+                            type="button"
+                            className="lx-btn lx-btn-outline lx-btn-sm"
+                            style={{ marginTop: 6, fontSize: 11.5, padding: '3px 10px' }}
+                            onClick={() => handleEliteApproval(String(user.id), !user.eliteApprovedAt)}
+                          >
+                            {user.eliteApprovedAt
+                              ? t('admin.users.eliteWithdraw', 'Withdraw Elite approval')
+                              : t('admin.users.eliteApprove', 'Approve Elite showpiece')}
+                          </button>
+                        )}
                       </td>
                       <td>{getStatusBadge(user.isBanned, user.isEmailVerified)}</td>
                       <td>

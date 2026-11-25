@@ -8,17 +8,22 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BadgeDefinition, BADGES, getNextBadge, badgeSrcSet } from '../config/badges';
+import { BadgeDefinition, BadgeProgress, BADGES, getNextBadge, badgeSrcSet } from '../config/badges';
+import BadgeRequirementList from './BadgeRequirementList';
 
 interface Props {
   badge: BadgeDefinition;
   userId: string;
   completedCourses: number;
+  /** The student's badge numbers (see config/badges) */
+  progress?: BadgeProgress | null;
+  /** False while a new student is still earning Apprentice: no "Congratulations" yet */
+  earned?: boolean;
 }
 
 const LS_KEY_PREFIX = 'slw_badge_popup_';
 
-const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
+const BadgePopup: React.FC<Props> = ({ badge, userId, progress, earned = true }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const [visible, setVisible] = useState(false);
@@ -26,6 +31,7 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
   useEffect(() => {
     // Show once per user — reset each time their badge level changes
     const lsKey = `${LS_KEY_PREFIX}${userId}_${badge.id}`;
+    if (!earned) return;
     let seen = false;
     try { seen = !!localStorage.getItem(lsKey); } catch { seen = false; }
     if (seen) return;
@@ -45,7 +51,7 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
     };
     timer = window.setTimeout(tryShow, 600);
     return () => { if (timer) window.clearTimeout(timer); };
-  }, [userId, badge.id]);
+  }, [userId, badge.id, earned]);
 
   const dismiss = useCallback(() => {
     const lsKey = `${LS_KEY_PREFIX}${userId}_${badge.id}`;
@@ -63,7 +69,7 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
 
   if (!visible) return null;
 
-  const nextBadge = getNextBadge(badge);
+  const nextBadge = getNextBadge(badge, progress ?? {});
   const isStudentBadge = badge.id <= 7;
 
   return (
@@ -253,56 +259,10 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, completedCourses }) => {
               {t(badge.descKey)}
             </p>
 
-            {/* Progress to next badge */}
+            {/* Progress to next badge: everything the next gemstone needs */}
             {isStudentBadge && nextBadge && (
-              <div
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 12,
-                  padding: '14px 18px',
-                  marginBottom: 24,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 8,
-                  }}
-                >
-                  <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
-                    {t('badges.popup.nextLevel')}
-                  </span>
-                  <span style={{ color: nextBadge.color, fontSize: 12, fontWeight: 700 }}>
-                    {t(nextBadge.nameKey)}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    background: 'rgba(255,255,255,0.08)',
-                    borderRadius: 100,
-                    height: 6,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      height: '100%',
-                      borderRadius: 100,
-                      background: `linear-gradient(90deg, ${badge.color}, ${nextBadge.color})`,
-                      width: `${Math.min(100, (completedCourses / nextBadge.minCourses) * 100)}%`,
-                      transition: 'width 1s ease',
-                    }}
-                  />
-                </div>
-                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginTop: 6, marginBottom: 0 }}>
-                  {t('badges.popup.coursesNeeded', {
-                    completed: completedCourses,
-                    needed: nextBadge.minCourses,
-                  })}
-                </p>
+              <div style={{ marginBottom: 24 }}>
+                <BadgeRequirementList next={nextBadge} current={badge} progress={progress ?? {}} />
               </div>
             )}
 

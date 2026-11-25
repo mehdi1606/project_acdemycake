@@ -111,6 +111,15 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("User unbanned"));
     }
 
+    @PostMapping("/users/{id}/elite")
+    @Operation(summary = "Approve (approved=true) or withdraw (false) a student's Elite badge")
+    public ResponseEntity<ApiResponse<UserResponse>> setEliteApproval(
+            @PathVariable UUID id,
+            @RequestParam boolean approved) {
+        UserResponse response = userService.setEliteApproval(id, approved);
+        return ResponseEntity.ok(ApiResponse.success(approved ? "Elite approved" : "Elite approval withdrawn", response));
+    }
+
     @DeleteMapping("/users/{id}")
     @Operation(summary = "Delete a user")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {

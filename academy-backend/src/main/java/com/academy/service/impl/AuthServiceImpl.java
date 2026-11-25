@@ -40,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final BadgeStatsService badgeStatsService;
 
     @Override
     @Transactional
@@ -260,7 +261,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserResponse getCurrentUser() {
         User user = getCurrentUserEntity();
-        return UserResponse.fromEntity(user);
+        return badgeStatsService.apply(UserResponse.fromEntity(user));
     }
 
     private String createRefreshToken(User user, String deviceInfo) {

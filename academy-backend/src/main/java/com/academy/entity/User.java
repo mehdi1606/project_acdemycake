@@ -94,6 +94,10 @@ public class User extends BaseEntity {
     @Column(name = "banned_at")
     private LocalDateTime bannedAt;
 
+    /** Elite badge: set when the chef approves the student's signature showpiece (null = not approved). */
+    @Column(name = "elite_approved_at")
+    private LocalDateTime eliteApprovedAt;
+
     @Column(name = "ban_reason")
     private String banReason;
 

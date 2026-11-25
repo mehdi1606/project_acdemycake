@@ -35,4 +35,5 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, UUID> 
             "AND qa.passed = true AND qa.status = com.academy.entity.enums.AttemptStatus.SUBMITTED")
     boolean hasPassed(@org.springframework.data.repository.query.Param("quiz") Quiz quiz,
                       @org.springframework.data.repository.query.Param("student") User student);
+
 }
