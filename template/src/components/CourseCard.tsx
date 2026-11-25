@@ -43,6 +43,7 @@ interface CourseCardProps {
   course: Course;
   /** Kept for backward compatibility; every layout renders this same card. */
   layout?: 'grid' | 'list';
+  /** @deprecated no cart any more; kept so callers compile */
   inCart?: boolean;
   onCart?: (course: Course) => void;
   /** When provided, enables the AOS entrance animation with a staggered delay. */
@@ -74,7 +75,7 @@ const pill: React.CSSProperties = {
 };
 
 const CourseCard: React.FC<CourseCardProps> = ({
-  course, inCart = false, onCart, index, inWishlist, isLoadingWishlist = false, onWishlist, levelLabel,
+  course, onCart, index, inWishlist, isLoadingWishlist = false, onWishlist, levelLabel,
 }) => {
   const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
@@ -276,20 +277,13 @@ const CourseCard: React.FC<CourseCardProps> = ({
       </Link>
     );
   } else if (kind === 'RECORDED' && onCart) {
-    cta = inCart ? (
-      <Link
-        to={route.courseCart}
-        style={{ ...pill, background: 'rgba(101,28,50,0.06)', color: BURG, border: '1px solid rgba(101,28,50,0.2)' }}
-      >
-        {t('courseTile.inCart', 'In cart')} <i className="isax isax-bag-tick" style={{ fontSize: 11 }} />
-      </Link>
-    ) : (
+    cta = (
       <button
         type="button"
         onClick={() => onCart(course)}
         style={{ ...pill, background: `linear-gradient(135deg, ${BURG_D} 0%, #6B1D2A 100%)`, color: '#fff', boxShadow: '0 2px 8px rgba(78,20,32,0.2)' }}
       >
-        <i className="isax isax-bag-add" style={{ fontSize: 13 }} /> {t('courseTile.addToCart', 'Add to cart')}
+        <i className="isax isax-card" style={{ fontSize: 13 }} /> {t('courseTile.buyNow', 'Buy now')}
       </button>
     );
   } else {

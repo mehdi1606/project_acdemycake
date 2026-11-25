@@ -64,7 +64,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
         { title: t('sidebar.mySubscription', 'My subscription'), icon: 'isax isax-crown', route: all_routes.studentSubscription },
         { title: t('sidebar.myProfile', 'My Profile'),   icon: 'isax isax-user',          route: all_routes.studentProfile },
         { title: t('sidebar.messages', 'Messages'),      icon: 'isax isax-messages-3',    route: all_routes.studentMessage },
-        { title: t('sidebar.orderHistory', 'Order History'), icon: 'isax isax-shopping-cart', route: all_routes.studentOrderHistory },
+        { title: t('sidebar.orderHistory', 'Order History'), icon: 'isax isax-receipt-2', route: all_routes.studentOrderHistory },
         { title: t('sidebar.support', 'Support'),        icon: 'isax isax-ticket',        route: all_routes.studentTickets },
         { title: t('sidebar.settings', 'Settings'),      icon: 'isax isax-setting-2',     route: all_routes.studentSettings },
       ],

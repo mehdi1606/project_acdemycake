@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Spin, message } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import ExperienceSettingsCard from '../../../experience/ExperienceSettingsCard';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { useAppSelector } from '../../../core/redux/hooks';
@@ -240,6 +241,7 @@ const AdminSettings = () => {
           </div>
         </div>
       </div>
+      <div style={{ marginTop: 24 }}><ExperienceSettingsCard /></div>
     </LuxuryDashboardLayout>
   );
 };

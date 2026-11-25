@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import LuxuryDashboardLayout from "../../../components/LuxuryDashboardLayout"
+import ExperienceSettingsCard from '../../../experience/ExperienceSettingsCard';
 import { all_routes } from "../../router/all_routes"
 import { Link } from "react-router-dom"
 import SettingsLinks from "./settingsLinks/settingsLinks"
@@ -290,6 +291,8 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
       </div>
 
       {/* Delete Account */}
+      <ExperienceSettingsCard />
+
       <div className="lx-card" style={{ marginBottom: 0 }}>
         <div className="lx-card-body">
           <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 12 }}>{t('student.settings.deleteAccount', 'Delete Account')}</h5>

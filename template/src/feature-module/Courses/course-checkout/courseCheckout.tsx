@@ -117,7 +117,7 @@ const CourseCheckout = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
             <Link to="/" style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>{t('sharedComponents.breadcrumb.home', 'Home')}</Link>
             <span style={{ color: `${GOLD_L}55`, fontSize: 13 }}>/</span>
-            <Link to={route.courseCart} style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>{t('courseCart.cart', 'Cart')}</Link>
+            <Link to={route.courseList} style={{ color: `${GOLD_L}99`, fontSize: 13, textDecoration: 'none' }}>{t('nav.courses', 'Courses')}</Link>
             <span style={{ color: `${GOLD_L}55`, fontSize: 13 }}>/</span>
             <span style={{ color: GOLD_L, fontSize: 13, fontWeight: 600 }}>{t('courseCheckout.checkout', 'Checkout')}</span>
           </div>
@@ -512,17 +512,17 @@ const CourseCheckout = () => {
                   </div>
                 </div>
 
-                {/* Back to cart */}
+                {/* Back to the courses */}
                 <div style={{ marginTop: 16, textAlign: 'center' }}>
                   <Link
-                    to={route.courseCart}
+                    to={route.courseList}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6,
                       color: BURG, textDecoration: 'none', fontSize: 13, fontWeight: 600,
                     }}
                   >
                     <i className="isax isax-arrow-left-2" />
-                    {t('courseCheckout.backToCart', 'Back to Cart')}
+                    {t('courseCheckout.backToCourses', 'Back to the courses')}
                   </Link>
                 </div>
               </div>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { all_routes } from '../../router/all_routes'
 import { useAppSelector } from '../../../core/redux/hooks'
 import PaymentBadges from '../../common/PaymentBadges'
+import ExperienceSwitch from '../../../experience/ExperienceSwitch'
 
 const Footer = () => {
     const { t } = useTranslation()
@@ -111,6 +112,12 @@ const Footer = () => {
 
                     {/* Payment badges */}
                     <PaymentBadges variant="dark" />
+
+                    {/* Desktop / Mobile experience (this device only) */}
+                    <div className="sl-footer__exp">
+                        <span>{t('experience.label', 'Experience')}</span>
+                        <ExperienceSwitch compact />
+                    </div>
 
                     {/* Copyright + links row */}
                     <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 w-100">

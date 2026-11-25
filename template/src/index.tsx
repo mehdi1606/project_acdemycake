@@ -18,6 +18,9 @@ import "./style/css/mobile-premium.css";
 import "../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 import { App as AntdApp, notification } from 'antd';
 import PremiumPromoPopup from './feature-module/common/PremiumPromoPopup';
+import ExperienceChooser from './experience/ExperienceChooser';
+import MobileStage from './experience/MobileStage';
+import { applyExperience, isStage, needsChoice } from './experience/experience';
 
 // Global listener for background API errors (server errors, network failures)
 window.addEventListener('app:api-error', (e) => {
@@ -32,10 +35,15 @@ window.addEventListener('app:api-error', (e) => {
   }
 });
 
+// One art-directed look: forget any old light/dark choice.
+try { localStorage.removeItem('dataTheme'); } catch { /* ignore */ }
+document.documentElement.classList.remove('dark-mode');
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
-root.render(
+
+const renderApp = () => root.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter basename={base_path}>
@@ -49,6 +57,15 @@ root.render(
     </Provider>
   </React.StrictMode>
 );
+
+/** Mobile chosen on a computer → the phone stage; otherwise the app itself. */
+const renderExperience = () => (isStage() ? root.render(<MobileStage />) : renderApp());
+
+if (needsChoice()) {
+  root.render(<ExperienceChooser onChoose={(mode) => { applyExperience(mode); renderExperience(); }} />);
+} else {
+  renderExperience();
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

@@ -22,7 +22,8 @@
     "booked": "Booked",
     "openCourse": "Open course",
     "seeDetails": "See details",
-    "ratingAria": "Rated {{rating}} out of 5 from {{count}} reviews"
+    "ratingAria": "Rated {{rating}} out of 5 from {{count}} reviews",
+    "buyNow": "Buy now"
   },
   "ebooks": {
     "eyebrow": "Digital Library",
@@ -2854,7 +2855,8 @@
       "startLearning": "Start learning",
       "signInToStart": "Sign in to start",
       "getPremium": "Get Premium to access",
-      "startFree": "Start for free"
+      "startFree": "Start for free",
+      "buyNow": "Buy now"
     },
     "previewCourse": "Preview course",
     "opening": "Opening…",
@@ -3032,7 +3034,7 @@
     "title": "Shopping Cart",
     "cart": "Cart",
     "yourCart": "Your Cart",
-    "empty": "Your cart is empty",
+    "empty": "Nothing selected yet",
     "emptyDesc": "Discover our premium courses and invest in your future. Add courses to your cart to get started.",
     "noCoursesSelected": "No courses selected yet",
     "coursesReadyForCheckout": "{{count}} course(s) ready for checkout",
@@ -3102,7 +3104,7 @@
     "securePayment": "Secure Payment",
     "fullRefund": "If you are not satisfied, get a full refund within 30 days.",
     "nothingToCheckout": "Nothing to checkout",
-    "cartEmptyAdd": "Your cart is empty. Add some courses first.",
+    "cartEmptyAdd": "Choose a course and press “Buy now”.",
     "loginToPurchase": "Please login to complete your purchase",
     "paymentSuccess": "Payment successful! You are now enrolled in your courses.",
     "termsAgreement": "By completing your purchase you agree to our",
@@ -3126,7 +3128,8 @@
     "payFailedTitle": "We could not start your payment.",
     "payFailedHelp": "Your card was not charged. Check your card details or try another card.",
     "needHelp": "Need help?",
-    "contactUs": "Contact us"
+    "contactUs": "Contact us",
+    "backToCourses": "Back to the courses"
   },
   "about": {
     "hero": {
@@ -4647,5 +4650,31 @@
     "void": "Remove",
     "voidWhy": "Write why this vote is removed first.",
     "voidReasonPh": "Reason"
+  },
+  "experience": {
+    "welcome": "Welcome to the atelier",
+    "question": "How would you like to experience SARALÖWE?",
+    "desktop": "Desktop experience",
+    "desktopLine": "Immersive and cinematic, composed for large screens.",
+    "mobile": "Mobile experience",
+    "mobileLine": "Refined and touch-first, composed for your phone.",
+    "recommended": "Recommended for this device",
+    "enter": "Enter",
+    "note": "Saved on this device only. You can change it at any time in your settings.",
+    "stageTitle": "The atelier, in your hand",
+    "stageText": "You chose the mobile experience on this computer. It is shown here at phone size.",
+    "switchToDesktop": "Switch to desktop",
+    "label": "Experience",
+    "desktopShort": "Desktop",
+    "mobileShort": "Mobile",
+    "hint": "Saved on this device only: your phone and your computer can each keep their own experience.",
+    "showChoice": "Show the welcome choice again",
+    "useMobile": "Use the mobile experience",
+    "settingsText": "Choose how SARALÖWE is presented on this device: cinematic for large screens, or touch-first for your phone."
+  },
+  "mobileNav": {
+    "classes": "Classes",
+    "me": "My space",
+    "tabs": "Main sections"
   }
 }

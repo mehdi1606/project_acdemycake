@@ -53,6 +53,11 @@ const cartSlice = createSlice({
       state.items = state.items.filter((i) => i.id !== action.payload);
       saveCart(state.items);
     },
+    /** "Buy now": the checkout holds exactly this one course. */
+    selectForCheckout(state, action: PayloadAction<CartItem>) {
+      state.items = [action.payload];
+      saveCart(state.items);
+    },
     clearCart(state) {
       state.items = [];
       saveCart(state.items);
@@ -71,5 +76,16 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, clearCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, clearCart, selectForCheckout } = cartSlice.actions;
+
+/** The checkout line for a course (SARALÖWE has no shopping cart: one course, straight to checkout). */
+export const checkoutItemFor = (course: {
+  id: string; slug: string; title: string; thumbnailUrl?: string; price?: number; originalPrice?: number;
+  instructor?: { id?: string; fullName?: string; avatarUrl?: string }; ratingAverage?: number; ratingCount?: number; level?: string;
+}): CartItem => ({
+  id: course.id, slug: course.slug, title: course.title,
+  thumbnailUrl: course.thumbnailUrl, price: course.price ?? 0, originalPrice: course.originalPrice,
+  instructorName: course.instructor?.fullName, instructorId: course.instructor?.id, instructorAvatar: course.instructor?.avatarUrl,
+  rating: course.ratingAverage, ratingCount: course.ratingCount, level: course.level,
+});
 export default cartSlice.reducer;

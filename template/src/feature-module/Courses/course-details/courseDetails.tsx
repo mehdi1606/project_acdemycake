@@ -15,7 +15,7 @@ import { getBadgeFromRole } from '../../../config/badges';
 import { Spin, App, Rate, Collapse } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { addToWishlist, removeFromWishlist } from '../../../core/redux/courseSlice';
-import { addToCart } from '../../../core/redux/cartSlice';
+import { selectForCheckout, checkoutItemFor } from '../../../core/redux/cartSlice';
 import { useLocalizedCourse } from '../../../hooks/useLocalizedCourse';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 import { assignmentService } from '../../../services/api/assignment.service';
@@ -70,7 +70,6 @@ const CourseDetails = () => {
   const location   = useLocation();
   const dispatch   = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
-  const { items: cartItems }      = useAppSelector((s) => s.cart);
   const { message }               = App.useApp();
 
   const [course,       setCourse]       = useState<Course | null>(null);
@@ -212,18 +211,11 @@ const CourseDetails = () => {
     finally { setWishlistBusy(false); }
   }, [isAuthenticated, course, wishlistBusy, slug, dispatch, message, goToLogin, t]);
 
-  const handleAddToCart = useCallback(() => {
+  const handleBuyNow = useCallback(() => {
     if (!course) return;
-    if (cartItems.some((i) => i.id === course.id)) { message.info(t('courseDetails.toast.alreadyInCart', 'Already in your cart')); return; }
-    dispatch(addToCart({
-      id: course.id, slug: course.slug, title: course.title,
-      thumbnailUrl: course.thumbnailUrl, price: course.price ?? 0,
-      originalPrice: course.originalPrice, instructorName: course.instructor?.fullName,
-      instructorId: course.instructor?.id, instructorAvatar: course.instructor?.avatarUrl,
-      rating: course.ratingAverage, ratingCount: course.ratingCount, level: course.level,
-    }));
-    message.success(t('courseDetails.toast.addedToCart', '"{{title}}" added to your cart', { title: course.title }));
-  }, [course, cartItems, dispatch, message, t]);
+    dispatch(selectForCheckout(checkoutItemFor(course)));
+    navigate(route.courseCheckout);
+  }, [course, dispatch, navigate, route.courseCheckout]);
 
   const handleSubmitReview = useCallback(async () => {
     if (!isAuthenticated) { goToLogin('enroll'); return; }
@@ -296,7 +288,6 @@ const CourseDetails = () => {
 
   const thumb        = getFileUrl(c.thumbnailUrl) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
   const instrAvatar  = getFileUrl(c.instructor?.avatarUrl ?? instructor?.avatarUrl) ?? `${process.env.PUBLIC_URL}/assets/img/user/user-01.jpg`;
-  const inCart       = cartItems.some((i) => i.id === c.id);
   const totalLessons = curriculum.reduce((s, m) => s + (m.lessons?.length ?? 0), 0);
   const quizLessons  = curriculum.reduce((s, m) => s + (m.lessons?.filter((l) => l.contentType === 'QUIZ').length ?? 0), 0);
   const totalDurSec  = curriculum.reduce((s, m) => s + (m.totalDurationSeconds ?? 0), 0);
@@ -1130,30 +1121,28 @@ const CourseDetails = () => {
                           <i className="fa-solid fa-right-to-bracket" />{t('courseDetails.cta.signInToStart', 'Sign in to start')}
                         </button>
                       ) : (
-                        <button onClick={handleEnroll} disabled={enrolling} style={{
-                          width: '100%', padding: '14px 20px', borderRadius: 12, border: 'none',
-                          fontWeight: 800, fontSize: 15, cursor: enrolling ? 'not-allowed' : 'pointer',
-                          background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#fff',
-                          boxShadow: '0 6px 20px rgba(101,28,50,0.28)', marginBottom: 10,
-                          opacity: enrolling ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        }}>
-                          {enrolling ? <Spin size="small" /> : <i className="fa-solid fa-graduation-cap" />}
-                          {enrolling ? t('common.loading', 'Loading...') : !c.requiresPurchase ? t('courseDetails.cta.startFree', 'Start for free') : t('courses.details.enroll', 'Enroll Now')}
-                        </button>
-                      )}
-                      {c.requiresPurchase && isAuthenticated && (
-                        <button onClick={handleAddToCart} disabled={inCart} style={{
-                          width: '100%', padding: '11px 16px', borderRadius: 12, boxSizing: 'border-box' as const,
-                          border: `1.5px solid ${inCart ? 'rgba(16,185,129,0.25)' : 'rgba(101,28,50,0.15)'}`,
-                          fontWeight: 700, fontSize: 14, cursor: inCart ? 'default' : 'pointer',
-                          background: inCart ? 'rgba(16,185,129,0.05)' : 'rgba(101,28,50,0.03)',
-                          color: inCart ? '#10B981' : '#651C32', marginBottom: 10,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        }}>
-                          {inCart
-                            ? <React.Fragment><i className="fa-solid fa-check" />{t('courseDetails.inCart', 'In Cart')}</React.Fragment>
-                            : <React.Fragment><i className="isax isax-shopping-cart" />{t('courses.details.addToCart', 'Add to Cart')}</React.Fragment>}
-                        </button>
+                        c.requiresPurchase ? (
+                          <button onClick={handleBuyNow} style={{
+                            width: '100%', padding: '14px 20px', borderRadius: 12, border: 'none',
+                            fontWeight: 800, fontSize: 15, cursor: 'pointer',
+                            background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#fff',
+                            boxShadow: '0 6px 20px rgba(101,28,50,0.28)', marginBottom: 10,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          }}>
+                            <i className="isax isax-card" />{t('courseDetails.cta.buyNow', 'Buy now')}
+                          </button>
+                        ) : (
+                          <button onClick={handleEnroll} disabled={enrolling} style={{
+                            width: '100%', padding: '14px 20px', borderRadius: 12, border: 'none',
+                            fontWeight: 800, fontSize: 15, cursor: enrolling ? 'not-allowed' : 'pointer',
+                            background: 'linear-gradient(135deg,#651C32,#8B2335)', color: '#fff',
+                            boxShadow: '0 6px 20px rgba(101,28,50,0.28)', marginBottom: 10,
+                            opacity: enrolling ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          }}>
+                            {enrolling ? <Spin size="small" /> : <i className="fa-solid fa-graduation-cap" />}
+                            {enrolling ? t('common.loading', 'Loading...') : !c.requiresPurchase ? t('courseDetails.cta.startFree', 'Start for free') : t('courses.details.enroll', 'Enroll Now')}
+                          </button>
+                        )
                       )}
                     </React.Fragment>
                   )}

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { all_routes } from "../../../feature-module/router/all_routes";
-import { setDataTheme } from "../../redux/themeSettingSlice";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { logout } from "../../redux/authSlice";
 import { getFileUrl } from "../../../environment";
@@ -12,8 +11,11 @@ import ChristmasLights from "../../../components/season/ChristmasLights";
 import { HangingOrnaments, SantaHat } from "../../../components/season/ChristmasDecor";
 import "./header.css";
 import { useChallenge } from "../../../components/challenge/useChallenge";
+import MobileHeader from "./MobileHeader";
+import { useMobilePresentation } from "../../../experience/useExperience";
+import { switchExperience } from "../../../experience/experience";
 
-const Header = () => {
+const DesktopHeader = () => {
   const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,14 +29,9 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const dataTheme = useAppSelector((state) => state.themeSetting.dataTheme);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const cartCount = useAppSelector((state) => state.cart.items.length);
   const challengeOn = !!useChallenge().challenge;
 
-  const handleDataThemeChange = (theme: string) => {
-    dispatch(setDataTheme(theme));
-  };
 
   const onHandleMobileMenu = () => {
     setMobileMenuOpen(true);
@@ -52,9 +49,6 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    document.documentElement.setAttribute("class", dataTheme);
-  }, [dataTheme]);
 
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
@@ -415,58 +409,6 @@ const Header = () => {
             <div className="sl-hdr-actions" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {/* Language Switcher */}
               <LanguageSwitcher variant="dark" />
-              {/* Theme Toggle */}
-              <button
-                type="button"
-                className="d-none d-sm-flex sl-hdr-btn"
-                onClick={() => handleDataThemeChange(dataTheme === 'light' ? 'dark-mode' : 'light')}
-                aria-label={dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
-                title={dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
-                style={{
-                  width: 38, height: 38, borderRadius: 10, border: 'none', cursor: 'pointer',
-                  background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 18, transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
-              >
-                <i className={`isax ${dataTheme === 'light' ? 'isax-moon' : 'isax-sun-1'}`} aria-hidden="true" />
-              </button>
-
-              {/* Cart */}
-              <Link
-                to={all_routes.courseCart}
-                className="sl-hdr-btn"
-                aria-label={cartCount > 0
-                  ? t('nav.cartWithCount', 'Cart ({{count}} items)', { count: cartCount })
-                  : t('nav.cart', 'Cart')}
-                title={t('nav.cart', 'Cart')}
-                style={{
-                  width: 38, height: 38, borderRadius: 10, textDecoration: 'none',
-                  background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative',
-                  fontSize: 18, transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
-              >
-                <i className="isax isax-shopping-cart" aria-hidden="true" />
-                {cartCount > 0 && (
-                  <span aria-hidden="true" style={{
-                    position: 'absolute', top: 1, right: 1,
-                    minWidth: 18, height: 18, borderRadius: 9,
-                    background: '#C5973E', color: '#fff',
-                    fontSize: 11, fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '0 3px', lineHeight: 1,
-                    border: '1.5px solid rgba(107,29,42,0.8)',
-                  }}>
-                    {cartCount > 9 ? '9+' : cartCount}
-                  </span>
-                )}
-              </Link>
 
               {isAuthenticated && user ? (
                 <>
@@ -633,6 +575,7 @@ const Header = () => {
 
                         <div style={{ padding: '6px 0' }}>
                           <MenuItem icon="isax-setting-2" label={t('nav.settings')} onClick={() => handleMenuItemClick(getSettingsRoute())} />
+                          <MenuItem icon="isax-mobile" label={t('experience.useMobile', 'Use the mobile experience')} onClick={() => switchExperience('mobile')} />
                           <MenuItem icon="isax-logout" label={t('nav.logout')} onClick={handleLogout} danger />
                         </div>
                       </div>
@@ -948,21 +891,6 @@ const Header = () => {
               </>
             )}
 
-            {/* Theme toggle (the header button is hidden on very small phones) */}
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 20px' }} />
-            <button
-              type="button"
-              onClick={() => handleDataThemeChange(dataTheme === 'light' ? 'dark-mode' : 'light')}
-              className="sl-mm-link"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12, width: '100%',
-                padding: '14px 24px', color: 'rgba(255,255,255,0.8)', background: 'none', border: 'none',
-                fontSize: 15, fontWeight: 500, cursor: 'pointer', textAlign: 'start',
-              }}
-            >
-              <i className={`isax ${dataTheme === 'light' ? 'isax-moon' : 'isax-sun-1'}`} aria-hidden="true" style={{ fontSize: 18, width: 20, textAlign: 'center', color: 'rgba(255,255,255,0.4)' }} />
-              {dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
-            </button>
           </div>
         </div>
       )}
@@ -982,5 +910,8 @@ const Header = () => {
     </>
   );
 };
+
+/** The mobile experience (and narrow windows) get the touch-first header; the rest keep the desktop one. */
+const Header = () => (useMobilePresentation() ? <MobileHeader /> : <DesktopHeader />);
 
 export default Header;

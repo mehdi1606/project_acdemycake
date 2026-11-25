@@ -2,7 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   
-  dataTheme: localStorage.getItem("dataTheme") || "light",
+  // SARALÖWE has one art-directed look: no light/dark switching.
+  dataTheme: "light",
   dataLoader: localStorage.getItem("dataLoader") || "enable",
   isRtl: localStorage.getItem("rtl") || false,
 };
@@ -12,11 +13,6 @@ const themeSettingSlice = createSlice({
   initialState,
   reducers: {
    
-    setDataTheme: (state, action) => {
-      document.documentElement.setAttribute("class", action.payload);
-      state.dataTheme = action.payload;
-      localStorage.setItem("dataTheme", action.payload);
-    },
     
     setLoader: (state, action) => {
       state.dataLoader = action.payload;
@@ -40,7 +36,6 @@ const themeSettingSlice = createSlice({
 
 export const {
   resetAllMode,
-  setDataTheme,
   setLoader,
   setRtl,
 } = themeSettingSlice.actions;

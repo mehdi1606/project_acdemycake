@@ -6,6 +6,7 @@ import PromoBar from '../components/promo/PromoBar';
 import WhatsNewModal from '../components/WhatsNewModal';
 import Footer from "./HomePages/home-one/footer";
 import ChristmasDecor from '../components/season/ChristmasDecor';
+import { useStageAddressSync } from '../experience/useExperience';
 import { ChallengePopup, ChallengeSeal } from '../components/challenge/ChallengeBanners';
 
 /* Prefixes for dashboard/instructor/admin pages — they provide their
@@ -22,6 +23,7 @@ const DASHBOARD_PREFIXES = [
 
 const Feature = () => {
   const location = useLocation();
+  useStageAddressSync();
 
   const isDashboard = DASHBOARD_PREFIXES.some((p) =>
     location.pathname.startsWith(p)

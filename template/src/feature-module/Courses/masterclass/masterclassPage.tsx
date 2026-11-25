@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -7,7 +7,7 @@ import { App } from 'antd';
 import { courseService } from '../../../services/api/course.service';
 import { CourseCategory, Course } from '../../../services/api/types';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
-import { addToCart } from '../../../core/redux/cartSlice';
+import { selectForCheckout, checkoutItemFor } from '../../../core/redux/cartSlice';
 import { all_routes } from '../../router/all_routes';
 import CourseCard from '../../../components/CourseCard';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
@@ -34,9 +34,9 @@ const SkeletonCard: React.FC<{ index: number }> = ({ index }) => (
 const MasterclassPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const route    = all_routes;
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
-  const { items: cartItems } = useAppSelector(s => s.cart);
   const { isAuthenticated: _isAuthenticated } = useAppSelector(s => s.auth);
 
   const [categories,    setCategories]    = useState<CourseCategory[]>([]);
@@ -120,15 +120,8 @@ const MasterclassPage: React.FC = () => {
   }, [searchQuery]);
 
   const handleCart = (course: Course) => {
-    if (cartItems.some(i => i.id === course.id)) { message.info(t('masterclass.alreadyInCart')); return; }
-    dispatch(addToCart({
-      id: course.id, slug: course.slug, title: course.title,
-      thumbnailUrl: course.thumbnailUrl, price: course.price ?? 0,
-      originalPrice: course.originalPrice,
-      instructorName: course.instructor?.fullName,
-      instructorId: course.instructor?.id,
-    }));
-    message.success(t('masterclass.addedToCart'));
+    dispatch(selectForCheckout(checkoutItemFor(course)));
+    navigate(all_routes.courseCheckout);
   };
 
   // Pagination numbers with ellipsis
@@ -398,7 +391,7 @@ const MasterclassPage: React.FC = () => {
                 <div key={course.id} className="col-xl-4 col-md-6" style={{ display: 'flex' }}>
                   <CourseCard
                     course={course}
-                    inCart={cartItems.some(item => item.id === course.id)}
+                    inCart={false}
                     onCart={handleCart}
                     index={i}
                   />

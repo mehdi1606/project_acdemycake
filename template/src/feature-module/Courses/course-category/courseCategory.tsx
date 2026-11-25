@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import CourseCard from '../../../components/CourseCard';
 import AOS from 'aos';
@@ -9,7 +9,7 @@ import { App } from 'antd';
 import { courseService } from '../../../services/api/course.service';
 import { CourseCategory as CourseCategoryType, Course } from '../../../services/api/types';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
-import { addToCart } from '../../../core/redux/cartSlice';
+import { selectForCheckout, checkoutItemFor } from '../../../core/redux/cartSlice';
 import SubscriptionGate from '../../common/SubscriptionGate';
 import { getLocalizedCategory } from '../../../hooks/useLocalizedCategory';
 
@@ -34,9 +34,9 @@ const CourseCategory = () => {
   const { t, i18n } = useTranslation()
   const { slug } = useParams<{ slug?: string }>();
   const route    = all_routes;
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
-  const { items: cartItems } = useAppSelector((s) => s.cart);
   const { isAuthenticated } = useAppSelector((s) => s.auth);
 
   const [categories,    setCategories]    = useState<CourseCategoryType[]>([]);
@@ -91,17 +91,8 @@ const CourseCategory = () => {
   };
 
   const handleCart = (course: Course) => {
-    if (cartItems.some(i => i.id === course.id)) { message.info(t('courseCategory.alreadyInCart', 'Already in cart')); return; }
-    dispatch(addToCart({
-      id: course.id, slug: course.slug, title: course.title,
-      thumbnailUrl: course.thumbnailUrl, price: course.price ?? 0,
-      originalPrice: course.originalPrice,
-      instructorName: course.instructor?.fullName,
-      instructorId: course.instructor?.id,
-      instructorAvatar: course.instructor?.avatarUrl,
-      rating: course.ratingAverage, ratingCount: course.ratingCount, level: course.level,
-    }));
-    message.success(t('courseCategory.addedToCart', '"{{title}}" added to cart', { title: course.title }));
+    dispatch(selectForCheckout(checkoutItemFor(course)));
+    navigate(all_routes.courseCheckout);
   };
 
   const activeCategory = categories.find(c => c.id === activeTab);
@@ -251,7 +242,7 @@ const CourseCategory = () => {
                 <div key={course.id} className="col-xl-4 col-md-6" style={{ display: 'flex' }}>
                   <CourseCard
                     course={course}
-                    inCart={cartItems.some(item => item.id === course.id)}
+                    inCart={false}
                     onCart={handleCart}
                     index={i}
                   />

@@ -11,7 +11,6 @@ const CourseList                    = lazy(() => import("../Courses/course-list/
 const MasterclassPage               = lazy(() => import("../Courses/masterclass/masterclassPage"));
 const CourseCategory                = lazy(() => import("../Courses/course-category/courseCategory"));
 const CourseWatch                   = lazy(() => import("../Courses/course-watch/courseWatch"));
-const CourseCart                    = lazy(() => import("../Courses/course-cart/courseCart"));
 const CourseCheckout                = lazy(() => import("../Courses/course-checkout/courseCheckout"));
 const CourseDetails                 = lazy(() => import("../Courses/course-details/courseDetails"));
 const AddNewCourse                  = lazy(() => import("../Courses/add-newCourse/addNewCourse"));
@@ -147,8 +146,9 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    // No shopping cart: old links land on the checkout.
     path: routes.courseCart,
-    element: <CourseCart />,
+    element: <Navigate to={routes.courseCheckout} replace />,
     route: Route,
   },
   {
