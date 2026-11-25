@@ -26,7 +26,6 @@
   background: radial-gradient(ellipse at 50% 0%, #4a1428 0%, var(--ch-night-2) 45%, var(--ch-night) 100%);
   color: #fff;
 }
-.ch-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; opacity: 0.55; }
 .ch-hero__veil {
   position: absolute; inset: 0; z-index: -2;
   background: radial-gradient(ellipse 60% 70% at 50% 48%, rgba(29, 8, 18, 0.35) 0%, rgba(29, 8, 18, 0.85) 75%),
@@ -142,15 +141,29 @@
   background: #fff; border-radius: 18px; overflow: hidden;
   border: 1px solid rgba(197, 145, 44, 0.2); box-shadow: 0 12px 30px rgba(43, 15, 30, 0.07);
 }
-.ch-card__media { position: relative; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 30%, #4a1428, var(--ch-night)); }
-.ch-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.ch-card__n {
-  position: absolute; left: 14px; bottom: -18px; width: 40px; height: 40px; border-radius: 50%;
-  display: grid; place-items: center; font-family: var(--ch-serif); font-weight: 700; font-size: 1.1rem;
-  background: var(--ch-foil); color: #3a0f18; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+.ch-card__media {
+  position: relative; height: 150px; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+  background: radial-gradient(circle at 25% 30%, #4a1428 0%, var(--ch-night-2) 60%, var(--ch-night) 100%);
 }
-[dir='rtl'] .ch-card__n { left: auto; right: 14px; }
-.ch-card h3 { margin: 28px 18px 6px; font-family: var(--ch-serif); font-size: 1.15rem; color: var(--ch-burg); }
+.ch-card__media::after {
+  content: ''; position: absolute; inset: 0; opacity: 0.7;
+  background-image:
+    radial-gradient(1.3px 1.3px at 20px 30px, rgba(243, 213, 142, 0.9) 50%, transparent),
+    radial-gradient(1px 1px at 90px 80px, rgba(255, 255, 255, 0.7) 50%, transparent),
+    radial-gradient(1.6px 1.6px at 150px 20px, rgba(243, 213, 142, 0.6) 50%, transparent);
+  background-size: 180px 110px;
+}
+.ch-card__num {
+  position: relative; z-index: 1; font-family: var(--ch-serif); font-weight: 700; font-size: 5.2rem; line-height: 1;
+  background: var(--ch-foil); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 8px 20px rgba(197, 145, 44, 0.25));
+}
+.ch-card__icon {
+  position: relative; z-index: 1; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 26px; color: var(--ch-gold-l); border: 1px solid rgba(243, 213, 142, 0.45); background: rgba(255, 255, 255, 0.05);
+}
+.ch-card h3 { margin: 18px 18px 6px; font-family: var(--ch-serif); font-size: 1.15rem; color: var(--ch-burg); }
 .ch-card p { margin: 0 18px 20px; font-size: 13.5px; line-height: 1.6; color: #5d4747; }
 
 /* ── take part ────────────────────────────────────────────────────────────── */

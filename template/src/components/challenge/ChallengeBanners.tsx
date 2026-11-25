@@ -14,8 +14,6 @@ import { ChallengePhase, ChallengeView } from '../../services/api/challenge.serv
 import { Left, moroccoDate, useChallenge } from './useChallenge';
 import './challenge-banners.css';
 
-const A = `${process.env.PUBLIC_URL}/assets/challenge/`;
-
 /** Pages where nothing should float over the work. */
 const quiet = (p: string) =>
   p.startsWith(all_routes.challenge) ||
@@ -131,7 +129,7 @@ export const ChallengeHomeSection: React.FC = () => {
   return (
     <section className="slc-home">
       <div className="slc-home__media">
-        <img src={`${A}hero.jpg`} alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+        <span className="slc-sparkles" aria-hidden="true" />
         <span className="slc-home__year" aria-hidden="true">2027</span>
       </div>
       <div className="slc-home__body">
@@ -187,7 +185,7 @@ export const ChallengePopup: React.FC = () => {
       <div className="slc-pop__box" onClick={(e) => e.stopPropagation()}>
         <button type="button" className="slc-pop__x" onClick={close} aria-label={t('challenge.close', 'Close')}>✕</button>
         <div className="slc-pop__media">
-          <img src={`${A}hero.jpg`} alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+          <span className="slc-sparkles" aria-hidden="true" />
           <span className="slc-pop__year" aria-hidden="true">2027</span>
         </div>
         <div className="slc-pop__body">

@@ -16,11 +16,6 @@ import './challenge.css';
 const SLUG = 'new-year-cake-2027';
 const A = `${process.env.PUBLIC_URL}/assets/challenge/`;
 
-const Img: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = (p) => (
-  // eslint-disable-next-line jsx-a11y/alt-text
-  <img {...p} onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }} />
-);
-
 const ChallengePage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'en';
@@ -119,7 +114,6 @@ const ChallengePage: React.FC = () => {
       {/* ── hero ─────────────────────────────────────────────────────────── */}
       <section className="ch-hero">
         <div className="ch-hero__sky" aria-hidden="true"><span /><span /><span /></div>
-        <Img className="ch-hero__img" src={`${A}hero.jpg`} alt="" aria-hidden="true" />
         <div className="ch-hero__veil" aria-hidden="true" />
         <div className="ch-hero__inner">
           <p className="ch-eyebrow">{t('challenge.eyebrow', 'SARALÖWE Academy presents')}</p>
@@ -201,7 +195,10 @@ const ChallengePage: React.FC = () => {
         <ol className="ch-how__grid">
           {[1, 2, 3, 4].map((n) => (
             <li key={n} className="ch-card">
-              <div className="ch-card__media"><Img src={`${A}step${n}.jpg`} alt="" aria-hidden="true" /><span className="ch-card__n">{n}</span></div>
+              <div className="ch-card__media" aria-hidden="true">
+                <span className="ch-card__num">{n}</span>
+                <i className={`isax ${['isax-edit-2', 'isax-cake', 'isax-camera', 'isax-send-2'][n - 1]} ch-card__icon`} />
+              </div>
               <h3>{t(`challenge.step${n}.title`, ['Register', 'Create one tier', 'Photograph on white', 'Submit & certify'][n - 1])}</h3>
               <p>{t(`challenge.step${n}.text`, [
                 'Join the challenge from this page before 25 December.',
