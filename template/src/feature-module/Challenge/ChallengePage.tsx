@@ -12,8 +12,9 @@ import { extractApiError } from '../../services/api/error.utils';
 import { challengeService, ChallengeView, EntryCard, MyStatus } from '../../services/api/challenge.service';
 import { moroccoDate, nextMilestone, phaseAt, refreshChallenge, serverNow, timeLeft } from '../../components/challenge/useChallenge';
 import './challenge.css';
+import { SLUG, VoteButton } from './ChallengeParts';
+import ShareBar from '../../components/challenge/ShareBar';
 
-const SLUG = 'new-year-cake-2027';
 const A = `${process.env.PUBLIC_URL}/assets/challenge/`;
 
 const ChallengePage: React.FC = () => {
@@ -30,6 +31,8 @@ const ChallengePage: React.FC = () => {
   const [open, setOpen] = useState<EntryCard | null>(null);
   const [voteMsg, setVoteMsg] = useState('');
   const [busyVote, setBusyVote] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+  const [sort, setSort] = useState<'rank' | 'new' | 'discover'>('rank');
   const filmSrc = `${A}how-to-enter-${lang.startsWith('ar') ? 'ar' : 'en'}.mp4`;
   const [filmOk, setFilmOk] = useState(false);
   useEffect(() => {
@@ -107,6 +110,21 @@ const ChallengePage: React.FC = () => {
     }
   })();
 
+  const shown = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const list = needle ? cards.filter((c) => `${c.title} ${c.authorName}`.toLowerCase().includes(needle)) : cards.slice();
+    if (sort === 'new') list.sort((a, b) => (b.approvedAt || '').localeCompare(a.approvedAt || ''));
+    if (sort === 'discover') {
+      // a stable shuffle that changes every day, so every cake gets its moment at the top
+      const day = Math.floor(Date.now() / 86_400_000);
+      const h = (id: string) => { let x = day; for (let i = 0; i < id.length; i++) x = (x * 31 + id.charCodeAt(i)) >>> 0; return x; };
+      list.sort((a, b) => h(a.id) - h(b.id));
+    }
+    return list;
+  }, [cards, q, sort]);
+  const myCard = cards.find((c) => c.id === myEntryId) || null;
+  const shareText = t('challenge.share.challengeText', 'The New Year Cake Challenge at SARALÖWE Academy: one tier, one night of celebration. Enter or vote:');
+
   const podium = (phase === 'VOTING' || phase === 'TALLYING' || phase === 'RESULTS') ? cards.filter((c) => c.points > 0).slice(0, 3) : [];
 
   return (
@@ -174,8 +192,41 @@ const ChallengePage: React.FC = () => {
         </section>
       )}
 
+      {/* ── quick navigation ─────────────────────────────────────────────── */}
+      <nav className="ch-wrap ch-subnav" aria-label={t('challenge.nav.label', 'On this page')}>
+        <a href="#ch-how">{t('challenge.nav.how', 'How to enter')}</a>
+        <a href="#ch-take-part">{t('challenge.nav.take', 'My entry')}</a>
+        <a href="#ch-gallery">{t('challenge.nav.gallery', 'Gallery')}</a>
+        <a href="#ch-rules">{t('challenge.nav.rules', 'Rules')}</a>
+        <a href="#ch-faq">{t('challenge.nav.faq', 'FAQ')}</a>
+      </nav>
+
+      {/* ── live numbers + invite ────────────────────────────────────────── */}
+      {ch && (
+        <section className="ch-wrap ch-live">
+          <div className="ch-live__stats">
+            {[
+              { n: ch.registrations, l: t('challenge.live.registered', 'registered') },
+              { n: ch.approvedEntries, l: t('challenge.live.cakes', 'cakes in the gallery') },
+              { n: ch.totalVotes, l: t('challenge.live.votes', 'votes cast') },
+              { n: ch.voters, l: t('challenge.live.voters', 'voters') },
+            ].map((x) => (
+              <div key={x.l} className="ch-live__stat"><b>{x.n}</b><span>{x.l}</span></div>
+            ))}
+            <span className="ch-live__tag"><span className="ch-live__dot" aria-hidden="true" />{t('challenge.live.tag', 'Live')}</span>
+          </div>
+          <div className="ch-live__invite">
+            <div>
+              <h3>{t('challenge.invite.title', 'Bring your people')}</h3>
+              <p>{t('challenge.invite.text', 'Invite friends and family: anyone with a free account can vote, and every vote counts.')}</p>
+            </div>
+            <ShareBar url={challengeService.shareUrl(SLUG)} text={shareText} dark />
+          </div>
+        </section>
+      )}
+
       {/* ── how to enter ─────────────────────────────────────────────────── */}
-      <section className="ch-wrap ch-how">
+      <section id="ch-how" className="ch-wrap ch-how">
         <div className="ch-head">
           <p className="ch-kicker">{t('challenge.howKicker', 'How to take part')}</p>
           <h2>{t('challenge.howTitle', 'Four steps to the gallery')}</h2>
@@ -215,7 +266,7 @@ const ChallengePage: React.FC = () => {
       <section id="ch-take-part" className="ch-wrap">
         <div className="ch-panel">
           <TakePart
-            ch={ch} phase={phase} me={me} isAuthenticated={isAuthenticated} role={user?.role}
+            ch={ch} phase={phase} me={me} isAuthenticated={isAuthenticated} role={user?.role} myCard={myCard}
             from={location.pathname} onChange={(m) => { setMe(m); loadAll(); }}
           />
         </div>
@@ -236,6 +287,19 @@ const ChallengePage: React.FC = () => {
           {phase === 'SUBMISSIONS' && <p className="ch-sub">{t('challenge.galleryWait', 'Approved cakes appear here. Voting opens on 26 December.')}</p>}
         </div>
         {voteMsg && <p className="ch-alert" role="alert">{voteMsg}</p>}
+        {cards.length > 0 && (
+          <div className="ch-tools">
+            <label className="ch-search">
+              <i className="isax isax-search-normal-1" aria-hidden="true" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('challenge.tools.search', 'Search a cake or a student')} aria-label={t('challenge.tools.search', 'Search a cake or a student')} />
+            </label>
+            <div className="ch-sort" role="radiogroup" aria-label={t('challenge.tools.sort', 'Sort')}>
+              {([['rank', t('challenge.tools.rank', 'Ranking')], ['new', t('challenge.tools.new', 'Newest')], ['discover', t('challenge.tools.discover', 'Discover')]] as const).map(([k, l]) => (
+                <button key={k} type="button" role="radio" aria-checked={sort === k} className={sort === k ? 'is-on' : ''} onClick={() => setSort(k)}>{l}</button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {podium.length > 0 && (
           <div className="ch-podium">
@@ -250,18 +314,19 @@ const ChallengePage: React.FC = () => {
           </div>
         )}
 
+        {cards.length > 0 && shown.length === 0 && <p className="ch-empty">{t('challenge.tools.none', 'No cake matches your search.')}</p>}
         {cards.length === 0 ? (
           <p className="ch-empty">{t('challenge.galleryEmpty', 'The first approved cakes will appear here soon.')}</p>
         ) : (
           <div className="ch-grid">
-            {cards.map((c) => (
+            {shown.map((c) => (
               <article key={c.id} className="ch-entry">
                 <button type="button" className="ch-entry__photo" onClick={() => setOpen(c)} aria-label={t('challenge.openCake', { title: c.title, defaultValue: 'Open {{title}}' })}>
                   <img src={c.photos[0]} alt={c.title} loading="lazy" />
                   {(phase === 'VOTING' || phase === 'TALLYING' || phase === 'RESULTS') && <span className="ch-entry__rank">#{c.rank}</span>}
                 </button>
                 <div className="ch-entry__body">
-                  <h3>{c.title}</h3>
+                  <h3><Link to={`${all_routes.challenge}/cake/${c.id}`}>{c.title}</Link></h3>
                   <p className="ch-entry__by">{t('challenge.by', { name: c.authorName, defaultValue: 'by {{name}}' })}</p>
                   <div className="ch-entry__foot">
                     <span className="ch-entry__pts">
@@ -277,6 +342,22 @@ const ChallengePage: React.FC = () => {
             ))}
           </div>
         )}
+      </section>
+
+      {/* ── FAQ ─────────────────────────────────────────────────────────── */}
+      <section id="ch-faq" className="ch-wrap ch-faq">
+        <div className="ch-head">
+          <p className="ch-kicker">{t('challenge.faq.kicker', 'Questions')}</p>
+          <h2>{t('challenge.faq.title', 'Good to know')}</h2>
+        </div>
+        <div className="ch-faq__grid">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <details key={n} className="ch-faq__item">
+              <summary>{t(`challenge.faq.q${n}`)}</summary>
+              <p>{t(`challenge.faq.a${n}`)}</p>
+            </details>
+          ))}
+        </div>
       </section>
 
       {/* ── rules ───────────────────────────────────────────────────────── */}
@@ -298,7 +379,7 @@ const ChallengePage: React.FC = () => {
       </section>
 
       {open && (
-        <Lightbox card={open} onClose={() => setOpen(null)}
+        <Lightbox card={open} onClose={() => setOpen(null)} shareUrl={challengeService.shareUrl(SLUG, open.id)}
           voteButton={<VoteButton card={open} phase={phase} voted={voted.has(open.id)} own={open.id === myEntryId}
             busy={busyVote === open.id} isAuthenticated={isAuthenticated} emailVerified={me?.emailVerified ?? true}
             onVote={() => vote(open)} />} />
@@ -307,28 +388,8 @@ const ChallengePage: React.FC = () => {
   );
 };
 
-/* ── vote button ───────────────────────────────────────────────────────────── */
-const VoteButton: React.FC<{
-  card: EntryCard; phase: string | null; voted: boolean; own: boolean; busy: boolean;
-  isAuthenticated: boolean; emailVerified: boolean; onVote: () => void;
-}> = ({ phase, voted, own, busy, isAuthenticated, emailVerified, onVote }) => {
-  const { t } = useTranslation();
-  const location = useLocation();
-  if (phase !== 'VOTING') return null;
-  if (own) return <span className="ch-vote ch-vote--own">{t('challenge.yourCake', 'Your cake')}</span>;
-  if (!isAuthenticated) {
-    return <Link className="ch-vote" to={all_routes.login} state={{ from: `${location.pathname}#ch-gallery` }}>{t('challenge.signInToVote', 'Sign in to vote')}</Link>;
-  }
-  if (!emailVerified) return <span className="ch-vote ch-vote--off" title={t('challenge.verifyToVote', 'Confirm your email to vote')}>{t('challenge.verifyShort', 'Confirm email')}</span>;
-  return (
-    <button type="button" className={`ch-vote${voted ? ' is-voted' : ''}`} onClick={onVote} disabled={busy} aria-pressed={voted}>
-      <span aria-hidden="true">{voted ? '★' : '☆'}</span> {voted ? t('challenge.voted', 'Voted') : t('challenge.vote', 'Vote')}
-    </button>
-  );
-};
-
 /* ── lightbox ─────────────────────────────────────────────────────────────── */
-const Lightbox: React.FC<{ card: EntryCard; onClose: () => void; voteButton: React.ReactNode }> = ({ card, onClose, voteButton }) => {
+const Lightbox: React.FC<{ card: EntryCard; onClose: () => void; voteButton: React.ReactNode; shareUrl: string }> = ({ card, onClose, voteButton, shareUrl }) => {
   const { t } = useTranslation();
   const [i, setI] = useState(0);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -366,6 +427,10 @@ const Lightbox: React.FC<{ card: EntryCard; onClose: () => void; voteButton: Rea
             <h3>{card.title}</h3>
             <p className="ch-entry__by">{t('challenge.by', { name: card.authorName, defaultValue: 'by {{name}}' })}</p>
             {card.description && <p className="ch-lb__desc">{card.description}</p>}
+            <div className="ch-lb__share">
+              <ShareBar url={shareUrl} text={t('challenge.share.cakeText', { title: card.title, defaultValue: 'Vote for “{{title}}” in the SARALÖWE New Year Cake Challenge:' })} />
+              <Link to={`${all_routes.challenge}/cake/${card.id}`} className="ch-lb__page" onClick={onClose}>{t('challenge.openPage', 'Open its page')} →</Link>
+            </div>
           </div>
           <div className="ch-lb__score">
             <span><b>{card.points}</b> {t('challenge.pts', 'pts')} · {t('challenge.voters', { count: card.voters, defaultValue: '{{count}} voters' })}</span>
@@ -380,8 +445,8 @@ const Lightbox: React.FC<{ card: EntryCard; onClose: () => void; voteButton: Rea
 /* ── register / submit ────────────────────────────────────────────────────── */
 const TakePart: React.FC<{
   ch: ChallengeView | null; phase: string | null; me: MyStatus | null; isAuthenticated: boolean; role?: string;
-  from: string; onChange: (m: MyStatus) => void;
-}> = ({ ch, phase, me, isAuthenticated, role, from, onChange }) => {
+  from: string; onChange: (m: MyStatus) => void; myCard: EntryCard | null;
+}> = ({ ch, phase, me, isAuthenticated, role, from, onChange, myCard }) => {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -446,6 +511,23 @@ const TakePart: React.FC<{
     <div className="ch-take">
       <h2>{me.entry ? t('challenge.yourEntry', 'Your entry') : t('challenge.submitTitle', 'Submit your cake')}</h2>
       {me.entry && <EntryStatus status={me.entry.status} note={me.entry.adminNote} />}
+      {myCard && (
+        <div className="ch-mine">
+          <img src={myCard.photos[0]} alt="" />
+          <div className="ch-mine__body">
+            <p className="ch-mine__kicker">{t('challenge.mine.kicker', 'Your cake is in the gallery')}</p>
+            <h3>{myCard.title}</h3>
+            <div className="ch-mine__nums">
+              <span><b>{myCard.rank ? `#${myCard.rank}` : '-'}</b>{t('challenge.mine.rank', 'rank')}</span>
+              <span><b>{myCard.points}</b>{t('challenge.pts', 'pts')}</span>
+              <span><b>{myCard.voters}</b>{t('challenge.mine.voters', 'voters')}</span>
+            </div>
+            <p className="ch-mine__hint">{t('challenge.mine.hint', 'Share your cake: the link shows its photo in WhatsApp and Facebook.')}</p>
+            <ShareBar url={challengeService.shareUrl(ch.slug, myCard.id)} text={t('challenge.share.myText', { title: myCard.title, defaultValue: 'Vote for my cake “{{title}}” in the SARALÖWE New Year Cake Challenge:' })} />
+            <Link className="ch-mine__page" to={`${all_routes.challenge}/cake/${myCard.id}`}>{t('challenge.mine.page', 'Open my cake page')} →</Link>
+          </div>
+        </div>
+      )}
       {open && me.entry?.status !== 'REJECTED' && me.entry?.status !== 'DISQUALIFIED' ? (
         <EntryForm ch={ch} me={me} onSaved={(m) => { onChange(m); setOk(t('challenge.saved', 'Saved. The academy will review your cake before it appears in the gallery.')); }} />
       ) : !me.entry ? (

@@ -10,6 +10,8 @@ import com.academy.service.impl.ChallengeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,9 @@ public class ChallengeController {
 
     private final ChallengeService service;
     private final UserService users;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     // ── public (no sign-in) ────────────────────────────────────────────────────
 
@@ -44,6 +49,27 @@ public class ChallengeController {
     @GetMapping("/api/v1/public/challenges/{slug}/entries")
     public ResponseEntity<ApiResponse<List<EntryCard>>> gallery(@PathVariable String slug) {
         return ResponseEntity.ok(ApiResponse.success(service.gallery(slug)));
+    }
+
+    @GetMapping("/api/v1/public/challenges/{slug}/entries/{entryId}")
+    public ResponseEntity<ApiResponse<EntryCard>> entry(@PathVariable String slug, @PathVariable UUID entryId) {
+        return ResponseEntity.ok(ApiResponse.success(service.entry(slug, entryId)));
+    }
+
+    /** Link-preview pages: share these URLs so WhatsApp / Facebook show the cake's photo. */
+    @GetMapping(value = "/api/v1/public/challenges/{slug}/share", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> shareChallenge(@PathVariable String slug) {
+        service.bySlug(slug);
+        return ResponseEntity.ok(service.sharePage(slug, null, site()));
+    }
+
+    @GetMapping(value = "/api/v1/public/challenges/{slug}/entries/{entryId}/share", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> shareEntry(@PathVariable String slug, @PathVariable UUID entryId) {
+        return ResponseEntity.ok(service.sharePage(slug, entryId, site()));
+    }
+
+    private String site() {
+        return frontendUrl == null ? "" : frontendUrl.replaceAll("/+$", "");
     }
 
     // ── signed-in ──────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { extractApiError } from '../../../services/api/error.utils';
 import { AdminEntry, AdminVote, challengeService, EntryStatus } from '../../../services/api/challenge.service';
 import './adminChallenge.css';
+import CampaignPanel from './CampaignPanel';
 
 const SLUG = 'new-year-cake-2027';
 type Filter = 'ALL' | 'PENDING' | 'APPROVED' | 'CHANGES_REQUESTED' | 'OUT';
@@ -81,6 +82,8 @@ const AdminChallenge: React.FC = () => {
           </div>
           <button type="button" className="cha-btn cha-btn--line" onClick={load}>{t('challengeAdmin.refresh', 'Refresh')}</button>
         </div>
+
+        <CampaignPanel />
 
         <div className="cha__tabs" role="tablist">
           {(['PENDING', 'APPROVED', 'CHANGES_REQUESTED', 'OUT', 'ALL'] as Filter[]).map((f) => (

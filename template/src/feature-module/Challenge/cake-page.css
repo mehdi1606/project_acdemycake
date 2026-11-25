@@ -1,0 +1,54 @@
+/* ── one cake's page ─────────────────────────────────────────────────────── */
+.cp { padding-bottom: 80px; }
+.cp-top { padding: 128px 0 0; background: radial-gradient(ellipse at 50% 0%, #4a1428 0%, var(--ch-night-2) 70%); }
+.cp-top__inner { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 0 70px; flex-wrap: wrap; }
+.cp-back { color: var(--ch-gold-l); text-decoration: none; font-weight: 700; font-size: 14px; }
+.cp-top__tag { font-size: 11px; font-weight: 800; letter-spacing: .26em; text-transform: uppercase; color: rgba(243,213,142,.7); }
+.cp-loading { padding: 60px 0; text-align: center; color: #8a6b6b; }
+.cp-main { position: relative; margin-top: -54px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 34px; align-items: start; }
+.cp-stage { position: relative; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 30px 70px rgba(43,15,30,.2); border: 1px solid rgba(197,145,44,.25); }
+.cp-stage img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff; }
+.cp-rank {
+  position: absolute; top: 16px; inset-inline-start: 16px; padding: 8px 14px; border-radius: 999px;
+  background: rgba(29,8,18,.85); color: var(--ch-gold-l); font-weight: 800; font-size: 15px; font-family: var(--ch-serif);
+}
+.cp-rank--1, .cp-rank--2, .cp-rank--3 { background: var(--ch-foil); color: #3a0f18; }
+.cp-thumbs { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px; }
+.cp-thumbs button { flex: none; width: 82px; height: 82px; padding: 0; border-radius: 14px; overflow: hidden; border: 2px solid transparent; background: #fff; cursor: pointer; }
+.cp-thumbs button.is-on { border-color: var(--ch-gold); }
+.cp-thumbs img { width: 100%; height: 100%; object-fit: cover; }
+.cp-side { background: #fff; border-radius: 24px; padding: 30px 28px; border: 1px solid rgba(197,145,44,.25); box-shadow: 0 20px 50px rgba(43,15,30,.1); position: sticky; top: 100px; }
+.cp-title { margin: 0; font-family: var(--ch-serif); font-size: clamp(1.8rem, 3vw, 2.4rem); line-height: 1.15; color: var(--ch-burg); }
+.cp-by { margin: 6px 0 0; color: #8a6b6b; }
+.cp-desc { margin: 16px 0 0; color: #4d3a3a; line-height: 1.7; }
+.cp-score { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 22px 0 12px; }
+.cp-score div { text-align: center; padding: 14px 6px; border-radius: 16px; background: #fcf7f0; border: 1px solid rgba(197,145,44,.2); }
+.cp-score b { display: block; font-family: var(--ch-serif); font-size: 1.8rem; color: var(--ch-crimson); line-height: 1.1; }
+.cp-score span { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #8a6b6b; }
+.cp-note { font-size: 13px; color: #7a6060; margin: 8px 0 0; }
+.cp-vote { margin: 16px 0 6px; }
+.cp-vote .ch-vote { width: 100%; justify-content: center; min-height: 52px; font-size: 15px; }
+.cp-when { margin: 0; padding: 14px 16px; border-radius: 14px; background: #fbf3e2; color: #6b4a12; font-size: 14px; }
+.cp-share { margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(197,145,44,.2); }
+.cp-share__label { margin: 0 0 10px; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--ch-gold); }
+.cp-more { padding-top: 70px; }
+.cp-mini { text-decoration: none; color: inherit; display: block; }
+.cp-mini .ch-entry__body h3 { margin: 0; }
+.cp-cta {
+  margin-top: 60px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  padding: 30px 34px; border-radius: 24px; color: #fff;
+  background: radial-gradient(ellipse at 80% 0%, #4a1428 0%, var(--ch-night-2) 60%, var(--ch-night) 100%);
+}
+.cp-cta h2 { margin: 0 0 6px; font-family: var(--ch-serif); color: #fff; }
+.cp-cta p { margin: 0; color: rgba(255,245,238,.75); }
+.cp-missing { padding: 160px 0 80px; text-align: center; }
+.cp-missing h1 { font-family: var(--ch-serif); color: var(--ch-burg); }
+@media (max-width: 900px) {
+  .cp-main { grid-template-columns: 1fr; }
+  .cp-side { position: static; }
+}
+@media (max-width: 640px) {
+  .cp-top { padding-top: 84px; }
+  .cp-side { padding: 22px 18px; }
+  .cp-cta { padding: 24px 20px; }
+}

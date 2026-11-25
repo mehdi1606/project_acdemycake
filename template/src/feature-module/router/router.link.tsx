@@ -57,6 +57,7 @@ const StudentAssignment             = lazy(() => import("../student/student-assi
 const StudentSubscription           = lazy(() => import("../student/student-subscription/studentSubscription"));
 const EbooksPage                    = lazy(() => import("../Ebooks/ebooksPage"));
 const ChallengePage                 = lazy(() => import("../Challenge/ChallengePage"));
+const CakePage                      = lazy(() => import("../Challenge/CakePage"));
 const AdminChallenge                = lazy(() => import("../admin/challenge/adminChallenge"));
 const EbookDetail                   = lazy(() => import("../Ebooks/ebookDetail"));
 const EbookReader                   = lazy(() => import("../Ebooks/ebookReader"));
@@ -494,6 +495,12 @@ export const publicRoutes = [
     // The New Year Cake Challenge: public page, actions need an account.
     path: routes.challenge,
     element: <ChallengePage />,
+    route: Route,
+  },
+  {
+    // One cake's own page: the link entrants share to bring in votes.
+    path: routes.challengeCake,
+    element: <CakePage />,
     route: Route,
   },
   {

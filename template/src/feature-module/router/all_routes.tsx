@@ -8,6 +8,7 @@ export const all_routes = {
     masterclass: "/masterclass",
     ebooks: "/ebooks",
     challenge: "/challenge",
+    challengeCake: "/challenge/cake/:id",
     adminChallenge: "/admin/challenge",
     ebookDetail: "/ebooks/:slug",
     ebookRead: "/ebooks/:id/read",

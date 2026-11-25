@@ -1,0 +1,14 @@
+.shb { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.shb__btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; height: 44px; padding: 0 14px;
+  border-radius: 999px; border: 1px solid rgba(101, 28, 50, 0.16); background: #fff; color: #651C32; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 700; transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.shb__btn i { font-size: 16px; }
+.shb__btn:hover { transform: translateY(-1px); }
+.shb__btn--wa { background: #1f9d55; border-color: #1f9d55; color: #fff; }
+.shb__btn--wa:hover { background: #188046; }
+.shb__btn--fb:hover, .shb__btn--x:hover, .shb__btn--tg:hover, .shb__btn--copy:hover, .shb__btn--more:hover { background: #651C32; color: #fff; }
+.shb--big .shb__btn { height: 48px; padding: 0 18px; }
+.shb--dark .shb__btn:not(.shb__btn--wa) { background: rgba(255, 255, 255, 0.06); border-color: rgba(243, 213, 142, 0.3); color: #F3D58E; }
+.shb--dark .shb__btn:not(.shb__btn--wa):hover { background: rgba(243, 213, 142, 0.16); color: #fff; }

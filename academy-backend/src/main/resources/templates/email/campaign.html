@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="color-scheme" content="light only">
+    <title th:text="${m.subject}">SARALÖWE Academy</title>
+    <style>
+        @media only screen and (max-width: 620px) {
+            .w { width: 100% !important; border-radius: 0 !important; }
+            .p { padding-left: 24px !important; padding-right: 24px !important; }
+            .h1 { font-size: 30px !important; }
+            .btn a { display: block !important; }
+        }
+        a { color: #C5912C; }
+    </style>
+</head>
+<!--
+  Announcement emails (campaigns): a luxury, bilingual layout.
+  English first, then the same message in Arabic, right to left.
+  Tables + inline styles only, for Gmail, Outlook and Apple Mail.
+-->
+<body style="margin:0; padding:0; background-color:#EFE8DF; -webkit-text-size-adjust:100%;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#EFE8DF;" th:text="${m.preheader}">SARALÖWE</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EFE8DF;">
+<tr><td align="center" style="padding:28px 12px 40px;">
+
+<table role="presentation" class="w" width="620" cellpadding="0" cellspacing="0" border="0"
+       style="width:620px; max-width:620px; background-color:#FFFDF9; border-radius:22px; overflow:hidden; border:1px solid #E3D3BE;">
+
+    <!-- hero -->
+    <tr>
+        <td align="center" class="p" style="background-color:#2B0F1E; background-image:radial-gradient(ellipse at 50% 0%, #5a1832 0%, #2B0F1E 55%, #1d0812 100%); padding:42px 44px 46px;">
+            <a th:href="${site}" style="text-decoration:none;">
+                <img th:src="${logo}" width="84" height="84" alt="SARALÖWE Academy" style="display:block; width:84px; height:84px; border:0; margin:0 auto 18px;">
+            </a>
+            <div style="font-family:Montserrat, Arial, sans-serif; font-size:11px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#F3D58E; margin-bottom:14px;" th:text="${m.en.eyebrow}">Eyebrow</div>
+            <div class="h1" style="font-family:'Playfair Display', Georgia, 'Times New Roman', serif; font-size:36px; line-height:1.15; font-weight:700; color:#FFFFFF;" th:text="${m.en.title}">Title</div>
+            <div style="width:64px; height:2px; background-color:#C5912C; margin:22px auto 0; line-height:2px; font-size:0;">&nbsp;</div>
+        </td>
+    </tr>
+
+    <!-- English -->
+    <tr>
+        <td class="p" style="padding:38px 48px 8px; font-family:Montserrat, Arial, sans-serif; color:#3B2A2A;">
+            <p style="margin:0 0 6px; font-size:15px; color:#651C32; font-weight:700;" th:text="${name != null} ? 'Dear ' + ${name} + ',' : 'Dear member,'">Dear member,</p>
+            <p style="margin:0 0 26px; font-size:15px; line-height:1.75;" th:text="${m.en.intro}">Intro</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr th:each="f : ${m.en.features}">
+                    <td width="44" valign="top" style="padding:0 0 18px;">
+                        <div style="width:34px; height:34px; border-radius:17px; background-color:#F7EEDD; border:1px solid #E3C88F; text-align:center; line-height:34px; font-family:Georgia, serif; font-size:15px; color:#A6192E; font-weight:700;" th:text="${f.icon}">✦</div>
+                    </td>
+                    <td valign="top" style="padding:2px 0 18px 12px;">
+                        <div style="font-family:'Playfair Display', Georgia, serif; font-size:17px; font-weight:700; color:#651C32; margin-bottom:3px;" th:text="${f.title}">Feature</div>
+                        <div style="font-size:14px; line-height:1.65; color:#5D4747;" th:text="${f.text}">Text</div>
+                    </td>
+                </tr>
+            </table>
+            <div th:if="${m.en.notice != null}" style="margin:6px 0 4px; padding:16px 18px; border-radius:14px; background-color:#FBF3E2; border:1px solid #EAD6A8; font-size:14px; line-height:1.6; color:#6B4A12;" th:utext="${m.en.notice}">Notice</div>
+        </td>
+    </tr>
+    <tr>
+        <td align="center" class="p btn" style="padding:22px 48px 40px;">
+            <a th:href="${m.ctaUrl}" style="display:inline-block; padding:16px 34px; border-radius:999px; background-color:#C5912C; background-image:linear-gradient(100deg,#B98424 0%,#F3D58E 50%,#C5912C 100%); color:#3A0F18; font-family:Montserrat, Arial, sans-serif; font-size:13px; font-weight:800; letter-spacing:2px; text-transform:uppercase; text-decoration:none;" th:text="${m.en.ctaLabel}">Open</a>
+        </td>
+    </tr>
+
+    <!-- divider -->
+    <tr><td style="padding:0 48px;"><div style="height:1px; background-color:#E8DCC9; line-height:1px; font-size:0;">&nbsp;</div></td></tr>
+
+    <!-- Arabic -->
+    <tr>
+        <td class="p" dir="rtl" align="right" style="padding:36px 48px 8px; font-family:Tahoma, 'Segoe UI', Arial, sans-serif; color:#3B2A2A; direction:rtl; text-align:right;">
+            <div style="font-size:12px; font-weight:700; color:#A6192E; margin-bottom:8px;" th:text="${m.ar.eyebrow}">Eyebrow</div>
+            <div style="font-size:24px; line-height:1.4; font-weight:700; color:#651C32; margin-bottom:14px;" th:text="${m.ar.title}">Title</div>
+            <p style="margin:0 0 6px; font-size:15px; color:#651C32; font-weight:700;" th:text="${name != null} ? 'عزيزي ' + ${name} + '،' : 'عزيزي العضو،'">عزيزي العضو،</p>
+            <p style="margin:0 0 24px; font-size:15px; line-height:1.9;" th:text="${m.ar.intro}">Intro</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl">
+                <tr th:each="f : ${m.ar.features}">
+                    <td width="44" valign="top" style="padding:0 0 16px;">
+                        <div style="width:34px; height:34px; border-radius:17px; background-color:#F7EEDD; border:1px solid #E3C88F; text-align:center; line-height:34px; font-family:Georgia, serif; font-size:15px; color:#A6192E; font-weight:700;" th:text="${f.icon}">✦</div>
+                    </td>
+                    <td valign="top" style="padding:2px 12px 16px 0; text-align:right;">
+                        <div style="font-size:16px; font-weight:700; color:#651C32; margin-bottom:3px;" th:text="${f.title}">Feature</div>
+                        <div style="font-size:14px; line-height:1.8; color:#5D4747;" th:text="${f.text}">Text</div>
+                    </td>
+                </tr>
+            </table>
+            <div th:if="${m.ar.notice != null}" style="margin:6px 0 4px; padding:16px 18px; border-radius:14px; background-color:#FBF3E2; border:1px solid #EAD6A8; font-size:14px; line-height:1.8; color:#6B4A12;" th:utext="${m.ar.notice}">Notice</div>
+        </td>
+    </tr>
+    <tr>
+        <td align="center" class="p btn" style="padding:22px 48px 42px;">
+            <a th:href="${m.ctaUrl}" style="display:inline-block; padding:16px 34px; border-radius:999px; background-color:#651C32; background-image:linear-gradient(145deg,#A6192E 0%,#651C32 100%); color:#FFFFFF; font-family:Tahoma, Arial, sans-serif; font-size:15px; font-weight:700; text-decoration:none;" th:text="${m.ar.ctaLabel}">فتح</a>
+        </td>
+    </tr>
+
+    <!-- footer -->
+    <tr>
+        <td align="center" class="p" style="background-color:#2B0F1E; padding:26px 40px 28px; font-family:Montserrat, Arial, sans-serif;">
+            <div style="font-family:'Playfair Display', Georgia, serif; font-size:15px; letter-spacing:4px; color:#F3D58E; margin-bottom:10px;">SARALÖWE ACADEMY</div>
+            <div style="font-size:11.5px; line-height:1.7; color:rgba(251,246,241,0.62);" th:text="${m.footEn}">Footer</div>
+            <div dir="rtl" style="font-family:Tahoma, Arial, sans-serif; font-size:11.5px; line-height:1.8; color:rgba(251,246,241,0.62); margin-top:6px;" th:text="${m.footAr}">Footer</div>
+            <div style="font-size:11px; color:rgba(251,246,241,0.45); margin-top:12px;">&copy; <span th:text="${year}">2026</span> SARALÖWE Academy</div>
+        </td>
+    </tr>
+</table>
+
+</td></tr>
+</table>
+</body>
+</html>

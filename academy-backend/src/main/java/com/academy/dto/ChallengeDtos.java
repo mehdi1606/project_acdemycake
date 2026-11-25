@@ -15,13 +15,13 @@ public final class ChallengeDtos {
             Instant submissionsOpenAt, Instant submissionsCloseAt,
             Instant votingOpenAt, Instant votingCloseAt, Instant resultsAt, Instant bannerUntil,
             int minPhotos, int maxPhotos, int minVoters,
-            long registrations, long approvedEntries) {}
+            long registrations, long approvedEntries, long totalVotes, long voters) {}
 
     /** An approved cake in the public gallery, with its live score. */
     public record EntryCard(
             UUID id, String title, String description, List<String> photos,
             String authorName, String authorAvatar,
-            long points, long voters, int rank, boolean eligible) {}
+            long points, long voters, int rank, boolean eligible, LocalDateTime approvedAt) {}
 
     /** What the signed-in person can do and what they have done. */
     public record MyStatus(

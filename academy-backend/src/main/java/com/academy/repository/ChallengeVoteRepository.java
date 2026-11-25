@@ -21,6 +21,12 @@ public interface ChallengeVoteRepository extends JpaRepository<ChallengeVote, UU
            "where v.entry.challenge.id = :challengeId and v.voided = false group by v.entry.id")
     List<Object[]> tally(@Param("challengeId") UUID challengeId);
 
+    @Query("select count(v) from ChallengeVote v where v.entry.challenge.id = :challengeId and v.voided = false")
+    long countVotes(@Param("challengeId") UUID challengeId);
+
+    @Query("select count(distinct v.voter.id) from ChallengeVote v where v.entry.challenge.id = :challengeId and v.voided = false")
+    long countVoters(@Param("challengeId") UUID challengeId);
+
     @Query("select v.entry.id from ChallengeVote v " +
            "where v.voter.id = :voterId and v.entry.challenge.id = :challengeId and v.voided = false")
     List<UUID> votedEntryIds(@Param("voterId") UUID voterId, @Param("challengeId") UUID challengeId);

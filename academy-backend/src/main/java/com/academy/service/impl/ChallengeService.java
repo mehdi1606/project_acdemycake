@@ -77,7 +77,8 @@ public class ChallengeService {
                 c.getSubmissionsOpenAt(), c.getSubmissionsCloseAt(), c.getVotingOpenAt(), c.getVotingCloseAt(),
                 c.getResultsAt(), c.getBannerUntil(), c.getMinPhotos(), c.getMaxPhotos(), c.getMinVoters(),
                 registrations.countByChallengeId(c.getId()),
-                entries.countByChallengeIdAndStatus(c.getId(), ChallengeEntry.APPROVED));
+                entries.countByChallengeIdAndStatus(c.getId(), ChallengeEntry.APPROVED),
+                votes.countVotes(c.getId()), votes.countVoters(c.getId()));
     }
 
     private String phase(Challenge c) {
@@ -98,9 +99,60 @@ public class ChallengeService {
                     long[] s = score.getOrDefault(e.getId(), new long[]{0, 0});
                     return new EntryCard(e.getId(), e.getTitle(), e.getDescription(), photos(e),
                             displayName(e.getUser()), e.getUser().getAvatarUrl(),
-                            s[0], s[1], rank.getOrDefault(e.getId(), 0), s[1] >= c.getMinVoters());
+                            s[0], s[1], rank.getOrDefault(e.getId(), 0), s[1] >= c.getMinVoters(), e.getReviewedAt());
                 })
                 .toList();
+    }
+
+    /** One approved cake (for its own page), with its live score and rank. */
+    @Transactional(readOnly = true)
+    public EntryCard entry(String slug, UUID entryId) {
+        return gallery(slug).stream().filter(e -> e.id().equals(entryId)).findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Cake not found"));
+    }
+
+    /**
+     * A tiny page for link previews (WhatsApp, Facebook, X...): crawlers read the
+     * Open Graph tags (the cake's photo and name), people are sent on to the cake page.
+     */
+    @Transactional(readOnly = true)
+    public String sharePage(String slug, UUID entryId, String site) {
+        String target, title, text, image;
+        if (entryId == null) {
+            target = site + "/challenge";
+            title = "The New Year Cake Challenge 2027 — SARALÖWE Academy";
+            text = "One tier. One night of celebration. Enter, vote and discover the most beautiful cakes of the academy.";
+            image = site + "/assets/challenge/film-poster.jpg";
+        } else {
+            EntryCard e = entry(slug, entryId);
+            target = site + "/challenge/cake/" + e.id();
+            title = e.title() + " — vote for this cake";
+            text = "By " + e.authorName() + " · The New Year Cake Challenge 2027 at SARALÖWE Academy. One vote can make the difference.";
+            image = e.photos().isEmpty() ? site + "/assets/challenge/film-poster.jpg" : e.photos().get(0);
+        }
+        return "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+                + "<title>" + esc(title) + "</title>"
+                + "<meta name=\"description\" content=\"" + esc(text) + "\">"
+                + "<meta property=\"og:type\" content=\"website\">"
+                + "<meta property=\"og:site_name\" content=\"SARALÖWE Academy\">"
+                + "<meta property=\"og:title\" content=\"" + esc(title) + "\">"
+                + "<meta property=\"og:description\" content=\"" + esc(text) + "\">"
+                + "<meta property=\"og:image\" content=\"" + esc(image) + "\">"
+                + "<meta property=\"og:url\" content=\"" + esc(target) + "\">"
+                + "<meta name=\"twitter:card\" content=\"summary_large_image\">"
+                + "<meta http-equiv=\"refresh\" content=\"0; url=" + esc(target) + "\">"
+                + "<link rel=\"canonical\" href=\"" + esc(target) + "\">"
+                + "</head><body style=\"background:#1d0812;color:#F3D58E;font-family:Georgia,serif;text-align:center;padding-top:20vh\">"
+                + "<p><a style=\"color:#F3D58E\" href=\"" + esc(target) + "\">" + esc(title) + "</a></p>"
+                + "<script>location.replace(" + jsStr(target) + ")</script></body></html>";
+    }
+
+    private static String esc(String v) {
+        return v == null ? "" : v.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private static String jsStr(String v) {
+        return "\"" + (v == null ? "" : v.replace("\\", "\\\\").replace("\"", "\\\"").replace("<", "\u003c")) + "\"";
     }
 
     private Map<UUID, long[]> tally(Challenge c) {

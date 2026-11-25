@@ -48,6 +48,14 @@ public class Challenge extends BaseEntity {
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
+    /** When everyone was told that voting is open (null = not yet). */
+    @Column(name = "voting_notified_at")
+    private Instant votingNotifiedAt;
+
+    /** When everyone was told the results are out (null = not yet). */
+    @Column(name = "results_notified_at")
+    private Instant resultsNotifiedAt;
+
     /** UPCOMING, SUBMISSIONS, BETWEEN, VOTING, TALLYING or RESULTS. */
     public String phaseAt(Instant now) {
         if (now.isBefore(submissionsOpenAt)) return "UPCOMING";

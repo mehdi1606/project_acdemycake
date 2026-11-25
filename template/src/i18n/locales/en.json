@@ -4377,6 +4377,27 @@
       "topbarText": "The top bar now has Home, Masterclasses, Ebooks and Academy. On phones, tap the house icon. Search is a small icon that opens when you point at it or tap it.",
       "adminTitle": "Manage Users: badges with their numbers",
       "adminText": "Each student shows their badge, certificates, quiz and assignment averages and days as a member. From Master Chef, an \"Approve Elite showpiece\" button appears."
+    },
+    "r21": {
+      "name": "The Winter Update",
+      "challengeTitle": "The New Year Cake Challenge",
+      "challengeText": "Bake one tier, photograph it on white and let the whole academy vote. Entries until 25 December, voting 26 December to 1 January, winners on 5 January. Every cake has its own page to share.",
+      "expTitle": "Desktop or Mobile, your choice",
+      "expText": "A cinematic experience for large screens, or a touch-first one for your phone with a bottom tab bar. Each device keeps its own; change it any time in Settings.",
+      "homeTitle": "A living home page",
+      "homeText": "The home page now opens with a hand-drawn world that grows before your eyes, then reveals the academy.",
+      "playerTitle": "A luxury lesson player",
+      "playerText": "Burgundy and gold, a perfectly centred play button that comes back on pause, larger controls and smoother playback.",
+      "buyTitle": "Buy in one step",
+      "buyText": "No more cart: “Buy now” takes you straight to a secure checkout with that course.",
+      "xmasTitle": "Christmas at the academy",
+      "xmasText": "A real garland of lights, gentle snow and festive touches, until 7 January.",
+      "lookTitle": "One signature look",
+      "lookText": "New blush glass top bar with our lions crest. The light/dark switch is gone: SARALÖWE now has one art-directed look everywhere.",
+      "fastTitle": "Faster everywhere",
+      "fastText": "Lighter pages and quicker loading, especially on phones.",
+      "adminTitle": "Challenge moderation and announcements",
+      "adminText": "Admin › Cake Challenge: approve cakes, follow live scores, check voters, and send the announcement emails (preview and test first)."
     }
   },
   "challenge": {
@@ -4606,6 +4627,82 @@
       "resTitle": "The winners are announced",
       "resLine": "Discover the champions of the New Year Cake Challenge 2027.",
       "resCta": "See the winners"
+    },
+    "share": {
+      "on": "Share on {{site}}",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "more": "More",
+      "challengeText": "The New Year Cake Challenge at SARALÖWE Academy: one tier, one night of celebration. Enter or vote:",
+      "myText": "Vote for my cake “{{title}}” in the SARALÖWE New Year Cake Challenge:",
+      "cakeText": "Vote for “{{title}}” in the SARALÖWE New Year Cake Challenge:"
+    },
+    "nav": {
+      "label": "On this page",
+      "how": "How to enter",
+      "take": "My entry",
+      "gallery": "Gallery",
+      "rules": "Rules",
+      "faq": "FAQ"
+    },
+    "live": {
+      "registered": "registered",
+      "cakes": "cakes in the gallery",
+      "votes": "votes cast",
+      "voters": "voters",
+      "tag": "Live"
+    },
+    "invite": {
+      "title": "Bring your people",
+      "text": "Invite friends and family: anyone with a free account can vote, and every vote counts."
+    },
+    "mine": {
+      "kicker": "Your cake is in the gallery",
+      "rank": "rank",
+      "voters": "voters",
+      "hint": "Share your cake: the link shows its photo in WhatsApp and Facebook.",
+      "page": "Open my cake page"
+    },
+    "tools": {
+      "search": "Search a cake or a student",
+      "sort": "Sort",
+      "rank": "Ranking",
+      "new": "Newest",
+      "discover": "Discover",
+      "none": "No cake matches your search."
+    },
+    "openPage": "Open its page",
+    "faq": {
+      "kicker": "Questions",
+      "title": "Good to know",
+      "q1": "Can I enter a cake I already made?",
+      "a1": "Yes, if it fits the New Year theme, it is one single tier and you made and decorated it yourself. Photograph it on a completely white background.",
+      "q2": "Who can vote?",
+      "a2": "Anyone with a free SARALÖWE account and a confirmed email, including friends and family you invite. Each account votes once per cake and can vote for several cakes.",
+      "q3": "Why do instructor votes count 10 points?",
+      "a3": "Their eye is professional. Students count 1 point; instructors and admins count 10. Nobody's vote is ever counted twice.",
+      "q4": "When will my cake appear in the gallery?",
+      "a4": "After the academy approves it, usually within a day. If something needs to change, you get a note and can update your entry until 25 December.",
+      "q5": "Can I change my photos?",
+      "a5": "Yes, until 25 December at 23:59. Each change is checked again before it appears.",
+      "q6": "How are the winners chosen?",
+      "a6": "By total points at the end of voting, among cakes voted by at least three different accounts. In a tie, the academy jury decides on creativity, technique and theme."
+    },
+    "cake": {
+      "missingTitle": "This cake is not in the gallery",
+      "missingText": "It may be waiting for approval, or it was removed.",
+      "backAll": "See all the cakes",
+      "back": "All the cakes",
+      "kicker": "In the gallery",
+      "needVoters": "A cake needs votes from {{n}} different accounts to be able to win.",
+      "votingFrom": "Voting opens {{from}} and closes {{to}}.",
+      "votingClosed": "Voting is closed.",
+      "freeAccount": "Voting needs a free SARALÖWE account. It takes a minute.",
+      "shareLabel": "Help this cake: share it",
+      "moreKicker": "Keep discovering",
+      "moreTitle": "More cakes of 2027",
+      "ctaTitle": "Your cake belongs here too",
+      "ctaText": "One tier, photographed on white. Entries are open until 25 December."
     }
   },
   "challengeAdmin": {
@@ -4676,5 +4773,26 @@
     "classes": "Classes",
     "me": "My space",
     "tabs": "Main sections"
+  },
+  "campaigns": {
+    "update": "The winter update (all members)",
+    "challenge": "The challenge is open (all members)",
+    "title": "Announcement emails",
+    "sub": "Bilingual luxury emails to every verified member. Sent in the background, about 380 a day (Gmail’s limit), never twice to the same person.",
+    "sending": "Sending…",
+    "testSent": "Test sent to {{to}}",
+    "launched": "Launched: sending in the background.",
+    "progress": "{{sent}} sent of {{audience}}",
+    "skipped": "{{n}} opted out",
+    "preview": "Preview",
+    "test": "Send me a test",
+    "confirm": "Yes, send to {{n}} members",
+    "cancel": "Cancel",
+    "launch": "Send to everyone",
+    "status": {
+      "IDLE": "Not sent yet",
+      "SENDING": "Sending",
+      "DONE": "Done"
+    }
   }
 }

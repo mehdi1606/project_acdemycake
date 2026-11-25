@@ -27,6 +27,68 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    id: '2026-11-26-winter',
+    version: '2.1',
+    date: '2026-11-26',
+    nameKey: 'whatsNew.r21.name', name: 'The Winter Update',
+    items: [
+      {
+        tag: 'new', icon: 'isax-cake',
+        titleKey: 'whatsNew.r21.challengeTitle', title: 'The New Year Cake Challenge',
+        textKey: 'whatsNew.r21.challengeText',
+        text: 'Bake one tier, photograph it on white and let the whole academy vote. Entries until 25 December, voting 26 December to 1 January, winners on 5 January. Every cake has its own page to share.',
+      },
+      {
+        tag: 'new', icon: 'isax-monitor-mobbile',
+        titleKey: 'whatsNew.r21.expTitle', title: 'Desktop or Mobile, your choice',
+        textKey: 'whatsNew.r21.expText',
+        text: 'A cinematic experience for large screens, or a touch-first one for your phone with a bottom tab bar. Each device keeps its own; change it any time in Settings.',
+      },
+      {
+        tag: 'new', icon: 'isax-magic-star',
+        titleKey: 'whatsNew.r21.homeTitle', title: 'A living home page',
+        textKey: 'whatsNew.r21.homeText',
+        text: 'The home page now opens with a hand-drawn world that grows before your eyes, then reveals the academy.',
+      },
+      {
+        tag: 'improved', icon: 'isax-video-play',
+        titleKey: 'whatsNew.r21.playerTitle', title: 'A luxury lesson player',
+        textKey: 'whatsNew.r21.playerText',
+        text: 'Burgundy and gold, a perfectly centred play button that comes back on pause, larger controls and smoother playback.',
+      },
+      {
+        tag: 'changed', icon: 'isax-card',
+        titleKey: 'whatsNew.r21.buyTitle', title: 'Buy in one step',
+        textKey: 'whatsNew.r21.buyText',
+        text: 'No more cart: “Buy now” takes you straight to a secure checkout with that course.',
+      },
+      {
+        tag: 'improved', icon: 'isax-tree',
+        titleKey: 'whatsNew.r21.xmasTitle', title: 'Christmas at the academy',
+        textKey: 'whatsNew.r21.xmasText',
+        text: 'A real garland of lights, gentle snow and festive touches, until 7 January.',
+      },
+      {
+        tag: 'changed', icon: 'isax-brush-1',
+        titleKey: 'whatsNew.r21.lookTitle', title: 'One signature look',
+        textKey: 'whatsNew.r21.lookText',
+        text: 'New blush glass top bar with our lions crest. The light/dark switch is gone: SARALÖWE now has one art-directed look everywhere.',
+      },
+      {
+        tag: 'improved', icon: 'isax-flash-1',
+        titleKey: 'whatsNew.r21.fastTitle', title: 'Faster everywhere',
+        textKey: 'whatsNew.r21.fastText',
+        text: 'Lighter pages and quicker loading, especially on phones.',
+      },
+      {
+        tag: 'admin', icon: 'isax-sms', audience: ['ADMIN'],
+        titleKey: 'whatsNew.r21.adminTitle', title: 'Challenge moderation and announcements',
+        textKey: 'whatsNew.r21.adminText',
+        text: 'Admin › Cake Challenge: approve cakes, follow live scores, check voters, and send the announcement emails (preview and test first).',
+      },
+    ],
+  },
+  {
     id: '2026-11-25-brigade',
     version: '2.0',
     date: '2026-11-25',
