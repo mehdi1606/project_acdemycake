@@ -2686,7 +2686,9 @@
     "loading": "— جارٍ التحميل —",
     "browseAll": "تصفّح الكل",
     "searchLabel": "ابحث عن الدورات",
-    "createFreeAccount": "أنشئ حساباً مجانياً"
+    "createFreeAccount": "أنشئ حساباً مجانياً",
+    "skipIntro": "تخطّي المقدّمة",
+    "scrollDown": "انزل للأسفل"
   },
   "brandGallery": {
     "ornament": "العلامة التجارية",

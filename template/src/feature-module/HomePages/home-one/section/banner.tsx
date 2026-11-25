@@ -6,6 +6,7 @@ import HeroGoldPiping from './hero/HeroGoldPiping'
 import HeroFloating from './hero/HeroFloating'
 import HeroCinematic from './hero/HeroCinematic'
 import Garden3D from './hero/Garden3D'
+import HeroLivingPattern from './hero/HeroLivingPattern'
 import './hero/hero-variants.css'
 import { useTranslation } from 'react-i18next'
 import { all_routes } from '../../../router/all_routes'
@@ -397,10 +398,10 @@ const ClassicBanner: React.FC<{ assemble?: boolean }> = ({ assemble = false }) =
     )
 }
 
-// ── Hero variants (preview: add ?hero=1…5 to the home URL) ───────────────────
-// 0 = the classic hero above. The others are the animated proposals; visitors
-// keep seeing DEFAULT_HERO until one is chosen.
-const DEFAULT_HERO = 0
+// ── Hero variants (preview: add ?hero=0…7 to the home URL) ───────────────────
+// 7 = The Living Pattern (the toile grows into the hero) — what visitors see.
+// 0 = the previous classic hero; 1-6 = earlier animated proposals.
+const DEFAULT_HERO = 7
 const HERO_VARIANTS: { label: string; Component: React.ComponentType }[] = [
     { label: 'Current', Component: ClassicBanner },
     { label: '1 · 3D cake', Component: HeroCake3D },
@@ -409,6 +410,7 @@ const HERO_VARIANTS: { label: string; Component: React.ComponentType }[] = [
     { label: '4 · Floating', Component: HeroFloating },
     { label: '5 · Cinematic', Component: HeroCinematic },
     { label: '6 · Garden builds', Component: () => <ClassicBanner assemble /> },
+    { label: '7 · Living Pattern', Component: HeroLivingPattern },
 ]
 
 const BannerSection: React.FC = () => {

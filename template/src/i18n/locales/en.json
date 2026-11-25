@@ -2655,7 +2655,9 @@
     "loading": "— Loading —",
     "browseAll": "Browse all",
     "searchLabel": "Search courses",
-    "createFreeAccount": "Create free account"
+    "createFreeAccount": "Create free account",
+    "skipIntro": "Skip intro",
+    "scrollDown": "Scroll down"
   },
   "brandGallery": {
     "ornament": "The brand",
