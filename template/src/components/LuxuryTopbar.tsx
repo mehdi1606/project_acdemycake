@@ -394,7 +394,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
 
         <Link to={all_routes.homeone} className="topbar-logo">
           <img
-            src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+            src={`${process.env.PUBLIC_URL}/assets/img/Logos/saralowe-lions-crimson.svg`}
             alt="SARALÖWE Academy"
             className="topbar-logo-img"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}

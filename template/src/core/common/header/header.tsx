@@ -179,11 +179,14 @@ const Header = () => {
           left: 0,
           width: '100%',
           zIndex: 1050,
-          background: scrolled
-            ? 'linear-gradient(135deg, rgba(166, 25, 46, 0.97) 0%, rgba(122, 18, 44, 0.97) 100%)'
-            : 'linear-gradient(135deg, #A6192E 0%, #8A1530 55%, #6E1230 100%)',
-          backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          boxShadow: scrolled ? '0 4px 24px rgba(78, 20, 32, 0.35)' : '0 1px 0 rgba(197, 145, 44, 0.35)',
+          /* blush glass, the same paper as the home illustration */
+          background: scrolled ? 'rgba(245, 218, 223, 0.82)' : 'rgba(245, 218, 223, 0.6)',
+          backdropFilter: 'blur(18px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+          borderBottom: '1px solid rgba(166, 25, 46, 0.16)',
+          boxShadow: scrolled
+            ? '0 10px 30px rgba(101, 28, 50, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
+            : 'inset 0 1px 0 rgba(255, 255, 255, 0.55)',
           transition: 'all 0.4s ease',
         }}
       >
@@ -230,16 +233,16 @@ const Header = () => {
                 <SantaHat size={26} />
                 {/* SVG Logo — gold (#c5912c) variant, perfect on dark bg */}
                 <img
-                  src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
+                  src={`${process.env.PUBLIC_URL}/assets/img/Logos/saralowe-lions-crimson.svg`}
                   alt="SARALÖWE Academy"
-                  style={{ height: 42, width: 42, objectFit: 'contain' }}
+                  style={{ height: 40, width: 'auto', objectFit: 'contain' }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
                 <span className="sl-hdr-wordmark" style={{
                   fontFamily: '"Playfair Display", serif',
-                  fontSize: 18, fontWeight: 700, color: 'var(--sl-blush, #F5DADF)',
+                  fontSize: 18, fontWeight: 700, color: '#651C32',
                   letterSpacing: '0.12em', lineHeight: 1, textTransform: 'uppercase',
                 }}>
                   SARALÖWE
@@ -256,12 +259,12 @@ const Header = () => {
                 style={{
                   padding: '8px 16px', borderRadius: 8,
                   fontSize: 15, fontWeight: isActive('/', true) ? 600 : 500,
-                  color: isActive('/', true) ? '#F3D58E' : 'rgba(255,255,255,0.9)',
+                  color: isActive('/', true) ? '#A6192E' : '#651C32',
                   textDecoration: 'none', transition: 'all 0.2s ease',
-                  background: isActive('/', true) ? 'rgba(58,12,22,0.42)' : 'transparent',
+                  background: isActive('/', true) ? 'rgba(166,25,46,0.1)' : 'transparent',
                 }}
-                onMouseEnter={e => { if (!isActive('/', true)) e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={e => { if (!isActive('/', true)) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+                onMouseEnter={e => { if (!isActive('/', true)) e.currentTarget.style.color = '#A6192E'; }}
+                onMouseLeave={e => { if (!isActive('/', true)) e.currentTarget.style.color = '#651C32'; }}
               >
                 {t('nav.home')}
               </Link>
@@ -272,12 +275,12 @@ const Header = () => {
                 style={{
                   padding: '8px 16px', borderRadius: 8,
                   fontSize: 15, fontWeight: isActive('/masterclass') ? 600 : 500,
-                  color: isActive('/masterclass') ? '#F3D58E' : 'rgba(255,255,255,0.9)',
+                  color: isActive('/masterclass') ? '#A6192E' : '#651C32',
                   textDecoration: 'none', transition: 'all 0.2s ease',
-                  background: isActive('/masterclass') ? 'rgba(58,12,22,0.42)' : 'transparent',
+                  background: isActive('/masterclass') ? 'rgba(166,25,46,0.1)' : 'transparent',
                 }}
-                onMouseEnter={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+                onMouseEnter={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = '#A6192E'; }}
+                onMouseLeave={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = '#651C32'; }}
               >
                 {t('nav.masterclasses')}
               </Link>
@@ -288,12 +291,12 @@ const Header = () => {
                 style={{
                   padding: '8px 16px', borderRadius: 8,
                   fontSize: 15, fontWeight: isActive('/ebooks') ? 600 : 500,
-                  color: isActive('/ebooks') ? '#F3D58E' : 'rgba(255,255,255,0.9)',
+                  color: isActive('/ebooks') ? '#A6192E' : '#651C32',
                   textDecoration: 'none', transition: 'all 0.2s ease',
-                  background: isActive('/ebooks') ? 'rgba(58,12,22,0.42)' : 'transparent',
+                  background: isActive('/ebooks') ? 'rgba(166,25,46,0.1)' : 'transparent',
                 }}
-                onMouseEnter={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+                onMouseEnter={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = '#A6192E'; }}
+                onMouseLeave={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = '#651C32'; }}
               >
                 {t('nav.ebooks', 'Ebooks')}
               </Link>
@@ -329,9 +332,9 @@ const Header = () => {
                   style={{
                     padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     fontSize: 15, fontWeight: (isActive('/course') || isActive('/blog')) ? 600 : 500,
-                    color: (isActive('/course') || isActive('/blog')) ? '#F3D58E' : 'rgba(255,255,255,0.9)',
+                    color: (isActive('/course') || isActive('/blog')) ? '#A6192E' : '#651C32',
                     textDecoration: 'none', transition: 'all 0.2s ease',
-                    background: (isActive('/course') || isActive('/blog')) ? 'rgba(58,12,22,0.42)' : 'transparent',
+                    background: (isActive('/course') || isActive('/blog')) ? 'rgba(166,25,46,0.1)' : 'transparent',
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}
                 >
@@ -657,12 +660,12 @@ const Header = () => {
                     to={all_routes.login}
                     style={{
                       padding: '8px 20px', borderRadius: 20, fontSize: 14, fontWeight: 500,
-                      color: '#fff', textDecoration: 'none',
-                      border: '1.5px solid rgba(255,255,255,0.2)',
+                      color: '#651C32', textDecoration: 'none',
+                      border: '1.5px solid rgba(101,28,50,0.3)',
                       transition: 'all 0.2s ease',
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = 'transparent'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(166,25,46,0.55)'; e.currentTarget.style.background = 'rgba(166,25,46,0.08)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(101,28,50,0.3)'; e.currentTarget.style.background = 'transparent'; }}
                   >
                     {t('nav.signIn')}
                   </Link>

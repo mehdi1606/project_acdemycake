@@ -1,17 +1,18 @@
-/* Public top bar: crimson velvet bar, deep burgundy buttons with a gold hairline. */
+/* Public top bar: blush glass (the home illustration's paper) with crimson →
+   burgundy jewel buttons that catch a little light. */
 .sl-hdr .sl-hdr-btn,
 .sl-hdr .sl-hdr-actions > div:first-child > button {
-  background: #4E1420 !important;
-  color: #F5DADF !important;
-  border: 1px solid rgba(197, 145, 44, 0.38) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(40, 8, 18, 0.25);
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+  background: linear-gradient(145deg, #A6192E 0%, #651C32 100%) !important;
+  color: #FBEFF1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 4px 12px rgba(101, 28, 50, 0.22);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease !important;
 }
 .sl-hdr .sl-hdr-btn:hover,
 .sl-hdr .sl-hdr-actions > div:first-child > button:hover {
-  background: #3A0F18 !important;
+  background: linear-gradient(145deg, #8A1530 0%, #4E1420 100%) !important;
   color: #fff !important;
-  border-color: rgba(197, 145, 44, 0.7) !important;
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 18px rgba(101, 28, 50, 0.3);
 }
 .sl-hdr .sl-hdr-btn--pill { padding: 4px 10px 4px 4px !important; }
-.sl-hdr nav a:not(.sl-hdr-btn):hover { color: #fff !important; }
