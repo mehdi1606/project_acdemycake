@@ -445,7 +445,12 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
             aria-haspopup="menu"
             onClick={() => setSiteMenuOpen((o) => !o)}
           >
-            <i className="isax isax-global" aria-hidden="true" />
+            {/* House icon (roof band + house outline) — opens the website links */}
+            <svg className="topbar-home-icon" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"
+              fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinejoin="miter">
+              <polygon points="3.4,9.6 12,3.9 20.6,9.6 20.6,12 12,6.3 3.4,12" />
+              <polygon points="5.6,12.9 12,8.6 18.4,12.9 18.4,19.6 5.6,19.6" />
+            </svg>
           </button>
           {siteMenuOpen && (
             <div className="topbar-sitenav__menu topbar-sitemenu__panel" role="menu">
