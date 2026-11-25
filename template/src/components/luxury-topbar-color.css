@@ -1,0 +1,39 @@
+/* Dashboard top bar: the same crimson bar as the public site, with deep
+   burgundy buttons edged in gold. (Dropdown panels keep their light look.) */
+body .luxury-topbar.luxury-topbar {
+  background: linear-gradient(135deg, #A6192E 0%, #8A1530 55%, #6E1230 100%);
+  border-bottom: 1px solid rgba(197, 145, 44, 0.4);
+  box-shadow: 0 6px 24px rgba(78, 20, 32, 0.22);
+}
+body .luxury-topbar.luxury-topbar .topbar-logo-text { color: #F5DADF; }
+
+body .luxury-topbar.luxury-topbar .topbar-menu-btn,
+body .luxury-topbar.luxury-topbar .topbar-action-btn,
+body .luxury-topbar.luxury-topbar .topbar-search,
+body .luxury-topbar.luxury-topbar .profile-trigger {
+  background: #4E1420;
+  border: 1px solid rgba(197, 145, 44, 0.38);
+  color: #F5DADF;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(40, 8, 18, 0.25);
+}
+body .luxury-topbar.luxury-topbar .topbar-menu-btn:hover,
+body .luxury-topbar.luxury-topbar .topbar-action-btn:hover,
+body .luxury-topbar.luxury-topbar .profile-trigger:hover {
+  background: #3A0F18; color: #fff; border-color: rgba(197, 145, 44, 0.7);
+}
+body .luxury-topbar.luxury-topbar .topbar-search .topbar-search__btn { color: #F5DADF; }
+body .luxury-topbar.luxury-topbar .topbar-search.open { background: #fff; border-color: rgba(197, 145, 44, 0.6); }
+body .luxury-topbar.luxury-topbar .topbar-search.open .topbar-search__btn { color: #A6192E; }
+body .luxury-topbar.luxury-topbar .notif-badge { border-color: #4E1420; }
+
+body .luxury-topbar.luxury-topbar .topbar-sitenav__link { color: rgba(255, 255, 255, 0.9); }
+body .luxury-topbar.luxury-topbar .topbar-sitenav__link i,
+body .luxury-topbar.luxury-topbar .topbar-sitenav__link .topbar-sitenav__caret { color: #F3D58E; }
+body .luxury-topbar.luxury-topbar .topbar-sitenav__link:hover,
+body .luxury-topbar.luxury-topbar .topbar-sitenav__link.is-open { background: rgba(58, 12, 22, 0.42); color: #fff; }
+
+body .luxury-topbar.luxury-topbar .topbar-badge-label { color: #F5DADF; }
+body .luxury-topbar.luxury-topbar .profile-info .profile-name { color: #fff; }
+body .luxury-topbar.luxury-topbar .profile-info .profile-role { color: #F3D58E !important; }
+body .luxury-topbar.luxury-topbar .profile-chevron { color: rgba(245, 218, 223, 0.75); }
+body .luxury-topbar.luxury-topbar .upgrade-btn { background: linear-gradient(135deg, #C5973E 0%, #DEBB6B 50%, #C5973E 100%); color: #4E1420; border-color: transparent; }

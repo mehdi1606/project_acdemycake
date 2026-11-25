@@ -23,6 +23,7 @@ import { useCountUp } from '../../hooks/useCountUp';
 import { Renderer, Edition } from './living/renderer';
 import { CameraPath, CamKey } from './living/camera';
 import './living/living-hero.css';
+import { isChristmasSeason } from '../../../../../config/season';
 
 const BASE = `${process.env.PUBLIC_URL || ''}/assets/hero/living/`;
 const SEEN_KEY = 'sl_living_intro_seen';
@@ -51,8 +52,7 @@ function seedAmount(t: number, first: number): number {
 function pickEdition(): Edition {
   const q = new URLSearchParams(window.location.search).get('edition');
   if (q === 'winter' || q === 'classic') return q;
-  const d = new Date(); const m = d.getMonth(), day = d.getDate();
-  return (m === 10 && day >= 20) || m === 11 || (m === 0 && day <= 7) ? 'winter' : 'classic';
+  return isChristmasSeason() ? 'winter' : 'classic';
 }
 
 function pickMode(): 'full' | 'short' | 'off' {

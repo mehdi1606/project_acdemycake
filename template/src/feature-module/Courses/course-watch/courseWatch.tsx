@@ -3,6 +3,7 @@ import { hideOnError } from '../../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import VideoPlayer from '../../../components/VideoPlayer';
+import ChristmasLights from '../../../components/season/ChristmasLights';
 import PdfCanvasViewer from '../../../components/PdfCanvasViewer';
 import AssignmentLockedNotice from '../../../components/AssignmentLockedNotice';
 import courseService from '../../../services/api/course.service';
@@ -879,7 +880,9 @@ const CourseWatch: React.FC = () => {
           borderBottom:`1px solid rgba(197,151,62,0.1)`,
           display:'flex', alignItems:'center', padding: isPhone ? '0 12px' : '0 24px',
           gap:16, flexShrink:0, boxShadow:'0 2px 20px rgba(0,0,0,0.25)',
+          position:'relative', zIndex:5,
         }}>
+          <ChristmasLights edge="bottom" spacing={62} />
           {/* Phones: lessons drawer button with progress */}
           {isPhone && (
             <button
@@ -933,7 +936,7 @@ const CourseWatch: React.FC = () => {
           ) : selectedLesson ? (
             <>
               {/* ── Media zone ── */}
-              <div style={{ background:'#000', flexShrink:0, width:'100%', position:'relative' }}>
+              <div style={{ background:'radial-gradient(ellipse at 50% 0%, #2b0f1a 0%, #0d0508 70%)', flexShrink:0, width:'100%', position:'relative' }}>
 
                 {/* VIDEO — full-width 16:9, height follows width naturally */}
                 {selectedLesson.contentType === 'VIDEO' && (
@@ -1118,13 +1121,13 @@ const CourseWatch: React.FC = () => {
                   </button>
                   </>)}
                   {!isDone && selectedLesson.contentType !== 'QUIZ' && (
-                    <button onClick={markComplete} disabled={markingDone} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', flex: isPhone ? 1 : undefined, gap:6, padding: isPhone ? '12px 18px' : '8px 18px', borderRadius:8, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2D5F3F,#22C55E)', color:WHITE, fontWeight:700, fontSize:13, boxShadow:'0 4px 12px rgba(45,95,63,0.28)', opacity:markingDone?0.7:1, transition:'all 0.2s' }}>
+                    <button onClick={markComplete} disabled={markingDone} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', flex: isPhone ? 1 : undefined, gap:6, padding: isPhone ? '12px 18px' : '8px 18px', borderRadius:8, border:'none', cursor:'pointer', background:`linear-gradient(135deg,${BURG_D} 0%,${BURG} 100%)`, color:'#FBEFD9', fontWeight:700, fontSize:13, boxShadow:'0 6px 16px rgba(101,28,50,0.28), inset 0 0 0 1px rgba(197,151,62,0.45)', opacity:markingDone?0.7:1, transition:'all 0.2s' }}>
                       {markingDone ? <div style={{ width:13, height:13, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.4)', borderTopColor:WHITE, animation:'spin 0.8s linear infinite' }} /> : <i className="fa-solid fa-circle-check" />}
                       {t('courseWatch.markComplete', 'Mark Complete')}
                     </button>
                   )}
                   {isDone && (
-                    <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', flex: isPhone ? 1 : undefined, gap:6, padding: isPhone ? '12px 16px' : '8px 16px', borderRadius:8, background:'rgba(74,222,128,0.09)', border:'1px solid rgba(74,222,128,0.22)', color:'#15803D', fontSize:13, fontWeight:700 }}>
+                    <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', flex: isPhone ? 1 : undefined, gap:6, padding: isPhone ? '12px 16px' : '8px 16px', borderRadius:8, background:'rgba(197,151,62,0.1)', border:'1px solid rgba(197,151,62,0.35)', color:'#8A6416', fontSize:13, fontWeight:700 }}>
                       <i className="fa-solid fa-circle-check" />{t('courseWatch.completed', 'Completed')}
                     </div>
                   )}

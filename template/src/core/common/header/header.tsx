@@ -8,6 +8,9 @@ import { getFileUrl } from "../../../environment";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../../../i18n/LanguageSwitcher";
 import AvatarImage from "../../../components/AvatarImage";
+import ChristmasLights from "../../../components/season/ChristmasLights";
+import { HangingOrnaments, SantaHat } from "../../../components/season/ChristmasDecor";
+import "./header.css";
 
 const Header = () => {
   const { t } = useTranslation();
@@ -169,7 +172,7 @@ const Header = () => {
   return (
     <>
       <header
-        className={`header-one ${scrolled ? "fixed" : ""}`}
+        className={`header-one sl-hdr ${scrolled ? "fixed" : ""}`}
         style={{
           position: 'fixed',
           top: 0,
@@ -177,10 +180,10 @@ const Header = () => {
           width: '100%',
           zIndex: 1050,
           background: scrolled
-            ? 'rgba(78, 20, 32, 0.97)'
-            : 'linear-gradient(135deg, #4E1420 0%, #3A0F18 100%)',
+            ? 'linear-gradient(135deg, rgba(166, 25, 46, 0.97) 0%, rgba(122, 18, 44, 0.97) 100%)'
+            : 'linear-gradient(135deg, #A6192E 0%, #8A1530 55%, #6E1230 100%)',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          boxShadow: scrolled ? '0 2px 20px rgba(78, 20, 32, 0.25)' : '0 1px 0 rgba(78, 20, 32, 0.08)',
+          boxShadow: scrolled ? '0 4px 24px rgba(78, 20, 32, 0.35)' : '0 1px 0 rgba(197, 145, 44, 0.35)',
           transition: 'all 0.4s ease',
         }}
       >
@@ -197,7 +200,7 @@ const Header = () => {
               <button
                 type="button"
                 onClick={onHandleMobileMenu}
-                className="d-lg-none"
+                className="d-lg-none sl-hdr-btn"
                 aria-label={t('nav.openMenu', 'Open menu')}
                 title={t('nav.openMenu', 'Open menu')}
                 aria-expanded={mobileMenuOpen}
@@ -221,9 +224,10 @@ const Header = () => {
                 aria-label={t('nav.homeLogo', 'Saralöwe — home page')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  textDecoration: 'none',
+                  textDecoration: 'none', position: 'relative',
                 }}
               >
+                <SantaHat size={26} />
                 {/* SVG Logo — gold (#c5912c) variant, perfect on dark bg */}
                 <img
                   src={`${process.env.PUBLIC_URL}/assets/img/Logos/Logo Saralowe Academy-12.svg`}
@@ -252,9 +256,9 @@ const Header = () => {
                 style={{
                   padding: '8px 16px', borderRadius: 8,
                   fontSize: 15, fontWeight: isActive('/', true) ? 600 : 500,
-                  color: isActive('/', true) ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                  color: isActive('/', true) ? '#F3D58E' : 'rgba(255,255,255,0.9)',
                   textDecoration: 'none', transition: 'all 0.2s ease',
-                  background: isActive('/', true) ? 'rgba(197,151,62,0.08)' : 'transparent',
+                  background: isActive('/', true) ? 'rgba(58,12,22,0.42)' : 'transparent',
                 }}
                 onMouseEnter={e => { if (!isActive('/', true)) e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={e => { if (!isActive('/', true)) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
@@ -268,9 +272,9 @@ const Header = () => {
                 style={{
                   padding: '8px 16px', borderRadius: 8,
                   fontSize: 15, fontWeight: isActive('/masterclass') ? 600 : 500,
-                  color: isActive('/masterclass') ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                  color: isActive('/masterclass') ? '#F3D58E' : 'rgba(255,255,255,0.9)',
                   textDecoration: 'none', transition: 'all 0.2s ease',
-                  background: isActive('/masterclass') ? 'rgba(197,151,62,0.08)' : 'transparent',
+                  background: isActive('/masterclass') ? 'rgba(58,12,22,0.42)' : 'transparent',
                 }}
                 onMouseEnter={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={e => { if (!isActive('/masterclass')) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
@@ -284,9 +288,9 @@ const Header = () => {
                 style={{
                   padding: '8px 16px', borderRadius: 8,
                   fontSize: 15, fontWeight: isActive('/ebooks') ? 600 : 500,
-                  color: isActive('/ebooks') ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                  color: isActive('/ebooks') ? '#F3D58E' : 'rgba(255,255,255,0.9)',
                   textDecoration: 'none', transition: 'all 0.2s ease',
-                  background: isActive('/ebooks') ? 'rgba(197,151,62,0.08)' : 'transparent',
+                  background: isActive('/ebooks') ? 'rgba(58,12,22,0.42)' : 'transparent',
                 }}
                 onMouseEnter={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
@@ -325,9 +329,9 @@ const Header = () => {
                   style={{
                     padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     fontSize: 15, fontWeight: (isActive('/course') || isActive('/blog')) ? 600 : 500,
-                    color: (isActive('/course') || isActive('/blog')) ? '#C5973E' : 'rgba(255,255,255,0.85)',
+                    color: (isActive('/course') || isActive('/blog')) ? '#F3D58E' : 'rgba(255,255,255,0.9)',
                     textDecoration: 'none', transition: 'all 0.2s ease',
-                    background: (isActive('/course') || isActive('/blog')) ? 'rgba(197,151,62,0.08)' : 'transparent',
+                    background: (isActive('/course') || isActive('/blog')) ? 'rgba(58,12,22,0.42)' : 'transparent',
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}
                 >
@@ -385,13 +389,13 @@ const Header = () => {
             </div>
 
             {/* ── Right: Actions ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="sl-hdr-actions" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {/* Language Switcher */}
               <LanguageSwitcher variant="dark" />
               {/* Theme Toggle */}
               <button
                 type="button"
-                className="d-none d-sm-flex"
+                className="d-none d-sm-flex sl-hdr-btn"
                 onClick={() => handleDataThemeChange(dataTheme === 'light' ? 'dark-mode' : 'light')}
                 aria-label={dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
                 title={dataTheme === 'light' ? t('nav.darkMode', 'Dark mode') : t('nav.lightMode', 'Light mode')}
@@ -410,6 +414,7 @@ const Header = () => {
               {/* Cart */}
               <Link
                 to={all_routes.courseCart}
+                className="sl-hdr-btn"
                 aria-label={cartCount > 0
                   ? t('nav.cartWithCount', 'Cart ({{count}} items)', { count: cartCount })
                   : t('nav.cart', 'Cart')}
@@ -481,6 +486,7 @@ const Header = () => {
                   <div ref={dropdownRef} className="d-none d-lg-block" style={{ position: 'relative', marginLeft: 4 }}>
                     <button
                       type="button"
+                      className="sl-hdr-btn sl-hdr-btn--pill"
                       onClick={toggleDropdown}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 10,
@@ -679,6 +685,9 @@ const Header = () => {
             </div>
           </nav>
         </div>
+        <ChristmasLights edge="bottom" />
+        <HangingOrnaments side="start" />
+        <HangingOrnaments side="end" />
       </header>
 
       {/* ── Mobile Menu Overlay ── */}

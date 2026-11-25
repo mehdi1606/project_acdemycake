@@ -14,6 +14,9 @@ import BadgeAvatar from './BadgeAvatar';
 import BadgeGuide from './BadgeGuide';
 import { getBadgeForUser, progressOf } from '../config/badges';
 import { openWhatsNew } from '../config/whatsNew';
+import ChristmasLights from './season/ChristmasLights';
+import { SantaHat } from './season/ChristmasDecor';
+import './luxury-topbar-color.css';
 
 interface LuxuryTopbarProps {
   onSidebarToggle: () => void;
@@ -396,6 +399,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
             className="topbar-logo-img"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
+          <SantaHat size={22} />
           <span className="topbar-logo-text">SARALÖWE</span>
         </Link>
       </div>
@@ -950,6 +954,7 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
         </div>
       </div>
 
+      <ChristmasLights edge="bottom" spacing={60} />
     </header>
     </>
   );

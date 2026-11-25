@@ -1,0 +1,207 @@
+/* ── SARALÖWE lesson player (Video.js skin) ───────────────────────────────────
+   Loaded right after video.js's own stylesheet and scoped under .sl-player, so
+   it always wins. Burgundy glass, gold details, controls a little larger. */
+
+.sl-player { position: relative; direction: ltr; background: #0d0508; }
+.sl-player .video-js {
+  font-size: 12px;
+  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  background: #0d0508;
+  color: #F7EDE6;
+}
+.sl-player .video-js .vjs-poster { background-color: #0d0508; }
+
+/* soft vignette while paused, under the play button and the controls */
+.sl-player .video-js::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(13, 5, 8, 0) 35%, rgba(13, 5, 8, 0.55) 100%),
+              linear-gradient(0deg, rgba(40, 8, 18, 0.55) 0%, rgba(40, 8, 18, 0) 30%);
+  opacity: 0; transition: opacity 0.4s ease;
+}
+.sl-player .video-js.vjs-paused::before { opacity: 1; }
+.sl-player .video-js.vjs-has-started.vjs-playing.vjs-user-inactive::before { opacity: 0; }
+
+/* ── big play button: a true circle, dead centre ───────────────────────────── */
+.sl-player .video-js .vjs-big-play-button {
+  position: absolute; z-index: 3;
+  top: 50%; left: 50%;
+  width: 86px; height: 86px; margin: 0;
+  padding: 0; font-size: 12px; line-height: normal;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1.5px solid rgba(232, 199, 122, 0.95);
+  background: radial-gradient(circle at 35% 28%, rgba(196, 38, 62, 0.96) 0%, rgba(101, 28, 50, 0.94) 62%, rgba(58, 15, 24, 0.96) 100%);
+  box-shadow: 0 0 0 7px rgba(197, 145, 44, 0.16), 0 18px 44px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s ease, background 0.25s ease;
+}
+.sl-player .video-js .vjs-big-play-button .vjs-icon-placeholder::before {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px; line-height: 1;
+  padding-left: 5px;           /* a triangle looks centred a hair to the right */
+  box-sizing: border-box;
+  color: #F7E3B0;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.sl-player .video-js .vjs-big-play-button .vjs-svg-icon { width: 40px; height: 40px; fill: #F7E3B0; }
+/* gentle breathing ring */
+.sl-player .video-js .vjs-big-play-button::after {
+  content: ''; position: absolute; inset: -9px; border-radius: 50%;
+  border: 1px solid rgba(232, 199, 122, 0.55);
+  animation: sl-play-ring 2.6s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes sl-play-ring {
+  0% { transform: scale(0.92); opacity: 0.9; }
+  100% { transform: scale(1.28); opacity: 0; }
+}
+.sl-player .video-js:hover .vjs-big-play-button,
+.sl-player .video-js .vjs-big-play-button:focus {
+  transform: translate(-50%, -50%) scale(1.06);
+  background: radial-gradient(circle at 35% 28%, rgba(214, 48, 72, 0.98) 0%, rgba(122, 26, 48, 0.96) 62%, rgba(58, 15, 24, 0.98) 100%);
+  border-color: #F3D58E;
+  box-shadow: 0 0 0 9px rgba(197, 145, 44, 0.22), 0 22px 52px rgba(0, 0, 0, 0.6);
+}
+.sl-player .video-js .vjs-big-play-button:focus-visible { outline: 2px solid #F3D58E; outline-offset: 6px; }
+
+/* ── control bar ───────────────────────────────────────────────────────────── */
+.sl-player .video-js .vjs-control-bar {
+  z-index: 3;
+  height: 4.4em;
+  padding: 0 0.9em;
+  align-items: center;
+  background: linear-gradient(0deg, rgba(30, 6, 14, 0.94) 0%, rgba(30, 6, 14, 0.7) 55%, rgba(30, 6, 14, 0) 100%);
+}
+.sl-player .video-js .vjs-control { width: 3.6em; }
+.sl-player .video-js .vjs-button > .vjs-icon-placeholder::before {
+  font-size: 1.9em; line-height: 2.32;
+  color: rgba(255, 245, 238, 0.86);
+  transition: color 0.15s ease;
+}
+.sl-player .video-js .vjs-button:hover > .vjs-icon-placeholder::before { color: #F3D58E; }
+.sl-player .video-js .vjs-play-control .vjs-icon-placeholder::before { font-size: 2.2em; line-height: 2; }
+
+/* time */
+.sl-player .video-js .vjs-current-time,
+.sl-player .video-js .vjs-time-divider,
+.sl-player .video-js .vjs-duration {
+  display: block; width: auto; min-width: 0; padding: 0 0.25em;
+  font-size: 1.05em; font-weight: 700; line-height: 4.2em;
+  color: rgba(255, 245, 238, 0.9);
+  font-variant-numeric: tabular-nums;
+}
+.sl-player .video-js .vjs-duration { color: rgba(255, 245, 238, 0.55); }
+.sl-player .video-js .vjs-remaining-time { display: none; }
+
+/* progress */
+.sl-player .video-js .vjs-progress-control { flex: auto; min-width: 4em; }
+.sl-player .video-js .vjs-progress-holder {
+  height: 5px; margin: 0 0.9em; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  transition: height 0.15s ease;
+}
+.sl-player .video-js .vjs-progress-control:hover .vjs-progress-holder { height: 8px; font-size: inherit; }
+.sl-player .video-js .vjs-load-progress { background: rgba(197, 145, 44, 0.22); border-radius: 999px; }
+.sl-player .video-js .vjs-load-progress div { background: transparent; }
+.sl-player .video-js .vjs-play-progress {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #A6192E 0%, #C5912C 70%, #F3D58E 100%);
+}
+.sl-player .video-js .vjs-play-progress::before {
+  content: ''; position: absolute; top: 50%; right: -8px; z-index: 1;
+  width: 16px; height: 16px; border-radius: 50%;
+  transform: translateY(-50%);
+  background: radial-gradient(circle at 35% 30%, #fff6dc, #E8C77A 45%, #B07F22 100%);
+  box-shadow: 0 0 0 3px rgba(197, 145, 44, 0.25), 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.sl-player .video-js .vjs-time-tooltip,
+.sl-player .video-js .vjs-mouse-display .vjs-time-tooltip {
+  background: rgba(40, 8, 18, 0.95); color: #F3D58E;
+  font-size: 11px; font-weight: 700; padding: 4px 7px; border-radius: 6px;
+  border: 1px solid rgba(197, 145, 44, 0.35);
+}
+
+/* volume */
+.sl-player .video-js .vjs-volume-panel { align-items: center; }
+.sl-player .video-js .vjs-volume-bar { background: rgba(255, 255, 255, 0.2); border-radius: 999px; }
+.sl-player .video-js .vjs-volume-bar.vjs-slider-horizontal { height: 4px; }
+.sl-player .video-js .vjs-volume-level { background: linear-gradient(90deg, #C5912C, #F3D58E); border-radius: 999px; }
+.sl-player .video-js .vjs-volume-level::before { color: #F3D58E; }
+
+/* speed menu */
+.sl-player .video-js .vjs-playback-rate .vjs-playback-rate-value {
+  font-size: 1.15em; font-weight: 800; line-height: 3.85em; color: rgba(255, 245, 238, 0.9);
+}
+.sl-player .video-js .vjs-menu-button-popup .vjs-menu .vjs-menu-content {
+  background: rgba(30, 6, 14, 0.97);
+  border: 1px solid rgba(197, 145, 44, 0.3);
+  border-radius: 10px; bottom: 3.4em; padding: 4px 0; max-height: 16em;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+.sl-player .video-js .vjs-menu li {
+  font-size: 1.05em; padding: 0.55em 1em; color: rgba(255, 245, 238, 0.78); text-transform: none;
+}
+.sl-player .video-js .vjs-menu li:hover,
+.sl-player .video-js .vjs-menu li:focus,
+.sl-player .video-js .vjs-menu li.vjs-selected {
+  background: rgba(197, 145, 44, 0.16); color: #F3D58E;
+}
+
+/* buffering */
+.sl-player .video-js .vjs-loading-spinner { border-color: rgba(197, 145, 44, 0.2); }
+.sl-player .vjs-seeking .vjs-loading-spinner::before,
+.sl-player .vjs-waiting .vjs-loading-spinner::before,
+.sl-player .vjs-seeking .vjs-loading-spinner::after,
+.sl-player .vjs-waiting .vjs-loading-spinner::after { border-top-color: #E8C77A; }
+
+/* error message */
+.sl-player .video-js .vjs-error-display { background: rgba(30, 6, 14, 0.9); }
+
+/* ── Christmas ─────────────────────────────────────────────────────────────── */
+/* a holly sprig on the play button */
+.sl-player--xmas .video-js .vjs-big-play-button::before {
+  content: ''; position: absolute; top: -14px; right: -16px; width: 40px; height: 34px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'%3E%3Cpath d='M20 18 C14 8 6 10 2 4 C4 10 1 13 3 17 C6 15 9 18 8 22 C12 19 16 21 20 18Z' fill='%23217a46' stroke='%230d3f22' stroke-width='.8'/%3E%3Cpath d='M20 18 C26 8 34 10 38 4 C36 10 39 13 37 17 C34 15 31 18 32 22 C28 19 24 21 20 18Z' fill='%232f9e5b' stroke='%230d3f22' stroke-width='.8'/%3E%3Ccircle cx='17' cy='22' r='4' fill='%23d6142f'/%3E%3Ccircle cx='23.5' cy='22.5' r='4' fill='%23e0233d'/%3E%3Ccircle cx='20' cy='17' r='4' fill='%23c8102e'/%3E%3Ccircle cx='18.6' cy='15.6' r='1.1' fill='%23fff' opacity='.8'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+  transform: rotate(12deg);
+  pointer-events: none;
+}
+/* candy-cane shimmer in the gold progress */
+.sl-player--xmas .video-js .vjs-play-progress {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 5px, rgba(255, 255, 255, 0) 5px 10px),
+    linear-gradient(90deg, #A6192E 0%, #C5912C 70%, #F3D58E 100%);
+  background-size: 28px 28px, 100% 100%;
+  animation: sl-candy 1.4s linear infinite;
+}
+@keyframes sl-candy { to { background-position: 28px 0, 0 0; } }
+/* snow drifting over the frame while paused */
+.sl-player--xmas .video-js::after {
+  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, #fff 60%, transparent),
+    radial-gradient(1.5px 1.5px at 90px 80px, rgba(255, 255, 255, 0.9) 60%, transparent),
+    radial-gradient(2.5px 2.5px at 160px 20px, #fff 60%, transparent),
+    radial-gradient(1.5px 1.5px at 60px 150px, rgba(255, 255, 255, 0.85) 60%, transparent),
+    radial-gradient(2px 2px at 130px 120px, #fff 60%, transparent),
+    radial-gradient(3px 3px at 200px 170px, rgba(255, 255, 255, 0.9) 60%, transparent);
+  background-size: 220px 200px;
+  opacity: 0; transition: opacity 0.6s ease;
+  animation: sl-player-snow 14s linear infinite;
+}
+.sl-player--xmas .video-js.vjs-paused::after { opacity: 0.75; }
+@keyframes sl-player-snow { from { background-position: 0 0; } to { background-position: 60px 400px; } }
+
+@media (max-width: 640px) {
+  .sl-player .video-js { font-size: 11px; }
+  .sl-player .video-js .vjs-big-play-button { width: 68px; height: 68px; }
+  .sl-player .video-js .vjs-big-play-button .vjs-icon-placeholder::before { font-size: 32px; padding-left: 4px; }
+  .sl-player .video-js .vjs-playback-rate,
+  .sl-player .video-js .vjs-time-divider,
+  .sl-player .video-js .vjs-duration { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl-player .video-js .vjs-big-play-button::after,
+  .sl-player--xmas .video-js .vjs-play-progress,
+  .sl-player--xmas .video-js::after { animation: none; }
+}

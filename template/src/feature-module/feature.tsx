@@ -5,6 +5,7 @@ import BackToTop from "../core/common/backtotop/backToTop";
 import PromoBar from '../components/promo/PromoBar';
 import WhatsNewModal from '../components/WhatsNewModal';
 import Footer from "./HomePages/home-one/footer";
+import ChristmasDecor from '../components/season/ChristmasDecor';
 
 /* Prefixes for dashboard/instructor/admin pages — they provide their
    own luxury layout (topbar + sidebar) via LuxuryDashboardLayout.
@@ -35,6 +36,7 @@ const Feature = () => {
     return (
       <div className="main-wrapper">
         <Outlet />
+        <ChristmasDecor />
         <div className="sidebar-overlay" />
       </div>
     );
@@ -55,6 +57,7 @@ const Feature = () => {
           <BackToTop />
           <PromoBar />
           <WhatsNewModal />
+          <ChristmasDecor />
         </div>
         <div className="sidebar-overlay" />
       </div>

@@ -8,6 +8,8 @@
 import React, { useEffect, useRef } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
+import './player/sl-player.css';
+import { isChristmasSeason } from '../config/season';
 
 interface VideoPlayerProps {
   src: string | null;
@@ -65,6 +67,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const onTimeUpdateRef = useRef(onTimeUpdate);
   const onEndedRef = useRef(onEnded);
   const onErrorRef = useRef(onError);
+  const [xmas] = React.useState(isChristmasSeason);
 
   useEffect(() => { onTimeUpdateRef.current = onTimeUpdate; }, [onTimeUpdate]);
   useEffect(() => { onEndedRef.current = onEnded; }, [onEnded]);
@@ -79,6 +82,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       // We use fill:true so Video.js respects our container size 100 %.
       const videoEl = document.createElement('video-js');
       videoEl.classList.add('vjs-big-play-centered');
+      videoEl.classList.add('vjs-show-big-play-button-on-pause'); // the gold button returns on pause
       videoEl.setAttribute('controlsList', 'nodownload');
       videoEl.setAttribute('disablePictureInPicture', 'true');
       videoEl.setAttribute('disableRemotePlayback', 'true');
@@ -234,13 +238,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     <div
       data-vjs-player
       ref={containerRef}
-      className={className}
+      className={`sl-player${xmas ? ' sl-player--xmas' : ''}${className ? ` ${className}` : ''}`}
       onContextMenu={(e) => e.preventDefault()}
       onDragStart={(e) => e.preventDefault()}
       style={{
         width:              '100%',
         aspectRatio:        '16/9',
-        background:         '#000',
+        background:         '#0d0508',
         overflow:           'hidden',
         display:            'block',
         userSelect:         'none',

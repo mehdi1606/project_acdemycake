@@ -1,0 +1,17 @@
+/* Public top bar: crimson velvet bar, deep burgundy buttons with a gold hairline. */
+.sl-hdr .sl-hdr-btn,
+.sl-hdr .sl-hdr-actions > div:first-child > button {
+  background: #4E1420 !important;
+  color: #F5DADF !important;
+  border: 1px solid rgba(197, 145, 44, 0.38) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(40, 8, 18, 0.25);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+}
+.sl-hdr .sl-hdr-btn:hover,
+.sl-hdr .sl-hdr-actions > div:first-child > button:hover {
+  background: #3A0F18 !important;
+  color: #fff !important;
+  border-color: rgba(197, 145, 44, 0.7) !important;
+}
+.sl-hdr .sl-hdr-btn--pill { padding: 4px 10px 4px 4px !important; }
+.sl-hdr nav a:not(.sl-hdr-btn):hover { color: #fff !important; }
