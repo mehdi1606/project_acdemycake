@@ -54,6 +54,8 @@ export interface User {
   liveMasterclasses?: number;
   /** Elite badge: the chef's approval date (null = not approved). */
   eliteApprovedAt?: string | null;
+  /** Badge level kept from before the harder ladder. */
+  badgeFloor?: number;
   email: string;
   fullName: string;
   avatarUrl?: string;

@@ -56,6 +56,8 @@ public class UserResponse {
     private Integer liveMasterclasses;
     /** Elite badge: the chef's personal approval (null = not approved). */
     private LocalDateTime eliteApprovedAt;
+    /** Badge level kept from before the harder ladder (the badge never goes below it). */
+    private Integer badgeFloor;
     private LocalDateTime bannedAt;
     private String banReason;
 
@@ -78,6 +80,7 @@ public class UserResponse {
                 .bannedAt(user.getBannedAt())
                 .banReason(user.getBanReason())
                 .eliteApprovedAt(user.getEliteApprovedAt())
+                .badgeFloor(user.getBadgeFloor() == null ? 0 : user.getBadgeFloor())
                 .build();
     }
 }

@@ -98,6 +98,11 @@ public class User extends BaseEntity {
     @Column(name = "elite_approved_at")
     private LocalDateTime eliteApprovedAt;
 
+    /** Badge level kept from before the harder ladder (0 = none; students never go below it). */
+    @Column(name = "badge_floor", nullable = false)
+    @Builder.Default
+    private Integer badgeFloor = 0;
+
     @Column(name = "ban_reason")
     private String banReason;
 

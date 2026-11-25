@@ -13,6 +13,7 @@ import { Notification } from '../services/api/types';
 import BadgeAvatar from './BadgeAvatar';
 import BadgeGuide from './BadgeGuide';
 import { getBadgeForUser, progressOf } from '../config/badges';
+import { openWhatsNew } from '../config/whatsNew';
 
 interface LuxuryTopbarProps {
   onSidebarToggle: () => void;
@@ -906,6 +907,14 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
                   <i className="isax isax-setting-2" />
                   {t('nav.settings', 'Settings')}
                 </Link>
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  onClick={() => { setDropdownOpen(false); openWhatsNew(); }}
+                >
+                  <i className="isax isax-magic-star" />
+                  {t('whatsNew.menu', "What's new")}
+                </button>
 
                 {/* Admin extras */}
                 {user?.role === 'ADMIN' && (

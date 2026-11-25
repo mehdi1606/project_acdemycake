@@ -11,12 +11,12 @@ export const useCheckLabel = () => {
       case 'emailVerified':     return t('badges.req.emailVerified', 'Verify your email address');
       case 'enrolledCourses':   return t('badges.req.enrolledCourses', 'Join your first course', { count: n });
       case 'completedLessons':  return t('badges.req.completedLessons', 'Finish your first lesson', { count: n });
-      case 'certificates':      return t('badges.req.certificates', 'Earn {{count}} certificates (pass the course assignment)', { count: n });
+      case 'certificates':      return t('badges.req.certificates', 'Earn {{count}} certificates (every lesson, every quiz, assignment 70%+)', { count: n });
       case 'quizAvg':           return t('badges.req.quizAvg', 'Quiz average {{n}}% or more', { n });
       case 'activeWeeks':       return t('badges.req.activeWeeks', 'Learn in {{count}} different weeks', { count: n });
       case 'bestAssignment':    return t('badges.req.bestAssignment', 'Get {{n}}% or more on one assignment', { n });
       case 'avgAssignment':     return t('badges.req.avgAssignment', 'Assignment average {{n}}% or more', { n });
-      case 'shareOrReview':     return t('badges.req.shareOrReview', 'Share a creation in the community or review a course');
+      case 'shareOrReview':     return t('badges.req.shareOrReview', '{{count}} community posts or course reviews', { count: n });
       case 'contributions':     return t('badges.req.contributions', '{{count}} community posts or answers', { count: n });
       case 'masterclasses':     return t('badges.req.masterclasses', 'Join {{count}} masterclasses', { count: n });
       case 'liveMasterclasses': return t('badges.req.liveMasterclasses', 'Including 1 live masterclass in the atelier', { count: n });
@@ -40,10 +40,12 @@ export const useRequirementSummary = () => {
     if (r.bestAssignment) parts.push(t('badges.req.bestAssignmentShort', 'one assignment {{n}}%', { n: r.bestAssignment }));
     if (r.avgAssignment) parts.push(t('badges.req.avgAssignmentShort', 'assignments {{n}}%', { n: r.avgAssignment }));
     if (r.activeWeeks) parts.push(t('badges.req.activeWeeksShort', '{{count}} active weeks', { count: r.activeWeeks }));
-    if (r.shareOrReview) parts.push(t('badges.req.shareShort', 'share or review'));
+    if (r.shareOrReview) parts.push(t('badges.req.shareShort', '{{count}} posts or reviews', { count: r.shareOrReview }));
     if (r.contributions) parts.push(t('badges.req.contributionsShort', '{{count}} contributions', { count: r.contributions }));
     if (r.masterclasses) parts.push(t('badges.req.masterclassesShort', '{{count}} masterclasses', { count: r.masterclasses }));
-    if (r.days) parts.push(t('badges.req.daysShort', '{{count}} days', { count: r.days }));
+    if (r.days) parts.push(r.days % 365 === 0
+      ? t('badges.req.yearsShort', '{{count}} years', { count: r.days / 365 })
+      : t('badges.req.monthsShort', '{{count}} months', { count: Math.round(r.days / 30) }));
     if (r.chefApproval) parts.push(t('badges.req.chefShort', "chef's approval"));
     return parts.join(' · ');
   };
@@ -65,7 +67,7 @@ const BadgeRequirementList: React.FC<Props> = ({ next, current, progress }) => {
   const pct = badgeProgressPercent(next, progress);
 
   const have = (c: BadgeCheck) => {
-    if (c.kind === 'emailVerified' || c.kind === 'chefApproval' || c.kind === 'shareOrReview') {
+    if (c.kind === 'emailVerified' || c.kind === 'chefApproval') {
       return t('badges.req.notYet', 'not yet');
     }
     if (c.kind === 'quizAvg') {

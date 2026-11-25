@@ -6,12 +6,12 @@
  * hold (they only grow). Certificates come only from a passed assignment (≥70%).
  *
  *   1  Apprentice      "Welcome to the kitchen"   email verified · 1 course joined · 1 lesson finished
- *   2  Commis Chef     "Your first plate goes out" 1 certificate · member 7 days
- *   3  Sous Chef       "Consistency"               2 certificates · quiz average 75% · active in 3 weeks
- *   4  Chef de Partie  "Your own station"          3 certificates · one assignment ≥85% · a community post or review · 60 days
- *   5  Executive Chef  "You lead the brigade"      4 certificates · assignment avg 85% · quiz avg 85% · 1 masterclass · 120 days
- *   6  Master Chef     "Your signature creation"   5 certificates · one assignment ≥95% · 2 masterclasses · 5 community contributions · 180 days
- *   7  Elite           "The chef's blessing"       6 certificates · assignment avg 90% · 3 masterclasses (1 live) · 365 days · approved by the chef
+ *   2  Commis Chef     "Your first plate goes out" 3 certificates · member 2 months
+ *   3  Sous Chef       "Consistency"               3 certificates · quiz avg 75% · active in 8 weeks · 10 posts/reviews · 4 months
+ *   4  Chef de Partie  "Your own station"          6 certificates · one assignment ≥90% · 20 posts/reviews · 6 months
+ *   5  Executive Chef  "You lead the brigade"      6 certificates · assignment & quiz avg 88% · 2 masterclasses · 9 months
+ *   6  Master Chef     "Your signature creation"   10 certificates · assignment avg 95% · 3 masterclasses · 50 contributions · 1 year
+ *   7  Elite           "The chef's blessing"       10 certificates · assignment avg 98% · 5 masterclasses · 100 contributions · 2 years · approved by the chef
  *
  * Special roles:  8 Instructor (role INSTRUCTOR) · 9 Admin (role ADMIN)
  *
@@ -64,6 +64,8 @@ export interface BadgeProgress {
   /** ISO date the account was created */
   memberSince?: string | null;
   eliteApproved?: boolean;
+  /** Level kept from before the harder ladder: the badge never goes below it (0 = none). */
+  floor?: number;
 }
 
 export interface BadgeDefinition {
@@ -96,32 +98,32 @@ export const BADGES: BadgeDefinition[] = [
   },
   {
     id: 2, nameKey: 'badges.commisChef.name', descKey: 'badges.commisChef.desc', mottoKey: 'badges.commisChef.motto',
-    minCourses: 1, req: { certificates: 1, days: 7 },
+    minCourses: 3, req: { certificates: 3, days: 60 },
     image: '/assets/img/badge/badge-2.webp', color: '#c8a96e', stars: 1,
   },
   {
     id: 3, nameKey: 'badges.sousChef.name', descKey: 'badges.sousChef.desc', mottoKey: 'badges.sousChef.motto',
-    minCourses: 2, req: { certificates: 2, quizAvg: 75, activeWeeks: 3 },
+    minCourses: 3, req: { certificates: 3, quizAvg: 75, activeWeeks: 8, shareOrReview: 10, days: 120 },
     image: '/assets/img/badge/badge-3.webp', color: '#b8973e', stars: 2,
   },
   {
     id: 4, nameKey: 'badges.chefDePartie.name', descKey: 'badges.chefDePartie.desc', mottoKey: 'badges.chefDePartie.motto',
-    minCourses: 3, req: { certificates: 3, bestAssignment: 85, shareOrReview: 1, days: 60 },
+    minCourses: 6, req: { certificates: 6, bestAssignment: 90, shareOrReview: 20, days: 180 },
     image: '/assets/img/badge/badge-4.webp', color: '#c0392b', stars: 2,
   },
   {
     id: 5, nameKey: 'badges.executiveChef.name', descKey: 'badges.executiveChef.desc', mottoKey: 'badges.executiveChef.motto',
-    minCourses: 4, req: { certificates: 4, avgAssignment: 85, quizAvg: 85, masterclasses: 1, days: 120 },
+    minCourses: 6, req: { certificates: 6, avgAssignment: 88, quizAvg: 88, masterclasses: 2, days: 270 },
     image: '/assets/img/badge/badge-5.webp', color: '#2e7d52', stars: 3,
   },
   {
     id: 6, nameKey: 'badges.masterChef.name', descKey: 'badges.masterChef.desc', mottoKey: 'badges.masterChef.motto',
-    minCourses: 5, req: { certificates: 5, bestAssignment: 95, masterclasses: 2, contributions: 5, days: 180 },
+    minCourses: 10, req: { certificates: 10, avgAssignment: 95, masterclasses: 3, contributions: 50, days: 365 },
     image: '/assets/img/badge/badge-6.webp', color: '#c8a030', stars: 4,
   },
   {
     id: 7, nameKey: 'badges.elite.name', descKey: 'badges.elite.desc', mottoKey: 'badges.elite.motto',
-    minCourses: 6, req: { certificates: 6, avgAssignment: 90, masterclasses: 3, liveMasterclasses: 1, days: 365, chefApproval: true },
+    minCourses: 10, req: { certificates: 10, avgAssignment: 98, masterclasses: 5, contributions: 100, days: 730, chefApproval: true },
     image: '/assets/img/badge/badge-7.webp', color: '#d4a017', stars: 5,
   },
   {
@@ -188,14 +190,18 @@ export function badgeProgressPercent(badge: BadgeDefinition, progress: number | 
   return Math.round((sum / checks.length) * 100);
 }
 
-/** Student levels reached in a row, 0 (Apprentice not earned yet) … 7 (Elite). */
+/**
+ * Student level, 0 (Apprentice not earned yet) … 7 (Elite): the levels reached in a row
+ * under the current rules, but never below the level kept from before (`floor`).
+ */
 export function studentLevel(progress: number | BadgeProgress | null | undefined): number {
   let level = 0;
   for (const b of BADGES.slice(0, 7)) {
     if (!levelMet(b, progress)) break;
     level = b.id;
   }
-  return level;
+  const floor = Math.min(7, Math.max(0, toProgress(progress).floor ?? 0));
+  return Math.max(level, floor);
 }
 
 /**
@@ -298,6 +304,7 @@ export interface BadgeSource {
   completedMasterclasses?: number;
   liveMasterclasses?: number;
   eliteApprovedAt?: string | null;
+  badgeFloor?: number;
 }
 
 /**
@@ -327,5 +334,6 @@ export function progressOf(
     liveMasterclasses: s.liveMasterclasses ?? 0,
     memberSince: s.createdAt ?? null,
     eliteApproved: !!s.eliteApprovedAt,
+    floor: s.badgeFloor ?? 0,
   };
 }

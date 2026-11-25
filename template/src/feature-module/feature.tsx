@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Header from "../core/common/header/header";
 import BackToTop from "../core/common/backtotop/backToTop";
 import PromoBar from '../components/promo/PromoBar';
+import WhatsNewModal from '../components/WhatsNewModal';
 import Footer from "./HomePages/home-one/footer";
 
 /* Prefixes for dashboard/instructor/admin pages — they provide their
@@ -53,6 +54,7 @@ const Feature = () => {
           <Footer />
           <BackToTop />
           <PromoBar />
+          <WhatsNewModal />
         </div>
         <div className="sidebar-overlay" />
       </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryTopbar from './LuxuryTopbar';
 import LuxurySidebar from './LuxurySidebar';
+import WhatsNewModal from './WhatsNewModal';
 import { useAppDispatch } from '../core/redux/hooks';
 import { fetchCurrentUser } from '../core/redux/authSlice';
 
@@ -55,6 +56,8 @@ const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children 
     >
       {/* Fixed top bar */}
       <LuxuryTopbar onSidebarToggle={handleSidebarToggle} />
+      {/* One-time "What's new" patch notes after an update */}
+      <WhatsNewModal />
 
       {/* Below the topbar: sidebar + content */}
       <div className="luxury-body">

@@ -3910,32 +3910,32 @@
     },
     "commisChef": {
       "name": "Commis Chef",
-      "desc": "You earned your first certificate. A real start: keep learning to grow in the brigade.",
+      "desc": "Three certificates and two months with the academy: your first plates are going out. Keep learning to grow in the brigade.",
       "motto": "Your first plate goes out"
     },
     "sousChef": {
       "name": "Sous Chef",
-      "desc": "Two certificates, strong quiz results and several weeks of practice: you cook with consistency.",
+      "desc": "Strong quiz results, many weeks of practice and an active voice in the community: you cook with consistency.",
       "motto": "Consistency"
     },
     "chefDePartie": {
       "name": "Chef de Partie",
-      "desc": "Three certificates, an assignment marked 85% or more and your work shared with others: you run your own station.",
+      "desc": "More certificates, an excellent assignment and a real place in the community: you run your own station.",
       "motto": "Your own station"
     },
     "executiveChef": {
       "name": "Executive Chef",
-      "desc": "Four certificates, high marks in quizzes and assignments, and a masterclass: you lead with skill.",
+      "desc": "High marks in quizzes and assignments, masterclasses and months of dedication: you lead the brigade.",
       "motto": "You lead the brigade"
     },
     "masterChef": {
       "name": "Master Chef",
-      "desc": "Five certificates, an excellence mark of 95%, two masterclasses and an active voice in the community: your signature is recognised.",
+      "desc": "Ten certificates, near-perfect assignments, masterclasses and a community that knows your name: your signature is recognised.",
       "motto": "Your signature creation"
     },
     "elite": {
       "name": "Elite",
-      "desc": "The rarest badge: six certificates, outstanding marks, three masterclasses including one live in the atelier, a full year with us, and your signature showpiece approved by Chef Sara.",
+      "desc": "The rarest badge: outstanding marks, five masterclasses, two years with us, a huge contribution to the community, and your signature showpiece approved by Chef Sara.",
       "motto": "The chef's blessing"
     },
     "instructor": {
@@ -3952,14 +3952,11 @@
       "enrolledCourses": "Join {{count}} courses",
       "completedLessons_one": "Finish your first lesson",
       "completedLessons": "Finish {{count}} lessons",
-      "certificates_one": "Earn {{count}} certificate (pass the course assignment)",
-      "certificates": "Earn {{count}} certificates (pass the course assignment)",
       "quizAvg": "Quiz average {{n}}% or more",
       "activeWeeks_one": "Learn in {{count}} week",
       "activeWeeks": "Learn in {{count}} different weeks",
       "bestAssignment": "Get {{n}}% or more on one assignment",
       "avgAssignment": "Assignment average {{n}}% or more",
-      "shareOrReview": "Share a creation in the community or review a course",
       "contributions_one": "{{count}} community post or answer",
       "contributions": "{{count}} community posts or answers",
       "masterclasses_one": "Join {{count}} masterclass",
@@ -3976,13 +3973,10 @@
       "avgAssignmentShort": "assignments {{n}}%",
       "activeWeeksShort_one": "{{count}} active week",
       "activeWeeksShort": "{{count}} active weeks",
-      "shareShort": "share or review",
       "contributionsShort_one": "{{count}} contribution",
       "contributionsShort": "{{count}} contributions",
       "masterclassesShort_one": "{{count}} masterclass",
       "masterclassesShort": "{{count}} masterclasses",
-      "daysShort_one": "{{count}} day",
-      "daysShort": "{{count}} days",
       "chefShort": "chef's approval",
       "yours": "yours: {{n}}%",
       "noQuizYet": "no quiz yet",
@@ -3990,7 +3984,17 @@
       "notYet": "not yet",
       "done": "done",
       "toEarn": "To earn",
-      "allNeeded": "You need all of these:"
+      "allNeeded": "You need all of these:",
+      "certificates_one": "Earn {{count}} certificate (every lesson, every quiz, assignment 70%+)",
+      "certificates": "Earn {{count}} certificates (every lesson, every quiz, assignment 70%+)",
+      "shareOrReview_one": "{{count}} community post or course review",
+      "shareOrReview": "{{count}} community posts or course reviews",
+      "shareShort_one": "{{count}} post or review",
+      "shareShort": "{{count}} posts or reviews",
+      "monthsShort_one": "{{count}} month",
+      "monthsShort": "{{count}} months",
+      "yearsShort_one": "{{count}} year",
+      "yearsShort": "{{count}} years"
     }
   },
   "badgeGuide": {
@@ -4338,5 +4342,33 @@
     "barSoon": "Starts at midnight:",
     "barSoonCta": "See it",
     "pricingSoon": "{{price}} DH instead of {{was}} DH from midnight, for 24 hours"
+  },
+  "whatsNew": {
+    "menu": "What's new",
+    "patch": "Patch",
+    "sub": "What's new on SARALÖWE Academy",
+    "seeBadge": "See my badge",
+    "letsGo": "Let's go",
+    "tag": {
+      "new": "New",
+      "changed": "Changed",
+      "improved": "Improved",
+      "admin": "Admin"
+    },
+    "r20": {
+      "name": "The Brigade Update",
+      "ladderTitle": "The Brigade badge ladder",
+      "ladderText": "Seven levels, from Apprentice to Elite. Each one asks for certificates, good marks, regular practice, sharing with the community and masterclasses. Open your badge to see exactly what your next level needs.",
+      "keepTitle": "Nobody goes down",
+      "keepText": "You keep the badge you already had. The new, harder rules only decide your next level-ups.",
+      "eliteTitle": "Elite: the chef's blessing",
+      "eliteText": "The top badge is now approved personally by Chef Sara: your signature showpiece, on top of two years of excellence.",
+      "certTitle": "Certificates come from your assignment",
+      "certText": "A certificate is earned by passing the course assignment (70% or more), after finishing every lesson and quiz. A first mark that fails allows one resubmission.",
+      "topbarTitle": "Move freely from your dashboard",
+      "topbarText": "The top bar now has Home, Masterclasses, Ebooks and Academy. On phones, tap the house icon. Search is a small icon that opens when you point at it or tap it.",
+      "adminTitle": "Manage Users: badges with their numbers",
+      "adminText": "Each student shows their badge, certificates, quiz and assignment averages and days as a member. From Master Chef, an \"Approve Elite showpiece\" button appears."
+    }
   }
 }

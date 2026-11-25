@@ -70,6 +70,7 @@ interface User {
   completedMasterclasses?: number;
   liveMasterclasses?: number;
   eliteApprovedAt?: string | null;
+  badgeFloor?: number;
 }
 
 const AdminUsers: React.FC = () => {
