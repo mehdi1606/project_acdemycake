@@ -2,7 +2,7 @@
    SARALÖWE GLASS ATELIER — the dashboard finish (student / instructor / admin)
    ────────────────────────────────────────────────────────────────────────
    Two matched colours carry every surface:
-     · ivory  — frosted glass panels floating over a warm, softly lit canvas
+     · clear glass — liquid-glass panels over a blush canvas lit in rose and crimson
      · burgundy — the ink: headings, numbers, icons, depth, the dark hero
    One accent, used sparingly so it is always noticed:
      · champagne gold — the action to take, the active state, progress,
@@ -12,7 +12,7 @@
 
 :root {
   --gl-ivory: #FBF6F0;
-  --gl-canvas: #F3EDE4;
+  --gl-canvas: #F3D9DF;
   --gl-burg: #651C32;
   --gl-burg-deep: #4A1428;
   --gl-ink: #2B0F1E;
@@ -20,25 +20,27 @@
   --gl-gold-lt: #F3D58E;
   --gl-gold-grad: linear-gradient(135deg, #B8841F 0%, #D9AE52 45%, #F3D58E 100%);
 
-  --gl-glass: rgba(255, 252, 248, 0.62);
-  --gl-glass-strong: rgba(255, 252, 248, 0.82);
-  --gl-blur: blur(22px) saturate(170%);
-  --gl-hairline: rgba(197, 145, 44, 0.16);
-  --gl-hairline-strong: rgba(197, 145, 44, 0.38);
+  --gl-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.50) 0%, rgba(255, 255, 255, 0.26) 55%, rgba(255, 255, 255, 0.34) 100%);
+  --gl-glass-strong: rgba(255, 255, 255, 0.62);
+  --gl-blur: blur(30px) saturate(210%) brightness(1.04);
+  --gl-hairline: rgba(255, 255, 255, 0.55);
+  --gl-hairline-strong: rgba(255, 255, 255, 0.85);
   --gl-text: #2B0F1E;
   --gl-text-mid: rgba(43, 15, 30, 0.72);
   --gl-text-muted: rgba(43, 15, 30, 0.5);
 
   --gl-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 0 0 1px var(--gl-hairline),
-    0 2px 6px rgba(74, 20, 40, 0.04),
-    0 18px 44px -18px rgba(74, 20, 40, 0.22);
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.30),
+    inset 0 0 24px rgba(255, 255, 255, 0.18),
+    0 2px 6px rgba(101, 28, 50, 0.06),
+    0 22px 48px -20px rgba(101, 28, 50, 0.30);
   --gl-shadow-lift:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 0 1px var(--gl-hairline-strong),
-    0 4px 10px rgba(74, 20, 40, 0.05),
-    0 30px 60px -22px rgba(74, 20, 40, 0.32);
+    inset 0 1px 1px #fff,
+    inset 0 -1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 0 30px rgba(255, 255, 255, 0.26),
+    0 4px 10px rgba(101, 28, 50, 0.08),
+    0 34px 64px -24px rgba(101, 28, 50, 0.40);
   --gl-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --gl-r: 26px;
   --gl-r-sm: 16px;
@@ -64,17 +66,39 @@
 .luxury-dashboard {
   /* ── the canvas: warm ivory, lit by soft burgundy & gold light ───────── */
   background:
-    radial-gradient(900px 520px at 88% -6%, rgba(101, 28, 50, 0.13), transparent 62%),
-    radial-gradient(760px 520px at 8% 38%, rgba(197, 145, 44, 0.14), transparent 60%),
-    radial-gradient(900px 640px at 70% 105%, rgba(232, 180, 190, 0.22), transparent 60%),
-    var(--gl-canvas);
+    radial-gradient(720px 520px at 86% 4%, rgba(166, 25, 46, 0.30), transparent 62%),
+    radial-gradient(640px 520px at 14% 26%, rgba(236, 140, 166, 0.50), transparent 62%),
+    radial-gradient(460px 380px at 52% 58%, rgba(197, 145, 44, 0.16), transparent 62%),
+    radial-gradient(820px 620px at 94% 96%, rgba(101, 28, 50, 0.30), transparent 62%),
+    radial-gradient(620px 520px at 2% 100%, rgba(244, 168, 188, 0.55), transparent 62%),
+    linear-gradient(160deg, #F8E7EB 0%, #F3D9DF 48%, #F7E2E7 100%);
   background-attachment: fixed;
+
+  /* specular rim: bright where light hits (top-left), fading, catching again bottom-right */
+  .lx-card, .lx-stat-card, .lx-course-card, .luxury-sidebar, .lx-quick-tile {
+    position: relative;
+    &::before {
+      content: '';
+      display: block;
+      position: absolute; inset: 0; width: auto; height: auto;
+      border-radius: inherit;
+      padding: 1.2px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.25) 32%, rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.55) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+      opacity: 1;
+      pointer-events: none;
+      z-index: 3;
+    }
+  }
+  .luxury-sidebar { position: fixed; }
 
   .luxury-main { background: transparent; }
 
   /* ── floating glass sidebar ──────────────────────────────────────────── */
   .luxury-sidebar {
-    @include gl-glass(rgba(255, 252, 248, 0.66));
+    @include gl-glass(linear-gradient(170deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.30) 100%));
     border-radius: 30px;
 
     .sidebar-profile {
@@ -116,7 +140,9 @@
     background:
       radial-gradient(520px 260px at 92% 0%, rgba(243, 213, 142, 0.20), transparent 65%),
       radial-gradient(420px 240px at 0% 100%, rgba(232, 120, 150, 0.14), transparent 70%),
-      linear-gradient(135deg, #7A2440 0%, #5A1830 42%, #34091A 100%);
+      linear-gradient(135deg, rgba(138, 32, 62, 0.86) 0%, rgba(101, 28, 50, 0.84) 45%, rgba(58, 12, 28, 0.90) 100%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
     border: none;
     border-radius: 30px;
     padding: 32px 36px;
@@ -162,14 +188,18 @@
     @include gl-glass;
     border-radius: var(--gl-r);
     transition: transform 0.45s var(--gl-ease), box-shadow 0.45s var(--gl-ease), background 0.45s var(--gl-ease);
-    &:hover { box-shadow: var(--gl-shadow-lift); border-color: transparent; }
+    &:hover {
+      box-shadow: var(--gl-shadow-lift);
+      border-color: transparent;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.36) 55%, rgba(255, 255, 255, 0.44) 100%);
+    }
   }
 
   .lx-card {
     .lx-card-header {
       padding: 20px 26px;
       background: transparent;
-      border-bottom: 1px solid rgba(197, 145, 44, 0.12);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.55);
       h5, h6 {
         font-family: 'Playfair Display', serif;
         font-size: 18px; font-weight: 700;
@@ -201,7 +231,6 @@
     padding: 22px 24px;
     gap: 16px;
 
-    &::before { display: none; }
     /* a soft sheen crosses the glass on hover */
     &::after {
       content: '';
@@ -219,9 +248,10 @@
       width: 50px; height: 50px; border-radius: 50%;
       font-size: 20px;
       &, &.gold, &.rose, &.sage, &.slate, &.plum, &.amber {
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.45));
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.25));
+        -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
         color: var(--gl-burg);
-        box-shadow: inset 0 1px 0 #fff, 0 0 0 1px rgba(101, 28, 50, 0.1), 0 8px 18px -8px rgba(74, 20, 40, 0.35);
+        box-shadow: inset 0 1px 1px #fff, inset 0 -1px 1px rgba(255, 255, 255, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.6), 0 10px 20px -8px rgba(101, 28, 50, 0.35);
       }
     }
     .stat-info {
@@ -241,7 +271,7 @@
 
     /* the one figure that matters: gold */
     &.is-key {
-      box-shadow: var(--gl-shadow), 0 0 0 1px rgba(197, 145, 44, 0.42);
+      box-shadow: var(--gl-shadow), 0 0 0 1.5px rgba(197, 145, 44, 0.55), 0 18px 40px -18px rgba(197, 145, 44, 0.55);
       .stat-icon { background: var(--gl-gold-grad) !important; color: var(--gl-ink) !important; box-shadow: 0 10px 22px -8px rgba(197, 145, 44, 0.8) !important; }
       .stat-value {
         background: linear-gradient(135deg, #9A6A14 0%, #C5912C 55%, #B8841F 100%);
@@ -254,8 +284,9 @@
     &.is-hero {
       background:
         radial-gradient(360px 180px at 100% 0%, rgba(243, 213, 142, 0.18), transparent 70%),
-        linear-gradient(135deg, #7A2440 0%, #4A1428 60%, #34091A 100%);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 0 1px rgba(243, 213, 142, 0.2), 0 26px 50px -22px rgba(74, 20, 40, 0.65);
+        linear-gradient(135deg, rgba(138, 32, 62, 0.86) 0%, rgba(74, 20, 40, 0.88) 60%, rgba(52, 9, 26, 0.92) 100%);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 0 30px rgba(255, 255, 255, 0.05), 0 26px 50px -22px rgba(74, 20, 40, 0.65);
+      &::before { opacity: 0.45; }
       padding: 26px 28px;
       &::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent); }
       .stat-icon {
@@ -273,7 +304,7 @@
       &.is-ink {
         background:
           radial-gradient(360px 180px at 0% 100%, rgba(243, 213, 142, 0.14), transparent 70%),
-          linear-gradient(135deg, #3A1424 0%, #2B0F1E 60%, #1D0812 100%);
+          linear-gradient(135deg, rgba(58, 20, 36, 0.88) 0%, rgba(43, 15, 30, 0.90) 60%, rgba(29, 8, 18, 0.94) 100%);
       }
     }
   }
@@ -312,14 +343,16 @@
       font-family: 'Inter', sans-serif !important;
       font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--gl-text-muted) !important;
-      background: rgba(255, 255, 255, 0.35) !important;
+      background: rgba(255, 255, 255, 0.28) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
       padding: 13px 16px;
     }
     tbody td { padding: 14px 16px; color: var(--gl-text-mid); }
     th:first-child, td:first-child { padding-inline-start: 24px; }
     th:last-child, td:last-child { padding-inline-end: 24px; }
     tbody tr { transition: background 0.25s ease; }
-    tbody tr:hover { background: rgba(255, 255, 255, 0.55); }
+    tbody tr:hover { background: rgba(255, 255, 255, 0.35); }
+    tbody td { border-color: rgba(255, 255, 255, 0.5) !important; }
   }
   .lx-money {
     white-space: nowrap;
@@ -417,8 +450,9 @@
     height: 100%; padding: 24px 12px; border-radius: 22px;
     text-decoration: none; text-align: center;
     color: var(--gl-burg); font-size: 13px; font-weight: 700;
-    background: rgba(255, 255, 255, 0.5);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 0 1px var(--gl-hairline);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.18));
+    -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 1px rgba(255, 255, 255, 0.3), 0 12px 26px -16px rgba(101, 28, 50, 0.35);
     transition: transform 0.35s var(--gl-ease), box-shadow 0.35s var(--gl-ease), background 0.35s var(--gl-ease);
     i {
       width: 52px; height: 52px; border-radius: 50%;
@@ -428,7 +462,7 @@
       transition: all 0.35s var(--gl-ease);
     }
     &:hover {
-      color: var(--gl-burg); background: rgba(255, 255, 255, 0.85);
+      color: var(--gl-burg); background: linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4));
       transform: translateY(-4px);
       box-shadow: inset 0 1px 0 #fff, 0 0 0 1px var(--gl-hairline-strong), 0 20px 36px -18px rgba(74, 20, 40, 0.4);
       i { background: var(--gl-gold-grad); color: var(--gl-ink); box-shadow: 0 10px 22px -8px rgba(197, 145, 44, 0.8); }
@@ -491,7 +525,7 @@
 /* glass needs a fallback where backdrop-filter is unsupported */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .luxury-dashboard {
-    .lx-card, .lx-stat-card:not(.is-hero), .lx-course-card, .luxury-sidebar { background: var(--gl-ivory); }
+    .lx-card, .lx-stat-card:not(.is-hero), .lx-course-card, .luxury-sidebar { background: rgba(255, 246, 248, 0.94); }
   }
 }
 
