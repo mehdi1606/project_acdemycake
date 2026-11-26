@@ -129,14 +129,14 @@ services:
       EBOOK_STORAGE_DIR: /app/secure-storage/ebooks
 
       # Invoices — seller details printed on every invoice (empty = not printed)
-      INVOICE_SELLER_NAME:    ${INVOICE_SELLER_NAME:-SARALÖWE Academy}
+      INVOICE_SELLER_NAME:    ${INVOICE_SELLER_NAME:-SARALÖWE}
       INVOICE_SELLER_ADDRESS: ${INVOICE_SELLER_ADDRESS:-}
-      INVOICE_SELLER_ICE:     ${INVOICE_SELLER_ICE:-}
+      INVOICE_SELLER_ICE:     ${INVOICE_SELLER_ICE:-003660183000017}
       INVOICE_SELLER_IF:      ${INVOICE_SELLER_IF:-}
       INVOICE_SELLER_RC:      ${INVOICE_SELLER_RC:-}
       INVOICE_SELLER_EMAIL:   ${INVOICE_SELLER_EMAIL:-}
       INVOICE_SELLER_PHONE:   ${INVOICE_SELLER_PHONE:-}
-      INVOICE_VAT_RATE:       ${INVOICE_VAT_RATE:-0}
+      INVOICE_VAT_RATE:       ${INVOICE_VAT_RATE:-20}
 
     volumes:
       - uploads_data:/app/uploads   # Persistent file storage
