@@ -24,9 +24,9 @@ interface Props {
 }
 
 const DIMS = {
-  sm: { outer: 40, inner: 32, cornerBadge: 24, fontSize: 14, ring: 2 },
-  md: { outer: 52, inner: 42, cornerBadge: 30, fontSize: 17, ring: 2 },
-  lg: { outer: 62, inner: 50, cornerBadge: 36, fontSize: 20, ring: 3 },
+  sm: { outer: 40, inner: 34, cornerBadge: 22, fontSize: 14, ring: 2 },
+  md: { outer: 52, inner: 45, cornerBadge: 28, fontSize: 17, ring: 2 },
+  lg: { outer: 62, inner: 54, cornerBadge: 34, fontSize: 20, ring: 2.5 },
 };
 
 const BadgeAvatar: React.FC<Props> = ({
@@ -72,7 +72,7 @@ const BadgeAvatar: React.FC<Props> = ({
           inset: 0,
           borderRadius: '50%',
           border: `${d.ring}px solid ${ringColor}`,
-          boxShadow: `0 0 8px ${ringColor}88, 0 0 14px ${ringColor}44`,
+          boxShadow: `0 0 0 1px rgba(255,255,255,0.7), 0 4px 12px ${ringColor}55`,
           pointerEvents: 'none',
           zIndex: 1,
         }}
@@ -117,41 +117,27 @@ const BadgeAvatar: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Corner badge shield */}
+      {/* Corner badge: the transparent 3D pin itself, no disc behind it */}
       {badge && (
-        <div
+        <img
+          src={badge.image}
+          srcSet={badgeSrcSet(badge.image)}
+          sizes={`${d.cornerBadge * 2}px`}
+          alt=""
+          loading="lazy"
+          decoding="async"
           style={{
             position: 'absolute',
-            bottom: -4,
-            right: -4,
+            bottom: -6,
+            right: -7,
             width: d.cornerBadge,
             height: d.cornerBadge,
-            borderRadius: '50%',
-            background: '#fff',
-            border: '1.5px solid rgba(255,255,255,0.9)',
-            boxShadow: `0 2px 8px rgba(0,0,0,0.28), 0 0 6px ${ringColor}55`,
+            objectFit: 'contain',
             zIndex: 3,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
+            filter: 'drop-shadow(0 2px 3px rgba(40, 15, 25, 0.45))',
+            pointerEvents: 'none',
           }}
-        >
-          <img
-            src={badge.image}
-            srcSet={badgeSrcSet(badge.image)}
-            sizes={`${d.cornerBadge}px`}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transform: 'scale(1.35)',   // zoom into the centred shield (crops transparent padding)
-            }}
-          />
-        </div>
+        />
       )}
     </div>
   );

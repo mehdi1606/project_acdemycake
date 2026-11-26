@@ -208,25 +208,22 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, progress, earned = true })
                 />
                 <div
                   style={{
-                    width: 160,
-                    height: 160,
-                    borderRadius: 22,
-                    overflow: 'hidden',
+                    width: 190,
+                    height: 190,
                     position: 'relative',
                     zIndex: 1,
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: `0 0 22px ${badge.color}66`,
                   }}
                 >
                   <img
                     src={badge.image}
                     srcSet={badgeSrcSet(badge.image)}
-                    sizes="160px"
+                    sizes="380px"
                     alt={t(badge.nameKey)}
                     decoding="async"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.4)' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', filter: `drop-shadow(0 14px 22px rgba(0,0,0,0.45)) drop-shadow(0 0 18px ${badge.color}55)` }}
                   />
                 </div>
               </div>

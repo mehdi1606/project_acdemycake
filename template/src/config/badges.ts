@@ -90,51 +90,54 @@ export interface BadgeDefinition {
   stars: number;
 }
 
+/** Bump when the badge artwork changes, so browsers fetch the new files. */
+const BADGE_V = '?v=3';
+
 export const BADGES: BadgeDefinition[] = [
   {
     id: 1, nameKey: 'badges.apprentice.name', descKey: 'badges.apprentice.desc', mottoKey: 'badges.apprentice.motto',
     minCourses: 0, req: { emailVerified: true, enrolledCourses: 1, completedLessons: 1 },
-    image: '/assets/img/badge/badge-1.webp', color: '#e8a4b8', stars: 1,
+    image: `/assets/img/badge/badge-1.webp${BADGE_V}`, color: '#D9D4E6', stars: 1,
   },
   {
     id: 2, nameKey: 'badges.commisChef.name', descKey: 'badges.commisChef.desc', mottoKey: 'badges.commisChef.motto',
     minCourses: 3, req: { certificates: 3, days: 60 },
-    image: '/assets/img/badge/badge-2.webp', color: '#c8a96e', stars: 1,
+    image: `/assets/img/badge/badge-2.webp${BADGE_V}`, color: '#E8A0B4', stars: 1,
   },
   {
     id: 3, nameKey: 'badges.sousChef.name', descKey: 'badges.sousChef.desc', mottoKey: 'badges.sousChef.motto',
     minCourses: 3, req: { certificates: 3, quizAvg: 75, activeWeeks: 8, shareOrReview: 10, days: 120 },
-    image: '/assets/img/badge/badge-3.webp', color: '#b8973e', stars: 2,
+    image: `/assets/img/badge/badge-3.webp${BADGE_V}`, color: '#2F55D4', stars: 2,
   },
   {
     id: 4, nameKey: 'badges.chefDePartie.name', descKey: 'badges.chefDePartie.desc', mottoKey: 'badges.chefDePartie.motto',
     minCourses: 6, req: { certificates: 6, bestAssignment: 90, shareOrReview: 20, days: 180 },
-    image: '/assets/img/badge/badge-4.webp', color: '#c0392b', stars: 2,
+    image: `/assets/img/badge/badge-4.webp${BADGE_V}`, color: '#16A05A', stars: 2,
   },
   {
     id: 5, nameKey: 'badges.executiveChef.name', descKey: 'badges.executiveChef.desc', mottoKey: 'badges.executiveChef.motto',
     minCourses: 6, req: { certificates: 6, avgAssignment: 88, quizAvg: 88, masterclasses: 2, days: 270 },
-    image: '/assets/img/badge/badge-5.webp', color: '#2e7d52', stars: 3,
+    image: `/assets/img/badge/badge-5.webp${BADGE_V}`, color: '#8E44D6', stars: 3,
   },
   {
     id: 6, nameKey: 'badges.masterChef.name', descKey: 'badges.masterChef.desc', mottoKey: 'badges.masterChef.motto',
     minCourses: 10, req: { certificates: 10, avgAssignment: 95, masterclasses: 3, contributions: 50, days: 365 },
-    image: '/assets/img/badge/badge-6.webp', color: '#c8a030', stars: 4,
+    image: `/assets/img/badge/badge-6.webp${BADGE_V}`, color: '#D21F3C', stars: 4,
   },
   {
     id: 7, nameKey: 'badges.elite.name', descKey: 'badges.elite.desc', mottoKey: 'badges.elite.motto',
     minCourses: 10, req: { certificates: 10, avgAssignment: 98, masterclasses: 5, contributions: 100, days: 730, chefApproval: true },
-    image: '/assets/img/badge/badge-7.webp', color: '#d4a017', stars: 5,
+    image: `/assets/img/badge/badge-7.webp${BADGE_V}`, color: '#E0B84F', stars: 5,
   },
   {
     id: 8, nameKey: 'badges.instructor.name', descKey: 'badges.instructor.desc',
     minCourses: 0, role: 'INSTRUCTOR',
-    image: '/assets/img/badge/badge-8.webp', color: '#2e7d52', stars: 0,
+    image: `/assets/img/badge/badge-8.webp${BADGE_V}`, color: '#C9A24A', stars: 0,
   },
   {
     id: 9, nameKey: 'badges.admin.name', descKey: 'badges.admin.desc',
     minCourses: 0, role: 'ADMIN',
-    image: '/assets/img/badge/badge-9.webp', color: '#1565c0', stars: 0,
+    image: `/assets/img/badge/badge-9.webp${BADGE_V}`, color: '#18A6A6', stars: 0,
   },
 ];
 
@@ -246,16 +249,18 @@ export function getBadgeFromRole(role?: string | null): BadgeDefinition {
 
 // ── Responsive image helpers ─────────────────────────────────────────────────
 //
-// Each badge ships in three downscaled WebP sizes (see scripts/optimize-badges.js):
-//   badge-N-128.webp (128px) · badge-N.webp (256px) · badge-N-512.webp (512px)
+// Each badge ships in four transparent WebP sizes (3D gemstone pins, Nov 2026):
+//   badge-N-128.webp · badge-N.webp (256) · badge-N-512.webp · badge-N-1024.webp
 // All are well under 50 KB. `badgeSrcSet` lets the browser pick the right one for
 // the rendered size + device DPR, so a 24px corner avatar never downloads the 512px
 // file and a 168px showcase slide stays crisp on retina.
 
-/** Build a srcset string ("…-128.webp 128w, ….webp 256w, …-512.webp 512w") from a badge image path. */
+/** Build a srcset string (128 · 256 · 512 · 1024 px) from a badge image path (keeps its ?v= tag). */
 export function badgeSrcSet(image: string): string {
-  const base = image.replace(/\.webp$/i, '');
-  return `${base}-128.webp 128w, ${image} 256w, ${base}-512.webp 512w`;
+  const m = image.match(/^(.*)\.webp(\?.*)?$/i);
+  if (!m) return image;
+  const [, base, q = ''] = m;
+  return `${base}-128.webp${q} 128w, ${base}.webp${q} 256w, ${base}-512.webp${q} 512w, ${base}-1024.webp${q} 1024w`;
 }
 
 // In-memory record of badge URLs whose <img> has finished loading at least once.

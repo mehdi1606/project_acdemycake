@@ -88,16 +88,12 @@ const UserBadge: React.FC<Props> = ({
         style={{
           width: dim.img,
           height: dim.img,
-          borderRadius: '50%',
-          border: `2px solid ${badge.color}88`,
-          background: `radial-gradient(circle at 40% 35%, ${badge.color}22, transparent 70%)`,
+          background: 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: `0 0 ${dim.img / 3}px ${badge.color}33`,
-          overflow: 'hidden',
-          transition: 'box-shadow 0.3s',
-          ...(tooltipOpen || hovered ? { boxShadow: `0 0 ${dim.img / 2}px ${badge.color}77` } : {}),
+          transition: 'transform 0.3s',
+          ...(tooltipOpen || hovered ? { transform: 'translateY(-1px) scale(1.06)' } : {}),
         }}
       >
         <img
@@ -110,8 +106,8 @@ const UserBadge: React.FC<Props> = ({
           style={{
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            transform: 'scale(1.35)',   // zoom into the centred shield (crops transparent padding)
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 2px 4px rgba(40, 15, 25, 0.35))',
           }}
         />
       </div>
