@@ -4802,5 +4802,11 @@
       "SENDING": "Sending",
       "DONE": "Done"
     }
+  },
+  "invoice": {
+    "download": "Download invoice",
+    "downloading": "Preparing your invoice…",
+    "notAvailable": "The invoice for this payment is not available yet. Please try again in a few minutes.",
+    "downloadError": "We couldn't download the invoice. Please try again."
   }
 }

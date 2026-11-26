@@ -15,6 +15,7 @@ import {
 import { getFileUrl } from '../../../environment';
 import { hideOnError } from '../../../core/common/imageFallback';
 import BadgePopup from '../../../components/BadgePopup';
+import InvoiceDownloadButton from '../../../components/InvoiceDownloadButton';
 import { getBadgeForUser, isBadgeEarned, progressOf } from '../../../config/badges';
 
 const StudentDashboard = () => {
@@ -202,6 +203,7 @@ const StudentDashboard = () => {
                         {t(`enums.paymentStatus.${txn.status}`, String(txn.status))}
                       </span>
                     </div>
+                    {txn.status === 'COMPLETED' && <InvoiceDownloadButton paymentId={txn.id} />}
                   </div>
                 ))
               )}
