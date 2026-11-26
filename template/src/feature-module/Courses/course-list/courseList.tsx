@@ -372,9 +372,10 @@ interface CategoryLandingProps {
   categories: CourseCategory[];
   loading: boolean;
   onSelect: (id: string) => void;
+  onBrowseAll: () => void;
 }
 
-const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, onSelect }) => {
+const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, onSelect, onBrowseAll }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
 
@@ -387,6 +388,16 @@ const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, 
           font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin: .4rem 0 .7rem; line-height: 1.2;
         }
         .sl-cat-landing__sub { color: rgba(101,28,50,.62); font-size: 1.02rem; line-height: 1.7; margin: 0; }
+        .sl-cat-browse-all {
+          display: inline-flex; align-items: center; gap: 10px; margin-top: 22px;
+          padding: 12px 24px; border-radius: 999px; border: none; cursor: pointer;
+          font-weight: 800; font-size: .95rem; color: #2B0F1E;
+          background: linear-gradient(135deg, #B8841F 0%, #D9AE52 45%, #F3D58E 100%);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 12px 26px -12px rgba(184,132,31,.9);
+          transition: transform .25s cubic-bezier(.2,.8,.2,1), filter .25s ease;
+        }
+        .sl-cat-browse-all:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .sl-cat-browse-all:active { transform: scale(.97); }
 
         .sl-cat-card {
           width: 100%; height: 100%; text-align: ${isRtl ? 'right' : 'left'};
@@ -431,6 +442,10 @@ const CategoryLanding: React.FC<CategoryLandingProps> = ({ categories, loading, 
         </div>
         <h2 className="sl-cat-landing__title">{t('courseList.browseByCategory', 'Browse by Category')}</h2>
         <p className="sl-cat-landing__sub">{t('courseList.browseByCategorySubCourses', 'Choose the category that inspires you, and explore every course inside it.')}</p>
+        <button type="button" className="sl-cat-browse-all" onClick={onBrowseAll}>
+          <i className="isax isax-element-4" /> {t('courseList.browseAllCourses', 'Browse all courses')}
+          <i className={`isax ${isRtl ? 'isax-arrow-left-2' : 'isax-arrow-right-3'}`} />
+        </button>
       </div>
 
       {loading && categories.length === 0 ? (
@@ -515,6 +530,8 @@ const CourseList: React.FC = () => {
   const [currentPage,      setCurrentPage]      = useState(parseInt(searchParams.get('page') || '1'));
   const [searchQuery,      setSearchQuery]       = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory]  = useState<string | null>(searchParams.get('category') || null);
+  // "All courses" mode: skip the category landing and list every course.
+  const [browseAll, setBrowseAll] = useState(searchParams.get('view') === 'all');
   const [selectedLevel,    setSelectedLevel]     = useState<CourseLevel | null>(
     (searchParams.get('level') as CourseLevel) || null
   );
@@ -635,7 +652,14 @@ const CourseList: React.FC = () => {
   );
 
   // Show the browse-by-category grid until the visitor picks a category or searches.
-  const showCategoryLanding = !selectedCategory && !selectedLevel && !searchQuery;
+  const showCategoryLanding = !browseAll && !selectedCategory && !selectedLevel && !searchQuery;
+  const openAllCourses = () => {
+    setBrowseAll(true);
+    setSelectedCategory(null);
+    setCurrentPage(1);
+    requestAnimationFrame(() => pageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+  const openCategories = () => { setBrowseAll(false); clearFilters(); };
 
   const start = displayedCourses.length > 0 ? (currentPage - 1) * 9 + 1 : 0;
   const end   = (currentPage - 1) * 9 + displayedCourses.length;
@@ -732,25 +756,51 @@ const CourseList: React.FC = () => {
         }
         .sl-cat-back:hover { background: var(--sl-gold); border-color: var(--sl-gold); color: #2A0E18; gap: 12px; }
         .sl-cat-back i { font-size: .95rem; }
+        .sl-cl-mode {
+          display: flex; width: max-content; max-width: 100%; margin: 0 auto 34px; padding: 5px; gap: 4px;
+          border-radius: 999px; background: rgba(255,255,255,.75);
+          box-shadow: inset 0 1px 1px #fff, 0 0 0 1px rgba(60,20,35,.08), 0 12px 26px -16px rgba(40,15,25,.35);
+        }
+        .sl-cl-mode button {
+          display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border: none; border-radius: 999px;
+          background: transparent; color: #651C32; font-weight: 700; font-size: .92rem; cursor: pointer;
+          transition: background .25s ease, color .25s ease, box-shadow .25s ease;
+        }
+        .sl-cl-mode button.is-on { background: #651C32; color: #FBF6F0; box-shadow: 0 10px 22px -10px rgba(101,28,50,.7); }
+        .sl-cl-mode button:not(.is-on):hover { background: rgba(197,145,44,.12); }
+        @media (max-width: 575.98px) { .sl-cl-mode button { padding: 9px 16px; font-size: .86rem; } }
       `}</style>
 
       {/* ── Main content ── */}
       <section className="sl-cl-page" ref={pageRef}>
         <div className="container">
 
+          {/* How to explore: by category, or every course at once */}
+          <div className="sl-cl-mode" role="tablist" aria-label={t('courseList.exploreBy', 'Explore')}>
+            <button type="button" role="tab" aria-selected={!browseAll} className={!browseAll ? 'is-on' : ''} onClick={openCategories}>
+              <i className="isax isax-category" /> {t('courseList.byCategory', 'By category')}
+            </button>
+            <button type="button" role="tab" aria-selected={browseAll} className={browseAll ? 'is-on' : ''} onClick={openAllCourses}>
+              <i className="isax isax-element-4" /> {t('courseList.allCoursesTitle', 'All Courses')}
+            </button>
+          </div>
+
           {showCategoryLanding ? (
             <CategoryLanding
               categories={categories}
               loading={categoriesLoading}
               onSelect={handleSelectCategory}
+              onBrowseAll={openAllCourses}
             />
           ) : (
           <>
           {/* Back to all categories */}
-          <button type="button" className="sl-cat-back" onClick={clearFilters}>
-            <i className={`isax ${isRtl ? 'isax-arrow-right-1' : 'isax-arrow-left-2'}`} />
-            {t('courseList.allCategories', 'All Categories')}
-          </button>
+          {!browseAll && (
+            <button type="button" className="sl-cat-back" onClick={openCategories}>
+              <i className={`isax ${isRtl ? 'isax-arrow-right-1' : 'isax-arrow-left-2'}`} />
+              {t('courseList.allCategories', 'All Categories')}
+            </button>
+          )}
 
           {/* Gate for guests or students without an active subscription.
               Admin and Instructor always bypass — they can see all courses. */}

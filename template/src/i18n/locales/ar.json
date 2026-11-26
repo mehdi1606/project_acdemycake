@@ -3050,6 +3050,8 @@
     "loadingPdf": "جارٍ تحميل ملف PDF…"
   },
   "courseList": {
+    "byCategory": "حسب التصنيف",
+    "exploreBy": "طريقة الاستكشاف",
     "browseByCategory": "تصفّح حسب الفئة",
     "browseByCategorySub": "اختر الفئة التي تلهمك، واستكشف جميع البرامج بداخلها.",
     "discover": "اكتشف",
