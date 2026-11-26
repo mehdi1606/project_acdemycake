@@ -3,10 +3,12 @@ package com.academy.service;
 import com.academy.dto.request.*;
 import com.academy.dto.response.AuthResponse;
 import com.academy.dto.response.UserResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface AuthService {
 
-    AuthResponse register(RegisterRequest request);
+    /** Sign-up. A profile photo is mandatory (1 MB max, JPEG/PNG/WebP). */
+    AuthResponse register(RegisterRequest request, MultipartFile avatar);
     AuthResponse registerAdmin(RegisterRequest request);
 
     AuthResponse login(LoginRequest request);

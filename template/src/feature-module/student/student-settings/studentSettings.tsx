@@ -9,7 +9,8 @@ import SettingsModal from "./settingsModal/settingsModal"
 import { useAppSelector, useAppDispatch } from "../../../core/redux/hooks"
 import { setUser } from "../../../core/redux/authSlice"
 import profileService from "../../../services/api/profile.service"
-import { extractApiError } from "../../../services/api/error.utils"
+import { extractApiError, extractApiErrorCode } from "../../../services/api/error.utils"
+import { AvatarPrepareError, avatarErrorKeyFromCode, prepareAvatar } from "../../../components/avatar/avatarImage"
 import { getFileUrl } from "../../../environment"
 import { App } from "antd"
 import AvatarImage from "../../../components/AvatarImage";
@@ -74,25 +75,29 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (!file.type.startsWith("image/")) {
-      message.error(t('student.settings.errImageType', 'Please choose an image file (PNG or JPG).'))
-      return
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      message.error(t('student.settings.errImageSize', 'This image is too large. Please choose one under 5MB.'))
-      return
-    }
+    e.target.value = ""
 
     try {
       setAvatarUploading(true)
-      const avatarUrl = await profileService.uploadAvatar(file)
+      // 1 MB max on the server: big photos are resized/compressed here first.
+      let ready: File
+      try {
+        ready = await prepareAvatar(file)
+      } catch (err) {
+        const key = err instanceof AvatarPrepareError ? err.key : 'unreadable'
+        message.error(t(`avatarRequired.errors.${key}`))
+        return
+      }
+      const avatarUrl = await profileService.uploadAvatar(ready)
       if (user) {
         dispatch(setUser({ ...user, avatarUrl }))
       }
       message.success(t('student.settings.photoUpdated', 'Profile photo updated successfully'))
     } catch (error) {
-      message.error(extractApiError(error, t('student.settings.photoUploadError', 'Failed to upload profile photo. Please try again.')))
+      const key = avatarErrorKeyFromCode(extractApiErrorCode(error))
+      message.error(key
+        ? t(`avatarRequired.errors.${key}`)
+        : extractApiError(error, t('student.settings.photoUploadError', 'Failed to upload profile photo. Please try again.')))
     } finally {
       setAvatarUploading(false)
     }
@@ -168,7 +173,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                   <Link to={route.studentProfile} style={{ color: 'inherit', textDecoration: 'none' }}>{t('student.profile.uploadPhoto', 'Profile Photo')}</Link>
                 </h6>
                 <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: '0 0 10px' }}>
-                  {t('student.settings.photoHint', 'PNG or JPG no bigger than 800px width and height')}
+                  {t('avatarRequired.picker.hint')}
                 </p>
                 <div>
                   <input

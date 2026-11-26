@@ -70,6 +70,14 @@ public class GlobalExceptionHandler {
                 request);
     }
 
+    /** Profile photo problems carry their own code (AVATAR_00x) so the UI can translate them. */
+    @ExceptionHandler(AvatarException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAvatar(
+            AvatarException ex, HttpServletRequest request) {
+        log.warn("Avatar rejected [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), ex.getErrorCode(), request);
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(
             BadRequestException ex, HttpServletRequest request) {

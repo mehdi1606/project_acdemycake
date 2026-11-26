@@ -1,4 +1,4 @@
-import api from './axios.config';
+import api, { apiMultipart } from './axios.config';
 import {
   LoginRequest,
   LoginResponse,
@@ -21,8 +21,13 @@ class AuthService {
   }
 
   // Register new user (requires email verification before login)
-  async register(userData: RegisterRequest): Promise<RegisterResponse> {
-    const response = await api.post<RegisterResponse>('/auth/register', userData);
+  // Multipart: a JSON part "data" + the mandatory profile photo "avatar" (1 MB max).
+  async register(userData: RegisterRequest, avatar: Blob): Promise<RegisterResponse> {
+    const form = new FormData();
+    form.append('data', new Blob([JSON.stringify(userData)], { type: 'application/json' }));
+    const name = avatar instanceof File && avatar.name ? avatar.name : 'avatar.jpg';
+    form.append('avatar', avatar, name);
+    const response = await apiMultipart.post<RegisterResponse>('/auth/register', form);
     // Don't auto-login - user needs to verify email first
     return response.data;
   }

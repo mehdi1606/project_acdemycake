@@ -16,6 +16,9 @@ import com.academy.security.JwtTokenProvider;
 import com.academy.security.UserPrincipal;
 import com.academy.service.AuthService;
 import com.academy.service.EmailService;
+import com.academy.service.FileStorageService;
+import com.academy.service.avatar.AvatarImageValidator;
+import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,10 +44,14 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final BadgeStatsService badgeStatsService;
+    private final FileStorageService fileStorageService;
 
     @Override
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request, MultipartFile avatarFile) {
+        // The photo is checked first: no account is created without a valid one.
+        AvatarImageValidator.ValidatedAvatar avatar = AvatarImageValidator.validate(avatarFile);
+
         if (userRepository.existsByEmail(request.getEmail().toLowerCase())) {
             throw new BadRequestException("Email is already registered");
         }
@@ -64,7 +71,14 @@ public class AuthServiceImpl implements AuthService {
                 .isBanned(false)
                 .build();
 
-        user = userRepository.save(user);
+        String avatarUrl = fileStorageService.storeBytes(avatar.bytes(), "avatars", avatar.extension());
+        user.setAvatarUrl(avatarUrl);
+        try {
+            user = userRepository.save(user);
+        } catch (RuntimeException e) {
+            fileStorageService.deleteFile(avatarUrl);
+            throw e;
+        }
 
         emailService.sendVerificationEmail(user, verificationToken);
 

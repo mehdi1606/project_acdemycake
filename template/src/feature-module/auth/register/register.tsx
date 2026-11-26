@@ -6,6 +6,8 @@ import { register, clearError } from "../../../core/redux/authSlice";
 import { Spin, Alert } from "antd";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { useTranslation } from "react-i18next";
+import AvatarPicker from "../../../components/avatar/AvatarPicker";
+import { avatarErrorKeyFromCode } from "../../../components/avatar/avatarImage";
 
 interface FieldErrors {
   fullName?: string;
@@ -13,6 +15,7 @@ interface FieldErrors {
   password?: string;
   confirmPassword?: string;
   terms?: string;
+  avatar?: string;
 }
 
 const hasNumber  = (v: string) => /[0-9]/.test(v);
@@ -48,6 +51,8 @@ const Register: React.FC = () => {
   const [validationError, setValidationError] = useState(0);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "", email: "", phone: "", password: "", confirmPassword: "",
@@ -56,7 +61,9 @@ const Register: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoading, error, isAuthenticated } = useAppSelector((s) => s.auth);
+  const { isLoading, error, errorCode, isAuthenticated } = useAppSelector((s) => s.auth);
+  // A refused photo (AVATAR_00x) is shown, translated, under the picker instead of the top alert.
+  const avatarServerKey = avatarErrorKeyFromCode(errorCode);
   const route = all_routes;
   // Where the visitor was heading before login/register (passed on from the login page).
   const [carriedState] = useState(() => {
@@ -139,15 +146,20 @@ const Register: React.FC = () => {
       password:        validateField("password", formData.password),
       confirmPassword: validateField("confirmPassword", formData.confirmPassword),
     };
+    if (!avatar) errors.avatar = t('avatarRequired.errors.required');
     if (!agreeTerms) errors.terms = t('auth.errors.termsRequired', 'Please tick the box to accept the Terms of Service and Privacy Policy.');
-    if (Object.values(errors).some(Boolean)) { setFieldErrors(errors); return; }
+    if (Object.values(errors).some(Boolean) || !avatar) { setFieldErrors(errors); return; }
+    if (avatarBusy) return;
 
     try {
       await dispatch(register({
-        fullName: formData.fullName,
-        email:    formData.email,
-        password: formData.password,
-        phone:    formData.phone || undefined,
+        data: {
+          fullName: formData.fullName,
+          email:    formData.email,
+          password: formData.password,
+          phone:    formData.phone || undefined,
+        },
+        avatar,
       })).unwrap();
       navigate(route.login, {
         state: { registrationSuccess: true, email: formData.email, from: carriedState.from, reason: carriedState.reason },
@@ -225,7 +237,7 @@ const Register: React.FC = () => {
           <h1 className="sl-auth__form-title">{t('auth.register.title', 'Create Your Account')}</h1>
           <p className="sl-auth__form-subtitle">{t('auth.register.subtitle', 'Join as a student and start learning today')}</p>
 
-          {error && (
+          {error && !avatarServerKey && (
             <Alert
               message={error}
               type="error"
@@ -238,6 +250,22 @@ const Register: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} noValidate>
+            {/* Profile photo (required) */}
+            <div className="sl-auth__field">
+              <label className="sl-auth__label">{t('avatarRequired.picker.label')} <span className="sl-auth__required">*</span></label>
+              <AvatarPicker
+                value={avatar}
+                onChange={(f) => {
+                  setAvatar(f);
+                  if (f && fieldErrors.avatar) setFieldErrors((p) => ({ ...p, avatar: undefined }));
+                  if (avatarServerKey) dispatch(clearError());
+                }}
+                onBusyChange={setAvatarBusy}
+                error={fieldErrors.avatar || (avatarServerKey ? t(`avatarRequired.errors.${avatarServerKey}`) : null)}
+                disabled={isLoading}
+              />
+            </div>
+
             {/* Full Name */}
             <div className="sl-auth__field">
               <label className="sl-auth__label">{t('auth.register.fullName', 'Full Name')} <span className="sl-auth__required">*</span></label>
@@ -391,7 +419,7 @@ const Register: React.FC = () => {
             </div>
 
             {/* Submit */}
-            <button type="submit" className="sl-auth__submit" disabled={isLoading}>
+            <button type="submit" className="sl-auth__submit" disabled={isLoading || avatarBusy}>
               {isLoading ? (
                 <><Spin size="small" className="me-2" />{t('auth.register.creating', 'Creating account...')}</>
               ) : (

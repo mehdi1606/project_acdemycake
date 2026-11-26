@@ -4956,5 +4956,36 @@
       "vat": "VAT {{rate}} %",
       "download": "Download PDF"
     }
+  },
+  "avatarRequired": {
+    "picker": {
+      "label": "Profile photo",
+      "add": "Add your photo",
+      "choose": "Choose a photo",
+      "change": "Change photo",
+      "remove": "Remove",
+      "ready": "Your photo is ready",
+      "processing": "Preparing your photo…",
+      "dropHere": "Drop your photo here",
+      "dragHint": "Or drag and drop it here.",
+      "hint": "JPEG, PNG or WebP, up to 1 MB. Large photos are resized automatically.",
+      "previewAlt": "Your profile photo"
+    },
+    "errors": {
+      "required": "Please add a profile photo.",
+      "tooLarge": "This photo is too large. Please choose one under 1 MB.",
+      "notImage": "Please choose an image: JPEG, PNG or WebP.",
+      "unreadable": "We couldn't open this photo. Please try a JPEG, PNG or WebP image.",
+      "uploadFailed": "We couldn't save your photo. Please try again."
+    },
+    "modal": {
+      "eyebrow": "One last step",
+      "title": "Add your profile photo",
+      "text": "A profile photo is now required on SARALÖWE Academy. It helps your instructors and classmates recognise you.",
+      "save": "Save my photo",
+      "saving": "Saving…",
+      "logout": "Log out",
+      "note": "Your photo is visible to your instructors and the community."
+    }
   }
 }

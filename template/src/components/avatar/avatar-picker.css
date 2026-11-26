@@ -1,0 +1,140 @@
+/* ── Profile photo picker (sign-up form + dashboard "add your photo" modal) ── */
+.slav { margin: 0; }
+
+.slav__drop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  border: 1.5px dashed rgba(101, 28, 50, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.slav--drag .slav__drop {
+  border-color: #C5912C;
+  background: rgba(243, 213, 142, 0.18);
+  box-shadow: 0 0 0 3px rgba(197, 145, 44, 0.14);
+}
+.slav--error .slav__drop { border-color: #B03060; }
+
+.slav__circle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 88px;
+  height: 88px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  background: linear-gradient(145deg, #F5DADF 0%, #FBF6F0 100%);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(197, 145, 44, 0.55), 0 10px 22px -12px rgba(74, 20, 40, 0.45);
+  transition: transform 0.2s ease;
+}
+.slav__circle:hover:not(:disabled) { transform: scale(1.03); }
+.slav__circle:focus-visible { outline: 3px solid #C5912C; outline-offset: 4px; }
+.slav__circle:disabled { cursor: default; }
+
+.slav__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.slav__placeholder {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  color: #651C32; font-size: 30px;
+}
+.slav__badge {
+  position: absolute; inset-inline-end: 4px; bottom: 4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #B8841F 0%, #D9AE52 45%, #F3D58E 100%);
+  color: #4A1428; font-size: 13px;
+  box-shadow: 0 2px 6px rgba(74, 20, 40, 0.3);
+}
+.slav__busy {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.65);
+}
+.slav__spinner {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 3px solid rgba(101, 28, 50, 0.2);
+  border-top-color: #651C32;
+  animation: slavSpin 0.8s linear infinite;
+}
+@keyframes slavSpin { to { transform: rotate(360deg); } }
+
+.slav__body { flex: 1 1 auto; min-width: 0; }
+.slav__title {
+  font-weight: 700;
+  color: #651C32;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+.slav__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.slav__btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s, background 0.2s;
+}
+.slav__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.slav__btn--main {
+  border: 1.5px solid rgba(101, 28, 50, 0.35);
+  background: #fff;
+  color: #651C32;
+}
+.slav__btn--main:hover:not(:disabled) { background: rgba(245, 218, 223, 0.55); }
+.slav__btn--ghost {
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: #8A5A68;
+}
+.slav__btn--ghost:hover:not(:disabled) { color: #B03060; }
+
+.slav__hint {
+  margin-top: 8px;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: #7A6060;
+}
+/* drag & drop is a desktop gesture */
+@media (hover: none), (max-width: 767.98px) {
+  .slav__hint-drag { display: none; }
+}
+
+.slav__input {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0; pointer-events: none;
+}
+
+.slav__error {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #B03060;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* glass variant: centred, inside the white glass card */
+.slav--glass .slav__drop {
+  flex-direction: column;
+  text-align: center;
+  padding: 20px 16px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.slav--glass .slav__circle { width: 112px; height: 112px; }
+.slav--glass .slav__actions { justify-content: center; }
+.slav--glass .slav__error { justify-content: center; }
+
+@media (max-width: 400px) {
+  .slav__drop { gap: 12px; padding: 12px; }
+  .slav__circle { width: 76px; height: 76px; }
+  .slav--glass .slav__circle { width: 100px; height: 100px; }
+}

@@ -8,7 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (credentials: LoginRequest) => Promise<void>;
-  register: (userData: RegisterRequest) => Promise<{ message: string }>;
+  register: (userData: RegisterRequest, avatar: Blob) => Promise<{ message: string }>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
   clearError: () => void;
@@ -67,11 +67,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const register = useCallback(async (userData: RegisterRequest) => {
+  const register = useCallback(async (userData: RegisterRequest, avatar: Blob) => {
     setIsLoading(true);
     setError(null);
     try {
-      await authService.register(userData);
+      await authService.register(userData, avatar);
       // Don't auto-login - user needs to verify email first
       return { message: 'Registration successful! Please check your email to verify your account, then login.' };
     } catch (err: unknown) {

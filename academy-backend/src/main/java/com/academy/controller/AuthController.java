@@ -9,7 +9,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.academy.exception.AvatarException;
+import com.academy.exception.ErrorCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,11 +25,25 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/register")
-    @Operation(summary = "Register a new user")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+    /**
+     * Sign-up, multipart: a JSON part "data" (RegisterRequest) and a mandatory
+     * image part "avatar" (JPEG/PNG/WebP, 1 MB max). The account is not created
+     * when the photo is missing or invalid.
+     */
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Register a new user (with a mandatory profile photo)")
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
+            @Valid @RequestPart("data") RegisterRequest request,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
+        AuthResponse response = authService.register(request, avatar);
         return ResponseEntity.ok(ApiResponse.success("Registration successful", response));
+    }
+
+    /** The old JSON-only sign-up has no photo, so it is always refused (AVATAR_001). */
+    @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Legacy JSON sign-up: refused, a profile photo is required")
+    public ResponseEntity<ApiResponse<AuthResponse>> registerWithoutPhoto() {
+        throw new AvatarException(ErrorCode.AVATAR_REQUIRED, "A profile photo is required.");
     }
     @PostMapping("/register-admin")
     @PreAuthorize("hasRole('ADMIN')")
