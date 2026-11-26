@@ -7,6 +7,7 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { paymentService } from '../../../services/api/payment.service';
 import { PaymentTransaction, PaymentStatus } from '../../../services/api/types';
 import { Spin } from 'antd';
+import InvoiceDownloadButton from '../../../components/InvoiceDownloadButton';
 
 
 const PAGE_SIZE = 10;
@@ -267,13 +268,16 @@ const StudentOrder: React.FC = () => {
                       <td style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--lx-text)' }}>{formatAmount(txn.amount, txn.currency)}</td>
                       <td>{statusBadge(t, txn.status)}</td>
                       <td>
-                        <button
-                          className="lx-btn lx-btn-outline lx-btn-sm"
-                          title={t('student.orders.viewInvoice', 'View invoice')}
-                          onClick={() => setSelected(txn)}
-                        >
-                          <i className="isax isax-eye" />
-                        </button>
+                        <div className="d-flex gap-1">
+                          <button
+                            className="lx-btn lx-btn-outline lx-btn-sm"
+                            title={t('student.orders.viewInvoice', 'View invoice')}
+                            onClick={() => setSelected(txn)}
+                          >
+                            <i className="isax isax-eye" />
+                          </button>
+                          {txn.status === 'COMPLETED' && <InvoiceDownloadButton paymentId={txn.id} />}
+                        </div>
                       </td>
                     </tr>
                   ))}

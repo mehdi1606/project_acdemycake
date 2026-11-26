@@ -71,7 +71,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Range"));
-        config.setExposedHeaders(List.of("Content-Range", "Accept-Ranges", "Content-Length"));
+        config.setExposedHeaders(List.of("Content-Range", "Accept-Ranges", "Content-Length", "Content-Disposition"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 

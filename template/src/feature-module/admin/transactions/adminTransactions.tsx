@@ -6,6 +6,7 @@ import { Spin, message, Pagination, Select } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchTransactions } from '../../../core/redux/adminSlice';
 import adminService, { TransactionStats } from '../../../services/api/admin.service';
+import InvoiceDownloadButton from '../../../components/InvoiceDownloadButton';
 
 
 const AdminTransactions = () => {
@@ -213,6 +214,7 @@ const AdminTransactions = () => {
                     <th>{t('admin.transactions.amount', 'Amount')}</th>
                     <th>{t('admin.transactions.status', 'Status')}</th>
                     <th>{t('admin.transactions.date', 'Date')}</th>
+                    <th aria-label={t('invoice.download', 'Download invoice')} />
                   </tr>
                 </thead>
                 <tbody>
@@ -256,6 +258,11 @@ const AdminTransactions = () => {
                               ).toLocaleTimeString()}`
                             : '—'}
                         </span>
+                      </td>
+                      <td>
+                        {transaction.status === 'COMPLETED' && (
+                          <InvoiceDownloadButton paymentId={transaction.id} admin />
+                        )}
                       </td>
                     </tr>
                   ))}

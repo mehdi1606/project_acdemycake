@@ -138,6 +138,7 @@ public class EmailServiceImpl implements EmailService {
         if (user.getSubscriptionEndDate() != null) {
             c.detail("Active until", user.getSubscriptionEndDate().toLocalDate().format(DATE));
         }
+        c.after(invoiceNote());
         send(user.getEmail(), c.cta("Go to my courses", url("/student/student-courses")));
     }
 
@@ -181,6 +182,16 @@ public class EmailServiceImpl implements EmailService {
     @Override
     @Async
     public void sendCoursePurchaseConfirmation(User user, Course course) {
+        coursePurchaseConfirmation(user, course, false);
+    }
+
+    @Override
+    @Async
+    public void sendCoursePurchaseConfirmation(User user, Course course, boolean withInvoice) {
+        coursePurchaseConfirmation(user, course, withInvoice);
+    }
+
+    private void coursePurchaseConfirmation(User user, Course course, boolean withInvoice) {
         boolean masterclass = course.getCourseType() == CourseType.MASTERCLASS;
         boolean live = masterclass && course.getMasterclassFormat() == MasterclassFormat.LIVE;
         String courseUrl = url("/course/course-details/" + course.getSlug());
@@ -202,6 +213,7 @@ public class EmailServiceImpl implements EmailService {
             c.detail("Location", course.getSessionLocation());
             c.after("We look forward to welcoming you. The instructor may contact you on WhatsApp with practical details.");
         }
+        if (withInvoice) c.after(invoiceNote());
         send(user.getEmail(), c.cta(live ? "See the masterclass" : "Start learning", live ? courseUrl : url("/student/student-courses")));
     }
 
@@ -297,6 +309,7 @@ public class EmailServiceImpl implements EmailService {
                 .to(user.getFullName())
                 .paragraph("Thank you for your purchase! <strong>" + esc(ebookTitle) + "</strong> has been added to your library.")
                 .paragraph("Your ebook is read online, inside your Saralöwe Academy account, on any device.")
+                .after(invoiceNote())
                 .cta("Read my ebook", url("/student/student-ebooks")));
     }
 
@@ -395,6 +408,12 @@ public class EmailServiceImpl implements EmailService {
         if (user.getRole() == null) return null;
         String r = user.getRole().name().toLowerCase(Locale.ROOT);
         return Character.toUpperCase(r.charAt(0)) + r.substring(1);
+    }
+
+    /** Payment confirmations: where to download the invoice (issued right after the payment). */
+    private String invoiceNote() {
+        return "Your invoice can be downloaded from your account, under <a href=\""
+                + url("/student/student-order-history") + "\">Order history</a>.";
     }
 
     private static String enc(String v) {
