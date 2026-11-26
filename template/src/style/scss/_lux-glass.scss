@@ -713,3 +713,6 @@
   }
   .luxury-dashboard .lx-stat-card.is-hero .stat-info .stat-value { font-size: 26px; }
 }
+
+/* labels on the dark revenue cards stay light */
+.luxury-dashboard .lx-stat-card.is-hero .stat-info .stat-label { color: rgba(251, 246, 240, 0.78); }
