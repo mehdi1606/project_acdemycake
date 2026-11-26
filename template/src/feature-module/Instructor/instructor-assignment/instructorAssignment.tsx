@@ -144,7 +144,7 @@ const AssignmentFormFields: React.FC<FormFieldsProps> = ({ form, courses, onChan
     return !!(form[k.title].trim() || form[k.description].trim() || form[k.instructions].trim())
   }
   const L = rtl
-    ? { title: 'عنوان الواجب', description: 'الوصف', instructions: 'التعليمات', titlePh: 'اكتب عنوان الواجب', descPh: 'اكتب وصف الواجب', instrPh: 'اكتب التعليمات للطالب' }
+    ? { title: 'عنوان الواجب', description: 'الوصف', instructions: 'التعليمات', titlePh: 'اكتبوا عنوان الواجب', descPh: 'اكتبوا وصف الواجب', instrPh: 'اكتبوا التعليمات للطالب' }
     : { title: 'Assignment Title', description: 'Description', instructions: 'Instructions', titlePh: 'Enter assignment title', descPh: 'Enter description', instrPh: 'Enter instructions' }
 
   return (
