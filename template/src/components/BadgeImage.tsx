@@ -12,8 +12,8 @@
  *  - Fixed-size wrapper → zero layout shift while the image loads.
  *  - Lightweight shimmer skeleton until the first paint; skipped entirely if this
  *    badge URL has already loaded once this session (in-memory cache).
- *  - The same zoom-into-the-shield crop the rest of the app uses (cover + scale),
- *    so transparent padding is clipped away.
+ *  - The badges are transparent 3D pins: shown whole (contain) with a soft
+ *    shadow, never cropped into a frame. `scale`/`radius` are kept for old callers.
  */
 
 import React, { useState } from 'react';
@@ -42,7 +42,7 @@ const BadgeImage: React.FC<Props> = ({
   size,
   color = '#C5912C',
   priority = false,
-  scale = 1.35,
+  scale: _scale = 1.35,
   radius = '50%',
   className,
   style,
@@ -57,8 +57,7 @@ const BadgeImage: React.FC<Props> = ({
         position: 'relative',
         width: size,
         height: size,
-        borderRadius: radius,
-        overflow: 'hidden',
+        borderRadius: loaded ? 0 : radius,
         flexShrink: 0,
         background: loaded ? 'transparent' : `${color}14`,
         ...style,
@@ -94,8 +93,8 @@ const BadgeImage: React.FC<Props> = ({
           position: 'relative',
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
-          transform: `scale(${scale})`,
+          objectFit: 'contain',
+          filter: size >= 80 ? 'drop-shadow(0 12px 18px rgba(0,0,0,0.35))' : 'drop-shadow(0 2px 3px rgba(0,0,0,0.35))',
           opacity: loaded ? 1 : 0,
           transition: 'opacity 0.25s ease',
         }}

@@ -158,8 +158,7 @@ const BadgeGuide: React.FC<Props> = ({
                 src={b.image}
                 size={38}
                 color={b.color}
-                scale={1.35}
-                style={{ border: `2px solid ${b.color}55` }}
+
               />
             ))}
           </div>
@@ -195,8 +194,8 @@ const BadgeGuide: React.FC<Props> = ({
             {isCurrent && (
               <div style={{
                 position: 'absolute', inset: -10,
-                borderRadius: 28,
-                border: `2px solid ${badge.color}`,
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${badge.color}33, transparent 68%)`,
                 animation: 'badgeGuidePulse 1.8s ease-in-out infinite',
               }} />
             )}
@@ -208,7 +207,7 @@ const BadgeGuide: React.FC<Props> = ({
               scale={1.4}
               radius={20}
               priority
-              style={{ position: 'relative', zIndex: 1, boxShadow: `0 0 22px ${badge.color}55` }}
+              style={{ position: 'relative', zIndex: 1 }}
             />
             {/* "YOURS" label */}
             {isCurrent && (
@@ -293,7 +292,7 @@ const BadgeGuide: React.FC<Props> = ({
               scale={1.4}
               radius={22}
               priority
-              style={{ position: 'relative', zIndex: 1, boxShadow: `0 0 26px ${badge.color}88` }}
+              style={{ position: 'relative', zIndex: 1 }}
             />
           </div>
 
