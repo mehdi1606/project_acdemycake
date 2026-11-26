@@ -295,7 +295,6 @@ const AdminInvoices: React.FC = () => {
                       <thead>
                         <tr>
                           <th>{t('adminInvoices.col.number', 'Number')}</th>
-                          <th>{t('adminInvoices.col.date', 'Date')}</th>
                           <th>{t('adminInvoices.col.buyer', 'Buyer')}</th>
                           <th>{t('adminInvoices.col.item', 'Item')}</th>
                           <th>{t('adminInvoices.col.type', 'Type')}</th>
@@ -313,16 +312,16 @@ const AdminInvoices: React.FC = () => {
                             onKeyDown={(e) => { if (e.key === 'Enter') setSelected(inv); }}
                             aria-label={t('adminInvoices.openDetails', 'Open invoice {{number}}', { number: inv.invoiceNumber })}
                           >
-                            <td dir="ltr" style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontWeight: 700, whiteSpace: 'nowrap', color: 'var(--gl-burg, #651C32)' }}>
-                              {inv.invoiceNumber}
+                            <td style={{ whiteSpace: 'nowrap' }}>
+                              <div dir="ltr" style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontWeight: 700, color: 'var(--gl-burg, #651C32)', textAlign: 'start' }}>{inv.invoiceNumber}</div>
+                              <div className="text-muted fs-12">{fmtDate(inv.issuedAt)}</div>
                             </td>
-                            <td className="fs-13 text-muted" style={{ whiteSpace: 'nowrap' }}>{fmtDate(inv.issuedAt)}</td>
-                            <td style={{ minWidth: 180 }}>
+                            <td style={{ minWidth: 170 }}>
                               <div className="fw-semibold fs-14" dir="auto">{inv.buyerName || '—'}</div>
                               {contact(inv) && <div className="text-muted fs-12" dir="ltr" style={{ textAlign: 'start' }}>{contact(inv)}</div>}
                             </td>
-                            <td className="fs-13" style={{ minWidth: 200, maxWidth: 320 }} dir="auto">{inv.itemDescription}</td>
-                            <td><span className={`lx-badge ${inv.category === 'MANUAL' ? 'badge-gold' : 'badge-slate'}`}>{typeLabel(inv.category)}</span></td>
+                            <td className="fs-13" dir="auto"><div title={inv.itemDescription} style={{ maxWidth: 230, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.itemDescription}</div></td>
+                            <td><span className={`lx-badge ${inv.category === 'MANUAL' ? 'badge-gold' : 'badge-slate'}`} style={{ whiteSpace: 'nowrap' }}>{typeLabel(inv.category)}</span></td>
                             <td className="fw-semibold" dir="ltr" style={{ textAlign: 'end', whiteSpace: 'nowrap' }}>{formatMAD(inv.amountTtc, inv.currency)}</td>
                             <td style={{ textAlign: 'end' }}><InvoiceDownloadButton invoiceId={inv.id} /></td>
                           </tr>
