@@ -6,6 +6,9 @@ public interface FileStorageService {
 
     String storeFile(MultipartFile file, String directory);
 
+    /** Stores already-validated bytes under a new random name with the given extension. */
+    String storeBytes(byte[] content, String directory, String extension);
+
     void deleteFile(String filePath);
 
     byte[] loadFile(String filePath);

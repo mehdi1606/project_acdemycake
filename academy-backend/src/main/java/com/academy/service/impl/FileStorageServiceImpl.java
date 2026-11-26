@@ -69,6 +69,25 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    public String storeBytes(byte[] content, String directory, String extension) {
+        if (content == null || content.length == 0) {
+            throw new BadRequestException("File is empty");
+        }
+        String newFilename = UUID.randomUUID() + "." + extension;
+        Path targetDirectory = Paths.get(uploadDir, directory);
+        try {
+            Files.createDirectories(targetDirectory);
+            Files.write(targetDirectory.resolve(newFilename), content);
+            String relativePath = directory + "/" + newFilename;
+            log.info("File stored: {}", relativePath);
+            return relativePath;
+        } catch (IOException e) {
+            log.error("Failed to store file: {}", e.getMessage());
+            throw new BadRequestException("Failed to store file: " + e.getMessage());
+        }
+    }
+
+    @Override
     public void deleteFile(String filePath) {
         if (filePath == null || filePath.isBlank()) {
             return;

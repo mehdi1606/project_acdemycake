@@ -60,6 +60,14 @@ public enum ErrorCode {
     /** Payment processing error */
     PAYMENT_FAILED("BUS_002"),
 
+    // ── Profile photo ─────────────────────────────────────────────────────────
+    /** A profile photo is required (sign-up, or a missing file part) */
+    AVATAR_REQUIRED("AVATAR_001"),
+    /** Profile photo is larger than 1 MB */
+    AVATAR_TOO_LARGE("AVATAR_002"),
+    /** Profile photo is not a real JPEG, PNG or WebP image */
+    AVATAR_INVALID_TYPE("AVATAR_003"),
+
     // ── Rate limiting ─────────────────────────────────────────────────────────
     /** Too many requests — client is being throttled */
     RATE_LIMIT_EXCEEDED("RATE_001"),

@@ -16,6 +16,7 @@ import com.academy.security.UserPrincipal;
 import com.academy.service.EmailService;
 import com.academy.service.FileStorageService;
 import com.academy.service.UserService;
+import com.academy.service.avatar.AvatarImageValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -131,13 +132,17 @@ public class UserServiceImpl implements UserService {
     public String uploadAvatar(MultipartFile file) {
         User user = getCurrentUser();
 
-        if (user.getAvatarUrl() != null) {
-            fileStorageService.deleteFile(user.getAvatarUrl());
-        }
+        // 1 MB max, real JPEG/PNG/WebP content (AVATAR_001..003 otherwise).
+        AvatarImageValidator.ValidatedAvatar avatar = AvatarImageValidator.validate(file);
 
-        String avatarUrl = fileStorageService.storeFile(file, "avatars");
+        String previous = user.getAvatarUrl();
+        String avatarUrl = fileStorageService.storeBytes(avatar.bytes(), "avatars", avatar.extension());
         user.setAvatarUrl(avatarUrl);
         userRepository.save(user);
+
+        if (previous != null && !previous.isBlank() && !previous.startsWith("http")) {
+            fileStorageService.deleteFile(previous);
+        }
 
         log.info("Avatar uploaded for user: {}", user.getEmail());
 

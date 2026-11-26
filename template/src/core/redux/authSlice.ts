@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { User, LoginRequest, RegisterRequest } from '../../services/api/types';
+import { User, LoginRequest, RegisterRequest, RegisterResponse } from '../../services/api/types';
 import authService from '../../services/api/auth.service';
 import { extractApiError, extractApiErrorCode } from '../../services/api/error.utils';
 
@@ -40,14 +40,21 @@ export const login = createAsyncThunk<
   }
 );
 
-export const register = createAsyncThunk(
+export const register = createAsyncThunk<
+  RegisterResponse,
+  { data: RegisterRequest; avatar: Blob },
+  { rejectValue: string; rejectedMeta: { errorCode: string | null } }
+>(
   'auth/register',
-  async (userData: RegisterRequest, { rejectWithValue }) => {
+  async ({ data, avatar }, { rejectWithValue }) => {
     try {
-      const response = await authService.register(userData);
+      const response = await authService.register(data, avatar);
       return response;
     } catch (error: unknown) {
-      return rejectWithValue(extractApiError(error, 'Registration failed. Please try again.'));
+      return rejectWithValue(
+        extractApiError(error, 'Registration failed. Please try again.'),
+        { errorCode: extractApiErrorCode(error) },
+      );
     }
   }
 );
@@ -112,6 +119,7 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.errorCode = null;
       })
       .addCase(register.fulfilled, (state) => {
         state.isLoading = false;
@@ -121,7 +129,8 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload as string;
+        state.error = (action.payload as string) ?? action.error.message ?? null;
+        state.errorCode = action.meta.errorCode ?? null;
       });
 
     // Logout

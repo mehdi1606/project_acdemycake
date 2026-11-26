@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import LuxuryTopbar from './LuxuryTopbar';
 import LuxurySidebar from './LuxurySidebar';
 import WhatsNewModal from './WhatsNewModal';
+import AvatarRequiredModal from './avatar/AvatarRequiredModal';
 import { useAppDispatch } from '../core/redux/hooks';
 import { fetchCurrentUser } from '../core/redux/authSlice';
 import { ChallengeDashboardCard } from './challenge/ChallengeBanners';
@@ -60,6 +61,8 @@ const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children 
       <LuxuryTopbar onSidebarToggle={handleSidebarToggle} />
       {/* One-time "What's new" patch notes after an update */}
       <WhatsNewModal />
+      {/* A profile photo is mandatory: members without one are asked to add it */}
+      <AvatarRequiredModal />
 
       {/* Below the topbar: sidebar + content */}
       <div className="luxury-body">
