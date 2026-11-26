@@ -106,7 +106,7 @@ public class InvoicePdfRenderer {
         title.add(new Paragraph("INVOICE").setFont(f.body()).setFontSize(8.5f).setFontColor(GOLD)
                 .setCharacterSpacing(4.5f).setMarginTop(2).setMarginBottom(8));
         title.add(labelValue("N°", "No.", inv.getInvoiceNumber(), f, TextAlignment.RIGHT));
-        title.add(labelValue("Date", "Date", inv.getIssuedAt().format(DATE), f, TextAlignment.RIGHT));
+        title.add(labelValue("Date", "Date", settings.toBusiness(inv.getIssuedAt()).format(DATE), f, TextAlignment.RIGHT));
         t.addCell(title);
 
         doc.add(t);
@@ -192,7 +192,7 @@ public class InvoicePdfRenderer {
 
         Table rows = new Table(UnitValue.createPercentArray(new float[]{34, 66})).useAllAvailableWidth();
         payRow(rows, "Statut", "Status", "Payé / Paid", f);
-        payRow(rows, "Date de paiement", "Payment date", inv.getIssuedAt().format(DATE), f);
+        payRow(rows, "Date de paiement", "Payment date", settings.toBusiness(inv.getIssuedAt()).format(DATE), f);
         payRow(rows, "Moyen de paiement", "Method", inv.getPaymentMethod(),
                 inv.getManualBookingId() != null ? "Direct payment (bank transfer / cash)" : null, f);
         payRow(rows, "Référence commande", "Order ref.", inv.getOrderReference(), f);

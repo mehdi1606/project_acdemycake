@@ -3,7 +3,18 @@ package com.academy.controller;
 import com.academy.dto.response.ApiResponse;
 import com.academy.dto.response.InvoiceResponse;
 import com.academy.dto.response.PageResponse;
+import com.academy.dto.response.AdminInvoiceListResponse;
+import com.academy.entity.Invoice;
+import com.academy.service.AdminInvoiceService;
 import com.academy.service.InvoiceService;
+import com.academy.service.invoice.InvoiceFilter;
+import org.springframework.format.annotation.DateTimeFormat;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import com.academy.service.InvoiceService.InvoicePdf;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +40,7 @@ import java.util.UUID;
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
+    private final AdminInvoiceService adminInvoiceService;
 
     @GetMapping("/invoices")
     @Operation(summary = "List my invoices")
@@ -61,12 +73,64 @@ public class InvoiceController {
 
     @GetMapping("/admin/invoices")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Admin: list or search invoices (number, buyer name or email)")
-    public ResponseEntity<ApiResponse<PageResponse<InvoiceResponse>>> searchInvoices(
+    @Operation(summary = "Admin: invoices with filters (q = number, buyer name/email/phone; series A|MAIN; "
+            + "type subscription|course|masterclass|ebook|manual; from/to = days, inclusive) and totals")
+    public ResponseEntity<ApiResponse<AdminInvoiceListResponse>> searchInvoices(
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String series,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.success(invoiceService.searchInvoices(q, page, size)));
+        InvoiceFilter filter = adminInvoiceService.filter(q, series, type, from, to);
+        return ResponseEntity.ok(ApiResponse.success(adminInvoiceService.search(filter, page, size)));
+    }
+
+    @GetMapping("/admin/invoices/export.csv")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Admin: invoices matching the filters as CSV (UTF-8 with BOM, ';' separated)")
+    public ResponseEntity<byte[]> exportCsv(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String series,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        byte[] csv = adminInvoiceService.exportCsv(adminInvoiceService.filter(q, series, type, from, to));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("text", "csv", StandardCharsets.UTF_8));
+        headers.setContentDisposition(ContentDisposition.attachment().filename(exportName("csv")).build());
+        headers.setCacheControl("private, no-store");
+        return ResponseEntity.ok().headers(headers).body(csv);
+    }
+
+    @GetMapping("/admin/invoices/export.zip")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Admin: PDFs of the invoices matching the filters, as a ZIP (newest "
+            + AdminInvoiceService.MAX_ZIP_INVOICES + " at most)")
+    public void exportZip(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String series,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            HttpServletResponse response) throws IOException {
+        InvoiceFilter filter = adminInvoiceService.filter(q, series, type, from, to);
+        long total = adminInvoiceService.count(filter);
+        List<Invoice> invoices = adminInvoiceService.forZip(filter);
+        // Written straight to the response, PDF by PDF, so nothing big is held in memory.
+        response.setContentType("application/zip");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.attachment().filename(exportName("zip")).build().toString());
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "private, no-store");
+        response.setHeader("X-Invoice-Total", String.valueOf(total));
+        response.setHeader("X-Invoice-Exported", String.valueOf(invoices.size()));
+        adminInvoiceService.writeZip(invoices, response.getOutputStream());
+        response.flushBuffer();
+    }
+
+    private static String exportName(String ext) {
+        return "factures-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "." + ext;
     }
 
     @GetMapping("/admin/invoices/{id}/pdf")

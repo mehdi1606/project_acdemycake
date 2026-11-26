@@ -27,7 +27,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Issues invoices: one per COMPLETED payment, numbered SL-&lt;year&gt;-NNNNNN without gaps.
+ * Issues invoices: one per COMPLETED payment, numbered SL-&lt;year&gt;-NNNNNN without gaps
+ * (main series), or SL-A-NNNN for anything paid before the series cutoff (archive).
  *
  * <p>Every path (live payment, startup backfill, periodic safety sweep, on-demand
  * download) runs the same {@link #issueMissing()} sweep: under a transaction-scoped
@@ -155,8 +156,13 @@ public class InvoiceIssuer {
                 """, new MapSqlParameterSource("batch", BATCH), InvoiceIssuer::mapRow);
 
         BigDecimal vatRate = settings.getVatRate();
+        java.time.LocalDateTime cutoff = settings.seriesCutoffStored();
         for (PaidRow r : rows) {
-            int year = r.paidAt().getYear();
+            // Main series from the cutoff, numbered per year; anything older (a late
+            // discovery) goes to the end of the archive, counter row 0.
+            String series = InvoiceMath.seriesFor(r.paidAt(), cutoff);
+            boolean archive = InvoiceMath.SERIES_ARCHIVE.equals(series);
+            int year = archive ? InvoiceMath.ARCHIVE_YEAR : settings.toBusiness(r.paidAt()).getYear();
             Integer seq = jdbc.queryForObject("""
                     INSERT INTO invoice_counters (invoice_year, last_number) VALUES (:year, 1)
                     ON CONFLICT (invoice_year)
@@ -164,20 +170,21 @@ public class InvoiceIssuer {
                     RETURNING last_number
                     """, new MapSqlParameterSource("year", year), Integer.class);
             InvoiceMath.VatBreakdown vat = InvoiceMath.fromPaidTotal(r.amount(), vatRate);
-            String number = InvoiceMath.formatNumber(year, seq);
+            String number = archive ? InvoiceMath.formatArchiveNumber(seq) : InvoiceMath.formatNumber(year, seq);
 
             jdbc.update("""
-                    INSERT INTO invoices (id, invoice_number, invoice_year, sequence_number, payment_id,
+                    INSERT INTO invoices (id, invoice_number, invoice_year, series, sequence_number, payment_id,
                         manual_booking_id, user_id, buyer_name, buyer_email, buyer_phone, item_description, payment_type, payment_method,
                         order_reference, payment_reference, currency, amount_ht, vat_rate, vat_amount,
                         amount_ttc, issued_at, created_at)
-                    VALUES (:id, :number, :year, :seq, :paymentId, :manualBookingId, :userId, :buyerName,
+                    VALUES (:id, :number, :year, :series, :seq, :paymentId, :manualBookingId, :userId, :buyerName,
                         :buyerEmail, :buyerPhone, :description, :type, :method, :orderRef, :paymentRef, :currency, :ht, :rate,
                         :vat, :ttc, :issuedAt, :createdAt)
                     """, new MapSqlParameterSource()
                     .addValue("id", UUID.randomUUID())
                     .addValue("number", number)
                     .addValue("year", year)
+                    .addValue("series", series)
                     .addValue("seq", seq)
                     .addValue("paymentId", r.manual() ? null : r.id())
                     .addValue("manualBookingId", r.manual() ? r.id() : null)

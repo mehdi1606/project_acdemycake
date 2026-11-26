@@ -134,6 +134,10 @@ app:
       email: ${INVOICE_SELLER_EMAIL:}
       phone: ${INVOICE_SELLER_PHONE:}
     vat-rate: ${INVOICE_VAT_RATE:20}
+    # Invoices paid before this day (00:00 in time-zone) are in the archive series
+    # SL-A-NNNN; from this day on, SL-<year>-NNNNNN. Existing rows were sorted by V46.
+    series-cutoff: ${INVOICE_SERIES_CUTOFF:2026-11-26}
+    time-zone: ${INVOICE_TIME_ZONE:Africa/Casablanca}
 
   # Dynamic AR↔EN translation via self-hosted LibreTranslate (Docker).
   # Local dev: http://localhost:5000  ·  In docker-compose: http://libretranslate:5000

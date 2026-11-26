@@ -24,7 +24,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -40,13 +39,14 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final InvoicePdfRenderer renderer;
     private final MasterclassManualBookingRepository manualBookingRepository;
     private final CourseRepository courseRepository;
+    private final com.academy.config.InvoiceSettings settings;
 
     @Override
     public PageResponse<InvoiceResponse> getMyInvoices(int page, int size) {
         UserPrincipal me = currentUser();
         return PageResponse.from(
                 invoiceRepository.findByUserIdOrderByIssuedAtDesc(me.getId(), pageable(page, size)),
-                InvoiceResponse::fromEntity);
+                i -> InvoiceResponse.fromEntity(i, settings.toBusiness(i.getIssuedAt())));
     }
 
     @Override
@@ -94,16 +94,6 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new ResourceNotFoundException("No invoice exists for this booking");
         }
         return toPdf(invoice);
-    }
-
-    @Override
-    public PageResponse<InvoiceResponse> searchInvoices(String query, int page, int size) {
-        Pageable p = pageable(page, size);
-        if (query == null || query.isBlank()) {
-            return PageResponse.from(invoiceRepository.findAllByOrderByIssuedAtDesc(p), InvoiceResponse::fromEntity);
-        }
-        String like = "%" + query.trim().toLowerCase(Locale.ROOT) + "%";
-        return PageResponse.from(invoiceRepository.search(like, p), InvoiceResponse::fromEntity);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

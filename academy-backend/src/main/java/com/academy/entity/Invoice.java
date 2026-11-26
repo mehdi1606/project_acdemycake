@@ -18,7 +18,8 @@ import java.util.UUID;
 @Immutable
 @Table(name = "invoices", indexes = {
         @Index(name = "idx_invoices_user_id", columnList = "user_id, issued_at DESC"),
-        @Index(name = "idx_invoices_issued_at", columnList = "issued_at DESC")
+        @Index(name = "idx_invoices_issued_at", columnList = "issued_at DESC"),
+        @Index(name = "idx_invoices_series_issued", columnList = "series, issued_at DESC")
 })
 @Getter
 @NoArgsConstructor
@@ -34,8 +35,13 @@ public class Invoice {
     @Column(name = "invoice_number", nullable = false, length = 30, unique = true)
     private String invoiceNumber;
 
+    /** 0 for the archive series. */
     @Column(name = "invoice_year", nullable = false)
     private Integer invoiceYear;
+
+    /** "A" (archive, SL-A-NNNN) or "MAIN" (SL-YYYY-NNNNNN). */
+    @Column(name = "series", nullable = false, length = 10)
+    private String series;
 
     @Column(name = "sequence_number", nullable = false)
     private Integer sequenceNumber;

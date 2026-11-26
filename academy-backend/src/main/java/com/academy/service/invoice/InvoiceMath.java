@@ -59,6 +59,34 @@ public final class InvoiceMath {
         return String.format(Locale.ROOT, "%s-%04d-%06d", PREFIX, year, sequence);
     }
 
+    /** Archive series (invoices paid before the series cutoff). */
+    public static final String SERIES_ARCHIVE = "A";
+    /** Main series, numbered per calendar year. */
+    public static final String SERIES_MAIN = "MAIN";
+    /** invoice_year (and counter row) used by the archive series. */
+    public static final int ARCHIVE_YEAR = 0;
+
+    /** SL-A-0001 */
+    public static String formatArchiveNumber(int sequence) {
+        return String.format(Locale.ROOT, "%s-A-%04d", PREFIX, sequence);
+    }
+
+    /** Series of a payment: main from the cutoff (inclusive), archive before it. Both on the stored clock. */
+    public static String seriesFor(java.time.LocalDateTime paidAt, java.time.LocalDateTime cutoffStored) {
+        return paidAt.isBefore(cutoffStored) ? SERIES_ARCHIVE : SERIES_MAIN;
+    }
+
+    /** Business-zone wall time -> stored clock (the JVM's default zone). */
+    public static java.time.LocalDateTime toStored(java.time.LocalDateTime business, java.time.ZoneId zone) {
+        return business.atZone(zone).withZoneSameInstant(java.time.ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    /** Stored clock -> business-zone wall time. */
+    public static java.time.LocalDateTime toBusiness(java.time.LocalDateTime stored, java.time.ZoneId zone) {
+        return stored == null ? null
+                : stored.atZone(java.time.ZoneId.systemDefault()).withZoneSameInstant(zone).toLocalDateTime();
+    }
+
     /** French money format: 1 234,50 MAD */
     public static String money(BigDecimal amount, String currency) {
         DecimalFormatSymbols s = new DecimalFormatSymbols(Locale.FRANCE);

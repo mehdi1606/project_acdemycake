@@ -27,7 +27,4 @@ public interface InvoiceService {
      * admin, the masterclass's instructor, or the linked account. Issued now if missing.
      */
     InvoicePdf downloadForManualBooking(UUID bookingId);
-
-    /** Admin: every invoice, optionally filtered by number, buyer name or email. */
-    PageResponse<InvoiceResponse> searchInvoices(String query, int page, int size);
 }
