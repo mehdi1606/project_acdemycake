@@ -78,6 +78,7 @@ const AdminCourses                  = lazy(() => import("../admin/courses/adminC
 const AdminPendingCourses           = lazy(() => import("../admin/courses/adminPendingCourses"));
 const AdminCategories               = lazy(() => import("../admin/categories/adminCategories"));
 const AdminTransactions             = lazy(() => import("../admin/transactions/adminTransactions"));
+const AdminInvoices                 = lazy(() => import("../admin/invoices/adminInvoices"));
 const AdminTickets                  = lazy(() => import("../admin/tickets/adminTickets"));
 const AdminSettings                 = lazy(() => import("../admin/settings/adminSettings"));
 const AdminAnalytics                = lazy(() => import("../admin/analytics/adminAnalytics"));
@@ -559,6 +560,11 @@ export const publicRoutes = [
   {
     path: routes.adminTransactions,
     element: <RoleGuard allowedRoles={['ADMIN']}><AdminTransactions  /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.adminInvoices,
+    element: <RoleGuard allowedRoles={['ADMIN']}><AdminInvoices /></RoleGuard>,
     route: Route,
   },
   {

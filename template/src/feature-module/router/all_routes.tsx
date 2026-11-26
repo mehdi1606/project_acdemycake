@@ -90,6 +90,7 @@ export const all_routes = {
     adminPendingCourses: '/admin/pending-courses',
     adminCategories: '/admin/categories',
     adminTransactions: '/admin/transactions',
+    adminInvoices: '/admin/invoices',
     adminTickets: '/admin/tickets',
     adminSubscriptions: '/admin/subscriptions',
     adminAnalytics: '/admin/analytics',

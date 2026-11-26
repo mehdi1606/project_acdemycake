@@ -4892,5 +4892,69 @@
     "subscriptionsText": "Members who subscribe to a plan will be listed here.",
     "ticketThreadText": "Replies on this ticket will appear here.",
     "votesText": "Votes for this cake will be listed here as they come in."
+  },
+  "adminInvoices": {
+    "nav": "Invoices",
+    "title": "Invoices",
+    "subtitle": "Every invoice issued for a payment, with exports for your accountant.",
+    "loadError": "We couldn't load the invoices. Please try again.",
+    "exportCsv": "Export CSV",
+    "exportZip": "Download all (ZIP)",
+    "exporting": "Preparing…",
+    "exportError": "The export didn't work. Please try again.",
+    "zipCapped": "Only the newest {{max}} invoices are included. Narrow the filter to get the others.",
+    "searchPlaceholder": "Number, name, email or phone",
+    "openDetails": "Open invoice {{number}}",
+    "from": "From",
+    "to": "To",
+    "stats": {
+      "count": "Invoices",
+      "ht": "Total excl. VAT",
+      "vat": "VAT",
+      "ttc": "Total incl. VAT"
+    },
+    "series": {
+      "label": "Series",
+      "all": "All",
+      "main": "Main",
+      "archive": "Archive (A)"
+    },
+    "type": {
+      "label": "Type",
+      "all": "All types",
+      "subscription": "Subscription",
+      "course": "Course",
+      "masterclass": "Masterclass",
+      "ebook": "Ebook",
+      "manual": "Direct booking",
+      "other": "Other"
+    },
+    "range": {
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "thisYear": "This year",
+      "clear": "Clear filters"
+    },
+    "col": {
+      "number": "Number",
+      "date": "Date",
+      "buyer": "Buyer",
+      "item": "Item",
+      "type": "Type",
+      "ttc": "Total incl. VAT"
+    },
+    "empty": {
+      "title": "No invoices found",
+      "filtered": "No invoice matches these filters.",
+      "text": "Invoices appear here as soon as a payment succeeds."
+    },
+    "drawer": {
+      "series": "Series",
+      "method": "Payment method",
+      "orderRef": "Order reference",
+      "authCode": "Authorisation code",
+      "vat": "VAT {{rate}} %",
+      "download": "Download PDF"
+    }
   }
 }

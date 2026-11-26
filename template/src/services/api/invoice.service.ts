@@ -18,7 +18,48 @@ export interface Invoice {
   vatAmount: number;
   amountTtc: number;
   issuedAt: string;
+  /** "A" (archive, SL-A-NNNN) or "MAIN" (SL-YYYY-NNNNNN). */
+  series?: 'A' | 'MAIN';
+  buyerPhone?: string | null;
+  /** SUBSCRIPTION, COURSE, MASTERCLASS, EBOOK, MANUAL or OTHER. */
+  category?: InvoiceCategory;
+  paymentMethod?: string | null;
+  orderReference?: string | null;
+  paymentReference?: string | null;
 }
+
+export type InvoiceCategory = 'SUBSCRIPTION' | 'COURSE' | 'MASTERCLASS' | 'EBOOK' | 'MANUAL' | 'OTHER';
+
+/** Admin filters; dates are YYYY-MM-DD days, both inclusive. */
+export interface AdminInvoiceFilter {
+  q?: string;
+  series?: '' | 'A' | 'MAIN';
+  type?: '' | 'subscription' | 'course' | 'masterclass' | 'ebook' | 'manual';
+  from?: string;
+  to?: string;
+}
+
+export interface AdminInvoiceTotals {
+  count: number;
+  amountHt: number;
+  vatAmount: number;
+  amountTtc: number;
+}
+
+export interface AdminInvoiceList {
+  invoices: PaginatedResponse<Invoice>;
+  totals: AdminInvoiceTotals;
+}
+
+/** Drops empty filter values so they are not sent. */
+const cleanFilter = (f: AdminInvoiceFilter): Record<string, string> => {
+  const out: Record<string, string> = {};
+  (Object.keys(f) as (keyof AdminInvoiceFilter)[]).forEach((k) => {
+    const v = f[k];
+    if (v != null && String(v).trim() !== '') out[k] = String(v).trim();
+  });
+  return out;
+};
 
 /** "attachment; filename="SL-2026-000001.pdf"" → "SL-2026-000001.pdf" */
 const filenameFrom = (disposition: unknown, fallback: string): string => {
@@ -43,6 +84,9 @@ const saveBlob = (blob: Blob, fileName: string): void => {
 };
 
 class InvoiceService {
+  /** Most invoices in one ZIP download (same cap as the server). */
+  readonly maxZip = 500;
+
   /** The signed-in user's invoices, newest first. */
   async getMyInvoices(page = 0, size = 20): Promise<PaginatedResponse<Invoice>> {
     const response = await api.get<PaginatedResponse<Invoice>>('/invoices', { params: { page, size } });
@@ -66,6 +110,32 @@ class InvoiceService {
   /** Downloads the invoice of a masterclass booking paid outside the platform (added by hand). */
   async downloadForManualBooking(bookingId: string): Promise<void> {
     await this.download(`/invoices/manual-booking/${bookingId}/pdf`, bookingId);
+  }
+
+  // ── Admin ───────────────────────────────────────────────────────────────
+
+  /** Admin: invoices matching the filter (newest first) with totals for the whole filter. */
+  async adminList(filter: AdminInvoiceFilter, page = 0, size = 20): Promise<AdminInvoiceList> {
+    const response = await api.get<AdminInvoiceList>('/admin/invoices', {
+      params: { ...cleanFilter(filter), page, size },
+    });
+    return response.data;
+  }
+
+  /** Admin: CSV of the invoices matching the filter (opens in French Excel). */
+  async adminExportCsv(filter: AdminInvoiceFilter): Promise<void> {
+    const response = await api.get('/admin/invoices/export.csv', {
+      params: cleanFilter(filter), responseType: 'blob', timeout: 120000,
+    });
+    saveBlob(response.data as Blob, filenameFrom(response.headers?.['content-disposition'], 'factures.csv'));
+  }
+
+  /** Admin: ZIP with the PDFs of the invoices matching the filter (newest 500 at most). */
+  async adminExportZip(filter: AdminInvoiceFilter): Promise<void> {
+    const response = await api.get('/admin/invoices/export.zip', {
+      params: cleanFilter(filter), responseType: 'blob', timeout: 300000,
+    });
+    saveBlob(response.data as Blob, filenameFrom(response.headers?.['content-disposition'], 'factures.zip'));
   }
 
   private async download(path: string, id: string): Promise<void> {
