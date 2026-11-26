@@ -29,7 +29,7 @@ WHERE issued_at < (SELECT ts FROM invoice_cutoff);
 --    so the renumbering below can never hit a unique-index collision.
 UPDATE invoices
 SET sequence_number = -sequence_number,
-    invoice_number  = 'TMP-' || id::text;
+    invoice_number  = 'TMP-' || invoice_year || '-' || sequence_number;  -- unique, fits VARCHAR(30)
 
 -- 2. Archive: one sequence in date order, year 0.
 WITH ordered AS (
