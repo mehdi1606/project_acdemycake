@@ -26,7 +26,7 @@ const localized = (e: Ebook, lang: string) => {
 const Book: React.FC<{ src?: string; title: string; className?: string; eager?: boolean }> = ({ src, title, className, eager }) => (
   <span className={`lib-book${className ? ` ${className}` : ''}`}>
     <span className="lib-book__body">
-      {src ? <img src={src} alt={title} loading={eager ? 'eager' : 'lazy'} decoding="async" {...(eager ? { fetchPriority: 'high' as const } : {})} /> : <span className="lib-book__blank">{title}</span>}
+      {src ? <img src={src} alt={title} loading={eager ? 'eager' : 'lazy'} decoding={eager ? 'sync' : 'async'} {...(eager ? { fetchPriority: 'high' as const } : {})} /> : <span className="lib-book__blank">{title}</span>}
       <span className="lib-book__spine" />
       <span className="lib-book__gloss" />
     </span>
