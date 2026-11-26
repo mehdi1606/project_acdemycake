@@ -281,22 +281,6 @@ const DesktopHeader = () => {
                 {t('nav.masterclasses')}
               </Link>
 
-              {/* Ebooks */}
-              <Link
-                to={all_routes.ebooks}
-                style={{
-                  padding: '8px 16px', borderRadius: 8,
-                  fontSize: 15, fontWeight: isActive('/ebooks') ? 600 : 500,
-                  color: isActive('/ebooks') ? '#A6192E' : '#651C32',
-                  textDecoration: 'none', transition: 'all 0.2s ease',
-                  background: isActive('/ebooks') ? 'rgba(166,25,46,0.1)' : 'transparent',
-                }}
-                onMouseEnter={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = '#A6192E'; }}
-                onMouseLeave={e => { if (!isActive('/ebooks')) e.currentTarget.style.color = '#651C32'; }}
-              >
-                {t('nav.ebooks', 'Ebooks')}
-              </Link>
-
               {/* New Year Cake Challenge (only while it runs) */}
               {challengeOn && (
                 <Link
@@ -345,10 +329,10 @@ const DesktopHeader = () => {
                   }}
                   style={{
                     padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    fontSize: 15, fontWeight: (isActive('/course') || isActive('/blog')) ? 600 : 500,
-                    color: (isActive('/course') || isActive('/blog')) ? '#A6192E' : '#651C32',
+                    fontSize: 15, fontWeight: (isActive('/course') || isActive('/blog') || isActive('/ebooks')) ? 600 : 500,
+                    color: (isActive('/course') || isActive('/blog') || isActive('/ebooks')) ? '#A6192E' : '#651C32',
                     textDecoration: 'none', transition: 'all 0.2s ease',
-                    background: (isActive('/course') || isActive('/blog')) ? 'rgba(166,25,46,0.1)' : 'transparent',
+                    background: (isActive('/course') || isActive('/blog') || isActive('/ebooks')) ? 'rgba(166,25,46,0.1)' : 'transparent',
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}
                 >
@@ -371,7 +355,8 @@ const DesktopHeader = () => {
                     zIndex: 999,
                   }}>
                     {[
-                      { label: t('nav.courses'), to: all_routes.courseList, icon: 'isax-book-1' },
+                      { label: t('nav.courses'), to: all_routes.courseList, icon: 'isax-book' },
+                      { label: t('nav.ebooks', 'Ebooks'), to: all_routes.ebooks, icon: 'isax-book-1' },
                       { label: t('nav.community'), to: all_routes.blogGrid, icon: 'isax-people' },
                     ].map(item => (
                       <Link

@@ -76,7 +76,7 @@ const InstructorPayout = () => {
               <div style={{ flex: 1 }}>
                 <h6 style={{ margin: '0 0 4px', fontSize: 13, opacity: 0.8 }}>Pending Payout Balance</h6>
                 <h4 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 700 }}>
-                  {formatMAD(dashboardData?.pendingPayout)}
+                  {formatMAD(dashboardData?.pendingEarnings)}
                 </h4>
                 <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>
                   Total Earnings: {formatMAD(dashboardData?.totalEarnings)}
@@ -151,7 +151,7 @@ const InstructorPayout = () => {
                     <div>
                       <p style={{ margin: '0 0 4px', fontSize: 12, color: 'var(--lx-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Withdrawal Balance</p>
                       <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
-                        {formatMAD(dashboardData?.pendingPayout)}
+                        {formatMAD(dashboardData?.pendingEarnings)}
                       </h6>
                     </div>
                     <div>

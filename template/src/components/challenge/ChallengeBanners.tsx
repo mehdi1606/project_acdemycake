@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../feature-module/router/all_routes';
 import { ChallengePhase, ChallengeView } from '../../services/api/challenge.service';
 import { Left, moroccoDate, useChallenge } from './useChallenge';
+import { claimPopupSlot } from '../../core/common/popupGate';
 import './challenge-banners.css';
 
 /** Pages where nothing should float over the work. */
@@ -83,7 +84,8 @@ export const ChallengeSeal: React.FC = () => {
   const [hidden, setHidden] = useState(() => {
     try { return sessionStorage.getItem('slc_seal_hidden') === '1'; } catch { return false; }
   });
-  if (!copy || hidden || quiet(pathname)) return null;
+  const onDashboard = /^\/(student|instructor|admin)\//.test(pathname);
+  if (!copy || hidden || quiet(pathname) || onDashboard) return null;
   return (
     <div className="slc-seal">
       <Link to={all_routes.challenge} className="slc-seal__link" aria-label={`${copy.tag}: ${copy.title}`}>
@@ -160,7 +162,7 @@ export const ChallengePopup: React.FC = () => {
     const id = window.setInterval(() => {
       if (document.querySelector('.sl-wn-overlay, [role="dialog"][aria-modal="true"]')) return;
       window.clearInterval(id);
-      setShow(true);
+      if (claimPopupSlot(key)) setShow(true);
     }, 3500);
     return () => window.clearInterval(id);
   }, [key, pathname]);

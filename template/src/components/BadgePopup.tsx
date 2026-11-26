@@ -7,6 +7,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { claimPopupSlot } from '../core/common/popupGate';
 import { useTranslation } from 'react-i18next';
 import { BadgeDefinition, BadgeProgress, BADGES, getNextBadge, badgeSrcSet } from '../config/badges';
 import BadgeRequirementList from './BadgeRequirementList';
@@ -45,7 +46,7 @@ const BadgePopup: React.FC<Props> = ({ badge, userId, progress, earned = true })
     const tryShow = () => {
       if (otherModalOpen()) {
         timer = window.setTimeout(tryShow, 1500);
-      } else {
+      } else if (claimPopupSlot(`badge_${badge.id}`)) {
         setVisible(true);
       }
     };

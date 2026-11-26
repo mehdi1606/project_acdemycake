@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { claimPopupSlot } from '../core/common/popupGate';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../core/redux/hooks';
@@ -36,10 +37,13 @@ const WhatsNewModal: React.FC = () => {
     if (seen) return;
     let timer: number;
     const dialogOpen = () => !!document.querySelector('.modal.show, [role="dialog"], [aria-modal="true"]');
-    const tryOpen = () => { if (dialogOpen()) timer = window.setTimeout(tryOpen, 1500); else setOpen(true); };
+    const tryOpen = () => {
+      if (dialogOpen()) timer = window.setTimeout(tryOpen, 1500);
+      else if (claimPopupSlot(`whatsnew_${release.id}`)) setOpen(true);
+    };
     timer = window.setTimeout(tryOpen, 1400);
     return () => window.clearTimeout(timer);
-  }, [isAuthenticated, user, seenKey, pathname]);
+  }, [isAuthenticated, user, seenKey, pathname, release.id]);
 
   // Reopen from the profile menu.
   useEffect(() => {

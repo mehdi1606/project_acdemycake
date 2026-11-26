@@ -56,6 +56,9 @@ public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollme
     @Query("SELECT COUNT(DISTINCT e.user) FROM CourseEnrollment e WHERE e.course.instructor = :instructor")
     long countStudentsByInstructor(@Param("instructor") User instructor);
 
+    @Query("SELECT COUNT(e) FROM CourseEnrollment e WHERE e.course.instructor = :instructor AND e.enrolledAt >= :since")
+    long countByInstructorSince(@Param("instructor") User instructor, @Param("since") java.time.LocalDateTime since);
+
     @Query("SELECT e FROM CourseEnrollment e WHERE e.course.instructor = :instructor ORDER BY e.enrolledAt DESC")
     Page<CourseEnrollment> findRecentEnrollmentsByInstructor(@Param("instructor") User instructor, Pageable pageable);
 

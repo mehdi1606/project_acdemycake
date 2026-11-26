@@ -32,8 +32,13 @@ public class DashboardResponse {
         private BigDecimal totalEarnings;
         private BigDecimal pendingEarnings;
         private BigDecimal monthlyEarnings;
+        /** Earnings of the previous calendar month, to compare with this one. */
+        private BigDecimal lastMonthEarnings;
+        private Integer newEnrollmentsThisWeek;
+        private Integer submissionsToGrade;
         private List<CourseStats> topCourses;
         private List<RecentEnrollment> recentEnrollments;
+        /** The last 6 months of earnings, oldest first (months without earnings are 0). */
         private List<MonthlyRevenue> revenueHistory;
     }
 

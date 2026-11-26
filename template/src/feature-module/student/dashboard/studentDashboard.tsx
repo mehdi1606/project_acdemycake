@@ -42,6 +42,12 @@ const StudentDashboard = () => {
   };
 
   const firstName = user?.fullName?.split(' ')[0] || 'Student';
+
+  // The course to resume: the unfinished one touched last (else the newest one).
+  const resume = [...recentEnrollments]
+    .filter((e) => !e.isCompleted && (e.progressPercentage ?? 0) < 100)
+    .sort((a, b) => (b.lastAccessedAt || b.enrolledAt || '').localeCompare(a.lastAccessedAt || a.enrolledAt || ''))[0];
+  const nextLesson = resume ? Math.min((resume.completedLessons ?? 0) + 1, Math.max(resume.totalLessons ?? 1, 1)) : 0;
   const userBadge = getBadgeForUser(user?.role || 'STUDENT', progressOf(stats, user));
 
   return (
@@ -75,14 +81,37 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      {/* ── Continue where you stopped ── */}
+      {!isLoading && resume && (
+        <Link to={`${all_routes.courseWatch}/${resume.courseSlug}`} className="lx-resume">
+          <span className="lx-resume__cover">
+            {getFileUrl(resume.courseThumbnail) && <img src={getFileUrl(resume.courseThumbnail) as string} alt="" onError={hideOnError} />}
+          </span>
+          <span className="lx-resume__body">
+            <span className="lx-resume__kicker">{t('student.dashboard.continueKicker', 'Continue where you stopped')}</span>
+            <strong className="lx-resume__title">{resume.courseTitle}</strong>
+            <span className="lx-resume__meta">
+              {resume.totalLessons
+                ? t('student.dashboard.lessonOf', { n: nextLesson, total: resume.totalLessons, defaultValue: 'Lesson {{n}} of {{total}}' })
+                : t('student.dashboard.startCourse', 'Ready when you are')}
+              {' · '}{resume.progressPercentage ?? 0}%
+            </span>
+            <span className="lx-resume__bar"><span style={{ width: `${resume.progressPercentage ?? 0}%` }} /></span>
+          </span>
+          <span className="lx-btn lx-btn-gold lx-resume__cta">
+            <i className="isax isax-play" /> {t('student.dashboard.resume', 'Resume')}
+          </span>
+        </Link>
+      )}
+
       {/* ── Stats Cards ── */}
-      <div className="row g-4 mb-4">
+      <div className="row g-3 g-md-4 mb-4">
         {[
           { label: t('student.dashboard.enrolledCourses', 'Enrolled Courses'), value: stats.enrolledCourses,  icon: 'isax isax-book',        color: 'gold' },
           { label: t('student.dashboard.activeCourses', 'Active Courses'),   value: stats.activeCourses,    icon: 'isax isax-play-circle', color: 'rose' },
           { label: t('common.completed', 'Completed'),        value: stats.completedCourses, icon: 'isax isax-medal',       color: 'sage', key: true },
         ].map((s, i) => (
-          <div key={i} className="col-md-4">
+          <div key={i} className={i === 2 ? 'col-12 col-md-4' : 'col-6 col-md-4'}>
             <div className={`lx-stat-card${'key' in s && s.key ? ' is-key' : ''}`}>
               <div className={`stat-icon ${s.color}`}>
                 <i className={s.icon} />

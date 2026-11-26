@@ -21,4 +21,7 @@ public interface AssignmentSubmissionRepository extends JpaRepository<Assignment
     Page<AssignmentSubmission> findByStudent(User student, Pageable pageable);
 
     boolean existsByAssignmentAndStudent(Assignment assignment, User student);
+
+    /** Submissions on this instructor's assignments still waiting for a mark. */
+    long countByAssignment_InstructorAndGradeIsNull(User instructor);
 }

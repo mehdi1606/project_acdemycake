@@ -104,11 +104,11 @@ const LuxuryTopbar: React.FC<LuxuryTopbarProps> = ({ onSidebarToggle }) => {
   const siteLinks = [
     { label: t('nav.home'),             to: all_routes.homeone,     icon: 'isax-home-2' },
     { label: t('nav.masterclasses'),    to: all_routes.masterclass, icon: 'isax-video-play' },
-    { label: t('nav.ebooks', 'Ebooks'), to: all_routes.ebooks,      icon: 'isax-book-1' },
     ...(challengeOn ? [{ label: t('nav.challenge', 'Challenge'), to: all_routes.challenge, icon: 'isax-cake' }] : []),
   ];
   const academyLinks = [
     { label: t('nav.courses'),   to: all_routes.courseList, icon: 'isax-book' },
+    { label: t('nav.ebooks', 'Ebooks'), to: all_routes.ebooks, icon: 'isax-book-1' },
     { label: t('nav.community'), to: all_routes.blogGrid,   icon: 'isax-people' },
   ];
 

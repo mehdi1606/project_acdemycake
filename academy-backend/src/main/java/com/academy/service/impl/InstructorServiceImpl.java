@@ -59,6 +59,7 @@ public class InstructorServiceImpl implements InstructorService {
     private final com.academy.repository.UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
+    private final com.academy.repository.AssignmentSubmissionRepository submissionRepository;
     private final UserService userService;
     private final FileStorageService fileStorageService;
 
@@ -83,14 +84,46 @@ public class InstructorServiceImpl implements InstructorService {
         List<DashboardResponse.CourseStats>      topCourses         = getTopCourses(instructor, 5);
         List<DashboardResponse.RecentEnrollment> recentEnrollments  = getRecentEnrollments(instructor, 10);
 
+        // Last 6 months (this one included), oldest first, empty months as 0.
+        LocalDateTime startOfMonth = LocalDateTime.now()
+                .withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime sixMonthsAgo = startOfMonth.minusMonths(5);
+        Map<Integer, BigDecimal> byYearMonth = new HashMap<>();
+        for (Object[] row : earningRepository.getMonthlyEarnings(instructor.getId(), sixMonthsAgo)) {
+            int key = ((Number) row[0]).intValue() * 100 + ((Number) row[1]).intValue();
+            BigDecimal amount = row[2] instanceof BigDecimal
+                    ? (BigDecimal) row[2]
+                    : BigDecimal.valueOf(((Number) row[2]).doubleValue());
+            byYearMonth.put(key, amount);
+        }
+        List<DashboardResponse.MonthlyRevenue> history = new ArrayList<>();
+        BigDecimal lastMonth = BigDecimal.ZERO;
+        LocalDateTime cursor = sixMonthsAgo;
+        for (int i = 0; i < 6; i++) {
+            BigDecimal amount = byYearMonth.getOrDefault(cursor.getYear() * 100 + cursor.getMonthValue(), BigDecimal.ZERO);
+            if (i == 4) lastMonth = amount;
+            history.add(DashboardResponse.MonthlyRevenue.builder()
+                    .month(String.format("%d-%02d", cursor.getYear(), cursor.getMonthValue()))
+                    .revenue(amount)
+                    .build());
+            cursor = cursor.plusMonths(1);
+        }
+
+        long newThisWeek = enrollmentRepository.countByInstructorSince(instructor, LocalDateTime.now().minusDays(7));
+        long toGrade = submissionRepository.countByAssignment_InstructorAndGradeIsNull(instructor);
+
         return DashboardResponse.InstructorDashboard.builder()
                 .totalStudents((int) totalStudents)
                 .totalCourses((int) totalCourses)
                 .totalEarnings(totalEarnings)
                 .pendingEarnings(pendingEarnings)
                 .monthlyEarnings(monthlyEarnings)
+                .lastMonthEarnings(lastMonth)
+                .newEnrollmentsThisWeek((int) newThisWeek)
+                .submissionsToGrade((int) toGrade)
                 .topCourses(topCourses)
                 .recentEnrollments(recentEnrollments)
+                .revenueHistory(history)
                 .build();
     }
 

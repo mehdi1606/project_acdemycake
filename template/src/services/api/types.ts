@@ -529,22 +529,25 @@ export interface PublicInstructorProfile {
 // Instructor Types
 // ============================================
 
+/** Mirrors DashboardResponse.InstructorDashboard on the server. */
 export interface InstructorDashboard {
   totalStudents: number;
   totalCourses: number;
   totalEarnings: number;
-  pendingPayout: number;
-  averageRating: number;
-  recentEnrollments: {
-    courseId: number;
-    courseTitle: string;
-    studentName: string;
+  /** Earnings not paid out yet. */
+  pendingEarnings: number;
+  /** Earnings since the 1st of this month. */
+  monthlyEarnings: number;
+  lastMonthEarnings?: number;
+  newEnrollmentsThisWeek?: number;
+  submissionsToGrade?: number;
+  recentEnrollments?: {
+    student?: { fullName?: string };
+    course?: { id?: string; title?: string };
     enrolledAt: string;
   }[];
-  earningsChart: {
-    month: string;
-    amount: number;
-  }[];
+  /** Last 6 months, oldest first; month is "YYYY-MM". */
+  revenueHistory?: { month: string; revenue: number }[];
 }
 
 export interface InstructorEarning {

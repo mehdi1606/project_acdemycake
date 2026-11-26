@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { hideOnError } from '../../../core/common/imageFallback';
 import { Link } from 'react-router-dom';
-import { Spin, message } from 'antd';
+import { message } from 'antd';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useTranslation } from 'react-i18next';
@@ -11,9 +11,15 @@ import { useAppDispatch, useAppSelector } from '../../../core/redux/hooks';
 import { fetchAdminDashboard } from '../../../core/redux/adminSlice';
 import { getFileUrl } from '../../../environment';
 import AvatarImage from '../../../components/AvatarImage';
+import adminService from '../../../services/api/admin.service';
+import ticketService from '../../../services/api/ticket.service';
+import { Course } from '../../../services/api/types';
+import { liveSeatInfo, formatSessionDate } from '../../Courses/course-details/LiveMasterclassBooking';
+import { DashSkeleton } from '../../../components/DashSkeleton';
 
 const AdminDashboard = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language || 'en';
   const dispatch = useAppDispatch();
   const { dashboard, isLoading, error } = useAppSelector((s) => s.admin);
   const revLabel = t('admin.dashboard.revenueSeries', 'Revenue');
@@ -21,6 +27,38 @@ const AdminDashboard = () => {
   const { user } = useAppSelector((s) => s.auth);
 
   useEffect(() => { dispatch(fetchAdminDashboard()); }, [dispatch]);
+
+  /* What needs the admin today: approvals, support, the next live sessions. */
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [openTickets, setOpenTickets] = useState<number | null>(null);
+  const [upcoming, setUpcoming] = useState<Course[]>([]);
+  useEffect(() => {
+    adminService.getPendingCourses(0, 1).then((r) => setPendingCount(r.totalElements ?? r.content?.length ?? 0)).catch(() => setPendingCount(null));
+    ticketService.getAdminStats().then((s) => setOpenTickets((s.open ?? 0) + (s.inProgress ?? 0))).catch(() => setOpenTickets(null));
+    adminService.getCourses(0, 100).then((r) => {
+      const today = new Date().toISOString().slice(0, 10);
+      setUpcoming((r.content ?? [])
+        .filter((c) => c.courseType === 'MASTERCLASS' && c.masterclassFormat === 'LIVE' && c.sessionDate && c.sessionDate >= today)
+        .sort((a, b) => (a.sessionDate || '').localeCompare(b.sessionDate || ''))
+        .slice(0, 3));
+    }).catch(() => setUpcoming([]));
+  }, []);
+  const attention = [
+    ...(pendingCount ? [{ key: 'pending', icon: 'isax-clock', gold: true, to: all_routes.adminPendingCourses,
+      title: t('admin.dashboard.pendingToReview', { count: pendingCount, defaultValue: '{{count}} courses waiting for approval' }),
+      meta: t('admin.dashboard.pendingMeta', 'Instructors are waiting for your review') }] : []),
+    ...(openTickets ? [{ key: 'tickets', icon: 'isax-message-question', gold: false, to: all_routes.adminTickets,
+      title: t('admin.dashboard.openTickets', { count: openTickets, defaultValue: '{{count}} support tickets open' }),
+      meta: t('admin.dashboard.ticketsMeta', 'Members are waiting for an answer') }] : []),
+    ...upcoming.map((c) => {
+      const seats = liveSeatInfo(c);
+      return { key: `mc-${c.id}`, icon: 'isax-video-play', gold: false, to: `${all_routes.instructorMasterclassReservations}?course=${c.id}`,
+        title: c.title,
+        meta: [c.sessionDate ? formatSessionDate(c.sessionDate, lang) : '',
+          seats.capacity !== null ? t('mcRes.seats', { taken: seats.taken ?? (seats.capacity - (seats.remaining ?? 0)), capacity: seats.capacity, defaultValue: '{{taken}} / {{capacity}} places booked' }) : '',
+        ].filter(Boolean).join(' · ') };
+    }),
+  ];
   useEffect(() => { if (error) message.error(error); }, [error]);
 
   // Platform currency is MAD (CMI payments). Keep this consistent with the
@@ -106,15 +144,13 @@ const AdminDashboard = () => {
       </div>
 
       {isLoading ? (
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 400 }}>
-          <Spin size="large" />
-        </div>
+        <DashSkeleton stats={4} />
       ) : (
         <>
           {/* ── Stats Row 1 ── */}
           <div className="row g-4 mb-4">
             {statsRow1.map((s, i) => (
-              <div key={i} className="col-md-6 col-xl-3">
+              <div key={i} className="col-6 col-xl-3">
                 <div className="lx-stat-card">
                   <div className={`stat-icon ${s.color}`}>
                     <i className={s.icon} />
@@ -156,8 +192,40 @@ const AdminDashboard = () => {
             </div>
           </div>
 
+          <div className="row g-4 mb-4">
+          {/* ── Needs your attention ── */}
+          <div className="col-xl-5">
+            <div className="lx-card h-100">
+              <div className="lx-card-header">
+                <h6>{t('admin.dashboard.needsAttention', 'Needs your attention')}</h6>
+              </div>
+              <div className="lx-card-body">
+                {attention.length === 0 ? (
+                  <div className="lx-empty-state" style={{ padding: '28px 0' }}>
+                    <div className="empty-icon"><i className="isax isax-tick-circle" /></div>
+                    <h6>{t('admin.dashboard.allClear', 'All clear')}</h6>
+                    <p>{t('admin.dashboard.allClearText', 'No approvals, tickets or live sessions waiting.')}</p>
+                  </div>
+                ) : (
+                  <ul className="lx-todo">
+                    {attention.map((a) => (
+                      <li key={a.key}>
+                        <Link to={a.to} className={`lx-todo__item${a.gold ? ' is-gold' : ''}`}>
+                          <span className="lx-todo__icon"><i className={`isax ${a.icon}`} /></span>
+                          <span className="lx-todo__text"><strong>{a.title}</strong>{a.meta && <small>{a.meta}</small>}</span>
+                          <i className="isax isax-arrow-right-3 lx-todo__go" aria-hidden="true" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* ── Revenue Chart ── */}
-          <div className="lx-card mb-4">
+          <div className="col-xl-7">
+          <div className="lx-card h-100">
             <div className="lx-card-header">
               <h6>{t('admin.reports.revenue', 'Revenue Overview')}</h6>
               <Link to={all_routes.adminAnalytics} className="lx-view-all">
@@ -170,7 +238,7 @@ const AdminDashboard = () => {
                   options={revenueOptions}
                   series={revenueSeries}
                   type="area"
-                  height={300}
+                  height={280}
                 />
               ) : (
                 <div className="lx-empty-state">
@@ -179,6 +247,8 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+          </div>
+          </div>
           </div>
 
           {/* ── Quick Actions ── */}
