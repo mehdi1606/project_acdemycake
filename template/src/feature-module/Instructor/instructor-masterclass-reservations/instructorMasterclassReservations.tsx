@@ -12,12 +12,15 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import instructorService from '../../../services/api/instructor.service';
+import adminService from '../../../services/api/admin.service';
+import { useAppSelector } from '../../../core/redux/hooks';
 import { Course, MasterclassParticipants } from '../../../services/api/types';
 import { all_routes } from '../../router/all_routes';
 import {
   formatSessionDate,
   formatSessionTimeRange,
   isSessionPast,
+  liveSeatInfo,
 } from '../../Courses/course-details/LiveMasterclassBooking';
 
 const money = (v: number | null | undefined, currency = 'MAD') =>
@@ -36,6 +39,7 @@ const InstructorMasterclassReservations: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
   const selectedId = params.get('course') || '';
+  const isAdmin = useAppSelector((s) => s.auth.user?.role) === 'ADMIN';
 
   const [masterclasses, setMasterclasses] = useState<Course[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -109,18 +113,23 @@ const InstructorMasterclassReservations: React.FC = () => {
       try {
         setListLoading(true);
         const all: Course[] = [];
-        // Instructors rarely have more than a few pages; stop after 5 to stay bounded.
+        // Admins see every instructor's masterclasses; instructors see their own.
+        // Bounded to 5 pages of 50 either way.
         for (let page = 0; page < 5; page++) {
-          const resp = await instructorService.getMyCourses(page, 50);
+          const resp = isAdmin ? await adminService.getCourses(page, 50) : await instructorService.getMyCourses(page, 50);
           all.push(...(resp.content ?? []));
           if (resp.last || !resp.content?.length) break;
         }
         if (cancelled) return;
-        const live = all
-          .filter((c) => c.courseType === 'MASTERCLASS' && c.masterclassFormat === 'LIVE')
+        // Upcoming sessions first (soonest at the top), then past ones (most recent first).
+        const today = new Date().toISOString().slice(0, 10);
+        const live = all.filter((c) => c.courseType === 'MASTERCLASS' && c.masterclassFormat === 'LIVE');
+        const upcoming = live.filter((c) => !c.sessionDate || c.sessionDate >= today)
+          .sort((a, b) => (a.sessionDate || '9999').localeCompare(b.sessionDate || '9999'));
+        const past = live.filter((c) => c.sessionDate && c.sessionDate < today)
           .sort((a, b) => (b.sessionDate || '').localeCompare(a.sessionDate || ''));
-        setMasterclasses(live);
-        if (!selectedId && live.length) setParams({ course: live[0].id }, { replace: true });
+        setMasterclasses([...upcoming, ...past]);
+        // No automatic pick: the page opens on the list so you choose which one to see.
       } catch (e: any) {
         if (!cancelled) setListError(e?.response?.data?.message || t('mcRes.listError', 'Could not load your masterclasses.'));
       } finally {
@@ -146,7 +155,10 @@ const InstructorMasterclassReservations: React.FC = () => {
     }
   }, [t]);
 
-  useEffect(() => { loadParticipants(selectedId); }, [selectedId, loadParticipants]);
+  useEffect(() => {
+    if (selectedId) loadParticipants(selectedId);
+    else setData(null);
+  }, [selectedId, loadParticipants]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -190,7 +202,12 @@ const InstructorMasterclassReservations: React.FC = () => {
           </p>
         </div>
         <div className="d-flex gap-2 flex-wrap">
-          {masterclasses.length > 0 && (
+          {selectedId && (
+            <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => setParams({})}>
+              <i className="isax isax-arrow-left-2" /> {t('mcRes.allMasterclasses', 'All masterclasses')}
+            </button>
+          )}
+          {selectedId && masterclasses.length > 1 && (
             <select
               className="form-select form-select-sm"
               style={{ minWidth: 240, maxWidth: '100%' }}
@@ -205,9 +222,11 @@ const InstructorMasterclassReservations: React.FC = () => {
               ))}
             </select>
           )}
-          <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => loadParticipants(selectedId)} disabled={!selectedId || loading}>
-            <i className="isax isax-refresh" /> {t('common.refresh', 'Refresh')}
-          </button>
+          {selectedId && (
+            <button className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => loadParticipants(selectedId)} disabled={loading}>
+              <i className="isax isax-refresh" /> {t('common.refresh', 'Refresh')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -225,6 +244,60 @@ const InstructorMasterclassReservations: React.FC = () => {
               </Link>
             </div>
           </div>
+        </div>
+      ) : !selectedId ? (
+        <div className="row g-3">
+          <div className="col-12">
+            <p style={{ fontSize: 14, color: 'var(--lx-text-mid)', margin: 0 }}>
+              {t('mcRes.pick', 'Choose the masterclass whose reservations you want to see.')}
+            </p>
+          </div>
+          {masterclasses.map((m) => {
+            const seats = liveSeatInfo(m);
+            const past = isSessionPast(m.sessionDate);
+            const time = formatSessionTimeRange(m);
+            return (
+              <div key={m.id} className="col-12 col-md-6 col-xl-4">
+                <button
+                  type="button"
+                  className="lx-card w-100 text-start"
+                  style={{ border: '1px solid rgba(197,145,44,0.25)', background: '#fff', cursor: 'pointer', height: '100%', opacity: past ? 0.75 : 1 }}
+                  onClick={() => setParams({ course: m.id })}
+                >
+                  <div className="lx-card-body d-flex flex-column gap-2" style={{ height: '100%' }}>
+                    <div className="d-flex align-items-start justify-content-between gap-2">
+                      <h6 style={{ margin: 0, fontWeight: 700, color: 'var(--lx-text)', lineHeight: 1.35 }}>{m.title}</h6>
+                      <span className={`lx-badge ${past ? 'badge-secondary' : 'badge-success'}`} style={{ flex: 'none' }}>
+                        {past ? t('liveBooking.status.past', 'Session over') : t('mcRes.upcoming', 'Upcoming')}
+                      </span>
+                    </div>
+                    {isAdmin && m.instructor?.fullName && (
+                      <span style={{ fontSize: 12.5, color: 'var(--lx-text-muted)' }}>
+                        <i className="isax isax-teacher me-1" />{m.instructor.fullName}
+                      </span>
+                    )}
+                    <div className="d-flex flex-column gap-1" style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
+                      {m.sessionDate && (
+                        <span style={{ textTransform: 'capitalize' }}>
+                          <i className="isax isax-calendar-1 me-1" />{formatSessionDate(m.sessionDate, i18n.language || 'fr')}{time ? ` · ${time}` : ''}
+                        </span>
+                      )}
+                      {m.sessionLocation && <span><i className="isax isax-location me-1" />{m.sessionLocation}</span>}
+                      <span>
+                        <i className="isax isax-people me-1" />
+                        {seats.capacity !== null
+                          ? t('mcRes.seats', { taken: seats.taken ?? (seats.capacity - (seats.remaining ?? 0)), capacity: seats.capacity, defaultValue: '{{taken}} / {{capacity}} places booked' })
+                          : t('mcRes.unlimited', 'Unlimited')}
+                      </span>
+                    </div>
+                    <span className="mt-auto" style={{ fontSize: 13, fontWeight: 700, color: 'var(--lx-primary)' }}>
+                      {t('mcRes.open', 'See reservations')} →
+                    </span>
+                  </div>
+                </button>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <>

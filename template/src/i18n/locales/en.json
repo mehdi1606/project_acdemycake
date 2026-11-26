@@ -4086,6 +4086,11 @@
     "bookWhatsapp": "Book via WhatsApp"
   },
   "mcRes": {
+    "allMasterclasses": "All masterclasses",
+    "pick": "Choose the masterclass whose reservations you want to see.",
+    "upcoming": "Upcoming",
+    "seats": "{{taken}} / {{capacity}} places booked",
+    "open": "See reservations",
     "subtitle2": "Participants who paid by card, plus the ones you added after a WhatsApp booking.",
     "emptyHint2": "Card payments appear here once verified. For WhatsApp bookings, use \"Add participant\" after you receive the payment.",
     "manual": "WhatsApp",
