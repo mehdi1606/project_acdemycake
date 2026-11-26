@@ -51,8 +51,8 @@ const InstructorProfile = () => {
       style={{
         padding: 16,
         borderRadius: 'var(--lx-radius)',
-        background: 'rgba(107, 29, 42, 0.02)',
-        border: '1px solid rgba(107, 29, 42, 0.04)',
+        background: 'rgba(101, 28, 50, 0.02)',
+        border: '1px solid rgba(101, 28, 50, 0.04)',
       }}
     >
       <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -76,7 +76,7 @@ const InstructorProfile = () => {
       {/* ── Badge Card ── */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1a0a0e 0%, #2d1218 60%, #1a0a0e 100%)',
+          background: 'linear-gradient(135deg, #2B0F1E 0%, #4A1428 60%, #2B0F1E 100%)',
           border: `1px solid ${instructorBadge.color}44`,
           borderRadius: 16,
           padding: '24px 28px',
@@ -103,7 +103,7 @@ const InstructorProfile = () => {
         />
         <UserBadge badge={instructorBadge} size="lg" showLabel={false} showTooltip={false} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: instructorBadge.color, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: instructorBadge.color, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
             {t('badges.popup.yourBadge', 'Your Badge')}
           </p>
           <h5 style={{ fontWeight: 800, color: '#fff', fontSize: 20, marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>
@@ -118,7 +118,7 @@ const InstructorProfile = () => {
       {/* Basic Information Card */}
       <div className="lx-card mb-4">
         <div className="lx-card-body">
-          <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+          <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
             {t('instructor.profilePage.basicInfo', 'Basic Information')}
           </h6>
           <div className="row g-4">
@@ -199,7 +199,7 @@ const InstructorProfile = () => {
       {socialLinks && (
         <div className="lx-card mb-4">
           <div className="lx-card-body">
-            <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+            <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
               {t('instructor.profilePage.socialLinks', 'Social Links')}
             </h6>
             <div className="d-flex flex-wrap gap-2">
@@ -232,7 +232,7 @@ const InstructorProfile = () => {
       {/* Account Info Card */}
       <div className="lx-card">
         <div className="lx-card-body">
-          <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+          <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
             {t('instructor.profilePage.accountInfo', 'Account Information')}
           </h6>
           <div className="row g-4">
@@ -243,7 +243,7 @@ const InstructorProfile = () => {
                     width: 48,
                     height: 48,
                     borderRadius: 'var(--lx-radius)',
-                    background: 'rgba(107, 29, 42, 0.04)',
+                    background: 'rgba(101, 28, 50, 0.04)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -265,7 +265,7 @@ const InstructorProfile = () => {
                     width: 48,
                     height: 48,
                     borderRadius: 'var(--lx-radius)',
-                    background: 'rgba(107, 29, 42, 0.04)',
+                    background: 'rgba(101, 28, 50, 0.04)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

@@ -14,22 +14,22 @@ interface LinkedAccount {
 
 const accounts: LinkedAccount[] = [
   {
-    name: 'Facebook', icon: 'fa-brands fa-facebook-f', iconColor: '#1877F2', iconBg: 'rgba(24, 119, 242, 0.08)',
+    name: 'Facebook', icon: 'fa-brands fa-facebook-f', iconColor: '#651C32', iconBg: 'rgba(101, 28, 50, 0.08)',
     description: 'Facebook is a social platform for connecting, sharing, and building communities globally.',
     connected: true,
   },
   {
-    name: 'Google', icon: 'fa-brands fa-google', iconColor: '#EA4335', iconBg: 'rgba(234, 67, 53, 0.08)',
+    name: 'Google', icon: 'fa-brands fa-google', iconColor: '#651C32', iconBg: 'rgba(101, 28, 50, 0.08)',
     description: 'Google is widely used for search, maps, email, and other services.',
     connected: false,
   },
   {
-    name: 'Github', icon: 'fa-brands fa-github', iconColor: '#24292F', iconBg: 'rgba(36, 41, 47, 0.06)',
+    name: 'Github', icon: 'fa-brands fa-github', iconColor: '#651C32', iconBg: 'rgba(101, 28, 50, 0.06)',
     description: 'GitHub is a version control and collaboration platform for hosting, managing, and sharing code.',
     connected: false,
   },
   {
-    name: 'Twitter', icon: 'fa-brands fa-x-twitter', iconColor: '#1DA1F2', iconBg: 'rgba(29, 161, 242, 0.08)',
+    name: 'Twitter', icon: 'fa-brands fa-x-twitter', iconColor: '#651C32', iconBg: 'rgba(101, 28, 50, 0.08)',
     description: 'Twitter is a platform for sharing news, updates, and global conversations.',
     connected: false,
   },
@@ -61,12 +61,12 @@ const StudentLinkedAccounts = () => {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,
                   padding: '16px 18px', borderRadius: 'var(--lx-radius-sm)',
-                  background: acct.connected ? 'rgba(107, 29, 42, 0.02)' : 'rgba(255,255,255,0.4)',
-                  border: `1px solid ${acct.connected ? 'rgba(107, 29, 42, 0.08)' : 'rgba(107, 29, 42, 0.04)'}`,
+                  background: acct.connected ? 'rgba(101, 28, 50, 0.02)' : 'rgba(255,255,255,0.4)',
+                  border: `1px solid ${acct.connected ? 'rgba(101, 28, 50, 0.08)' : 'rgba(101, 28, 50, 0.04)'}`,
                   transition: 'all 0.2s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.7)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(44, 24, 16, 0.04)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = acct.connected ? 'rgba(107, 29, 42, 0.02)' : 'rgba(255,255,255,0.4)'; e.currentTarget.style.boxShadow = 'none'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.7)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(43, 15, 30, 0.04)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = acct.connected ? 'rgba(101, 28, 50, 0.02)' : 'rgba(255,255,255,0.4)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 {/* Icon */}
                 <div style={{
@@ -95,8 +95,8 @@ const StudentLinkedAccounts = () => {
                   type="button"
                   className={`lx-btn lx-btn-sm ${acct.connected ? '' : 'lx-btn-outline'}`}
                   style={acct.connected ? {
-                    background: 'rgba(139, 35, 53, 0.06)', color: '#8B2335',
-                    border: '1px solid rgba(139, 35, 53, 0.1)', flexShrink: 0,
+                    background: 'rgba(101, 28, 50, 0.06)', color: '#651C32',
+                    border: '1px solid rgba(101, 28, 50, 0.1)', flexShrink: 0,
                   } : { flexShrink: 0 }}
                 >
                   {acct.connected ? t('student.linkedAccounts.remove', 'Remove') : t('student.linkedAccounts.link', 'Link Account')}

@@ -113,10 +113,10 @@ const InstructorCertificate = () => {
       {/* ── Info banner ────────────────────────────────────────────────────── */}
       <div style={{
         padding: '14px 18px', borderRadius: 'var(--lx-radius)',
-        background: 'rgba(197, 151, 62, 0.06)', border: '1px solid rgba(197, 151, 62, 0.18)',
+        background: 'rgba(197, 145, 44, 0.06)', border: '1px solid rgba(197, 145, 44, 0.18)',
         marginBottom: 20, display: 'flex', alignItems: 'flex-start', gap: 10,
       }}>
-        <i className="isax isax-medal-star" style={{ color: '#C5973E', fontSize: 20, marginTop: 1, flexShrink: 0 }} />
+        <i className="isax isax-medal-star" style={{ color: '#C5912C', fontSize: 20, marginTop: 1, flexShrink: 0 }} />
         <div style={{ fontSize: 13.5, color: 'var(--lx-text-mid)', lineHeight: 1.6 }}>
           <strong style={{ color: 'var(--lx-text)' }}>{t('instructor.certificatesPage.autoTitle', 'Automatic generation:')}</strong>{' '}
           {t('instructor.certificatesPage.autoDesc', 'When a student completes 100% of your course, a personalized certificate is automatically generated with their name, course name, your name as instructor, and the completion date — no setup required.')}
@@ -127,8 +127,8 @@ const InstructorCertificate = () => {
       {error && (
         <div style={{
           padding: '10px 14px', borderRadius: 'var(--lx-radius-sm)',
-          background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)',
-          color: '#8B2335', fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8,
+          background: 'rgba(101, 28, 50,0.06)', border: '1px solid rgba(101, 28, 50,0.12)',
+          color: '#651C32', fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <i className="isax isax-warning-2" />{error}
           <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 'auto' }} onClick={() => fetchCertificates(currentPage)}>
@@ -183,7 +183,7 @@ const InstructorCertificate = () => {
                         <p style={{ fontWeight: 500, fontSize: 13.5, color: 'var(--lx-text)', marginBottom: 0 }}>{cert.courseTitle}</p>
                       </td>
                       <td>
-                        <code style={{ fontSize: 12, background: 'rgba(107,29,42,0.04)', padding: '2px 8px', borderRadius: 4, color: 'var(--lx-text)' }}>
+                        <code style={{ fontSize: 12, background: 'rgba(101, 28, 50,0.04)', padding: '2px 8px', borderRadius: 4, color: 'var(--lx-text)' }}>
                           {cert.certificateNumber}
                         </code>
                       </td>
@@ -217,7 +217,7 @@ const InstructorCertificate = () => {
         <>
           <div onClick={() => setSelected(null)} style={{
             position: 'fixed', inset: 0,
-            background: 'rgba(30, 12, 18, 0.55)', backdropFilter: 'blur(5px)',
+            background: 'rgba(43, 15, 30, 0.55)', backdropFilter: 'blur(5px)',
             WebkitBackdropFilter: 'blur(5px)', zIndex: 1040,
           }} />
           <div style={{
@@ -227,23 +227,23 @@ const InstructorCertificate = () => {
             <div style={{
               width: '100%', maxWidth: 740,
               background: '#fff', borderRadius: 16,
-              border: '1px solid rgba(107,29,42,0.12)',
-              boxShadow: '0 32px 80px rgba(30,12,18,0.25)',
+              border: '1px solid rgba(101, 28, 50,0.12)',
+              boxShadow: '0 32px 80px rgba(43, 15, 30,0.25)',
               overflow: 'hidden',
             }}>
               {/* Modal header */}
               <div style={{
-                padding: '18px 24px', borderBottom: '1px solid rgba(107,29,42,0.07)',
+                padding: '18px 24px', borderBottom: '1px solid rgba(101, 28, 50,0.07)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 background: 'rgba(252,248,240,0.8)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <i className="isax isax-medal-star" style={{ fontSize: 22, color: '#C5973E' }} />
-                  <h5 style={{ fontWeight: 700, color: '#4B121C', margin: 0, fontSize: 16 }}>{t('student.certificates.ofCompletion', 'Certificate of Completion')}</h5>
+                  <i className="isax isax-medal-star" style={{ fontSize: 22, color: '#C5912C' }} />
+                  <h5 style={{ fontWeight: 700, color: '#4A1428', margin: 0, fontSize: 16 }}>{t('student.certificates.ofCompletion', 'Certificate of Completion')}</h5>
                 </div>
                 <button onClick={() => setSelected(null)} style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#9e7a7a', fontSize: 22, padding: 4, lineHeight: 1,
+                  color: '#7C6A73', fontSize: 22, padding: 4, lineHeight: 1,
                 }}>
                   <i className="isax isax-close-circle" />
                 </button>
@@ -254,7 +254,7 @@ const InstructorCertificate = () => {
 
                 {/* Left maroon strip */}
                 <div style={{
-                  width: '26%', background: '#4B121C', flexShrink: 0,
+                  width: '26%', background: '#4A1428', flexShrink: 0,
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
                   justifyContent: 'space-between', padding: '28px 16px 24px',
                   position: 'relative', overflow: 'hidden',
@@ -263,7 +263,7 @@ const InstructorCertificate = () => {
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     {[72, 60, 48].map((h, i) => (
                       <div key={i} style={{
-                        width: 10, height: h, background: '#C5973E',
+                        width: 10, height: h, background: '#C5912C',
                         borderRadius: '0 0 4px 4px',
                       }} />
                     ))}
@@ -271,18 +271,18 @@ const InstructorCertificate = () => {
 
                   {/* Academy name */}
                   <div style={{ textAlign: 'center' }}>
-                    <p style={{ color: '#C5973E', fontWeight: 800, fontSize: 13, letterSpacing: 3, margin: 0 }}>SARALOWE</p>
-                    <p style={{ color: 'rgba(245,235,200,0.7)', fontSize: 9, letterSpacing: 4, margin: '2px 0 0' }}>ACADEMY</p>
+                    <p style={{ color: '#C5912C', fontWeight: 800, fontSize: 13, letterSpacing: 3, margin: 0 }}>SARALOWE</p>
+                    <p style={{ color: 'rgba(245,235,200,0.7)', fontSize: 12, letterSpacing: 4, margin: '2px 0 0' }}>ACADEMY</p>
                   </div>
 
                   {/* Medal */}
                   <div style={{
                     width: 60, height: 60, borderRadius: '50%',
-                    background: 'radial-gradient(circle at 35% 35%, #FFE082, #C5973E)',
+                    background: 'radial-gradient(circle at 35% 35%, #F3D58E, #C5912C)',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <i className="isax isax-medal-star" style={{ fontSize: 28, color: '#4B121C' }} />
+                    <i className="isax isax-medal-star" style={{ fontSize: 28, color: '#4A1428' }} />
                   </div>
                 </div>
 
@@ -296,49 +296,49 @@ const InstructorCertificate = () => {
                   {/* Double border */}
                   <div style={{
                     position: 'absolute', inset: 8,
-                    border: '1.5px solid #C5973E', borderRadius: 6, pointerEvents: 'none',
+                    border: '1.5px solid #C5912C', borderRadius: 6, pointerEvents: 'none',
                   }} />
                   <div style={{
                     position: 'absolute', inset: 13,
-                    border: '0.5px solid rgba(197,151,62,0.35)', borderRadius: 4, pointerEvents: 'none',
+                    border: '0.5px solid rgba(197, 145, 44,0.35)', borderRadius: 4, pointerEvents: 'none',
                   }} />
 
                   <div style={{ position: 'relative', textAlign: 'center', paddingTop: 8 }}>
                     <p style={{
-                      fontSize: 22, fontWeight: 900, color: '#4B121C',
+                      fontSize: 22, fontWeight: 900, color: '#4A1428',
                       letterSpacing: 5, margin: 0, textTransform: 'uppercase',
                     }}>CERTIFICATE</p>
                     <p style={{
-                      fontSize: 11, color: '#C5973E', letterSpacing: 4,
+                      fontSize: 12, color: '#C5912C', letterSpacing: 4,
                       textTransform: 'uppercase', margin: '2px 0 16px',
                     }}>OF COMPLETION</p>
 
-                    <p style={{ fontSize: 12, color: '#9e7a7a', margin: '0 0 6px' }}>
+                    <p style={{ fontSize: 12, color: '#7C6A73', margin: '0 0 6px' }}>
                       This certificate is proudly presented to
                     </p>
 
                     <p style={{
                       fontSize: 26, fontWeight: 700, fontStyle: 'italic',
-                      color: '#6B1D2A', margin: '0 0 2px', lineHeight: 1.2,
+                      color: '#651C32', margin: '0 0 2px', lineHeight: 1.2,
                     }}>
                       {selected.studentName}
                     </p>
                     <div style={{
-                      height: 1.5, background: 'linear-gradient(90deg, transparent, #C5973E, transparent)',
+                      height: 1.5, background: 'linear-gradient(90deg, transparent, #C5912C, transparent)',
                       margin: '6px auto 12px', width: '60%',
                     }} />
 
-                    <p style={{ fontSize: 12, color: '#9e7a7a', margin: '0 0 4px' }}>
+                    <p style={{ fontSize: 12, color: '#7C6A73', margin: '0 0 4px' }}>
                       has successfully completed the course
                     </p>
                     <p style={{
-                      fontSize: 16, fontWeight: 700, color: '#4B121C',
+                      fontSize: 16, fontWeight: 700, color: '#4A1428',
                       margin: '0 0 6px',
                     }}>
                       {selected.courseTitle}
                     </p>
-                    <p style={{ fontSize: 11, color: '#9e7a7a', margin: 0 }}>
-                      Completed on&nbsp;<strong style={{ color: '#6B1D2A' }}>
+                    <p style={{ fontSize: 12, color: '#7C6A73', margin: 0 }}>
+                      Completed on&nbsp;<strong style={{ color: '#651C32' }}>
                         {formatDate(selected.completionDate || selected.issuedAt)}
                       </strong>
                     </p>
@@ -354,9 +354,9 @@ const InstructorCertificate = () => {
                       { name: 'Saralowe Academy', role: 'Academy Director' },
                     ].map((sig, i) => (
                       <div key={i} style={{ textAlign: 'center', minWidth: 120 }}>
-                        <div style={{ height: 1, background: '#6B1D2A', marginBottom: 4 }} />
-                        <p style={{ fontSize: 11, fontWeight: 700, color: '#4B121C', margin: 0 }}>{sig.name}</p>
-                        <p style={{ fontSize: 9, color: '#9e7a7a', letterSpacing: 1, margin: 0 }}>{sig.role.toUpperCase()}</p>
+                        <div style={{ height: 1, background: '#651C32', marginBottom: 4 }} />
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#4A1428', margin: 0 }}>{sig.name}</p>
+                        <p style={{ fontSize: 12, color: '#7C6A73', letterSpacing: 1, margin: 0 }}>{sig.role.toUpperCase()}</p>
                       </div>
                     ))}
                   </div>
@@ -364,16 +364,16 @@ const InstructorCertificate = () => {
                   {/* Cert number */}
                   <p style={{
                     position: 'relative', textAlign: 'center',
-                    fontSize: 9, color: '#b0948a', margin: '10px 0 0', letterSpacing: 1,
+                    fontSize: 12, color: '#7C6A73', margin: '10px 0 0', letterSpacing: 1,
                   }}>
-                    Certificate No: <strong style={{ color: '#6B1D2A' }}>{selected.certificateNumber}</strong>
+                    Certificate No: <strong style={{ color: '#651C32' }}>{selected.certificateNumber}</strong>
                   </p>
                 </div>
               </div>
 
               {/* Modal footer */}
               <div style={{
-                padding: '14px 24px', borderTop: '1px solid rgba(107,29,42,0.07)',
+                padding: '14px 24px', borderTop: '1px solid rgba(101, 28, 50,0.07)',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 background: 'rgba(252,248,240,0.6)', flexWrap: 'wrap', gap: 8,
               }}>
@@ -383,8 +383,8 @@ const InstructorCertificate = () => {
                     { label: t('common.instructor', 'Instructor'), value: selected.instructorName ?? '—' },
                   ].map((item) => (
                     <div key={item.label}>
-                      <p style={{ fontSize: 10, color: '#9e7a7a', margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>{item.label}</p>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#4B121C', margin: 0 }}>{item.value}</p>
+                      <p style={{ fontSize: 12, color: '#7C6A73', margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>{item.label}</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#4A1428', margin: 0 }}>{item.value}</p>
                     </div>
                   ))}
                 </div>

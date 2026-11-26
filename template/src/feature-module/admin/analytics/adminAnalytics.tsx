@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactApexChart from 'react-apexcharts';
+import LxEmptyState from '../../../components/LxEmptyState';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import { formatMAD } from '../../../core/common/formatMoney';
 import { adminService, Analytics } from '../../../services/api/admin.service';
@@ -11,12 +12,12 @@ type Period = 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
 // Keys match GET /admin/analytics. Revenue / courses sold / new users / new enrollments
 // are for the selected period; total users and active subscriptions are current totals.
 const STAT_CARDS = [
-  { key: 'totalRevenue',        icon: 'isax-dollar-circle',  color: '#C9A227' },
-  { key: 'coursesSold',         icon: 'isax-book-1',         color: '#8B5CF6' },
-  { key: 'newUsers',            icon: 'isax-user-add',       color: '#3B82F6' },
-  { key: 'newEnrollments',      icon: 'isax-teacher',        color: '#F59E0B' },
-  { key: 'totalUsers',          icon: 'isax-people',         color: '#0EA5E9' },
-  { key: 'activeSubscriptions', icon: 'isax-medal-star',     color: '#10B981' },
+  { key: 'totalRevenue',        icon: 'isax-dollar-circle' },
+  { key: 'coursesSold',         icon: 'isax-book-1' },
+  { key: 'newUsers',            icon: 'isax-user-add' },
+  { key: 'newEnrollments',      icon: 'isax-teacher' },
+  { key: 'totalUsers',          icon: 'isax-people' },
+  { key: 'activeSubscriptions', icon: 'isax-medal-star' },
 ];
 
 const AdminAnalytics: React.FC = () => {
@@ -61,22 +62,23 @@ const AdminAnalytics: React.FC = () => {
     chart: { type: 'area' as const, height: 220, toolbar: { show: false }, sparkline: { enabled: false } },
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth' as const, width: 2 },
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
-    colors: ['#C9A227'],
-    xaxis: { categories: data.revenueByDay.map((d) => d.date), tickAmount: 10, labels: { rotate: -45, style: { fontSize: '11px' } } },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05, gradientToColors: ['#F3D58E'] } },
+    colors: ['#C5912C'],
+    xaxis: { categories: data.revenueByDay.map((d) => d.date), tickAmount: 10, labels: { rotate: -45, style: { fontSize: '12px' } } },
     yaxis: { labels: { formatter: (v: number) => `${v.toFixed(0)} MAD` } },
-    tooltip: { theme: 'dark' },
+    tooltip: { theme: 'light' },
     series: [{ name: t('admin.analytics.revenue', 'Revenue'), data: data.revenueByDay.map((d) => Number(d.amount) || 0) }],
   } : null;
 
   const usersChart = data?.usersByDay ? {
     chart: { type: 'bar' as const, height: 220, toolbar: { show: false } },
     dataLabels: { enabled: false },
-    colors: ['#3B82F6'],
-    xaxis: { categories: data.usersByDay.map((d) => d.date), tickAmount: 10, labels: { rotate: -45, style: { fontSize: '11px' } } },
+    colors: ['#651C32'],
+    plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+    xaxis: { categories: data.usersByDay.map((d) => d.date), tickAmount: 10, labels: { rotate: -45, style: { fontSize: '12px' } } },
     yaxis: { labels: { formatter: (v: number) => `${Math.round(v)}` } },
     series: [{ name: t('admin.analytics.newUsers', 'New Users'), data: data.usersByDay.map((d) => d.count) }],
-    tooltip: { theme: 'dark' },
+    tooltip: { theme: 'light' },
   } : null;
 
   return (
@@ -85,14 +87,16 @@ const AdminAnalytics: React.FC = () => {
         {/* Header */}
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
           <div>
-            <h5 className="fw-bold mb-1">{t('admin.analytics.title', 'Analytics')}</h5>
+            <h5 className="lx-page-title mb-1">{t('admin.analytics.title', 'Analytics')}</h5>
             <p className="text-muted fs-13 mb-0">{t('admin.analytics.subtitle', 'Platform performance overview')}</p>
           </div>
-          <div className="btn-group">
+          <div className="lx-seg" role="group">
             {(['WEEK', 'MONTH', 'QUARTER', 'YEAR'] as Period[]).map((p) => (
               <button
                 key={p}
-                className={`btn btn-sm ${period === p ? 'btn-dark' : 'btn-outline-secondary'}`}
+                type="button"
+                aria-pressed={period === p}
+                className={`lx-seg-btn${period === p ? ' is-active' : ''}`}
                 onClick={() => setPeriod(p)}
               >
                 {periodLabels[p]}
@@ -118,22 +122,19 @@ const AdminAnalytics: React.FC = () => {
           <>
             {/* Stat cards */}
             <div className="row g-3 mb-4">
-              {STAT_CARDS.map(({ key, icon, color }) => (
-                <div key={key} className="col-6 col-xl-4">
-                  <div className="card border-0 shadow-sm h-100">
-                    <div className="card-body p-3 d-flex align-items-center gap-3">
-                      <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                        style={{ width: 44, height: 44, background: `${color}18` }}>
-                        <i className={`isax ${icon} fs-20`} style={{ color }} />
-                      </div>
-                      <div>
-                        <p className="text-muted fs-12 mb-0">{statLabels[key]}</p>
-                        <h5 className="fw-bold mb-0">
-                          {key === 'totalRevenue'
-                            ? formatMAD(data?.totalRevenue ?? 0)
-                            : Number(data?.[key as keyof Analytics] ?? 0).toLocaleString()}
-                        </h5>
-                      </div>
+              {STAT_CARDS.map(({ key, icon }) => (
+                <div key={key} className="col-12 col-sm-6 col-xl-4">
+                  <div className={`lx-stat-card h-100${key === 'totalRevenue' ? ' is-key' : ''}`}>
+                    <div className="stat-icon">
+                      <i className={`isax ${icon}`} />
+                    </div>
+                    <div className="stat-info">
+                      <p className="stat-label">{statLabels[key]}</p>
+                      <h3 className="stat-value">
+                        {key === 'totalRevenue'
+                          ? formatMAD(data?.totalRevenue ?? 0)
+                          : Number(data?.[key as keyof Analytics] ?? 0).toLocaleString()}
+                      </h3>
                     </div>
                   </div>
                 </div>
@@ -149,7 +150,7 @@ const AdminAnalytics: React.FC = () => {
                     {revenueChart ? (
                       <ReactApexChart options={revenueChart} series={revenueChart.series} type="area" height={220} />
                     ) : (
-                      <p className="text-muted fs-14">{t('admin.analytics.noData', 'No data for this period yet.')}</p>
+                      <LxEmptyState compact icon="isax-chart-21" title={t('emptyStates.chartTitle', 'Nothing to chart yet')} text={t('admin.analytics.noData', 'No data for this period yet.')} />
                     )}
                   </div>
                 </div>
@@ -161,7 +162,7 @@ const AdminAnalytics: React.FC = () => {
                     {usersChart ? (
                       <ReactApexChart options={usersChart} series={usersChart.series} type="bar" height={220} />
                     ) : (
-                      <p className="text-muted fs-14">{t('admin.analytics.noData', 'No data for this period yet.')}</p>
+                      <LxEmptyState compact icon="isax-chart-21" title={t('emptyStates.chartTitle', 'Nothing to chart yet')} text={t('admin.analytics.noData', 'No data for this period yet.')} />
                     )}
                   </div>
                 </div>
@@ -187,7 +188,7 @@ const AdminAnalytics: React.FC = () => {
                           <tr key={c.courseId}>
                             <td className="fw-semibold fs-14">{c.title ?? t('admin.analytics.deletedCourse', 'Deleted course')}</td>
                             <td className="fs-14">{c.sales}</td>
-                            <td className="fs-14 fw-semibold" style={{ color: 'var(--lx-gold)' }}>
+                            <td className="fs-14 lx-money">
                               {formatMAD(c.revenue)}
                             </td>
                           </tr>

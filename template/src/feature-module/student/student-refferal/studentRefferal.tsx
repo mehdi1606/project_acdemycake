@@ -9,14 +9,14 @@ const StudentRefferal: React.FC = () => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const statCards = [
-    { label: 'Net Earnings', value: '$0', sub: 'Earning this month', icon: 'isax-dollar-circle', color: '#2D5F3F', bg: 'rgba(45, 95, 63, 0.08)' },
-    { label: 'Balance', value: '$0', sub: 'In the Wallet', icon: 'isax-wallet-2', color: 'var(--lx-primary)', bg: 'rgba(107, 29, 42, 0.06)' },
-    { label: 'No of Referrals', value: '0', sub: 'In this month', icon: 'isax-people', color: '#C5973E', bg: 'rgba(197, 151, 62, 0.08)' },
+    { label: 'Net Earnings', value: '$0', sub: 'Earning this month', icon: 'isax-dollar-circle', color: '#855A0E', bg: 'rgba(197, 145, 44, 0.08)' },
+    { label: 'Balance', value: '$0', sub: 'In the Wallet', icon: 'isax-wallet-2', color: 'var(--lx-primary)', bg: 'rgba(101, 28, 50, 0.06)' },
+    { label: 'No of Referrals', value: '0', sub: 'In this month', icon: 'isax-people', color: '#C5912C', bg: 'rgba(197, 145, 44, 0.08)' },
   ];
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px',
-    border: '1.5px solid rgba(107, 29, 42, 0.12)',
+    border: '1.5px solid rgba(101, 28, 50, 0.12)',
     borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
     outline: 'none', background: 'rgba(255,255,255,0.6)',
     color: 'var(--lx-text)',
@@ -67,7 +67,7 @@ const StudentRefferal: React.FC = () => {
             </p>
             <input
               type="text"
-              style={{ ...inputStyle, marginBottom: 14, background: 'rgba(107, 29, 42, 0.03)' }}
+              style={{ ...inputStyle, marginBottom: 14, background: 'rgba(101, 28, 50, 0.03)' }}
               defaultValue={`https://SARALOWEcourse.com/refer/?refid=${referralCode}`}
               readOnly
             />
@@ -116,7 +116,7 @@ const StudentRefferal: React.FC = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowWithdrawModal(false); }}
@@ -124,10 +124,10 @@ const StudentRefferal: React.FC = () => {
           <div style={{
             width: '100%', maxWidth: 460,
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
           }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Withdrawal Request</h5>
               <button onClick={() => setShowWithdrawModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
                 <i className="isax isax-close-circle" />
@@ -138,7 +138,7 @@ const StudentRefferal: React.FC = () => {
               <div style={{
                 display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20,
                 padding: '14px 16px', borderRadius: 'var(--lx-radius-sm)',
-                background: 'rgba(107, 29, 42, 0.03)', border: '1px solid rgba(107, 29, 42, 0.06)',
+                background: 'rgba(101, 28, 50, 0.03)', border: '1px solid rgba(101, 28, 50, 0.06)',
               }}>
                 <div>
                   <p style={{ margin: '0 0 2px', fontSize: 12, color: 'var(--lx-text-muted)' }}>Withdrawal Balance</p>
@@ -152,7 +152,7 @@ const StudentRefferal: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                  Amount <span style={{ color: '#8B2335' }}>*</span>
+                  Amount <span style={{ color: '#651C32' }}>*</span>
                 </label>
                 <input type="number" style={inputStyle} placeholder="MAD" />
                 <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--lx-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -160,7 +160,7 @@ const StudentRefferal: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowWithdrawModal(false)}>Cancel</button>
               <button type="button" className="lx-btn lx-btn-gold" onClick={() => setShowWithdrawModal(false)}>Submit</button>
             </div>

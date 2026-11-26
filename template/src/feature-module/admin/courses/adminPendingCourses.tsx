@@ -93,7 +93,7 @@ const AdminPendingCourses = () => {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '10px 14px',
-    border: '1.5px solid rgba(107, 29, 42, 0.12)',
+    border: '1.5px solid rgba(101, 28, 50, 0.12)',
     borderRadius: 'var(--lx-radius-sm)',
     fontSize: 14,
     outline: 'none',
@@ -107,10 +107,10 @@ const AdminPendingCourses = () => {
       {/* Info Banner */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', marginBottom: 24,
-        borderRadius: 'var(--lx-radius)', background: 'rgba(197, 151, 62, 0.08)',
-        border: '1px solid rgba(197, 151, 62, 0.15)',
+        borderRadius: 'var(--lx-radius)', background: 'rgba(197, 145, 44, 0.08)',
+        border: '1px solid rgba(197, 145, 44, 0.15)',
       }}>
-        <i className="isax isax-info-circle" style={{ fontSize: 24, color: '#C5973E', flexShrink: 0 }} />
+        <i className="isax isax-info-circle" style={{ fontSize: 24, color: '#C5912C', flexShrink: 0 }} />
         <div>
           <strong style={{ color: 'var(--lx-text)', fontSize: 14 }}>{t('admin.sidebar.pendingApprovals', 'Pending Approvals')}</strong>
           <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-mid)' }}>
@@ -127,7 +127,7 @@ const AdminPendingCourses = () => {
             {pendingCoursesPagination.totalElements > 0 && (
               <span style={{
                 marginLeft: 8, padding: '2px 10px', borderRadius: 12,
-                background: 'rgba(197, 151, 62, 0.12)', color: '#C5973E', fontSize: 12, fontWeight: 600,
+                background: 'rgba(197, 145, 44, 0.12)', color: '#C5912C', fontSize: 12, fontWeight: 600,
               }}>
                 {pendingCoursesPagination.totalElements}
               </span>
@@ -145,100 +145,102 @@ const AdminPendingCourses = () => {
             </div>
           ) : pendingCourses.length === 0 ? (
             <div className="lx-empty-state">
-              <span className="empty-icon" style={{ background: 'rgba(45, 95, 63, 0.08)' }}>
-                <i className="isax isax-tick-circle" style={{ fontSize: 28, color: '#2D5F3F' }} />
+              <span className="empty-icon" style={{ background: 'rgba(197, 145, 44, 0.08)' }}>
+                <i className="isax isax-tick-circle" style={{ fontSize: 28, color: '#855A0E' }} />
               </span>
               <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('admin.courses.allCaughtUp', 'All Caught Up!')}</h6>
               <p>{t('admin.courses.noPendingCourses', 'No courses pending approval at the moment.')}</p>
             </div>
           ) : (
-            <table className="lx-table">
-              <thead>
-                <tr>
-                  <th>{t('admin.courses.courseTitle', 'Course')}</th>
-                  <th>{t('admin.courses.instructor', 'Instructor')}</th>
-                  <th>{t('common.level', 'Level')}</th>
-                  <th>{t('common.price', 'Price')}</th>
-                  <th>{t('admin.courses.submitted', 'Submitted')}</th>
-                  <th style={{ textAlign: 'center' }}>{t('admin.courses.actions', 'Actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingCourses.map((course) => (
-                  <tr key={course.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <img
-                          src={course.thumbnailUrl ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl) : COURSE_PLACEHOLDER}
-                          onError={fallbackTo()}
-                          alt=""
-                          style={{ width: 56, height: 42, objectFit: 'cover', borderRadius: 'var(--lx-radius-sm)' }}
-                        />
-                        <div>
-                          <p style={{ margin: 0, fontWeight: 500, fontSize: 13 }}>{course.title}</p>
-                          <small style={{ color: 'var(--lx-text-muted)' }}>
-                            {course.category?.name || t('admin.courses.uncategorized', 'Uncategorized')} · {t('admin.courses.lessonsCount', '{{n}} lessons', { n: course.lessonsCount || 0 })}
-                          </small>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <AvatarImage
-                          src={course.instructor?.avatarUrl ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl) : null}
-                          name={course.instructor?.fullName}
-                          size={28}
-                        />
-                        <small style={{ fontWeight: 500 }}>{course.instructor?.fullName || t('admin.courses.unknown', 'Unknown')}</small>
-                      </div>
-                    </td>
-                    <td>{levelBadge(t, course.level)}</td>
-                    <td>
-                      {!course.requiresPurchase ? (
-                        <span className="lx-badge badge-success">{t('common.free', 'Free')}</span>
-                      ) : (
-                        <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{formatCurrency(t, course.price)}</span>
-                      )}
-                    </td>
-                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>
-                      {new Date(course.createdAt).toLocaleDateString()}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-                        <Link
-                          to={`${all_routes.courseDetails}/${course.slug || course.id}`}
-                          className="lx-btn lx-btn-outline lx-btn-sm"
-                          title={t('admin.courses.previewCourse', 'Preview Course')}
-                        >
-                          <i className="isax isax-eye" />
-                        </Link>
-                        <button
-                          className="lx-btn lx-btn-sm"
-                          style={{ background: 'rgba(45, 95, 63, 0.1)', color: '#2D5F3F', border: '1px solid rgba(45, 95, 63, 0.15)' }}
-                          onClick={() => handleApproveCourse(course.id)}
-                          title={t('admin.courses.approvePublish', 'Approve & Publish')}
-                        >
-                          <i className="isax isax-tick-circle" />
-                        </button>
-                        <button
-                          className="lx-btn lx-btn-sm"
-                          style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}
-                          onClick={() => handleRejectCourse(course.id)}
-                          title={t('admin.courses.rejectShort', 'Reject')}
-                        >
-                          <i className="isax isax-close-circle" />
-                        </button>
-                      </div>
-                    </td>
+            <div className="lx-table-scroll">
+              <table className="lx-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.courses.courseTitle', 'Course')}</th>
+                    <th>{t('admin.courses.instructor', 'Instructor')}</th>
+                    <th>{t('common.level', 'Level')}</th>
+                    <th>{t('common.price', 'Price')}</th>
+                    <th>{t('admin.courses.submitted', 'Submitted')}</th>
+                    <th style={{ textAlign: 'center' }}>{t('admin.courses.actions', 'Actions')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pendingCourses.map((course) => (
+                    <tr key={course.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <img
+                            src={course.thumbnailUrl ? (getFileUrl(course.thumbnailUrl) ?? course.thumbnailUrl) : COURSE_PLACEHOLDER}
+                            onError={fallbackTo()}
+                            alt=""
+                            style={{ width: 56, height: 42, objectFit: 'cover', borderRadius: 'var(--lx-radius-sm)' }}
+                          />
+                          <div>
+                            <p style={{ margin: 0, fontWeight: 500, fontSize: 13 }}>{course.title}</p>
+                            <small style={{ color: 'var(--lx-text-muted)' }}>
+                              {course.category?.name || t('admin.courses.uncategorized', 'Uncategorized')} · {t('admin.courses.lessonsCount', '{{n}} lessons', { n: course.lessonsCount || 0 })}
+                            </small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <AvatarImage
+                            src={course.instructor?.avatarUrl ? (getFileUrl(course.instructor.avatarUrl) ?? course.instructor.avatarUrl) : null}
+                            name={course.instructor?.fullName}
+                            size={28}
+                          />
+                          <small style={{ fontWeight: 500 }}>{course.instructor?.fullName || t('admin.courses.unknown', 'Unknown')}</small>
+                        </div>
+                      </td>
+                      <td>{levelBadge(t, course.level)}</td>
+                      <td>
+                        {!course.requiresPurchase ? (
+                          <span className="lx-badge badge-success">{t('common.free', 'Free')}</span>
+                        ) : (
+                          <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{formatCurrency(t, course.price)}</span>
+                        )}
+                      </td>
+                      <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>
+                        {new Date(course.createdAt).toLocaleDateString()}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+                          <Link
+                            to={`${all_routes.courseDetails}/${course.slug || course.id}`}
+                            className="lx-btn lx-btn-outline lx-btn-sm"
+                            title={t('admin.courses.previewCourse', 'Preview Course')}
+                          >
+                            <i className="isax isax-eye" />
+                          </Link>
+                          <button
+                            className="lx-btn lx-btn-sm"
+                            style={{ background: 'rgba(197, 145, 44, 0.1)', color: '#855A0E', border: '1px solid rgba(197, 145, 44, 0.15)' }}
+                            onClick={() => handleApproveCourse(course.id)}
+                            title={t('admin.courses.approvePublish', 'Approve & Publish')}
+                          >
+                            <i className="isax isax-tick-circle" />
+                          </button>
+                          <button
+                            className="lx-btn lx-btn-sm"
+                            style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1px solid rgba(101, 28, 50, 0.12)' }}
+                            onClick={() => handleRejectCourse(course.id)}
+                            title={t('admin.courses.rejectShort', 'Reject')}
+                          >
+                            <i className="isax isax-close-circle" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
         {pendingCoursesPagination.totalPages > 1 && (
-          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'center' }}>
             <Pagination
               current={currentPage + 1}
               total={pendingCoursesPagination.totalElements}
@@ -255,7 +257,7 @@ const AdminPendingCourses = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) { setRejectModalVisible(false); setRejectReason(''); setSelectedCourseId(null); } }}
@@ -263,10 +265,10 @@ const AdminPendingCourses = () => {
           <div style={{
             width: '100%', maxWidth: 460,
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
           }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('admin.courses.reject', 'Reject Course')}</h5>
               <button onClick={() => { setRejectModalVisible(false); setRejectReason(''); setSelectedCourseId(null); }} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
                 <i className="isax isax-close-circle" />
@@ -284,12 +286,12 @@ const AdminPendingCourses = () => {
                 rows={3}
               />
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={() => { setRejectModalVisible(false); setRejectReason(''); setSelectedCourseId(null); }}>{t('common.cancel', 'Cancel')}</button>
               <button
                 type="button"
                 className="lx-btn"
-                style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
+                style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1.5px solid rgba(101, 28, 50, 0.15)' }}
                 onClick={confirmReject}
                 disabled={!rejectReason.trim()}
               >

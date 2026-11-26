@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
   outline: 'none', background: 'rgba(255,255,255,0.6)',
   color: 'var(--lx-text)', transition: 'border-color 0.2s ease',
@@ -18,10 +18,10 @@ const labelStyle: React.CSSProperties = {
 
 const focusHandlers = {
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)';
+    e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)';
   },
   onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)';
+    e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)';
   },
 };
 
@@ -33,7 +33,7 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () =>
     style={{
       width: 44, height: 24, borderRadius: 12, padding: 2,
       border: 'none', cursor: 'pointer', flexShrink: 0,
-      background: checked ? 'var(--lx-primary)' : 'rgba(107, 29, 42, 0.12)',
+      background: checked ? 'var(--lx-primary)' : 'rgba(101, 28, 50, 0.12)',
       transition: 'background 0.2s ease',
       display: 'flex', alignItems: 'center',
       justifyContent: checked ? 'flex-end' : 'flex-start',
@@ -62,16 +62,16 @@ const integrations: Integration[] = [
     name: 'Zoom Meeting',
     description: 'A virtual platform for real-time video, audio, and screen-sharing collaboration.',
     icon: 'fa-brands fa-video', // isax fallback
-    color: '#2D8CFF',
-    bgColor: 'rgba(45, 140, 255, 0.08)',
+    color: '#651C32',
+    bgColor: 'rgba(101, 28, 50, 0.08)',
   },
   {
     key: 'google',
     name: 'Google Meet',
     description: 'A video conferencing platform for seamless virtual meetings, collaboration, and screen sharing.',
     icon: 'fa-brands fa-google',
-    color: '#34A853',
-    bgColor: 'rgba(52, 168, 83, 0.08)',
+    color: '#855A0E',
+    bgColor: 'rgba(197, 145, 44, 0.08)',
   },
 ];
 
@@ -112,7 +112,7 @@ const InstructorIntegrations = () => {
                   {/* Divider between integrations */}
                   {idx > 0 && (
                     <div style={{
-                      height: 1, background: 'rgba(107, 29, 42, 0.06)',
+                      height: 1, background: 'rgba(101, 28, 50, 0.06)',
                       margin: '28px 0',
                     }} />
                   )}
@@ -123,10 +123,10 @@ const InstructorIntegrations = () => {
                       display: 'flex', alignItems: 'center', gap: 14,
                       padding: 16, borderRadius: 'var(--lx-radius-sm)',
                       border: isOn
-                        ? '1.5px solid rgba(45, 95, 63, 0.15)'
-                        : '1.5px solid rgba(107, 29, 42, 0.08)',
+                        ? '1.5px solid rgba(197, 145, 44, 0.15)'
+                        : '1.5px solid rgba(101, 28, 50, 0.08)',
                       background: isOn
-                        ? 'rgba(45, 95, 63, 0.02)'
+                        ? 'rgba(197, 145, 44, 0.02)'
                         : 'rgba(255, 255, 255, 0.3)',
                       marginBottom: 20, transition: 'all 0.2s ease',
                     }}
@@ -153,7 +153,7 @@ const InstructorIntegrations = () => {
                     {/* Toggle */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {isOn && (
-                        <span className="lx-badge badge-success" style={{ fontSize: 11 }}>Active</span>
+                        <span className="lx-badge badge-success" style={{ fontSize: 12 }}>Active</span>
                       )}
                       <ToggleSwitch checked={isOn} onChange={() => toggle(intg.key)} />
                     </div>
@@ -168,11 +168,11 @@ const InstructorIntegrations = () => {
                       opacity: 1, transition: 'opacity 0.2s ease',
                     }}>
                       <div>
-                        <label style={labelStyle}>Client ID <span style={{ color: '#8B2335' }}>*</span></label>
+                        <label style={labelStyle}>Client ID <span style={{ color: '#651C32' }}>*</span></label>
                         <input type="text" style={inputStyle} placeholder="Enter client ID" {...focusHandlers} />
                       </div>
                       <div>
-                        <label style={labelStyle}>Client Secret Key <span style={{ color: '#8B2335' }}>*</span></label>
+                        <label style={labelStyle}>Client Secret Key <span style={{ color: '#651C32' }}>*</span></label>
                         <input type="text" style={inputStyle} placeholder="Enter secret key" {...focusHandlers} />
                       </div>
                     </div>

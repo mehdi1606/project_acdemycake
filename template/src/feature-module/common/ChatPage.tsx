@@ -5,6 +5,7 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import LxEmptyState from '../../components/LxEmptyState';
 import { Spin } from 'antd';
 import { useAppSelector } from '../../core/redux/hooks';
 import { messageService, ConversationInfo, ChatMessage } from '../../services/api/message.service';
@@ -317,7 +318,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
       )}
 
       <div className={sidebar ? 'col-lg-9' : 'col-lg-12'}>
-        <div className="instructor-message">
+        <div className="instructor-message lx-chat">
           <h5 className="page-title d-flex align-items-center gap-2">
             Messages
             {totalUnread > 0 && (
@@ -349,10 +350,12 @@ const ChatPage: React.FC<ChatPageProps> = ({
                     <Spin />
                   </div>
                 ) : filteredConvs.length === 0 ? (
-                  <div className="text-center text-muted py-5 px-3">
-                    <i className="isax isax-message fs-1 d-block mb-2" />
-                    {searchQuery ? 'No conversations match your search.' : 'No conversations yet.'}
-                  </div>
+                  <LxEmptyState
+                    compact
+                    icon={searchQuery ? 'isax-search-normal-1' : 'isax-message'}
+                    title={searchQuery ? t('emptyStates.chatSearchTitle', 'No matching conversations') : t('emptyStates.chatTitle', 'No conversations yet')}
+                    text={searchQuery ? t('emptyStates.chatSearchText', 'Try another name or clear the search.') : t('emptyStates.chatText', 'Your conversations with students and instructors will appear here.')}
+                  />
                 ) : (
                   filteredConvs.map((conv) => (
                     <button
@@ -375,7 +378,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
                           />
                           {conv.isOnline && (
                             <span
-                              className="position-absolute badge bg-success rounded-circle border border-white"
+                              className="position-absolute badge rounded-circle lx-online-dot"
                               style={{ width: 10, height: 10, padding: 0, bottom: 2, right: 2 }}
                             />
                           )}
@@ -406,9 +409,12 @@ const ChatPage: React.FC<ChatPageProps> = ({
             {/* ── RIGHT: message thread ──────────────────────────────── */}
             <div className="col-lg-7 d-flex flex-column">
               {!activeConv ? (
-                <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-muted py-5">
-                  <i className="isax isax-message-text-1 fs-1 mb-3" />
-                  <p className="mb-0">Select a conversation to start chatting</p>
+                <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1">
+                  <LxEmptyState
+                    icon="isax-message-text-1"
+                    title={t('emptyStates.chatPickTitle', 'Choose a conversation')}
+                    text={t('emptyStates.chatPickText', 'Select a conversation to start chatting.')}
+                  />
                 </div>
               ) : (
                 <>
@@ -444,10 +450,12 @@ const ChatPage: React.FC<ChatPageProps> = ({
                         <Spin />
                       </div>
                     ) : messages.length === 0 ? (
-                      <div className="text-center text-muted py-5">
-                        <i className="isax isax-message-add-1 fs-1 d-block mb-2" />
-                        <p className="mb-0">No messages yet. Say hello!</p>
-                      </div>
+                      <LxEmptyState
+                        compact
+                        icon="isax-message-add-1"
+                        title={t('emptyStates.messagesTitle', 'No messages yet')}
+                        text={t('emptyStates.messagesText', 'Say hello! Your first message starts the conversation.')}
+                      />
                     ) : (
                       messages.map((msg) => {
                         const isMine = msg.senderId === currentUser?.id;
@@ -471,12 +479,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
                               style={{ maxWidth: '72%' }}
                             >
                               <div
-                                className={`px-3 py-2 rounded-3 ${
-                                  isMine
-                                    ? 'bg-primary text-white'
-                                    : 'bg-light border text-dark'
-                                }`}
-                                style={{ wordBreak: 'break-word' }}
+                                className={`lx-bubble ${isMine ? 'is-mine' : 'is-theirs'}`}
                               >
                                 {msg.content}
                               </div>
@@ -488,7 +491,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
                                 {isMine && (
                                   <span className="ms-1">
                                     {msg.isRead ? (
-                                      <i className="fa fa-check-double text-primary" />
+                                      <i className="fa fa-check-double lx-chat-read" />
                                     ) : (
                                       <i className="fa fa-check text-muted" />
                                     )}

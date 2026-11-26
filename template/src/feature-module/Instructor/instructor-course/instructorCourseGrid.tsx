@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { formatMAD } from '../../../core/common/formatMoney';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { all_routes } from '../../router/all_routes';
 import { instructorManageHref } from '../../router/courseLinks';
 import { Link } from 'react-router-dom';
@@ -22,11 +23,11 @@ interface CourseStats {
 const statDefs: {
   labelKey: string; labelFallback: string; key: keyof CourseStats; icon: string; color: string; bg: string; borderColor: string;
 }[] = [
-  { labelKey: 'common.active',   labelFallback: 'Active',  key: 'active',  icon: 'isax-play-circle',   color: '#2D5F3F', bg: 'rgba(45, 95, 63, 0.06)',   borderColor: 'rgba(45, 95, 63, 0.12)' },
-  { labelKey: 'common.pending',  labelFallback: 'Pending', key: 'pending', icon: 'isax-clock',         color: '#C5973E', bg: 'rgba(197, 151, 62, 0.06)', borderColor: 'rgba(197, 151, 62, 0.12)' },
-  { labelKey: 'common.draft',    labelFallback: 'Draft',   key: 'draft',   icon: 'isax-document-text', color: '#5C3D2E', bg: 'rgba(92, 61, 46, 0.06)',   borderColor: 'rgba(92, 61, 46, 0.10)' },
-  { labelKey: 'common.free',     labelFallback: 'Free',    key: 'free',    icon: 'isax-gift',          color: '#2D8CFF', bg: 'rgba(45, 140, 255, 0.05)', borderColor: 'rgba(45, 140, 255, 0.10)' },
-  { labelKey: 'common.paid',     labelFallback: 'Paid',    key: 'paid',    icon: 'isax-wallet-money',  color: '#6B1D2A', bg: 'rgba(107, 29, 42, 0.05)',  borderColor: 'rgba(107, 29, 42, 0.10)' },
+  { labelKey: 'common.active',   labelFallback: 'Active',  key: 'active',  icon: 'isax-play-circle',   color: '#855A0E', bg: 'rgba(197, 145, 44, 0.06)',   borderColor: 'rgba(197, 145, 44, 0.12)' },
+  { labelKey: 'common.pending',  labelFallback: 'Pending', key: 'pending', icon: 'isax-clock',         color: '#C5912C', bg: 'rgba(197, 145, 44, 0.06)', borderColor: 'rgba(197, 145, 44, 0.12)' },
+  { labelKey: 'common.draft',    labelFallback: 'Draft',   key: 'draft',   icon: 'isax-document-text', color: '#66525D', bg: 'rgba(43, 15, 30, 0.06)',   borderColor: 'rgba(43, 15, 30, 0.10)' },
+  { labelKey: 'common.free',     labelFallback: 'Free',    key: 'free',    icon: 'isax-gift',          color: '#651C32', bg: 'rgba(101, 28, 50, 0.05)', borderColor: 'rgba(101, 28, 50, 0.10)' },
+  { labelKey: 'common.paid',     labelFallback: 'Paid',    key: 'paid',    icon: 'isax-wallet-money',  color: '#651C32', bg: 'rgba(101, 28, 50, 0.05)',  borderColor: 'rgba(101, 28, 50, 0.10)' },
 ];
 
 const tabs = [
@@ -154,7 +155,7 @@ const InstructorCourseGrid = () => {
             <div style={{
               display: 'flex', gap: 2, padding: 3, borderRadius: 10,
               background: 'rgba(253, 249, 246, 0.65)', backdropFilter: 'blur(8px)',
-              border: '1.5px solid rgba(107, 29, 42, 0.08)',
+              border: '1.5px solid rgba(101, 28, 50, 0.08)',
             }}>
               <Link
                 to={all_routes.instructorCourse}
@@ -173,7 +174,7 @@ const InstructorCourseGrid = () => {
                   width: 34, height: 34, borderRadius: 8,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'var(--lx-primary)', color: '#fff', fontSize: 17,
-                  boxShadow: '0 2px 8px rgba(107, 29, 42, 0.2)',
+                  boxShadow: '0 2px 8px rgba(101, 28, 50, 0.2)',
                 }}
               >
                 <i className="isax isax-element-3" />
@@ -199,7 +200,7 @@ const InstructorCourseGrid = () => {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(44, 24, 16, 0.06)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(43, 15, 30, 0.06)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
@@ -220,7 +221,7 @@ const InstructorCourseGrid = () => {
                 }}>
                   {stats[sc.key]}
                 </span>
-                <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--lx-text-muted)', marginTop: 2, display: 'block' }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--lx-text-muted)', marginTop: 2, display: 'block' }}>
                   {t(sc.labelKey, sc.labelFallback)}
                 </span>
               </div>
@@ -232,13 +233,9 @@ const InstructorCourseGrid = () => {
       {/* ═══ FILTER TABS ═══ */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 20, flexWrap: 'wrap', gap: 12,
       }}>
-        <div style={{
-          display: 'inline-flex', gap: 2, padding: 4, borderRadius: 12,
-          background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(8px)',
-          border: '1.5px solid rgba(107, 29, 42, 0.06)',
-        }}>
+        <div className="lx-seg" role="group">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.key;
             const count = getTabCount(tab.key);
@@ -247,27 +244,11 @@ const InstructorCourseGrid = () => {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                style={{
-                  padding: '8px 20px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                  fontSize: 13, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#fff' : 'var(--lx-text-mid)',
-                  background: isActive
-                    ? 'linear-gradient(135deg, var(--lx-primary) 0%, #4E1420 100%)'
-                    : 'transparent',
-                  boxShadow: isActive ? '0 2px 8px rgba(107, 29, 42, 0.2)' : 'none',
-                  transition: 'all 0.25s ease',
-                  display: 'inline-flex', alignItems: 'center', gap: 7,
-                }}
+                aria-pressed={isActive}
+                className={`lx-seg-btn${isActive ? ' is-active' : ''}`}
               >
                 {t(tab.labelKey, tab.labelFallback)}
-                <span style={{
-                  fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
-                  background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(107, 29, 42, 0.05)',
-                  color: isActive ? 'rgba(255,255,255,0.9)' : 'var(--lx-text-muted)',
-                  minWidth: 20, textAlign: 'center',
-                }}>
-                  {count}
-                </span>
+                <span className="lx-seg-count">{count}</span>
               </button>
             );
           })}
@@ -283,10 +264,10 @@ const InstructorCourseGrid = () => {
         <div style={{
           padding: 80, textAlign: 'center', borderRadius: 16,
           background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(107, 29, 42, 0.05)',
+          border: '1px solid rgba(101, 28, 50, 0.05)',
         }}>
           <div style={{
-            width: 40, height: 40, border: '3px solid rgba(107, 29, 42, 0.08)',
+            width: 40, height: 40, border: '3px solid rgba(101, 28, 50, 0.08)',
             borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto 18px',
           }} />
@@ -296,32 +277,20 @@ const InstructorCourseGrid = () => {
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : filteredCourses.length === 0 ? (
-        <div style={{
-          padding: '70px 40px', textAlign: 'center', borderRadius: 16,
-          background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(12px)',
-          border: '1.5px dashed rgba(107, 29, 42, 0.1)',
-        }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: 20, margin: '0 auto 20px',
-            background: 'rgba(107, 29, 42, 0.04)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <i className="isax isax-book-1" style={{ fontSize: 32, color: 'var(--lx-text-soft)' }} />
-          </div>
-          <h5 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
-            {activeTab === 'all' ? t('instructor.courses.noCourses', 'No courses yet') : t('instructor.courses.noFilteredCourses', 'No {{tab}} courses', { tab: activeTab })}
-          </h5>
-          <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-muted)', maxWidth: 320, marginLeft: 'auto', marginRight: 'auto' }}>
-            {activeTab === 'all'
+        <div className="lx-card">
+          <LxEmptyState
+            icon="isax-book-1"
+            title={activeTab === 'all' ? t('instructor.courses.noCourses', 'No courses yet') : t('instructor.courses.noFilteredCourses', 'No {{tab}} courses', { tab: activeTab })}
+            text={activeTab === 'all'
               ? t('instructor.courses.noCoursesSubtitle', 'Create your first course and start sharing your knowledge with students.')
               : t('instructor.courses.noFilteredCoursesSubtitle', "You don't have any {{tab}} courses at the moment.", { tab: activeTab })}
-          </p>
-          {activeTab === 'all' && (
-            <Link to={all_routes.addNewCourse} className="lx-btn lx-btn-gold"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 24px' }}>
-              <i className="isax isax-add" style={{ fontSize: 17 }} /> {t('instructor.courses.createFirst', 'Create your first course')}
-            </Link>
-          )}
+          >
+            {activeTab === 'all' && (
+              <Link to={all_routes.addNewCourse} className="lx-btn lx-btn-gold">
+                <i className="isax isax-add" /> {t('instructor.courses.createFirst', 'Create your first course')}
+              </Link>
+            )}
+          </LxEmptyState>
         </div>
       ) : (
         <div style={{
@@ -340,12 +309,12 @@ const InstructorCourseGrid = () => {
                 style={{
                   borderRadius: 16, overflow: 'hidden',
                   background: 'rgba(253, 249, 246, 0.6)', backdropFilter: 'blur(12px)',
-                  border: '1.5px solid rgba(107, 29, 42, 0.06)',
+                  border: '1.5px solid rgba(101, 28, 50, 0.06)',
                   transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
                   transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
                   boxShadow: isHovered
-                    ? '0 20px 40px rgba(44, 24, 16, 0.1), 0 0 0 1px rgba(107, 29, 42, 0.08)'
-                    : '0 2px 8px rgba(44, 24, 16, 0.03)',
+                    ? '0 20px 40px rgba(43, 15, 30, 0.1), 0 0 0 1px rgba(101, 28, 50, 0.08)'
+                    : '0 2px 8px rgba(43, 15, 30, 0.03)',
                 }}
                 onMouseEnter={() => setHoveredCard(course.id)}
                 onMouseLeave={() => setHoveredCard(null)}
@@ -376,7 +345,7 @@ const InstructorCourseGrid = () => {
                   <span
                     className={`lx-badge ${st.cls}`}
                     style={{
-                      position: 'absolute', top: 14, left: 14, fontSize: 11,
+                      position: 'absolute', top: 14, left: 14, fontSize: 12,
                       backdropFilter: 'blur(6px)', letterSpacing: 0.2,
                     }}
                   >
@@ -390,14 +359,14 @@ const InstructorCourseGrid = () => {
                     background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)',
                     border: '1px solid rgba(255,255,255,0.5)',
                     fontSize: 14, fontWeight: 800, letterSpacing: -0.3,
-                    color: !course.requiresPurchase ? '#2D5F3F' : 'var(--lx-primary)',
+                    color: !course.requiresPurchase ? '#855A0E' : 'var(--lx-primary)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                   }}>
                     {!course.requiresPurchase ? 'Free' : (
                       <>
                         {formatMAD(course.price, course.currency)}
                         {course.originalPrice && course.originalPrice > (course.price || 0) && (
-                          <del style={{ fontSize: 11, marginLeft: 5, color: 'var(--lx-text-soft)', fontWeight: 400 }}>
+                          <del style={{ fontSize: 12, marginLeft: 5, color: 'var(--lx-text-soft)', fontWeight: 400 }}>
                             {formatMAD(course.originalPrice, course.currency)}
                           </del>
                         )}
@@ -424,7 +393,7 @@ const InstructorCourseGrid = () => {
                       background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(6px)',
                       fontSize: 12, fontWeight: 700, color: '#fff',
                     }}>
-                      <i className="isax isax-star-1" style={{ fontSize: 12, color: '#DEBB6B' }} />
+                      <i className="isax isax-star-1" style={{ fontSize: 12, color: '#E2B866' }} />
                       {rating}
                     </div>
                   )}
@@ -435,7 +404,7 @@ const InstructorCourseGrid = () => {
                     style={{
                       position: 'absolute', inset: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'rgba(44, 24, 16, 0.25)',
+                      background: 'rgba(43, 15, 30, 0.25)',
                       opacity: isHovered ? 1 : 0,
                       transition: 'opacity 0.3s ease',
                       textDecoration: 'none',
@@ -480,7 +449,7 @@ const InstructorCourseGrid = () => {
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 16,
                     paddingBottom: 14, marginBottom: 14,
-                    borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+                    borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
                   }}>
                     {[
                       { icon: 'isax-video-circle', text: `${course.lessonsCount || 0} Lessons` },
@@ -504,9 +473,9 @@ const InstructorCourseGrid = () => {
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6,
                         padding: '7px 16px', borderRadius: 8,
-                        background: 'rgba(107, 29, 42, 0.04)', color: 'var(--lx-primary)',
+                        background: 'rgba(101, 28, 50, 0.04)', color: 'var(--lx-primary)',
                         fontSize: 13, fontWeight: 600, textDecoration: 'none',
-                        border: '1px solid rgba(107, 29, 42, 0.08)',
+                        border: '1px solid rgba(101, 28, 50, 0.08)',
                         transition: 'all 0.2s ease',
                       }}
                       onMouseEnter={(e) => {
@@ -515,9 +484,9 @@ const InstructorCourseGrid = () => {
                         e.currentTarget.style.borderColor = 'var(--lx-primary)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(107, 29, 42, 0.04)';
+                        e.currentTarget.style.background = 'rgba(101, 28, 50, 0.04)';
                         e.currentTarget.style.color = 'var(--lx-primary)';
-                        e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.08)';
+                        e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.08)';
                       }}
                     >
                       <i className="isax isax-setting-2" style={{ fontSize: 14 }} />
@@ -532,17 +501,17 @@ const InstructorCourseGrid = () => {
                         style={{
                           width: 34, height: 34, borderRadius: 8, textDecoration: 'none',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'rgba(107, 29, 42, 0.03)', color: 'var(--lx-text-muted)',
+                          background: 'rgba(101, 28, 50, 0.03)', color: 'var(--lx-text-muted)',
                           fontSize: 15, transition: 'all 0.2s ease',
                           border: '1px solid transparent',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(107, 29, 42, 0.06)';
+                          e.currentTarget.style.background = 'rgba(101, 28, 50, 0.06)';
                           e.currentTarget.style.color = 'var(--lx-primary)';
-                          e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.08)';
+                          e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.08)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(107, 29, 42, 0.03)';
+                          e.currentTarget.style.background = 'rgba(101, 28, 50, 0.03)';
                           e.currentTarget.style.color = 'var(--lx-text-muted)';
                           e.currentTarget.style.borderColor = 'transparent';
                         }}
@@ -556,17 +525,17 @@ const InstructorCourseGrid = () => {
                         style={{
                           width: 34, height: 34, borderRadius: 8, cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'rgba(139, 35, 53, 0.03)', color: 'var(--lx-text-soft)',
+                          background: 'rgba(101, 28, 50, 0.03)', color: 'var(--lx-text-soft)',
                           fontSize: 15, transition: 'all 0.2s ease',
                           border: '1px solid transparent',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(139, 35, 53, 0.08)';
-                          e.currentTarget.style.color = '#8B2335';
-                          e.currentTarget.style.borderColor = 'rgba(139, 35, 53, 0.12)';
+                          e.currentTarget.style.background = 'rgba(101, 28, 50, 0.08)';
+                          e.currentTarget.style.color = '#651C32';
+                          e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(139, 35, 53, 0.03)';
+                          e.currentTarget.style.background = 'rgba(101, 28, 50, 0.03)';
                           e.currentTarget.style.color = 'var(--lx-text-soft)';
                           e.currentTarget.style.borderColor = 'transparent';
                         }}
@@ -587,7 +556,7 @@ const InstructorCourseGrid = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setDeleteModal(false); }}
@@ -595,15 +564,15 @@ const InstructorCourseGrid = () => {
           <div style={{
             width: '100%', maxWidth: 420, padding: 36, textAlign: 'center',
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 20, border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+            borderRadius: 20, border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
           }}>
             <div style={{
               width: 60, height: 60, borderRadius: 16, margin: '0 auto 18px',
-              background: 'rgba(139, 35, 53, 0.06)',
+              background: 'rgba(101, 28, 50, 0.06)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <i className="isax isax-trash" style={{ fontSize: 26, color: '#8B2335' }} />
+              <i className="isax isax-trash" style={{ fontSize: 26, color: '#651C32' }} />
             </div>
             <h5 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
               {t('instructor.courses.deleteCourse', 'Delete this course?')}
@@ -623,10 +592,10 @@ const InstructorCourseGrid = () => {
                 type="button" className="lx-btn"
                 style={{
                   padding: '9px 22px',
-                  background: 'linear-gradient(135deg, #8B2335 0%, #6B1D2A 100%)',
+                  background: 'linear-gradient(135deg, #651C32 0%, #651C32 100%)',
                   color: '#fff', border: 'none',
                   opacity: deleting ? 0.6 : 1,
-                  boxShadow: '0 4px 12px rgba(107, 29, 42, 0.2)',
+                  boxShadow: '0 4px 12px rgba(101, 28, 50, 0.2)',
                 }}
                 onClick={handleDeleteConfirm}
                 disabled={deleting}

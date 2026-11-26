@@ -358,11 +358,11 @@ const StudentQuizQuestion = () => {
       <div style={{
         width: 80, height: 80, borderRadius: '50%', margin: '0 auto 20px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(197,151,62,0.12)', border: '3px solid rgba(197,151,62,0.3)',
+        background: 'rgba(197, 145, 44,0.12)', border: '3px solid rgba(197, 145, 44,0.3)',
       }}>
-        <i className="isax isax-warning-2" style={{ fontSize: 40, color: '#C5973E' }} />
+        <i className="isax isax-warning-2" style={{ fontSize: 40, color: '#C5912C' }} />
       </div>
-      <h3 style={{ fontSize: 22, fontWeight: 800, color: '#8B2335', marginBottom: 12 }}>{t('quiz.terminated', 'Quiz Terminated')}</h3>
+      <h3 style={{ fontSize: 22, fontWeight: 800, color: '#651C32', marginBottom: 12 }}>{t('quiz.terminated', 'Quiz Terminated')}</h3>
       <p style={{ color: 'var(--lx-text-muted)', fontSize: 14, marginBottom: 6 }}>
         {t('quizPage.violationBody', 'You left the quiz page (switched tab, app or window, or locked your screen), so your attempt was submitted automatically with a score of 0.')}
       </p>
@@ -396,22 +396,22 @@ const StudentQuizQuestion = () => {
         label: t('quiz.pointsEarned', 'Points Earned'),
         value: score,
         icon: 'isax-star',
-        color: passed ? '#2D5F3F' : '#8B2335',
-        bg: passed ? 'rgba(45,95,63,0.07)' : 'rgba(139,35,53,0.07)',
+        color: passed ? '#855A0E' : '#651C32',
+        bg: passed ? 'rgba(197, 145, 44,0.07)' : 'rgba(101, 28, 50,0.07)',
       },
       {
         label: t('quiz.totalPoints', 'Total Points'),
         value: totalPts,
         icon: 'isax-chart',
-        color: '#C5973E',
-        bg: 'rgba(197,151,62,0.08)',
+        color: '#C5912C',
+        bg: 'rgba(197, 145, 44,0.08)',
       },
       {
         label: t('quiz.yourScore', 'Your Score'),
         value: `${pct}%`,
         icon: 'isax-percentage-square',
-        color: passed ? '#2D5F3F' : '#8B2335',
-        bg: passed ? 'rgba(45,95,63,0.07)' : 'rgba(139,35,53,0.07)',
+        color: passed ? '#855A0E' : '#651C32',
+        bg: passed ? 'rgba(197, 145, 44,0.07)' : 'rgba(101, 28, 50,0.07)',
       },
     ];
 
@@ -422,17 +422,17 @@ const StudentQuizQuestion = () => {
           <div style={{
             width: 88, height: 88, borderRadius: '50%', margin: '0 auto 20px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: passed ? 'rgba(45,95,63,0.12)' : 'rgba(139,35,53,0.10)',
-            border: `3px solid ${passed ? 'rgba(45,95,63,0.3)' : 'rgba(139,35,53,0.25)'}`,
+            background: passed ? 'rgba(197, 145, 44,0.12)' : 'rgba(101, 28, 50,0.10)',
+            border: `3px solid ${passed ? 'rgba(197, 145, 44,0.3)' : 'rgba(101, 28, 50,0.25)'}`,
           }}>
             <i
               className={`isax ${passed ? 'isax-tick-circle' : 'isax-close-circle'}`}
-              style={{ fontSize: 44, color: passed ? '#2D5F3F' : '#8B2335' }}
+              style={{ fontSize: 44, color: passed ? '#855A0E' : '#651C32' }}
             />
           </div>
           <h3 style={{
             fontSize: 26, fontWeight: 800, margin: '0 0 8px',
-            color: passed ? '#2D5F3F' : '#8B2335',
+            color: passed ? '#855A0E' : '#651C32',
           }}>
             {passed ? t('quiz.youPassed', '🎉 You Passed!') : t('quiz.notPassed', 'Not Passed')}
           </h3>
@@ -477,24 +477,24 @@ const StudentQuizQuestion = () => {
           borderRadius: 'var(--lx-radius)',
           background: 'rgba(255,255,255,0.6)',
           backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(107,29,42,0.07)',
+          border: '1px solid rgba(101, 28, 50,0.07)',
           marginBottom: 28,
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text)' }}>{t('quiz.yourScore', 'Your Score')}</span>
             <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
-              {t('quizPage.passingThreshold', 'Passing threshold:')} <strong style={{ color: passed ? '#2D5F3F' : '#8B2335' }}>{quiz.passingScore}%</strong>
+              {t('quizPage.passingThreshold', 'Passing threshold:')} <strong style={{ color: passed ? '#855A0E' : '#651C32' }}>{quiz.passingScore}%</strong>
             </span>
           </div>
           {/* Track */}
-          <div style={{ height: 14, borderRadius: 7, background: 'rgba(107,29,42,0.06)', position: 'relative', overflow: 'visible' }}>
+          <div style={{ height: 14, borderRadius: 7, background: 'rgba(101, 28, 50,0.06)', position: 'relative', overflow: 'visible' }}>
             {/* Passing threshold marker */}
             <div style={{
               position: 'absolute',
               left: `${quiz.passingScore}%`,
               top: -4, bottom: -4,
               width: 2,
-              background: 'rgba(107,29,42,0.3)',
+              background: 'rgba(101, 28, 50,0.3)',
               borderRadius: 2,
               zIndex: 2,
             }} />
@@ -503,8 +503,8 @@ const StudentQuizQuestion = () => {
               height: '100%', borderRadius: 7,
               width: `${Math.min(pct, 100)}%`,
               background: passed
-                ? 'linear-gradient(90deg,#2D5F3F,#4CAF50)'
-                : 'linear-gradient(90deg,#8B2335,#C5973E)',
+                ? 'linear-gradient(90deg,#855A0E,#D9AE52)'
+                : 'linear-gradient(90deg,#651C32,#C5912C)',
               transition: 'width 0.6s ease',
               position: 'relative', zIndex: 1,
             }} />
@@ -513,7 +513,7 @@ const StudentQuizQuestion = () => {
             <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>0%</span>
             <span style={{
               fontSize: 13, fontWeight: 700,
-              color: passed ? '#2D5F3F' : '#8B2335',
+              color: passed ? '#855A0E' : '#651C32',
             }}>
               {pct}%
             </span>
@@ -528,8 +528,8 @@ const StudentQuizQuestion = () => {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '10px 24px', borderRadius: 'var(--lx-radius)',
-              background: 'rgba(107,29,42,0.07)', color: 'var(--lx-primary)',
-              border: '1px solid rgba(107,29,42,0.18)',
+              background: 'rgba(101, 28, 50,0.07)', color: 'var(--lx-primary)',
+              border: '1px solid rgba(101, 28, 50,0.18)',
               textDecoration: 'none', fontSize: 14, fontWeight: 600,
             }}
           >
@@ -565,8 +565,8 @@ const StudentQuizQuestion = () => {
     return (
       <>
         {/* ── Persistent reminder: leaving the page auto-submits ───────── */}
-        <div role="note" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', marginBottom: 14, borderRadius: 10, background: 'rgba(197,151,62,0.12)', border: '1px solid rgba(197,151,62,0.35)', color: '#7A5200', fontSize: 13, fontWeight: 700 }}>
-          <i className="isax isax-warning-2" style={{ color: '#C5973E' }} aria-hidden="true" />
+        <div role="note" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', marginBottom: 14, borderRadius: 10, background: 'rgba(197, 145, 44,0.12)', border: '1px solid rgba(197, 145, 44,0.35)', color: '#855A0E', fontSize: 13, fontWeight: 700 }}>
+          <i className="isax isax-warning-2" style={{ color: '#C5912C' }} aria-hidden="true" />
           {t('quizWarn.banner', 'Stay on this page until you submit')}
         </div>
 
@@ -590,7 +590,7 @@ const StudentQuizQuestion = () => {
               onClick={confirmExit}
               aria-label={t('quizWarn.exitAria', 'Exit quiz')}
               title={t('quizWarn.exitAria', 'Exit quiz')}
-              style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid rgba(107,29,42,0.15)', background: 'rgba(107,29,42,0.05)', color: '#651C32', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid rgba(101, 28, 50,0.15)', background: 'rgba(101, 28, 50,0.05)', color: '#651C32', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <i className="isax isax-close-circle" style={{ fontSize: 20 }} aria-hidden="true" />
             </button>
@@ -740,7 +740,7 @@ const StudentQuizQuestion = () => {
           )}
         </div>
         {!feedback && selectedIds.length === 0 && (
-          <p style={{ textAlign: 'end', fontSize: 13, color: '#7A5200', fontWeight: 600, margin: '8px 0 0' }}>
+          <p style={{ textAlign: 'end', fontSize: 13, color: '#855A0E', fontWeight: 600, margin: '8px 0 0' }}>
             {t('quizPage.pickToCheck', 'Choose an answer to check it')}
           </p>
         )}
@@ -765,8 +765,8 @@ const StudentQuizQuestion = () => {
     const minutes = quiz.duration ?? 0;
     return (
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '16px 0' }}>
-        <div style={{ width: 72, height: 72, borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(197,151,62,0.12)', border: '3px solid rgba(197,151,62,0.3)' }}>
-          <i className="isax isax-warning-2" style={{ fontSize: 34, color: '#C5973E' }} aria-hidden="true" />
+        <div style={{ width: 72, height: 72, borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(197, 145, 44,0.12)', border: '3px solid rgba(197, 145, 44,0.3)' }}>
+          <i className="isax isax-warning-2" style={{ fontSize: 34, color: '#C5912C' }} aria-hidden="true" />
         </div>
         <h3 style={{ textAlign: 'center', fontSize: 22, fontWeight: 800, color: '#651C32', margin: '0 0 6px' }}>
           {t('quizWarn.title', 'Before you start')}
@@ -789,12 +789,12 @@ const StudentQuizQuestion = () => {
             type="button"
             onClick={startAttempt}
             disabled={!ack || starting}
-            style={{ flex: '1 1 200px', minHeight: 48, borderRadius: 12, border: 'none', cursor: ack && !starting ? 'pointer' : 'not-allowed', background: ack ? 'linear-gradient(135deg,#C5973E,#A67825)' : 'rgba(0,0,0,0.08)', color: ack ? '#fff' : '#9A8080', fontWeight: 800, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            style={{ flex: '1 1 200px', minHeight: 48, borderRadius: 12, border: 'none', cursor: ack && !starting ? 'pointer' : 'not-allowed', background: ack ? 'linear-gradient(135deg,#C5912C,#855A0E)' : 'rgba(0,0,0,0.08)', color: ack ? '#fff' : '#7C6A73', fontWeight: 800, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
           >
             {starting ? <span className="spinner-border spinner-border-sm" /> : <i className="isax isax-play" aria-hidden="true" />}
             {t('quiz.startQuiz', 'Start Quiz')}
           </button>
-          <Link to={route.studentQuiz} style={{ flex: '1 1 140px', minHeight: 48, borderRadius: 12, border: '1px solid rgba(107,29,42,0.18)', color: '#651C32', fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Link to={route.studentQuiz} style={{ flex: '1 1 140px', minHeight: 48, borderRadius: 12, border: '1px solid rgba(101, 28, 50,0.18)', color: '#651C32', fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {t('quizWarn.notNow', 'Not now')}
           </Link>
         </div>
@@ -812,9 +812,9 @@ const StudentQuizQuestion = () => {
         background: 'rgba(255,255,255,0.65)',
         backdropFilter: 'blur(18px)',
         borderRadius: 'var(--lx-radius)',
-        border: '1px solid rgba(107,29,42,0.08)',
+        border: '1px solid rgba(101, 28, 50,0.08)',
         padding: 28,
-        boxShadow: '0 4px 24px rgba(107,29,42,0.06)',
+        boxShadow: '0 4px 24px rgba(101, 28, 50,0.06)',
       }}>
         {phase === "loading" && renderLoading()}
         {phase === "error" && renderError()}

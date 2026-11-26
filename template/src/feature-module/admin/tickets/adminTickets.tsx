@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { message as antMessage } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import {
   CATEGORY_LABELS,
   PRIORITY_LABELS,
@@ -146,7 +147,7 @@ const ContactMessagesPanel: React.FC = () => {
             <i className="isax isax-sms-notification" style={{ marginRight: 4 }} />
             {t('admin.contact.unreadOnly', 'Unread only')}
             {stats && stats.unread > 0 && (
-              <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 10, background: '#8B2335', color: '#fff', fontSize: 11, fontWeight: 600 }}>
+              <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 10, background: '#651C32', color: '#fff', fontSize: 12, fontWeight: 600 }}>
                 {stats.unread}
               </span>
             )}
@@ -172,7 +173,7 @@ const ContactMessagesPanel: React.FC = () => {
                 <div
                   key={msg.id}
                   style={{
-                    borderBottom: '1px solid rgba(107,29,42,0.07)',
+                    borderBottom: '1px solid rgba(101, 28, 50,0.07)',
                     background: msg.isRead ? 'transparent' : 'rgba(197,145,44,0.04)',
                   }}
                 >
@@ -220,9 +221,9 @@ const ContactMessagesPanel: React.FC = () => {
                     <div style={{ padding: '0 20px 20px 42px' }}>
                       <div style={{
                         padding: '16px 18px',
-                        background: 'rgba(107,29,42,0.03)',
+                        background: 'rgba(101, 28, 50,0.03)',
                         borderRadius: 10,
-                        border: '1px solid rgba(107,29,42,0.07)',
+                        border: '1px solid rgba(101, 28, 50,0.07)',
                         fontSize: 14, lineHeight: 1.7, color: 'var(--lx-text)',
                         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                         marginBottom: 14,
@@ -241,7 +242,7 @@ const ContactMessagesPanel: React.FC = () => {
                         <button
                           type="button"
                           className="lx-btn lx-btn-outline lx-btn-sm"
-                          style={{ color: '#c0392b', borderColor: 'rgba(192,57,43,0.3)' }}
+                          style={{ color: '#651C32', borderColor: 'rgba(101, 28, 50,0.3)' }}
                           disabled={deleting === msg.id}
                           onClick={() => deleteMsg(msg.id)}
                         >
@@ -280,7 +281,7 @@ const ContactMessagesPanel: React.FC = () => {
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)',
   fontSize: 14,
   outline: 'none',
@@ -424,7 +425,7 @@ const AdminTickets = () => {
             ? t('admin.tickets.title', 'Support Tickets')
             : t('admin.contact.title', 'Contact Messages')}
         </h5>
-        <div style={{ display: 'flex', background: 'rgba(107,29,42,0.05)', borderRadius: 10, padding: 4, gap: 4 }}>
+        <div className="lx-seg" role="group">
           {([
             { key: 'tickets', label: t('admin.tickets.title', 'Support Tickets'), icon: 'isax-ticket' },
             { key: 'contact', label: t('admin.contact.title', 'Contact Messages'), icon: 'isax-message-text' },
@@ -433,20 +434,8 @@ const AdminTickets = () => {
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
-              style={{
-                padding: '8px 18px',
-                borderRadius: 8,
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                transition: 'all 0.18s',
-                background: activeTab === tab.key ? 'var(--lx-primary)' : 'transparent',
-                color: activeTab === tab.key ? '#fff' : 'var(--lx-text-muted)',
-              }}
+              aria-pressed={activeTab === tab.key}
+              className={`lx-seg-btn${activeTab === tab.key ? ' is-active' : ''}`}
             >
               <i className={`isax ${tab.icon}`} />
               {tab.label}
@@ -498,7 +487,7 @@ const AdminTickets = () => {
             {s === 'OPEN' && stats && stats.open > 0 && (
               <span style={{
                 marginLeft: 6, padding: '1px 7px', borderRadius: 10,
-                background: '#8B2335', color: '#fff', fontSize: 11, fontWeight: 600,
+                background: '#651C32', color: '#fff', fontSize: 12, fontWeight: 600,
               }}>{stats.open}</span>
             )}
           </button>
@@ -513,7 +502,7 @@ const AdminTickets = () => {
               <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
             </div>
           ) : error ? (
-            <div style={{ padding: '12px 16px', margin: 16, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139, 35, 53, 0.06)', border: '1px solid rgba(139, 35, 53, 0.12)', color: '#8B2335', fontSize: 14 }}>
+            <div style={{ padding: '12px 16px', margin: 16, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50, 0.06)', border: '1px solid rgba(101, 28, 50, 0.12)', color: '#651C32', fontSize: 14 }}>
               {error}
               <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" style={{ marginInlineStart: 12 }} onClick={() => loadTickets()}>
                 {t('common.tryAgain', 'Try Again')}
@@ -525,47 +514,49 @@ const AdminTickets = () => {
               <p>{t('admin.tickets.noTickets', 'No tickets found.')}</p>
             </div>
           ) : (
-            <table className="lx-table">
-              <thead>
-                <tr>
-                  <th>{t('admin.tickets.ticketNumber', 'Ticket')}</th>
-                  <th>{t('admin.tickets.student', 'Student')}</th>
-                  <th>{t('admin.tickets.subject', 'Subject')}</th>
-                  <th>{t('admin.tickets.category', 'Category')}</th>
-                  <th>{t('admin.tickets.priority', 'Priority')}</th>
-                  <th>{t('admin.tickets.status', 'Status')}</th>
-                  <th>{t('admin.tickets.date', 'Date')}</th>
-                  <th>{t('common.actions', 'Action')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tickets.map((ticket) => (
-                  <tr key={ticket.id}>
-                    <td>
-                      <span style={{ color: 'var(--lx-primary)', fontWeight: 600 }}>{ticket.ticketNumber}</span>
-                    </td>
-                    <td>
-                      <p style={{ margin: 0, fontWeight: 500, fontSize: 13 }}>{ticket.studentName}</p>
-                      <small style={{ color: 'var(--lx-text-muted)', fontSize: 12 }}>{ticket.studentEmail}</small>
-                    </td>
-                    <td style={{ maxWidth: 180 }}>
-                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={ticket.subject}>
-                        {ticket.subject}
-                      </span>
-                    </td>
-                    <td><span className="lx-badge badge-slate">{categoryLabel(t, ticket.category)}</span></td>
-                    <td>{priorityBadge(t, ticket.priority)}</td>
-                    <td>{statusBadge(t, ticket.status)}</td>
-                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(ticket.createdAt)}</td>
-                    <td>
-                      <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(ticket)}>
-                        <i className="isax isax-eye" style={{ marginRight: 4 }} /> {t('common.view', 'View')}
-                      </button>
-                    </td>
+            <div className="lx-table-scroll">
+              <table className="lx-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.tickets.ticketNumber', 'Ticket')}</th>
+                    <th>{t('admin.tickets.student', 'Student')}</th>
+                    <th>{t('admin.tickets.subject', 'Subject')}</th>
+                    <th>{t('admin.tickets.category', 'Category')}</th>
+                    <th>{t('admin.tickets.priority', 'Priority')}</th>
+                    <th>{t('admin.tickets.status', 'Status')}</th>
+                    <th>{t('admin.tickets.date', 'Date')}</th>
+                    <th>{t('common.actions', 'Action')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {tickets.map((ticket) => (
+                    <tr key={ticket.id}>
+                      <td>
+                        <span style={{ color: 'var(--lx-primary)', fontWeight: 600 }}>{ticket.ticketNumber}</span>
+                      </td>
+                      <td>
+                        <p style={{ margin: 0, fontWeight: 500, fontSize: 13 }}>{ticket.studentName}</p>
+                        <small style={{ color: 'var(--lx-text-muted)', fontSize: 12 }}>{ticket.studentEmail}</small>
+                      </td>
+                      <td style={{ maxWidth: 180 }}>
+                        <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={ticket.subject}>
+                          {ticket.subject}
+                        </span>
+                      </td>
+                      <td><span className="lx-badge badge-slate">{categoryLabel(t, ticket.category)}</span></td>
+                      <td>{priorityBadge(t, ticket.priority)}</td>
+                      <td>{statusBadge(t, ticket.status)}</td>
+                      <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(ticket.createdAt)}</td>
+                      <td>
+                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => openTicket(ticket)}>
+                          <i className="isax isax-eye" style={{ marginRight: 4 }} /> {t('common.view', 'View')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
@@ -577,7 +568,7 @@ const AdminTickets = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setActiveTicket(null); }}
@@ -585,12 +576,12 @@ const AdminTickets = () => {
           <div style={{
             width: '100%', maxWidth: 720,
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
             display: 'flex', flexDirection: 'column', maxHeight: '85vh',
           }}>
             {/* Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -614,8 +605,8 @@ const AdminTickets = () => {
 
             {/* Status change toolbar */}
             <div style={{
-              padding: '10px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)',
-              background: 'rgba(107, 29, 42, 0.02)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+              padding: '10px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)',
+              background: 'rgba(101, 28, 50, 0.02)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
             }}>
               <span style={{ color: 'var(--lx-text-muted)', fontSize: 13, fontWeight: 600, marginRight: 4 }}>{t('admin.tickets.changeStatus', 'Change status:')}</span>
               {(['OPEN', 'IN_PROGRESS', 'CLOSED'] as TicketStatus[]).map((s) => (
@@ -638,7 +629,7 @@ const AdminTickets = () => {
                   <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid var(--lx-primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
                 </div>
               ) : !activeTicket.messages?.length ? (
-                <p style={{ textAlign: 'center', color: 'var(--lx-text-muted)', padding: '24px 0' }}>{t('admin.tickets.noMessages', 'No messages yet.')}</p>
+                <LxEmptyState compact icon="isax-messages-2" title={t('admin.tickets.noMessages', 'No messages yet.')} text={t('emptyStates.ticketThreadText', 'Replies on this ticket will appear here.')} />
               ) : (
                 activeTicket.messages.map((msg: TicketMessage) => (
                   <div
@@ -664,7 +655,7 @@ const AdminTickets = () => {
                         padding: '10px 16px', borderRadius: 12, wordBreak: 'break-word', fontSize: 14, lineHeight: 1.5,
                         ...(msg.isAdminReply
                           ? { background: 'var(--lx-primary)', color: '#fff' }
-                          : { background: 'rgba(107, 29, 42, 0.04)', border: '1px solid rgba(107, 29, 42, 0.06)', color: 'var(--lx-text)' }
+                          : { background: 'rgba(101, 28, 50, 0.04)', border: '1px solid rgba(101, 28, 50, 0.06)', color: 'var(--lx-text)' }
                         ),
                       }}>
                         {msg.content}
@@ -678,7 +669,7 @@ const AdminTickets = () => {
 
             {/* Reply area */}
             {activeTicket.status !== 'CLOSED' ? (
-              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', gap: 12 }}>
+              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', gap: 12 }}>
                 <textarea
                   style={inputStyle}
                   rows={2}
@@ -705,11 +696,11 @@ const AdminTickets = () => {
                 </button>
               </div>
             ) : (
-              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)' }}>
+              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)' }}>
                 <div style={{
                   padding: '10px 16px', borderRadius: 'var(--lx-radius-sm)',
-                  background: 'rgba(45, 95, 63, 0.06)', border: '1px solid rgba(45, 95, 63, 0.12)',
-                  color: '#2D5F3F', fontSize: 14, textAlign: 'center',
+                  background: 'rgba(197, 145, 44, 0.06)', border: '1px solid rgba(197, 145, 44, 0.12)',
+                  color: '#855A0E', fontSize: 14, textAlign: 'center',
                 }}>
                   <i className="isax isax-tick-circle" style={{ marginRight: 6 }} />
                   {t('admin.tickets.ticketClosed', 'Ticket closed.')}

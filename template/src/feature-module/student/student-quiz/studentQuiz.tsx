@@ -53,7 +53,7 @@ const StudentQuiz = () => {
           {totalElements > 0 && (
             <span style={{
               marginLeft: 10, padding: '2px 10px', borderRadius: 12,
-              background: 'rgba(107, 29, 42, 0.08)', color: 'var(--lx-primary)',
+              background: 'rgba(101, 28, 50, 0.08)', color: 'var(--lx-primary)',
               fontSize: 12, fontWeight: 600,
             }}>
               {totalElements}
@@ -66,8 +66,8 @@ const StudentQuiz = () => {
       {error && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', marginBottom: 20,
-          borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139, 35, 53, 0.06)',
-          border: '1px solid rgba(139, 35, 53, 0.12)', color: '#8B2335', fontSize: 14,
+          borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50, 0.06)',
+          border: '1px solid rgba(101, 28, 50, 0.12)', color: '#651C32', fontSize: 14,
         }}>
           <i className="isax isax-warning-2" />
           <span style={{ flex: 1 }}>{error}</span>
@@ -89,7 +89,7 @@ const StudentQuiz = () => {
       ) : quizzes.length === 0 ? (
         <div className="lx-card">
           <div className="lx-empty-state">
-            <span className="empty-icon" style={{ background: 'rgba(107, 29, 42, 0.06)' }}>
+            <span className="empty-icon" style={{ background: 'rgba(101, 28, 50, 0.06)' }}>
               <i className="isax isax-note-2" style={{ fontSize: 28, color: 'var(--lx-primary)' }} />
             </span>
             <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('student.quiz.noQuizzes', 'No quizzes available')}</h6>
@@ -108,10 +108,10 @@ const StudentQuiz = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '16px 20px', borderRadius: 'var(--lx-radius)',
                 background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(107, 29, 42, 0.06)',
+                border: '1px solid rgba(101, 28, 50, 0.06)',
                 transition: 'all 0.2s ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.75)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(44, 24, 16, 0.06)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.75)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(43, 15, 30, 0.06)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <div style={{ flex: 1, marginRight: 16 }}>
@@ -137,11 +137,11 @@ const StudentQuiz = () => {
                     {quiz.questionCount ?? 0} Question{quiz.questionCount !== 1 ? 's' : ''}
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center' }}>
-                    <i className="isax isax-clock" style={{ marginRight: 4, color: '#C5973E' }} />
+                    <i className="isax isax-clock" style={{ marginRight: 4, color: '#C5912C' }} />
                     {formatDuration(quiz.duration)}
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center' }}>
-                    <i className="isax isax-medal-star" style={{ marginRight: 4, color: '#2D5F3F' }} />
+                    <i className="isax isax-medal-star" style={{ marginRight: 4, color: '#855A0E' }} />
                     Pass: {quiz.passingScore}%
                   </span>
                   {quiz.allowRetake && (
@@ -152,7 +152,7 @@ const StudentQuiz = () => {
                   )}
                   {quiz.totalPoints > 0 && (
                     <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center' }}>
-                      <i className="isax isax-star" style={{ marginRight: 4, color: '#C5973E' }} />
+                      <i className="isax isax-star" style={{ marginRight: 4, color: '#C5912C' }} />
                       {quiz.totalPoints} pts
                     </span>
                   )}

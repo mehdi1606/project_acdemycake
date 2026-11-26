@@ -138,7 +138,7 @@ const StudentOrder: React.FC = () => {
         <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0 }}>
           {t('student.orders.title', 'Order History')}
           {totalElements > 0 && (
-            <span className="lx-badge badge-info" style={{ marginLeft: 8, fontSize: 11 }}>{totalElements}</span>
+            <span className="lx-badge badge-info" style={{ marginLeft: 8, fontSize: 12 }}>{totalElements}</span>
           )}
         </h5>
       </div>
@@ -168,7 +168,7 @@ const StudentOrder: React.FC = () => {
             style={{
               width: '100%',
               padding: '8px 14px 8px 36px',
-              border: '1.5px solid rgba(107, 29, 42, 0.12)',
+              border: '1.5px solid rgba(101, 28, 50, 0.12)',
               borderRadius: 'var(--lx-radius-sm)',
               fontSize: 13,
               outline: 'none',
@@ -185,9 +185,9 @@ const StudentOrder: React.FC = () => {
           style={{
             padding: '12px 16px',
             borderRadius: 'var(--lx-radius-sm)',
-            background: 'rgba(139, 35, 53, 0.06)',
-            border: '1px solid rgba(139, 35, 53, 0.12)',
-            color: '#8B2335',
+            background: 'rgba(101, 28, 50, 0.06)',
+            border: '1px solid rgba(101, 28, 50, 0.12)',
+            color: '#651C32',
             fontSize: 14,
             marginBottom: 16,
             display: 'flex',
@@ -292,7 +292,7 @@ const StudentOrder: React.FC = () => {
         <>
           <div
             onClick={() => setSelected(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 1040 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 1040 }}
           />
           <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050, padding: 16 }}>
             <div
@@ -305,13 +305,13 @@ const StudentOrder: React.FC = () => {
                 backdropFilter: 'blur(32px)',
                 WebkitBackdropFilter: 'blur(32px)',
                 borderRadius: 'var(--lx-radius-lg)',
-                border: '1px solid rgba(107, 29, 42, 0.1)',
-                boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+                border: '1px solid rgba(101, 28, 50, 0.1)',
+                boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
                 overflow: 'hidden',
               }}
             >
               {/* Header */}
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>{t('student.orders.invoice', 'Invoice')}</h5>
                 <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}>
                   <i className="isax isax-close-circle" />
@@ -321,7 +321,7 @@ const StudentOrder: React.FC = () => {
               {/* Body */}
               <div style={{ padding: 24 }}>
                 {/* Order reference */}
-                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
                   <div className="row justify-content-between align-items-center">
                     <div className="col-md-6">
                       <div style={{ marginBottom: 8 }}>
@@ -345,7 +345,7 @@ const StudentOrder: React.FC = () => {
                 </div>
 
                 {/* Type + status */}
-                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
                   <div className="row g-4 align-items-center">
                     <div className="col-lg-6">
                       <p style={{ color: 'var(--lx-text-muted)', marginBottom: 4, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('common.type', 'Type')}</p>
@@ -377,9 +377,9 @@ const StudentOrder: React.FC = () => {
                         marginTop: 12,
                         padding: '8px 12px',
                         borderRadius: 'var(--lx-radius-sm)',
-                        background: 'rgba(139, 35, 53, 0.06)',
-                        border: '1px solid rgba(139, 35, 53, 0.12)',
-                        color: '#8B2335',
+                        background: 'rgba(101, 28, 50, 0.06)',
+                        border: '1px solid rgba(101, 28, 50, 0.12)',
+                        color: '#651C32',
                         fontSize: 13,
                         display: 'flex',
                         alignItems: 'center',
@@ -414,10 +414,10 @@ const StudentOrder: React.FC = () => {
                 </div>
 
                 {/* Totals */}
-                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
                   <div className="d-flex justify-content-end">
                     <div style={{ width: 250 }}>
-                      <div className="d-flex justify-content-between" style={{ padding: '8px 0', borderBottom: '1px solid rgba(107, 29, 42, 0.04)' }}>
+                      <div className="d-flex justify-content-between" style={{ padding: '8px 0', borderBottom: '1px solid rgba(101, 28, 50, 0.04)' }}>
                         <span style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('student.orders.subTotal', 'Sub Total')}</span>
                         <span style={{ fontWeight: 500, color: 'var(--lx-text)' }}>{formatAmount(selected.amount, selected.currency)}</span>
                       </div>

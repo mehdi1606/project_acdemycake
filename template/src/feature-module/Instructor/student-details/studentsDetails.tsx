@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { fallbackTo } from '../../../core/common/imageFallback';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout'
+import LxEmptyState from '../../../components/LxEmptyState';
 import { useTranslation } from 'react-i18next'
 import { useSearchParams, Link } from 'react-router-dom'
 import { all_routes } from '../../router/all_routes'
@@ -155,7 +156,7 @@ const StudentsDetails = () => {
                     </div>
 
                     {student.enrolledCourses.length === 0 ? (
-                      <p className="text-muted">{t('instructor.studentDetail.noCourses', 'No courses enrolled yet.')}</p>
+                      <LxEmptyState compact icon="isax-book-1" title={t('emptyStates.studentCoursesTitle', 'No courses yet')} text={t('instructor.studentDetail.noCourses', 'No courses enrolled yet.')} />
                     ) : (
                       <div className="row g-3">
                         {student.enrolledCourses.map((course: StudentCourseEnrollment) => (

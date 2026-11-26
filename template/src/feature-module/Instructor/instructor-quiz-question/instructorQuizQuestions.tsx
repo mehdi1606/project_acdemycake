@@ -46,7 +46,7 @@ const InstructorQuizQuestions: React.FC = () => {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px',
-    border: '1.5px solid rgba(107, 29, 42, 0.12)',
+    border: '1.5px solid rgba(101, 28, 50, 0.12)',
     borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
     outline: 'none', background: 'rgba(255,255,255,0.6)',
     color: 'var(--lx-text)',
@@ -63,13 +63,13 @@ const InstructorQuizQuestions: React.FC = () => {
       <div style={{
         padding: '18px 24px', marginBottom: 20, borderRadius: 'var(--lx-radius)',
         background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(107, 29, 42, 0.06)',
+        border: '1px solid rgba(101, 28, 50, 0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{
               width: 56, height: 56, borderRadius: 'var(--lx-radius-sm)',
-              background: 'rgba(107, 29, 42, 0.06)',
+              background: 'rgba(101, 28, 50, 0.06)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
             }}>
               <img src="assets/img/students/quiz.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -83,7 +83,7 @@ const InstructorQuizQuestions: React.FC = () => {
                   <i className="isax isax-message-question" style={{ color: 'var(--lx-primary)' }} /> 25 {t('instructor.quiz.questions', 'Questions')}
                 </span>
                 <span style={{ fontSize: 13, color: 'var(--lx-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <i className="isax isax-clock" style={{ color: '#C5973E' }} /> 30 {t('instructor.quiz.minutes', 'Minutes')}
+                  <i className="isax isax-clock" style={{ color: '#C5912C' }} /> 30 {t('instructor.quiz.minutes', 'Minutes')}
                 </span>
               </div>
             </div>
@@ -129,7 +129,7 @@ const InstructorQuizQuestions: React.FC = () => {
                     onClick={() => setShowDeleteModal(true)}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#8B2335', fontSize: 16, padding: 4,
+                      color: '#651C32', fontSize: 16, padding: 4,
                     }}
                     title={t('common.delete', 'Delete')}
                   >
@@ -146,22 +146,22 @@ const InstructorQuizQuestions: React.FC = () => {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
                       padding: '10px 14px', borderRadius: 'var(--lx-radius-sm)',
-                      background: choice.isCorrect ? 'rgba(45, 95, 63, 0.06)' : 'rgba(107, 29, 42, 0.02)',
-                      border: `1px solid ${choice.isCorrect ? 'rgba(45, 95, 63, 0.15)' : 'rgba(107, 29, 42, 0.05)'}`,
+                      background: choice.isCorrect ? 'rgba(197, 145, 44, 0.06)' : 'rgba(101, 28, 50, 0.02)',
+                      border: `1px solid ${choice.isCorrect ? 'rgba(197, 145, 44, 0.15)' : 'rgba(101, 28, 50, 0.05)'}`,
                       cursor: 'default',
                     }}
                   >
                     <div style={{
                       width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-                      border: `2px solid ${choice.isCorrect ? '#2D5F3F' : 'rgba(107, 29, 42, 0.2)'}`,
+                      border: `2px solid ${choice.isCorrect ? '#855A0E' : 'rgba(101, 28, 50, 0.2)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {choice.isCorrect && (
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2D5F3F' }} />
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#855A0E' }} />
                       )}
                     </div>
                     <span style={{
-                      fontSize: 14, color: choice.isCorrect ? '#2D5F3F' : 'var(--lx-text-mid)',
+                      fontSize: 14, color: choice.isCorrect ? '#855A0E' : 'var(--lx-text-mid)',
                       fontWeight: choice.isCorrect ? 600 : 400,
                     }}>
                       {choice.text}
@@ -182,7 +182,7 @@ const InstructorQuizQuestions: React.FC = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}
@@ -190,11 +190,11 @@ const InstructorQuizQuestions: React.FC = () => {
           <div style={{
             width: '100%', maxWidth: 600,
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
             maxHeight: '85vh', overflowY: 'auto',
           }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.quiz.addNewQuestion', 'Add New Question')}</h5>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
                 <i className="isax isax-close-circle" />
@@ -202,12 +202,12 @@ const InstructorQuizQuestions: React.FC = () => {
             </div>
             <div style={{ padding: 24 }}>
               <div style={{ marginBottom: 16 }}>
-                <label style={labelStyle}>{t('instructor.quiz.question', 'Question')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.quiz.question', 'Question')} <span style={{ color: '#651C32' }}>*</span></label>
                 <input type="text" style={inputStyle} placeholder={t('instructor.quiz.questionPlaceholder', 'Enter question...')} />
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label style={labelStyle}>{t('instructor.quiz.questionType', 'Question Type')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.quiz.questionType', 'Question Type')} <span style={{ color: '#651C32' }}>*</span></label>
                 <select
                   style={inputStyle}
                   value={questionType}
@@ -224,24 +224,24 @@ const InstructorQuizQuestions: React.FC = () => {
                 <div key={idx} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                     <label style={{ ...labelStyle, marginBottom: 0 }}>
-                      Choice {idx + 1} <span style={{ color: '#8B2335' }}>*</span>
+                      Choice {idx + 1} <span style={{ color: '#651C32' }}>*</span>
                     </label>
                     <button
                       type="button"
                       onClick={() => toggleCorrect(idx)}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500,
-                        color: choice.isCorrect ? '#2D5F3F' : 'var(--lx-text-muted)',
+                        color: choice.isCorrect ? '#855A0E' : 'var(--lx-text-muted)',
                         display: 'flex', alignItems: 'center', gap: 4,
                       }}
                     >
                       <div style={{
                         width: 14, height: 14, borderRadius: 3,
-                        border: `1.5px solid ${choice.isCorrect ? '#2D5F3F' : 'rgba(107, 29, 42, 0.2)'}`,
-                        background: choice.isCorrect ? '#2D5F3F' : 'transparent',
+                        border: `1.5px solid ${choice.isCorrect ? '#855A0E' : 'rgba(101, 28, 50, 0.2)'}`,
+                        background: choice.isCorrect ? '#855A0E' : 'transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        {choice.isCorrect && <span style={{ color: '#fff', fontSize: 10, lineHeight: 1 }}>✓</span>}
+                        {choice.isCorrect && <span style={{ color: '#fff', fontSize: 12, lineHeight: 1 }}>✓</span>}
                       </div>
                       {t('instructor.quiz.correctAnswer', 'Correct Answer')}
                     </button>
@@ -259,10 +259,10 @@ const InstructorQuizQuestions: React.FC = () => {
                         type="button"
                         onClick={() => removeChoice(idx)}
                         style={{
-                          background: 'rgba(139, 35, 53, 0.06)', border: '1px solid rgba(139, 35, 53, 0.1)',
+                          background: 'rgba(101, 28, 50, 0.06)', border: '1px solid rgba(101, 28, 50, 0.1)',
                           borderRadius: 'var(--lx-radius-sm)', cursor: 'pointer',
                           width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#8B2335',
+                          color: '#651C32',
                         }}
                       >
                         <i className="isax isax-trash" />
@@ -284,7 +284,7 @@ const InstructorQuizQuestions: React.FC = () => {
                 <i className="isax isax-add" /> {t('instructor.quiz.addChoice', 'Add Choice')}
               </button>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowAddModal(false)}>{t('common.cancel', 'Cancel')}</button>
               <button type="button" className="lx-btn lx-btn-gold" onClick={() => setShowAddModal(false)}>{t('instructor.quiz.addQuestion', 'Add Question')}</button>
             </div>
@@ -297,7 +297,7 @@ const InstructorQuizQuestions: React.FC = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}
@@ -305,14 +305,14 @@ const InstructorQuizQuestions: React.FC = () => {
           <div style={{
             width: '100%', maxWidth: 400,
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)', padding: 32, textAlign: 'center',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)', padding: 32, textAlign: 'center',
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
-              background: 'rgba(139, 35, 53, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(101, 28, 50, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
+              <i className="isax isax-trash" style={{ fontSize: 24, color: '#651C32' }} />
             </div>
             <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.quiz.deleteQuestion', 'Delete Question')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
@@ -323,7 +323,7 @@ const InstructorQuizQuestions: React.FC = () => {
               <button
                 type="button"
                 className="lx-btn"
-                style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
+                style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1.5px solid rgba(101, 28, 50, 0.15)' }}
                 onClick={() => setShowDeleteModal(false)}
               >
                 {t('common.yesDelete', 'Yes, Delete')}

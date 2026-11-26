@@ -246,7 +246,7 @@ const AdminCategories = () => {
                   style={{
                     height: 150,
                     overflow: 'hidden',
-                    background: 'rgba(107, 29, 42, 0.03)',
+                    background: 'rgba(101, 28, 50, 0.03)',
                   }}
                 >
                   {category.imageUrl ? (
@@ -282,7 +282,7 @@ const AdminCategories = () => {
                       </button>
                       <button
                         className="lx-btn lx-btn-sm"
-                        style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
+                        style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1.5px solid rgba(101, 28, 50, 0.15)' }}
                         onClick={() => openDeleteModal(category)}
                         title={t('common.delete', 'Delete')}
                       >
@@ -320,11 +320,11 @@ const AdminCategories = () => {
         {/* Category Name — EN / AR side by side */}
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-            {t('admin.categories.categoryName', 'Category Name')} <span style={{ color: '#8B2335' }}>*</span>
+            {t('admin.categories.categoryName', 'Category Name')} <span style={{ color: '#651C32' }}>*</span>
           </label>
           <div style={{ display: 'flex', gap: 10 }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4 }}>🇬🇧 English</label>
+              <label style={{ display: 'block', fontSize: 12, color: '#7C6A73', marginBottom: 4 }}>🇬🇧 English</label>
               <Input
                 value={formData.nameEn}
                 onChange={(e) => setFormData({ ...formData, nameEn: e.target.value, name: formData.nameAr || e.target.value })}
@@ -332,7 +332,7 @@ const AdminCategories = () => {
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4, textAlign: 'right' }}>العربية 🇲🇦</label>
+              <label style={{ display: 'block', fontSize: 12, color: '#7C6A73', marginBottom: 4, textAlign: 'right' }}>العربية 🇲🇦</label>
               <Input
                 dir="rtl"
                 value={formData.nameAr}
@@ -350,7 +350,7 @@ const AdminCategories = () => {
           </label>
           <div style={{ display: 'flex', gap: 10 }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4 }}>🇬🇧 English</label>
+              <label style={{ display: 'block', fontSize: 12, color: '#7C6A73', marginBottom: 4 }}>🇬🇧 English</label>
               <TextArea
                 value={formData.descriptionEn}
                 onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value, description: formData.descriptionAr || e.target.value })}
@@ -359,7 +359,7 @@ const AdminCategories = () => {
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 4, textAlign: 'right' }}>العربية 🇲🇦</label>
+              <label style={{ display: 'block', fontSize: 12, color: '#7C6A73', marginBottom: 4, textAlign: 'right' }}>العربية 🇲🇦</label>
               <TextArea
                 dir="rtl"
                 value={formData.descriptionAr}
@@ -446,9 +446,9 @@ const AdminCategories = () => {
             style={{
               padding: '10px 14px',
               borderRadius: 'var(--lx-radius-sm)',
-              background: 'rgba(139, 35, 53, 0.06)',
-              border: '1px solid rgba(139, 35, 53, 0.12)',
-              color: '#8B2335',
+              background: 'rgba(101, 28, 50, 0.06)',
+              border: '1px solid rgba(101, 28, 50, 0.12)',
+              color: '#651C32',
               fontSize: 13,
               display: 'flex',
               alignItems: 'center',

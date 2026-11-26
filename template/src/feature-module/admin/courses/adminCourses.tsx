@@ -234,9 +234,9 @@ const AdminCourses = () => {
                             <button
                               className="lx-btn lx-btn-sm"
                               style={{
-                                background: 'rgba(139, 35, 53, 0.08)',
-                                color: '#8B2335',
-                                border: '1.5px solid rgba(139, 35, 53, 0.15)',
+                                background: 'rgba(101, 28, 50, 0.08)',
+                                color: '#651C32',
+                                border: '1.5px solid rgba(101, 28, 50, 0.15)',
                               }}
                               title={t('admin.courses.deleteCourse', 'Delete Course')}
                             >
@@ -254,7 +254,7 @@ const AdminCourses = () => {
         </div>
 
         {coursesPagination?.totalPages > 1 && (
-          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'center' }}>
             <Pagination
               current={currentPage + 1}
               total={coursesPagination.totalElements}

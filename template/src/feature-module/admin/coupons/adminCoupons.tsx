@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pagination } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import api from '../../../services/api/axios.config';
 import { extractApiError } from '../../../services/api/error.utils';
 
@@ -61,14 +62,14 @@ const generateCode = () => {
 };
 
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: 12, fontWeight: 600, color: '#9B7B50',
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#7C6A73',
   textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6,
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', borderRadius: 10,
   border: '1.5px solid #E8D9C8', fontSize: 14, outline: 'none',
-  color: '#4A3728', background: '#FDFAF6', boxSizing: 'border-box',
+  color: '#66525D', background: '#FDFAF6', boxSizing: 'border-box',
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -181,13 +182,13 @@ const AdminCoupons: React.FC = () => {
         {/* Page header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div style={{ fontSize: 12, color: '#9B7B50', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
+            <div style={{ fontSize: 12, color: '#7C6A73', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
               {t('admin.sidebar.panel', 'Admin Panel')}
             </div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#2C1810', fontFamily: '"Playfair Display", serif', margin: 0 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#2B0F1E', fontFamily: '"Playfair Display", serif', margin: 0 }}>
               {t('admin.coupons.title', 'Coupon Management')}
             </h1>
-            <p style={{ fontSize: 14, color: '#9B7B50', margin: '6px 0 0' }}>
+            <p style={{ fontSize: 14, color: '#7C6A73', margin: '6px 0 0' }}>
               {t('admin.coupons.subtitle', 'Generate discount codes redeemable once per user on the Annual plan.')}
             </p>
           </div>
@@ -196,8 +197,8 @@ const AdminCoupons: React.FC = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '12px 22px', borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #C5912C 0%, #DEBB6B 100%)',
-              color: '#4E1420', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              background: 'linear-gradient(135deg, #C5912C 0%, #E2B866 100%)',
+              color: '#4A1428', fontWeight: 700, fontSize: 14, cursor: 'pointer',
               boxShadow: '0 4px 14px rgba(197,145,44,0.35)',
             }}
           >
@@ -209,9 +210,9 @@ const AdminCoupons: React.FC = () => {
         {/* Flash messages */}
         {success && (
           <div style={{
-            background: 'rgba(26,127,75,0.08)', border: '1.5px solid rgba(26,127,75,0.2)',
+            background: 'rgba(197, 145, 44,0.08)', border: '1.5px solid rgba(197, 145, 44,0.2)',
             borderRadius: 12, padding: '14px 18px', marginBottom: 20,
-            color: '#1A7F4B', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600,
+            color: '#855A0E', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600,
           }}>
             <i className="isax isax-tick-circle" style={{ fontSize: 18 }} />
             {success}
@@ -219,9 +220,9 @@ const AdminCoupons: React.FC = () => {
         )}
         {error && (
           <div style={{
-            background: 'rgba(232,84,84,0.08)', border: '1.5px solid rgba(232,84,84,0.2)',
+            background: 'rgba(101, 28, 50,0.08)', border: '1.5px solid rgba(101, 28, 50,0.2)',
             borderRadius: 12, padding: '14px 18px', marginBottom: 20,
-            color: '#E85454', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600,
+            color: '#651C32', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600,
           }}>
             <i className="isax isax-close-circle" style={{ fontSize: 18 }} />
             {error}
@@ -233,19 +234,19 @@ const AdminCoupons: React.FC = () => {
           <div style={{
             background: '#fff', borderRadius: 16,
             border: '1.5px solid rgba(197,145,44,0.15)',
-            boxShadow: '0 8px 32px rgba(78,20,32,0.08)',
+            boxShadow: '0 8px 32px rgba(74, 20, 40,0.08)',
             padding: '28px 32px', marginBottom: 28,
           }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#2C1810', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#2B0F1E', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
               <i className="isax isax-discount-shape" style={{ color: '#C5912C' }} />
               {t('admin.coupons.createNewCoupon', 'Create New Coupon')}
             </h3>
 
             {formError && (
               <div style={{
-                background: 'rgba(232,84,84,0.08)', border: '1.5px solid rgba(232,84,84,0.2)',
+                background: 'rgba(101, 28, 50,0.08)', border: '1.5px solid rgba(101, 28, 50,0.2)',
                 borderRadius: 10, padding: '12px 16px', marginBottom: 16,
-                color: '#E85454', fontSize: 13, fontWeight: 600,
+                color: '#651C32', fontSize: 13, fontWeight: 600,
               }}>
                 {formError}
               </div>
@@ -270,7 +271,7 @@ const AdminCoupons: React.FC = () => {
                       onClick={() => setForm(f => ({ ...f, code: generateCode() }))}
                       style={{
                         padding: '10px 14px', borderRadius: 10, border: '1.5px solid #E8D9C8',
-                        background: '#FAF5ED', color: '#9B7B50', cursor: 'pointer',
+                        background: '#FAF5ED', color: '#7C6A73', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
                       }}
                     >
@@ -290,7 +291,7 @@ const AdminCoupons: React.FC = () => {
                       onChange={e => setForm(f => ({ ...f, discountPercent: e.target.value }))}
                       style={{ ...inputStyle, paddingRight: 36 }}
                     />
-                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#9B7B50', fontWeight: 700 }}>%</span>
+                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#7C6A73', fontWeight: 700 }}>%</span>
                   </div>
                 </div>
 
@@ -342,8 +343,8 @@ const AdminCoupons: React.FC = () => {
                 }}>
                   <i className="isax isax-discount-shape" style={{ fontSize: 20, color: '#C5912C' }} />
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#4E1420' }}>{form.code}</div>
-                    <div style={{ fontSize: 12, color: '#9B7B50' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#4A1428' }}>{form.code}</div>
+                    <div style={{ fontSize: 12, color: '#7C6A73' }}>
                       {form.discountPercent}% {t('admin.coupons.annualPlan', 'Annual plan')} (3,900 MAD → {Math.round(3900 * (1 - Number(form.discountPercent) / 100)).toLocaleString()} MAD)
                       {form.maxUses ? ` · Max ${form.maxUses}` : ` · ${t('admin.coupons.unlimited', 'Unlimited')}`}
                       {form.expiresAt ? ` · ${fmt(form.expiresAt)}` : ''}
@@ -358,7 +359,7 @@ const AdminCoupons: React.FC = () => {
                   onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(null); }}
                   style={{
                     padding: '12px 22px', borderRadius: 10, border: '1.5px solid #E8D9C8',
-                    background: '#fff', color: '#6B4A2A', fontWeight: 600, cursor: 'pointer',
+                    background: '#fff', color: '#66525D', fontWeight: 600, cursor: 'pointer',
                   }}
                 >
                   {t('common.cancel', 'Cancel')}
@@ -368,7 +369,7 @@ const AdminCoupons: React.FC = () => {
                   disabled={creating}
                   style={{
                     padding: '12px 28px', borderRadius: 10, border: 'none',
-                    background: 'linear-gradient(135deg, #4E1420 0%, #6B1D2A 100%)',
+                    background: 'linear-gradient(135deg, #4A1428 0%, #651C32 100%)',
                     color: '#fff', fontWeight: 700, cursor: creating ? 'not-allowed' : 'pointer',
                     opacity: creating ? 0.7 : 1,
                     display: 'flex', alignItems: 'center', gap: 8,
@@ -385,14 +386,14 @@ const AdminCoupons: React.FC = () => {
         <div style={{
           background: '#fff', borderRadius: 16,
           border: '1.5px solid rgba(197,145,44,0.1)',
-          boxShadow: '0 4px 24px rgba(78,20,32,0.07)',
+          boxShadow: '0 4px 24px rgba(74, 20, 40,0.07)',
           overflow: 'hidden',
         }}>
           <div style={{
             padding: '18px 24px',
             borderBottom: '1px solid rgba(197,145,44,0.1)',
             display: 'flex', alignItems: 'center', gap: 10,
-            fontWeight: 700, color: '#2C1810',
+            fontWeight: 700, color: '#2B0F1E',
           }}>
             <i className="isax isax-discount-shape" style={{ color: '#C5912C' }} />
             {t('admin.coupons.allCoupons', 'All Coupons')}
@@ -405,17 +406,15 @@ const AdminCoupons: React.FC = () => {
           </div>
 
           {loading ? (
-            <div style={{ padding: 48, textAlign: 'center', color: '#9B7B50' }}>
+            <div style={{ padding: 48, textAlign: 'center', color: '#7C6A73' }}>
               {t('admin.coupons.loadingCoupons', 'Loading coupons…')}
             </div>
           ) : coupons.length === 0 ? (
-            <div style={{ padding: 56, textAlign: 'center' }}>
-              <i className="isax isax-discount-shape" style={{ fontSize: 40, color: 'rgba(197,145,44,0.3)', display: 'block', marginBottom: 12 }} />
-              <div style={{ fontWeight: 600, color: '#9B7B50' }}>{t('admin.coupons.noCoupons', 'No coupons yet')}</div>
-              <div style={{ fontSize: 13, color: '#B5967A', marginTop: 4 }}>
-                {t('admin.coupons.clickNewCoupon', 'Click "New Coupon" to create your first discount code.')}
-              </div>
-            </div>
+            <LxEmptyState
+              icon="isax-discount-shape"
+              title={t('admin.coupons.noCoupons', 'No coupons yet')}
+              text={t('admin.coupons.clickNewCoupon', 'Click "New Coupon" to create your first discount code.')}
+            />
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -424,8 +423,8 @@ const AdminCoupons: React.FC = () => {
                     {[t('admin.coupons.code', 'Code'), t('admin.coupons.discount', 'Discount'), t('admin.coupons.usage', 'Usage'), t('common.status', 'Status'), t('admin.coupons.expires', 'Expires'), t('common.date', 'Created'), t('common.actions', 'Actions')].map(h => (
                       <th key={h} style={{
                         padding: '12px 16px', textAlign: 'left',
-                        fontWeight: 700, color: '#9B7B50',
-                        fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em',
+                        fontWeight: 700, color: '#7C6A73',
+                        fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em',
                         borderBottom: '1px solid rgba(197,145,44,0.1)',
                       }}>
                         {h}
@@ -444,13 +443,13 @@ const AdminCoupons: React.FC = () => {
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{
                           fontFamily: 'monospace', fontWeight: 700, fontSize: 14,
-                          color: coupon.isActive ? '#4E1420' : '#9B7B50',
+                          color: coupon.isActive ? '#4A1428' : '#7C6A73',
                           letterSpacing: '0.05em',
                         }}>
                           {coupon.code}
                         </div>
                         {coupon.description && (
-                          <div style={{ fontSize: 11, color: '#B5967A', marginTop: 2 }}>
+                          <div style={{ fontSize: 12, color: '#7C6A73', marginTop: 2 }}>
                             {coupon.description}
                           </div>
                         )}
@@ -464,7 +463,7 @@ const AdminCoupons: React.FC = () => {
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
-                        <div style={{ fontWeight: 600, color: '#2C1810' }}>
+                        <div style={{ fontWeight: 600, color: '#2B0F1E' }}>
                           {coupon.usedCount}{coupon.maxUses != null ? ` / ${coupon.maxUses}` : ' / ∞'}
                         </div>
                         {coupon.maxUses != null && (
@@ -472,7 +471,7 @@ const AdminCoupons: React.FC = () => {
                             <div style={{
                               height: '100%',
                               width: `${Math.min((coupon.usedCount / coupon.maxUses) * 100, 100)}%`,
-                              background: coupon.usedCount >= coupon.maxUses ? '#E85454' : '#C5912C',
+                              background: coupon.usedCount >= coupon.maxUses ? '#651C32' : '#C5912C',
                               borderRadius: 2,
                             }} />
                           </div>
@@ -480,17 +479,17 @@ const AdminCoupons: React.FC = () => {
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <span style={{
-                          padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                          background: coupon.isActive ? 'rgba(26,127,75,0.1)' : 'rgba(232,84,84,0.1)',
-                          color: coupon.isActive ? '#1A7F4B' : '#E85454',
+                          padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                          background: coupon.isActive ? 'rgba(197, 145, 44,0.1)' : 'rgba(101, 28, 50,0.1)',
+                          color: coupon.isActive ? '#855A0E' : '#651C32',
                         }}>
                           {coupon.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', color: coupon.expiresAt && new Date(coupon.expiresAt) < new Date() ? '#E85454' : '#9B7B50' }}>
+                      <td style={{ padding: '14px 16px', color: coupon.expiresAt && new Date(coupon.expiresAt) < new Date() ? '#651C32' : '#7C6A73' }}>
                         {fmt(coupon.expiresAt)}
                       </td>
-                      <td style={{ padding: '14px 16px', color: '#9B7B50' }}>
+                      <td style={{ padding: '14px 16px', color: '#7C6A73' }}>
                         {fmt(coupon.createdAt)}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
@@ -516,7 +515,7 @@ const AdminCoupons: React.FC = () => {
                             title={t('common.delete', 'Delete')}
                             style={{
                               padding: '6px 12px', borderRadius: 8, border: 'none',
-                              background: 'rgba(232,84,84,0.1)', color: '#E85454',
+                              background: 'rgba(101, 28, 50,0.1)', color: '#651C32',
                               cursor: actionId ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600,
                               opacity: actionId ? 0.6 : 1,
                             }}
@@ -553,8 +552,8 @@ const AdminCoupons: React.FC = () => {
           display: 'flex', alignItems: 'flex-start', gap: 12,
         }}>
           <i className="isax isax-info-circle" style={{ fontSize: 18, color: '#C5912C', flexShrink: 0, marginTop: 1 }} />
-          <div style={{ fontSize: 13, color: '#9B7B50', lineHeight: 1.6 }}>
-            <strong style={{ color: '#6B4A2A' }}>{t('admin.coupons.howCouponsWork', 'How coupons work:')}</strong>{' '}
+          <div style={{ fontSize: 13, color: '#7C6A73', lineHeight: 1.6 }}>
+            <strong style={{ color: '#66525D' }}>{t('admin.coupons.howCouponsWork', 'How coupons work:')}</strong>{' '}
             {t('admin.coupons.howCouponsWorkDesc', 'Each coupon can be applied only once per user, exclusively on the Annual plan (3,900 MAD). Share codes with students and they\'ll enter the code in the Annual checkout screen to receive the discount.')}
           </div>
         </div>

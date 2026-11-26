@@ -39,7 +39,7 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () =>
     style={{
       width: 44, height: 24, borderRadius: 12, padding: 2,
       border: 'none', cursor: 'pointer', flexShrink: 0,
-      background: checked ? 'var(--lx-primary)' : 'rgba(107, 29, 42, 0.12)',
+      background: checked ? 'var(--lx-primary)' : 'rgba(101, 28, 50, 0.12)',
       transition: 'background 0.2s ease',
       display: 'flex', alignItems: 'center',
       justifyContent: checked ? 'flex-end' : 'flex-start',
@@ -97,7 +97,7 @@ const StudentNotification = () => {
     <div className="lx-card" style={{ marginBottom: 20 }}>
       <div className="lx-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <i className={`isax ${icon}`} style={{ fontSize: 16, color: 'var(--lx-primary)' }} />
           </div>
           <h6 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>{title}</h6>
@@ -113,10 +113,10 @@ const StudentNotification = () => {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '16px 24px', gap: 16,
-              borderBottom: idx < items.length - 1 ? '1px solid rgba(107, 29, 42, 0.04)' : 'none',
+              borderBottom: idx < items.length - 1 ? '1px solid rgba(101, 28, 50, 0.04)' : 'none',
               transition: 'background 0.15s ease',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107, 29, 42, 0.015)'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101, 28, 50, 0.015)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>

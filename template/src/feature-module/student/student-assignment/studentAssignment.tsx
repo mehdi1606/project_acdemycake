@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import AssignmentLockedNotice from '../../../components/AssignmentLockedNotice';
 import { assignmentService, localizeAssignment } from '../../../services/api/assignment.service';
 import { Assignment, Submission, SubmitAssignmentRequest } from '../../../services/api/types';
@@ -14,16 +15,16 @@ const PAGE_SIZE = 10;
 type ActiveTab = 'list' | 'submit' | 'result';
 
 const statusColor: Record<string, string> = {
-  PUBLISHED: '#16a34a',
-  CLOSED: '#6b7280',
-  DRAFT: '#d97706',
+  PUBLISHED: '#855A0E',
+  CLOSED: '#66525D',
+  DRAFT: '#8C5565',
 };
 
 const gradeColor = (grade: number, total: number) => {
   const pct = total > 0 ? (grade / total) * 100 : 0;
-  if (pct >= 70) return '#16a34a';
-  if (pct >= 50) return '#d97706';
-  return '#dc2626';
+  if (pct >= 70) return '#855A0E';
+  if (pct >= 50) return '#8C5565';
+  return '#651C32';
 };
 
 const StudentAssignment = () => {
@@ -178,7 +179,7 @@ const StudentAssignment = () => {
           <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
             {t('student.assignments.title', 'My Assignments')}
             {totalElements > 0 && (
-              <span style={{ marginLeft: 10, padding: '2px 10px', borderRadius: 12, background: 'rgba(107,29,42,0.08)', color: 'var(--lx-primary)', fontSize: 12, fontWeight: 600 }}>
+              <span style={{ marginLeft: 10, padding: '2px 10px', borderRadius: 12, background: 'rgba(101, 28, 50,0.08)', color: 'var(--lx-primary)', fontSize: 12, fontWeight: 600 }}>
                 {totalElements}
               </span>
             )}
@@ -186,7 +187,7 @@ const StudentAssignment = () => {
         </div>
 
         {error && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', marginBottom: 20, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)', color: '#8B2335', fontSize: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', marginBottom: 20, borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50,0.06)', border: '1px solid rgba(101, 28, 50,0.12)', color: '#651C32', fontSize: 14 }}>
             <i className="isax isax-warning-2" />
             <span style={{ flex: 1 }}>{error}</span>
             <button type="button" className="lx-btn lx-btn-sm lx-btn-outline" onClick={() => load(page)}>{t('common.tryAgain', 'Retry')}</button>
@@ -199,14 +200,15 @@ const StudentAssignment = () => {
             {t('common.loading', 'Loading assignments…')}
           </div>
         ) : assignments.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--lx-text-light)', fontSize: 14 }}>
-            <i className="isax isax-document" style={{ fontSize: 40, display: 'block', marginBottom: 12, opacity: 0.4 }} />
-            <div style={{ fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>{t('student.assignments.noAssignments', 'No assignments yet')}</div>
-            <p style={{ margin: '0 0 16px' }}>{t('student.assignments.emptyText', 'Assignments appear here when a course you follow includes one. Continue your courses to find them.')}</p>
+          <LxEmptyState
+            icon="isax-document"
+            title={t('student.assignments.noAssignments', 'No assignments yet')}
+            text={t('student.assignments.emptyText', 'Assignments appear here when a course you follow includes one. Continue your courses to find them.')}
+          >
             <Link to={all_routes.studentCourses} className="lx-btn lx-btn-sm lx-btn-gold">
               <i className="isax isax-teacher" /> {t('student.assignments.goToCourses', 'Go to my courses')}
             </Link>
-          </div>
+          </LxEmptyState>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {assignments.map((a) => {
@@ -216,7 +218,7 @@ const StudentAssignment = () => {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lx-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} dir="auto">{localizeAssignment(a, i18n.language).title}</span>
-                      <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: `${statusColor[a.status]}18`, color: statusColor[a.status] }}>{
+                      <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: `${statusColor[a.status]}18`, color: statusColor[a.status] }}>{
                         a.status === 'PUBLISHED' ? t('enums.assignmentStatus.PUBLISHED', 'Open')
                         : a.status === 'CLOSED' ? t('enums.assignmentStatus.CLOSED', 'Closed')
                         : a.status === 'DRAFT' ? t('enums.assignmentStatus.DRAFT', 'Draft')
@@ -226,12 +228,12 @@ const StudentAssignment = () => {
                     <div style={{ fontSize: 12, color: 'var(--lx-text-light)', marginBottom: 4 }}>
                       {a.courses && a.courses.length > 0 ? a.courses.map(c => c.title).join(', ') : a.courseTitle}
                       {a.myUnlocked === false && (
-                        <span style={{ marginInlineStart: 8, color: '#8B2335', fontWeight: 600 }}>
+                        <span style={{ marginInlineStart: 8, color: '#651C32', fontWeight: 600 }}>
                           <i className="fa-solid fa-lock" style={{ marginInlineEnd: 4 }} />{t('assignmentLock.locked', 'Locked')}
                         </span>
                       )}
                     </div>
-                    <div style={{ display: 'flex', gap: 16, fontSize: 12, color: past ? '#dc2626' : 'var(--lx-text-light)' }}>
+                    <div style={{ display: 'flex', gap: 16, fontSize: 12, color: past ? '#651C32' : 'var(--lx-text-light)' }}>
                       <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />{t('student.assignments.due', 'Due')}: {fmt(a.dueDate)}</span>
                       <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />{t('student.assignments.marks', 'Marks')}: {a.totalMark}</span>
                     </div>
@@ -291,7 +293,7 @@ const StudentAssignment = () => {
             <span><i className="isax isax-calendar-1" style={{ marginRight: 4 }} />{t('student.assignments.due', 'Due')}: {fmt(selected.dueDate)}</span>
             <span><i className="isax isax-medal-star" style={{ marginRight: 4 }} />{t('student.assignments.totalMarks', 'Total marks')}: {selected.totalMark}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(197,151,62,0.08)', border: '1px solid rgba(197,151,62,0.2)', fontSize: 13, color: '#8a6516' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(197, 145, 44,0.08)', border: '1px solid rgba(197, 145, 44,0.2)', fontSize: 13, color: '#855A0E' }}>
             <i className="fa-solid fa-award" />
             {t('student.assignments.certificateNotePass', 'Your course certificate is issued once you pass this assignment (a mark of {{pct}}% or more) and finish every lesson.', { pct: selected.passPercentage ?? 70 })}
           </div>
@@ -318,8 +320,8 @@ const StudentAssignment = () => {
               </div>
               <span style={{
                 padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
-                background: submission.passed ? 'rgba(22,163,74,0.12)' : 'rgba(220,38,38,0.10)',
-                color: submission.passed ? '#16a34a' : '#dc2626',
+                background: submission.passed ? 'rgba(197, 145, 44,0.12)' : 'rgba(101, 28, 50,0.10)',
+                color: submission.passed ? '#855A0E' : '#651C32',
               }}>
                 {submission.passed
                   ? t('student.assignments.passed', 'Passed')
@@ -327,7 +329,7 @@ const StudentAssignment = () => {
               </span>
             </div>
           ) : (
-            <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(217,119,6,0.08)', color: '#d97706', fontSize: 13, fontWeight: 600 }}>
+            <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(197, 145, 44,0.08)', color: '#8C5565', fontSize: 13, fontWeight: 600 }}>
               <i className="isax isax-clock" style={{ marginRight: 6 }} />{t('student.assignments.awaitingGrading', 'Awaiting grading')}
             </div>
           )}
@@ -349,7 +351,7 @@ const StudentAssignment = () => {
           {submission.feedback && (
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-light)', marginBottom: 4 }}>{t('student.assignments.instructorFeedback', 'Instructor Feedback')}</div>
-              <div style={{ background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.15)', borderRadius: 8, padding: '12px 16px', fontSize: 14, whiteSpace: 'pre-wrap' }}>{submission.feedback}</div>
+              <div style={{ background: 'rgba(197, 145, 44,0.06)', border: '1px solid rgba(197, 145, 44,0.15)', borderRadius: 8, padding: '12px 16px', fontSize: 14, whiteSpace: 'pre-wrap' }}>{submission.feedback}</div>
             </div>
           )}
 
@@ -366,8 +368,8 @@ const StudentAssignment = () => {
           </div>
 
           {submission.passed === false && (
-            <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: submission.canResubmit ? 'rgba(197,151,62,0.08)' : 'rgba(220,38,38,0.06)', border: `1px solid ${submission.canResubmit ? 'rgba(197,151,62,0.25)' : 'rgba(220,38,38,0.15)'}`, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: submission.canResubmit ? '#8a6516' : '#dc2626' }}>
+            <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: submission.canResubmit ? 'rgba(197, 145, 44,0.08)' : 'rgba(101, 28, 50,0.06)', border: `1px solid ${submission.canResubmit ? 'rgba(197, 145, 44,0.25)' : 'rgba(101, 28, 50,0.15)'}`, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: submission.canResubmit ? '#855A0E' : '#651C32' }}>
                 {submission.canResubmit
                   ? t('student.assignments.resubmitHint', 'A mark of {{pct}}% is needed to pass. Read the feedback and send an improved version — you have one more attempt.', { pct: submission.passPercentage ?? 70 })
                   : t('student.assignments.noAttemptsLeft', 'A mark of {{pct}}% is needed to pass, and you have no attempts left for this assignment.', { pct: submission.passPercentage ?? 70 })}
@@ -394,14 +396,14 @@ const StudentAssignment = () => {
             </h6>
 
             {submitError && (
-              <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.12)', color: '#dc2626', fontSize: 13 }}>
+              <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(101, 28, 50,0.06)', border: '1px solid rgba(101, 28, 50,0.12)', color: '#651C32', fontSize: 13 }}>
                 {submitError}
               </div>
             )}
 
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                {t('student.assignments.yourAnswer', 'Your Answer')} <span style={{ color: '#dc2626' }}>*</span>
+                {t('student.assignments.yourAnswer', 'Your Answer')} <span style={{ color: '#651C32' }}>*</span>
               </label>
               <textarea
                 required
@@ -423,7 +425,7 @@ const StudentAssignment = () => {
                   <i className="isax isax-document-text" style={{ color: 'var(--lx-primary)' }} />
                   <span style={{ flex: 1, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fileName}</span>
                   <button type="button" onClick={clearFile} title={t('common.remove', 'Remove')}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: 15 }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#651C32', fontSize: 15 }}>
                     <i className="isax isax-close-circle" />
                   </button>
                 </div>

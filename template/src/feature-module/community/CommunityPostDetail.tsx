@@ -382,13 +382,13 @@ const CommunityPostDetail: React.FC = () => {
           {/* Challenge header strip */}
           {isChallenge && (
             <div style={{
-              background: 'linear-gradient(90deg, #4E1420 0%, #7A2240 100%)',
+              background: 'linear-gradient(90deg, #4A1428 0%, #7A2440 100%)',
               padding: '10px 24px',
               display: 'flex', alignItems: 'center', gap: 8,
               borderRadius: '8px 8px 0 0',
             }}>
               <i className="isax isax-crown" style={{ color: '#C5912C', fontSize: 16 }} />
-              <span style={{ color: '#DEBB6B', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <span style={{ color: '#E2B866', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 {t('community.challenge', 'Challenge')}
               </span>
               <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginLeft: 4 }}>
@@ -401,8 +401,8 @@ const CommunityPostDetail: React.FC = () => {
             <div className="mb-3 d-flex align-items-center justify-content-between">
               <div className="d-flex align-items-center gap-2">
                 {isChallenge ? (
-                  <span className="badge rounded-pill px-3 fs-12 text-white" style={{ background: '#4E1420' }}>
-                    <i className="isax isax-crown me-1" style={{ fontSize: 10 }} />
+                  <span className="badge rounded-pill px-3 fs-12 text-white" style={{ background: '#4A1428' }}>
+                    <i className="isax isax-crown me-1" style={{ fontSize: 12 }} />
                     {TYPE_LABELS[post.postType]}
                   </span>
                 ) : (
@@ -440,7 +440,7 @@ const CommunityPostDetail: React.FC = () => {
                         {canManage && (
                           <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                             onClick={openEditModal}>
-                            <i className="isax isax-edit-2 fs-16" style={{ color: '#6B1D2A' }} />
+                            <i className="isax isax-edit-2 fs-16" style={{ color: '#651C32' }} />
                             {t('community.edit', 'Edit')}
                           </button>
                         )}
@@ -448,7 +448,7 @@ const CommunityPostDetail: React.FC = () => {
                           <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                             onClick={handleTogglePin}>
                             <i className={`fa-solid fa-thumbtack fs-14 ${post.isPinned ? 'text-warning' : ''}`}
-                              style={!post.isPinned ? { color: '#6B1D2A' } : {}} />
+                              style={!post.isPinned ? { color: '#651C32' } : {}} />
                             {post.isPinned
                               ? t('community.unpin', 'Unpin')
                               : t('community.pin', 'Pin')}
@@ -523,15 +523,15 @@ const CommunityPostDetail: React.FC = () => {
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16,
                 padding: '10px 14px', borderRadius: 10,
-                background: 'linear-gradient(135deg, rgba(78,20,32,0.06) 0%, rgba(78,20,32,0.03) 100%)',
-                border: '1px solid rgba(78,20,32,0.12)',
+                background: 'linear-gradient(135deg, rgba(74, 20, 40,0.06) 0%, rgba(74, 20, 40,0.03) 100%)',
+                border: '1px solid rgba(74, 20, 40,0.12)',
               }}>
                 <i className="isax isax-crown" style={{ color: '#C5912C', fontSize: 18 }} />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: '#4E1420' }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: '#4A1428' }}>
                     {t('community.yourChallengeResponse', 'Your Challenge Response')}
                   </div>
-                  <div style={{ fontSize: 12, color: '#9B7B50' }}>
+                  <div style={{ fontSize: 12, color: '#7C6A73' }}>
                     {t('community.challengeCommentHint', 'Share your work, result, or feedback below!')}
                   </div>
                 </div>
@@ -594,7 +594,7 @@ const CommunityPostDetail: React.FC = () => {
                   }}>
                     {/* achievement description */}
                     <div className="mb-3">
-                      <label className="form-label fw-semibold" style={{ fontSize: 13, color: '#4E1420' }}>
+                      <label className="form-label fw-semibold" style={{ fontSize: 13, color: '#4A1428' }}>
                         Achievement description <span className="text-muted fw-normal">(optional)</span>
                       </label>
                       <input
@@ -605,14 +605,14 @@ const CommunityPostDetail: React.FC = () => {
                         value={achievementText}
                         onChange={(e) => setAchievementText(e.target.value)}
                       />
-                      <div className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>
+                      <div className="text-muted" style={{ fontSize: 12, marginTop: 4 }}>
                         {achievementText.length}/200
                       </div>
                     </div>
 
                     {/* icon picker */}
                     <div className="mb-3">
-                      <label className="form-label fw-semibold" style={{ fontSize: 13, color: '#4E1420' }}>
+                      <label className="form-label fw-semibold" style={{ fontSize: 13, color: '#4A1428' }}>
                         Choose an icon
                       </label>
                       <div className="d-flex flex-wrap gap-2">
@@ -642,7 +642,7 @@ const CommunityPostDetail: React.FC = () => {
 
                     {/* file upload */}
                     <div className="mb-2">
-                      <label className="form-label fw-semibold" style={{ fontSize: 13, color: '#4E1420' }}>
+                      <label className="form-label fw-semibold" style={{ fontSize: 13, color: '#4A1428' }}>
                         Upload proof <span className="text-muted fw-normal">(image or PDF, optional)</span>
                       </label>
 
@@ -663,10 +663,10 @@ const CommunityPostDetail: React.FC = () => {
                             />
                           )}
                           <div className="flex-grow-1">
-                            <div style={{ fontSize: 12, fontWeight: 600, color: '#4E1420' }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: '#4A1428' }}>
                               {achievementFile.name}
                             </div>
-                            <div style={{ fontSize: 11, color: '#9B7B50' }}>
+                            <div style={{ fontSize: 12, color: '#7C6A73' }}>
                               {achievementFileUploading
                                 ? '⏳ Uploading…'
                                 : achievementFileUrl ? '✅ Ready' : '❌ Upload failed'}
@@ -696,7 +696,7 @@ const CommunityPostDetail: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="mt-2" style={{ fontSize: 11, color: '#9B7B50' }}>
+                    <div className="mt-2" style={{ fontSize: 12, color: '#7C6A73' }}>
                       <i className="isax isax-info-circle me-1" />
                       You can only submit one achievement per challenge. Choose wisely!
                     </div>
@@ -710,7 +710,7 @@ const CommunityPostDetail: React.FC = () => {
               <div className="mb-3 d-flex align-items-center gap-2" style={{
                 padding: '8px 12px', borderRadius: 8,
                 background: 'rgba(197,145,44,0.08)', border: '1px solid rgba(197,145,44,0.25)',
-                fontSize: 13, color: '#9B7B50',
+                fontSize: 13, color: '#7C6A73',
               }}>
                 <span style={{ fontSize: 16 }}>🏆</span>
                 {t('community.achievementAlreadySubmitted', 'You already submitted your achievement for this challenge.')}
@@ -755,7 +755,7 @@ const CommunityPostDetail: React.FC = () => {
                       {comment.achievementText && (
                         <div className="d-flex align-items-center gap-2 mb-1">
                           <span style={{ fontSize: 20 }}>{comment.achievementIcon || '🏆'}</span>
-                          <span style={{ fontWeight: 600, fontSize: 13, color: '#7A5C00' }}>
+                          <span style={{ fontWeight: 600, fontSize: 13, color: '#855A0E' }}>
                             {comment.achievementText}
                           </span>
                         </div>
@@ -859,7 +859,7 @@ const CommunityPostDetail: React.FC = () => {
       >
         <div style={{ borderRadius: 12, overflow: 'hidden' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #4E1420 0%, #6B1D2A 100%)',
+            background: 'linear-gradient(135deg, #4A1428 0%, #651C32 100%)',
             padding: '20px 24px 16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
@@ -881,11 +881,11 @@ const CommunityPostDetail: React.FC = () => {
             {editError && <div className="alert alert-danger py-2 mb-0">{editError}</div>}
 
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
-                {t('community.titleLabel', 'Title')} <span style={{ color: '#B03060' }}>*</span>
+              <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.titleLabel', 'Title')} <span style={{ color: '#651C32' }}>*</span>
               </label>
               <input type="text"
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2C1810' }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2B0F1E' }}
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 maxLength={200}
@@ -893,11 +893,11 @@ const CommunityPostDetail: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
-                {t('community.contentLabel', 'Content')} <span style={{ color: '#B03060' }}>*</span>
+              <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.contentLabel', 'Content')} <span style={{ color: '#651C32' }}>*</span>
               </label>
               <textarea
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2C1810', resize: 'vertical', minHeight: 120 }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2B0F1E', resize: 'vertical', minHeight: 120 }}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 rows={5}
@@ -905,7 +905,7 @@ const CommunityPostDetail: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+              <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
                 {t('community.attachImage', 'Image (optional)')}
               </label>
               <input ref={editImageInputRef} type="file" accept="image/png,image/jpeg,image/webp"
@@ -938,8 +938,8 @@ const CommunityPostDetail: React.FC = () => {
                 disabled={editSubmitting || !editTitle.trim() || !editContent.trim()}
                 style={{
                   padding: '11px 28px', borderRadius: 10, border: 'none',
-                  background: 'linear-gradient(135deg, #C5912C 0%, #DEBB6B 50%, #C5912C 100%)',
-                  color: '#4E1420', fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #C5912C 0%, #E2B866 50%, #C5912C 100%)',
+                  color: '#4A1428', fontWeight: 800, fontSize: 14, cursor: 'pointer',
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   opacity: (editSubmitting || !editTitle.trim() || !editContent.trim()) ? 0.6 : 1,
                   display: 'flex', alignItems: 'center', gap: 8,

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import LuxuryDashboardLayout from '../../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../../components/LxEmptyState';
 import adminService from '../../../../services/api/admin.service';
 import { AdminUser, PaginatedResponse } from '../../../../services/api/types';
 import { getFileUrl } from '../../../../environment';
@@ -126,7 +127,7 @@ const InstructorCard: React.FC<CardProps> = ({ instructor, t, lang, onBanToggle 
             {instructor.fullName}
           </p>
           <span style={{
-            display: 'block', fontSize: 11, color: 'var(--lx-text-muted)',
+            display: 'block', fontSize: 12, color: 'var(--lx-text-muted)',
             background: 'var(--lx-primary-mist)', borderRadius: 6, padding: '2px 8px',
             maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             margin: '5px auto 0',
@@ -136,15 +137,15 @@ const InstructorCard: React.FC<CardProps> = ({ instructor, t, lang, onBanToggle 
           <div style={{ marginTop: 8 }}>
             {isBanned ? (
               <span style={{
-                fontSize: 10, fontWeight: 600, padding: '2px 10px', borderRadius: 20,
-                background: 'rgba(220,53,69,.1)', color: '#C0392B',
-                border: '1px solid rgba(220,53,69,.2)', display: 'inline-block',
+                fontSize: 12, fontWeight: 600, padding: '2px 10px', borderRadius: 20,
+                background: 'rgba(101, 28, 50,.1)', color: '#651C32',
+                border: '1px solid rgba(101, 28, 50,.2)', display: 'inline-block',
               }}>{t('instructorPages.list.banned')}</span>
             ) : (
               <span style={{
-                fontSize: 10, fontWeight: 600, padding: '2px 10px', borderRadius: 20,
+                fontSize: 12, fontWeight: 600, padding: '2px 10px', borderRadius: 20,
                 background: 'var(--lx-green-pale)', color: 'var(--lx-green)',
-                border: '1px solid rgba(45,122,79,.2)', display: 'inline-block',
+                border: '1px solid rgba(197, 145, 44,.2)', display: 'inline-block',
               }}>{t('instructorPages.list.active')}</span>
             )}
           </div>
@@ -176,13 +177,13 @@ const InstructorCard: React.FC<CardProps> = ({ instructor, t, lang, onBanToggle 
               borderRadius: 8, padding: '8px 4px', textAlign: 'center',
             }}>
               <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: 'var(--lx-primary)', fontFamily: "'Playfair Display', serif" }}>{val}</span>
-              <span style={{ display: 'block', fontSize: 9, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--lx-text-muted)' }}>{lbl}</span>
+              <span style={{ display: 'block', fontSize: 12, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--lx-text-muted)' }}>{lbl}</span>
             </div>
           ))}
         </div>
 
         {/* Joined */}
-        <div style={{ fontSize: 11, color: 'var(--lx-text-soft)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--lx-text-soft)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 4 }}>
           <i className="isax isax-calendar-1" style={{ fontSize: 12, color: 'var(--lx-gold)' }} />
           {t('instructorPages.list.joined')}: {formatDate(instructor.createdAt)}
         </div>
@@ -211,14 +212,14 @@ const InstructorCard: React.FC<CardProps> = ({ instructor, t, lang, onBanToggle 
           style={{
             display: 'block', width: '100%', marginTop: 8,
             background: 'transparent',
-            border: isBanned ? '1px solid rgba(45,122,79,.4)' : '1px solid rgba(220,53,69,.3)',
+            border: isBanned ? '1px solid rgba(197, 145, 44,.4)' : '1px solid rgba(101, 28, 50,.3)',
             borderRadius: 8,
-            color: isBanned ? 'var(--lx-green)' : '#C0392B',
+            color: isBanned ? 'var(--lx-green)' : '#651C32',
             fontWeight: 600, fontSize: 12, padding: '7px 0', cursor: actioning ? 'wait' : 'pointer',
             transition: 'background .2s',
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = isBanned ? 'var(--lx-green-pale)' : 'rgba(220,53,69,.06)';
+            (e.currentTarget as HTMLElement).style.background = isBanned ? 'var(--lx-green-pale)' : 'rgba(101, 28, 50,.06)';
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLElement).style.background = 'transparent';
@@ -366,7 +367,7 @@ const InstructorList: React.FC = () => {
                   backdropFilter: 'blur(8px)',
                 }}>
                   <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: 'var(--lx-gold)', fontFamily: "'Playfair Display', serif" }}>{n}</span>
-                  <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,.55)' }}>{lbl}</span>
+                  <span style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,.55)' }}>{lbl}</span>
                 </div>
               ))}
             </div>
@@ -422,10 +423,12 @@ const InstructorList: React.FC = () => {
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : instructors.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--lx-text-muted)' }}>
-            <i className="isax isax-user-search" style={{ fontSize: 52, color: 'var(--lx-gold)', opacity: .35, display: 'block', marginBottom: 14 }} />
-            <p style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>{t('instructorPages.list.noInstructors')}</p>
-            {search && <p style={{ fontSize: 13, color: 'var(--lx-text-soft)' }}>"{search}"</p>}
+          <div className="lx-card">
+            <LxEmptyState
+              icon="isax-user-search"
+              title={t('instructorPages.list.noInstructors')}
+              text={search ? `"${search}"` : t('emptyStates.instructorsText', 'Instructors will appear here once they join the academy.')}
+            />
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 20 }}>

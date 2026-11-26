@@ -143,7 +143,7 @@ const AdminTransactions = () => {
                 <p className="stat-label">{s.label}</p>
                 <h3 className="stat-value" style={{ fontSize: 20 }}>{s.value}</h3>
                 {s.sub && (
-                  <p className="stat-label" style={{ fontSize: 11, opacity: 0.7, margin: 0 }}>
+                  <p className="stat-label" style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>
                     <i className="isax isax-clock me-1" />{s.sub}
                   </p>
                 )}
@@ -219,7 +219,7 @@ const AdminTransactions = () => {
                   {filteredTransactions.map((transaction: any) => (
                     <tr key={transaction.id}>
                       <td>
-                        <code style={{ fontSize: 12, color: 'var(--lx-primary)', background: 'rgba(107, 29, 42, 0.04)', padding: '2px 8px', borderRadius: 4 }}>
+                        <code style={{ fontSize: 12, color: 'var(--lx-primary)', background: 'rgba(101, 28, 50, 0.04)', padding: '2px 8px', borderRadius: 4 }}>
                           {transaction.payzoneTransactionId ||
                             transaction.payzoneOrderId ||
                             transaction.id}
@@ -240,7 +240,7 @@ const AdminTransactions = () => {
                         <span
                           style={{
                             fontWeight: 600,
-                            color: transaction.status === 'REFUNDED' ? '#8B2335' : 'var(--lx-green)',
+                            color: transaction.status === 'REFUNDED' ? '#651C32' : 'var(--lx-green)',
                           }}
                         >
                           {transaction.status === 'REFUNDED' ? '-' : ''}
@@ -266,7 +266,7 @@ const AdminTransactions = () => {
         </div>
 
         {transactionsPagination?.totalPages > 1 && (
-          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'center' }}>
             <Pagination
               current={currentPage + 1}
               total={transactionsPagination.totalElements}

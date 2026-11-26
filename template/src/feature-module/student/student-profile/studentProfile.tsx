@@ -93,7 +93,7 @@ const StudentProfile = () => {
       {/* ── Badge Card ── */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1a0a0e 0%, #2d1218 60%, #1a0a0e 100%)',
+          background: 'linear-gradient(135deg, #2B0F1E 0%, #4A1428 60%, #2B0F1E 100%)',
           border: `1px solid ${userBadge.color}44`,
           borderRadius: 16,
           padding: '24px 28px',
@@ -125,7 +125,7 @@ const StudentProfile = () => {
         <div style={{ flex: 1, minWidth: 0 }}>
           <p
             style={{
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
               color: userBadge.color,
               letterSpacing: 2,
@@ -183,8 +183,8 @@ const StudentProfile = () => {
                 style={{
                   padding: 16,
                   borderRadius: 'var(--lx-radius)',
-                  background: 'rgba(107, 29, 42, 0.02)',
-                  border: '1px solid rgba(107, 29, 42, 0.04)',
+                  background: 'rgba(101, 28, 50, 0.02)',
+                  border: '1px solid rgba(101, 28, 50, 0.04)',
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -202,8 +202,8 @@ const StudentProfile = () => {
                 style={{
                   padding: 16,
                   borderRadius: 'var(--lx-radius)',
-                  background: 'rgba(107, 29, 42, 0.02)',
-                  border: '1px solid rgba(107, 29, 42, 0.04)',
+                  background: 'rgba(101, 28, 50, 0.02)',
+                  border: '1px solid rgba(101, 28, 50, 0.04)',
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -212,9 +212,9 @@ const StudentProfile = () => {
                 <span className="d-inline-flex align-items-center gap-2" style={{ fontSize: 14, color: 'var(--lx-text)', fontWeight: 500 }}>
                   {user?.email || t('student.profile.notSet', 'Not set')}
                   {user?.isEmailVerified ? (
-                    <span className="lx-badge badge-success" style={{ fontSize: 11 }}>{t('student.profile.verified', 'Verified')}</span>
+                    <span className="lx-badge badge-success" style={{ fontSize: 12 }}>{t('student.profile.verified', 'Verified')}</span>
                   ) : (
-                    <span className="lx-badge badge-warning" style={{ fontSize: 11 }}>{t('student.profile.notVerified', 'Not Verified')}</span>
+                    <span className="lx-badge badge-warning" style={{ fontSize: 12 }}>{t('student.profile.notVerified', 'Not Verified')}</span>
                   )}
                 </span>
               </div>
@@ -226,8 +226,8 @@ const StudentProfile = () => {
                 style={{
                   padding: 16,
                   borderRadius: 'var(--lx-radius)',
-                  background: 'rgba(107, 29, 42, 0.02)',
-                  border: '1px solid rgba(107, 29, 42, 0.04)',
+                  background: 'rgba(101, 28, 50, 0.02)',
+                  border: '1px solid rgba(101, 28, 50, 0.04)',
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -245,8 +245,8 @@ const StudentProfile = () => {
                 style={{
                   padding: 16,
                   borderRadius: 'var(--lx-radius)',
-                  background: 'rgba(107, 29, 42, 0.02)',
-                  border: '1px solid rgba(107, 29, 42, 0.04)',
+                  background: 'rgba(101, 28, 50, 0.02)',
+                  border: '1px solid rgba(101, 28, 50, 0.04)',
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -264,8 +264,8 @@ const StudentProfile = () => {
                 style={{
                   padding: 16,
                   borderRadius: 'var(--lx-radius)',
-                  background: 'rgba(107, 29, 42, 0.02)',
-                  border: '1px solid rgba(107, 29, 42, 0.04)',
+                  background: 'rgba(101, 28, 50, 0.02)',
+                  border: '1px solid rgba(101, 28, 50, 0.04)',
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -288,8 +288,8 @@ const StudentProfile = () => {
                   style={{
                     padding: 16,
                     borderRadius: 'var(--lx-radius)',
-                    background: 'rgba(107, 29, 42, 0.02)',
-                    border: '1px solid rgba(107, 29, 42, 0.04)',
+                    background: 'rgba(101, 28, 50, 0.02)',
+                    border: '1px solid rgba(101, 28, 50, 0.04)',
                   }}
                 >
                   <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -308,8 +308,8 @@ const StudentProfile = () => {
                 style={{
                   padding: 16,
                   borderRadius: 'var(--lx-radius)',
-                  background: 'rgba(107, 29, 42, 0.02)',
-                  border: '1px solid rgba(107, 29, 42, 0.04)',
+                  background: 'rgba(101, 28, 50, 0.02)',
+                  border: '1px solid rgba(101, 28, 50, 0.04)',
                 }}
               >
                 <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -328,7 +328,7 @@ const StudentProfile = () => {
             socialLinks.twitter ||
             socialLinks.facebook) && (
             <>
-              <div style={{ borderTop: '1px solid rgba(107, 29, 42, 0.06)', margin: '28px 0 20px' }} />
+              <div style={{ borderTop: '1px solid rgba(101, 28, 50, 0.06)', margin: '28px 0 20px' }} />
               <h6 style={{ fontWeight: 700, color: 'var(--lx-text)', fontSize: 16, marginBottom: 20 }}>
                 {t('student.settings.socialLinks', 'Social Links')}
               </h6>
@@ -339,8 +339,8 @@ const StudentProfile = () => {
                       style={{
                         padding: 16,
                         borderRadius: 'var(--lx-radius)',
-                        background: 'rgba(107, 29, 42, 0.02)',
-                        border: '1px solid rgba(107, 29, 42, 0.04)',
+                        background: 'rgba(101, 28, 50, 0.02)',
+                        border: '1px solid rgba(101, 28, 50, 0.04)',
                       }}
                     >
                       <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -364,8 +364,8 @@ const StudentProfile = () => {
                       style={{
                         padding: 16,
                         borderRadius: 'var(--lx-radius)',
-                        background: 'rgba(107, 29, 42, 0.02)',
-                        border: '1px solid rgba(107, 29, 42, 0.04)',
+                        background: 'rgba(101, 28, 50, 0.02)',
+                        border: '1px solid rgba(101, 28, 50, 0.04)',
                       }}
                     >
                       <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -389,8 +389,8 @@ const StudentProfile = () => {
                       style={{
                         padding: 16,
                         borderRadius: 'var(--lx-radius)',
-                        background: 'rgba(107, 29, 42, 0.02)',
-                        border: '1px solid rgba(107, 29, 42, 0.04)',
+                        background: 'rgba(101, 28, 50, 0.02)',
+                        border: '1px solid rgba(101, 28, 50, 0.04)',
                       }}
                     >
                       <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -414,8 +414,8 @@ const StudentProfile = () => {
                       style={{
                         padding: 16,
                         borderRadius: 'var(--lx-radius)',
-                        background: 'rgba(107, 29, 42, 0.02)',
-                        border: '1px solid rgba(107, 29, 42, 0.04)',
+                        background: 'rgba(101, 28, 50, 0.02)',
+                        border: '1px solid rgba(101, 28, 50, 0.04)',
                       }}
                     >
                       <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>

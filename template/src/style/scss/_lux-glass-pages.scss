@@ -1,2 +1,997 @@
-/* Inner dashboard pages on the glass atelier system (My Courses, Earnings, tables, forms...).
-   Loaded after _lux-glass.scss. */
+/* ════════════════════════════════════════════════════════════════════════
+   SARALÖWE GLASS ATELIER — inner dashboard pages
+   ────────────────────────────────────────────────────────────────────────
+   My Courses, Earnings, Users, the course wizard, tickets, settings…
+   Everything inside .luxury-main (and the modals / dropdowns that antd and
+   Bootstrap portal to <body> while a dashboard is open) gets the same finish
+   as the dashboards: clear white glass on the pearl canvas, burgundy ink,
+   champagne gold as the one accent. No green, blue, purple or pastel tints:
+     success → gold tint · danger → burgundy · info / pending → soft burgundy
+   Loaded after _lux-glass.scss (which owns tokens --gl-* and @mixin gl-glass).
+   ════════════════════════════════════════════════════════════════════════ */
+
+$glp-burg: #651C32;
+$glp-burg-deep: #4A1428;
+$glp-ink: #2B0F1E;
+$glp-gold: #C5912C;
+$glp-gold-dk: #855A0E;              /* gold that stays readable as text */
+$glp-line: rgba(60, 20, 35, 0.08);  /* the very fine neutral outline */
+$glp-line-strong: rgba(60, 20, 35, 0.14);
+$glp-muted: rgba(43, 15, 30, 0.6);
+$glp-mid: rgba(43, 15, 30, 0.74);
+$glp-focus: 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 5px #{$glp-gold};
+
+/* ── 1. the old --lx-* tokens, re-pointed at the glass atelier ─────────
+   Most page markup (and many inline styles) reads these tokens, so this
+   one block moves dozens of pages onto the new palette at once.          */
+@mixin glp-tokens {
+  --lx-primary: #{$glp-burg};
+  --lx-primary-dark: #{$glp-burg-deep};
+  --lx-primary-light: #7A2440;
+  --lx-primary-pale: rgba(101, 28, 50, 0.08);
+  --lx-primary-hover: rgba(101, 28, 50, 0.06);
+  --lx-primary-mist: rgba(101, 28, 50, 0.04);
+  --lx-gold: #{$glp-gold};
+  --lx-gold-light: #D9AE52;
+  --lx-gold-pale: rgba(197, 145, 44, 0.14);
+  --lx-gold-glow: 0 10px 24px -10px rgba(184, 132, 31, 0.8);
+  --lx-text: #{$glp-ink};
+  --lx-text-mid: #{$glp-mid};
+  --lx-text-muted: #{$glp-muted};
+  --lx-text-soft: #{$glp-muted};
+  --lx-text-light: #{$glp-muted};
+  --lx-green: #{$glp-gold-dk};
+  --lx-green-pale: rgba(197, 145, 44, 0.14);
+  --lx-bg: #F8F4F3;
+  --lx-bg-warm: #FBF6F6;
+  --lx-bg-structure: rgba(255, 255, 255, 0.6);
+  --lx-card: rgba(255, 255, 255, 0.74);
+  --lx-card-hover: rgba(255, 255, 255, 0.92);
+  --lx-card-border: #{$glp-line};
+  --lx-card-border-hover: #{$glp-line-strong};
+  --lx-card-shadow: 0 0 0 1px rgba(60, 20, 35, 0.04), 0 1px 3px rgba(40, 15, 25, 0.05), 0 20px 44px -24px rgba(40, 15, 25, 0.22);
+  --lx-card-shadow-hover: 0 0 0 1px rgba(60, 20, 35, 0.06), 0 4px 10px rgba(40, 15, 25, 0.06), 0 30px 60px -26px rgba(40, 15, 25, 0.3);
+  --lx-border: #{$glp-line};
+  --lx-border-gold: rgba(197, 145, 44, 0.3);
+  --lx-glass: rgba(255, 255, 255, 0.72);
+  --lx-glass-heavy: rgba(255, 255, 255, 0.9);
+  --lx-glass-light: rgba(255, 255, 255, 0.6);
+  --lx-glass-border: 1px solid #{$glp-line};
+  --lx-glass-border-strong: 1px solid #{$glp-line-strong};
+  --lx-glass-modal: rgba(255, 253, 252, 0.94);
+  --lx-shadow-sm: 0 0 0 1px rgba(60, 20, 35, 0.04), 0 10px 24px -16px rgba(40, 15, 25, 0.25);
+  --lx-shadow: var(--lx-card-shadow);
+  --lx-radius-lg: var(--gl-r);
+  --lx-radius-xl: 30px;
+  --lx-rose: #{$glp-burg};
+  --lx-rose-pale: rgba(101, 28, 50, 0.08);
+}
+
+/* glass surfaces used by forms, modals and menus */
+@mixin glp-sheet($alpha: 0.9) {
+  background: rgba(255, 255, 255, $alpha);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  border: none;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    0 0 0 1px rgba(60, 20, 35, 0.07),
+    0 30px 70px -28px rgba(40, 15, 25, 0.38);
+}
+
+@mixin glp-field {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid $glp-line-strong;
+  border-radius: 14px;
+  color: $glp-ink;
+  box-shadow: inset 0 1px 2px rgba(40, 15, 25, 0.04);
+  transition: border-color 0.25s var(--gl-ease), box-shadow 0.25s var(--gl-ease), background 0.25s var(--gl-ease);
+}
+@mixin glp-field-focus {
+  background: #fff;
+  border-color: rgba(197, 145, 44, 0.7);
+  box-shadow: 0 0 0 4px rgba(197, 145, 44, 0.18);
+  outline: none;
+}
+
+/* status recipes (Bootstrap, antd and page badges all share them) */
+@mixin glp-good   { background: rgba(197, 145, 44, 0.16) !important; color: $glp-gold-dk !important; box-shadow: inset 0 0 0 1px rgba(197, 145, 44, 0.3); }
+@mixin glp-bad    { background: $glp-burg !important; color: #FBF6F0 !important; box-shadow: none; }
+@mixin glp-soft   { background: rgba(101, 28, 50, 0.08) !important; color: $glp-burg !important; box-shadow: inset 0 0 0 1px rgba(101, 28, 50, 0.1); }
+@mixin glp-quiet  { background: rgba(255, 255, 255, 0.75) !important; color: $glp-burg !important; box-shadow: inset 0 0 0 1px rgba(101, 28, 50, 0.16); }
+@mixin glp-neutral { background: rgba(60, 20, 35, 0.06) !important; color: $glp-mid !important; box-shadow: none; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   2. CONTROLS — written once, applied to the page area and to portals
+   ════════════════════════════════════════════════════════════════════════ */
+@mixin glp-controls {
+  /* ── keyboard focus: always a visible gold ring ─────────────────────── */
+  a:focus-visible, button:focus-visible, [role='button']:focus-visible, [tabindex]:focus-visible,
+  .btn:focus-visible, .lx-btn:focus-visible, .page-link:focus-visible, .nav-link:focus-visible,
+  .form-check-input:focus-visible, .btn-close:focus-visible {
+    outline: none;
+    box-shadow: $glp-focus !important;
+  }
+
+  /* ── Bootstrap buttons: gold = the action, glass = everything else ──── */
+  .btn { border-radius: 999px; font-weight: 700; }
+  .btn-primary, .btn-success, .btn-warning, .btn-gold, .add-form-btn, .widget-next-btn .btn, .submit-btn .btn {
+    background: var(--gl-gold-grad) !important;
+    border: none !important;
+    color: $glp-ink !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 10px 24px -10px rgba(184, 132, 31, 0.85) !important;
+    &:hover:not(:disabled) { filter: brightness(1.05); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 16px 30px -10px rgba(184, 132, 31, 0.9) !important; }
+    &:disabled, &.disabled { opacity: 0.55; box-shadow: none !important; }
+    &:focus-visible { box-shadow: $glp-focus !important; }
+  }
+  .btn-secondary, .btn-light, .btn-outline-secondary, .btn-outline-primary, .btn-outline-light, .btn-outline-dark, .btn-outline-success, .btn-outline-info, .btn-outline-warning, .btn-info {
+    background: rgba(255, 255, 255, 0.66) !important;
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border: 1px solid rgba(101, 28, 50, 0.14) !important;
+    color: $glp-burg !important;
+    box-shadow: none !important;
+    &:hover:not(:disabled) { background: #fff !important; border-color: rgba(101, 28, 50, 0.22) !important; color: $glp-burg !important; box-shadow: 0 10px 22px -12px rgba(74, 20, 40, 0.4) !important; }
+    &.active { background: var(--gl-gold-grad) !important; border-color: transparent !important; color: $glp-ink !important; }
+    &:focus-visible { box-shadow: $glp-focus !important; }
+  }
+  .btn-dark, .btn-group .btn-dark {
+    background: linear-gradient(135deg, #7A2440, $glp-burg-deep) !important;
+    border: none !important;
+    color: #FBF6F0 !important;
+  }
+  .btn-danger {
+    background: linear-gradient(135deg, #7A2440, $glp-burg-deep) !important;
+    border: none !important;
+    color: #FBF6F0 !important;
+    box-shadow: 0 10px 22px -12px rgba(74, 20, 40, 0.6) !important;
+  }
+  .btn-outline-danger {
+    background: rgba(255, 255, 255, 0.66) !important;
+    border: 1px solid rgba(101, 28, 50, 0.3) !important;
+    color: $glp-burg !important;
+    &:hover:not(:disabled) { background: $glp-burg !important; border-color: $glp-burg !important; color: #FBF6F0 !important; }
+  }
+  .btn-link { color: $glp-burg; text-decoration: none; &:hover { color: $glp-burg-deep; text-decoration: underline; } }
+  .btn-close {
+    border-radius: 50%;
+    opacity: 0.7;
+    &:hover { opacity: 1; background-color: rgba(101, 28, 50, 0.06); }
+  }
+
+  /* ── form fields ─────────────────────────────────────────────────────── */
+  .form-label, .input-block > label, .col-form-label {
+    font-size: 13px; font-weight: 600;
+    color: $glp-mid;
+    margin-bottom: 6px;
+  }
+  .form-control, .form-select {
+    @include glp-field;
+    min-height: 44px;
+    font-size: 14px;
+    &::placeholder { color: rgba(43, 15, 30, 0.42); }
+    &:focus { @include glp-field-focus; }
+    &:disabled, &[readonly] { background: rgba(255, 255, 255, 0.45); color: $glp-muted; }
+    &.is-invalid { border-color: rgba(101, 28, 50, 0.55); &:focus { box-shadow: 0 0 0 4px rgba(101, 28, 50, 0.12); } }
+    &.is-valid { border-color: rgba(197, 145, 44, 0.6); }
+  }
+  .form-control-sm, .form-select-sm { min-height: 36px; border-radius: 12px; font-size: 13px; }
+  textarea.form-control { border-radius: 18px; min-height: 88px; }
+  .input-group {
+    > .form-control, > .form-select { min-height: 44px; }
+    .input-group-text {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid $glp-line-strong;
+      color: $glp-burg;
+    }
+  }
+  .invalid-feedback, .form-error { color: $glp-burg !important; font-size: 12.5px; }
+  .text-danger { color: $glp-burg !important; }
+  .form-text, .form-hint { color: $glp-muted !important; font-size: 12.5px; }
+
+  .form-check-input {
+    border: 1.5px solid rgba(101, 28, 50, 0.3);
+    background-color: rgba(255, 255, 255, 0.85);
+    &:focus { border-color: rgba(197, 145, 44, 0.7); box-shadow: 0 0 0 4px rgba(197, 145, 44, 0.18); }
+    &:checked { background-color: $glp-gold !important; border-color: $glp-gold !important; }
+  }
+  .form-switch .form-check-input {
+    width: 2.4em; height: 1.3em;
+    &:checked { background-color: $glp-gold !important; }
+  }
+  .form-check-label { color: $glp-mid; }
+  .form-range::-webkit-slider-thumb { background: $glp-gold; }
+  .form-range::-moz-range-thumb { background: $glp-gold; }
+
+  /* ── Bootstrap modals (in place or portalled) ────────────────────────── */
+  .modal-content {
+    @include glp-sheet(0.92);
+    border-radius: var(--gl-r) !important;
+    overflow: hidden;
+    color: $glp-ink;
+    .modal-header {
+      border-bottom: 1px solid $glp-line;
+      padding: 20px 24px;
+      background: transparent;
+    }
+    .modal-title, .modal-header h4, .modal-header h5 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: $glp-burg;
+    }
+    .modal-body { padding: 22px 24px; }
+    .modal-footer { border-top: 1px solid $glp-line; padding: 16px 24px; gap: 10px; }
+  }
+
+  /* ── Bootstrap dropdown menus ───────────────────────────────────────── */
+  .dropdown-menu {
+    @include glp-sheet(0.92);
+    border-radius: 18px;
+    padding: 8px;
+    .dropdown-item {
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 13.5px;
+      color: $glp-mid;
+      &:hover, &:focus { background: rgba(197, 145, 44, 0.12); color: $glp-burg; }
+      &.active, &:active { background: var(--gl-gold-grad); color: $glp-ink; }
+    }
+    .dropdown-divider { border-color: $glp-line; }
+  }
+
+  /* ── antd: modal & drawer ───────────────────────────────────────────── */
+  .ant-modal .ant-modal-content, .ant-modal-content {
+    @include glp-sheet(0.92);
+    border-radius: var(--gl-r) !important;
+  }
+  .ant-modal .ant-modal-header { background: transparent; }
+  .ant-modal .ant-modal-title { font-family: 'Playfair Display', serif; font-weight: 700; color: $glp-burg; }
+  .ant-modal .ant-modal-close { border-radius: 50%; &:hover { background: rgba(101, 28, 50, 0.06); } }
+  .ant-modal-confirm .ant-modal-confirm-title { color: $glp-burg; font-family: 'Playfair Display', serif; }
+  .ant-modal-confirm .anticon, .ant-modal-confirm-body > .anticon { color: $glp-gold !important; }
+  .ant-modal-confirm-error .anticon { color: $glp-burg !important; }
+  .ant-drawer-content {
+    @include glp-sheet(0.92);
+    .ant-drawer-header { border-bottom: 1px solid $glp-line; }
+    .ant-drawer-title { font-family: 'Playfair Display', serif; color: $glp-burg; }
+    .ant-drawer-footer { border-top: 1px solid $glp-line; }
+  }
+
+  /* ── antd: fields ───────────────────────────────────────────────────── */
+  .ant-input, .ant-input-affix-wrapper, .ant-input-number, .ant-picker, .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    @include glp-field;
+    border-radius: 14px !important;
+    border-color: $glp-line-strong !important;
+  }
+  .ant-input-affix-wrapper .ant-input { background: transparent; border: none; box-shadow: none; }
+  .ant-input-number .ant-input-number-input { background: transparent; }
+  .ant-input:focus, .ant-input-focused, .ant-input-affix-wrapper-focused, .ant-input-number-focused,
+  .ant-picker-focused, .ant-select-focused:not(.ant-select-disabled) .ant-select-selector {
+    @include glp-field-focus;
+    border-color: rgba(197, 145, 44, 0.7) !important;
+    box-shadow: 0 0 0 4px rgba(197, 145, 44, 0.18) !important;
+  }
+  .ant-input-status-error, .ant-select-status-error .ant-select-selector { border-color: rgba(101, 28, 50, 0.55) !important; }
+  .ant-form-item-explain-error { color: $glp-burg; }
+  .ant-form-item-label > label { color: $glp-mid; font-weight: 600; font-size: 13px; }
+  .ant-select-arrow, .ant-picker-suffix { color: rgba(101, 28, 50, 0.55); }
+  .ant-select-multiple .ant-select-selection-item {
+    border-radius: 999px;
+    background: rgba(101, 28, 50, 0.07);
+    border: none;
+    color: $glp-burg;
+  }
+
+  /* ── antd: buttons ──────────────────────────────────────────────────── */
+  .ant-btn { border-radius: 999px !important; font-weight: 700; box-shadow: none; }
+  .ant-btn-primary:not(.ant-btn-dangerous) {
+    background: var(--gl-gold-grad) !important;
+    color: $glp-ink !important;
+    border: none !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 10px 24px -10px rgba(184, 132, 31, 0.85) !important;
+    &:disabled { opacity: 0.55; }
+  }
+  .ant-btn-default:not(.ant-btn-dangerous) {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(101, 28, 50, 0.14);
+    color: $glp-burg;
+    &:not(:disabled):hover { background: #fff !important; border-color: rgba(101, 28, 50, 0.24) !important; color: $glp-burg !important; }
+  }
+  .ant-btn-dangerous { color: $glp-burg !important; border-color: rgba(101, 28, 50, 0.3) !important; }
+  .ant-btn-dangerous.ant-btn-primary { background: $glp-burg !important; color: #FBF6F0 !important; }
+  .ant-btn-link, .ant-btn-text { color: $glp-burg; }
+
+  /* ── antd: choice controls ──────────────────────────────────────────── */
+  .ant-switch {
+    background: rgba(60, 20, 35, 0.18);
+    &.ant-switch-checked { background: var(--gl-gold-grad) !important; }
+    &:focus-visible { box-shadow: $glp-focus; }
+  }
+  .ant-checkbox-inner { border-radius: 6px; border-color: rgba(101, 28, 50, 0.3); }
+  .ant-checkbox-checked .ant-checkbox-inner, .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+    background-color: $glp-gold !important;
+    border-color: $glp-gold !important;
+  }
+  .ant-checkbox-wrapper:hover .ant-checkbox-inner, .ant-radio-wrapper:hover .ant-radio-inner { border-color: $glp-gold !important; }
+  .ant-radio-inner { border-color: rgba(101, 28, 50, 0.3); }
+  .ant-radio-checked .ant-radio-inner { background-color: $glp-gold !important; border-color: $glp-gold !important; }
+  .ant-radio-button-wrapper {
+    background: rgba(255, 255, 255, 0.66);
+    border-color: rgba(101, 28, 50, 0.14) !important;
+    color: $glp-burg;
+    &:first-child { border-start-start-radius: 999px; border-end-start-radius: 999px; }
+    &:last-child { border-start-end-radius: 999px; border-end-end-radius: 999px; }
+    &::before { background-color: rgba(101, 28, 50, 0.14) !important; }
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    background: var(--gl-gold-grad) !important;
+    color: $glp-ink !important;
+    border-color: transparent !important;
+  }
+
+  /* ── antd: tags → pills on the palette ──────────────────────────────── */
+  .ant-tag {
+    border-radius: 999px;
+    border: none;
+    padding: 2px 10px;
+    font-size: 12px; font-weight: 700;
+    @include glp-soft;
+    &.ant-tag-green, &.ant-tag-success, &.ant-tag-gold, &.ant-tag-lime, &.ant-tag-has-color[style*='green'] { @include glp-good; }
+    &.ant-tag-red, &.ant-tag-error, &.ant-tag-volcano, &.ant-tag-magenta { @include glp-bad; }
+    &.ant-tag-orange, &.ant-tag-warning { @include glp-quiet; }
+    &.ant-tag-default { @include glp-neutral; }
+  }
+
+}
+
+/* popups: select / date-picker panels, menus, popovers, toasts */
+@mixin glp-popups {
+  /* ── antd: dropdown panels (select, date picker, menus, popovers) ───── */
+  .ant-select-dropdown, .ant-dropdown .ant-dropdown-menu, .ant-picker-dropdown .ant-picker-panel-container, .ant-popover .ant-popover-inner {
+    @include glp-sheet(0.94);
+    border-radius: 18px !important;
+  }
+  .ant-select-item { border-radius: 10px; color: $glp-mid; }
+  .ant-select-item-option-active:not(.ant-select-item-option-disabled) { background: rgba(197, 145, 44, 0.1); }
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    background: rgba(197, 145, 44, 0.18) !important;
+    color: $glp-burg !important;
+    font-weight: 700;
+    .ant-select-item-option-state { color: $glp-gold-dk; }
+  }
+  .ant-dropdown .ant-dropdown-menu-item { border-radius: 10px; &:hover { background: rgba(197, 145, 44, 0.1); } }
+  .ant-dropdown .ant-dropdown-menu-item-danger { color: $glp-burg !important; &:hover { background: $glp-burg !important; color: #FBF6F0 !important; } }
+  .ant-popover-title { color: $glp-burg; font-family: 'Playfair Display', serif; }
+  .ant-popconfirm .ant-popconfirm-message-icon .anticon { color: $glp-gold; }
+  .ant-picker-dropdown {
+    .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner,
+    .ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner,
+    .ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+      background: var(--gl-gold-grad);
+      color: $glp-ink;
+      font-weight: 700;
+    }
+    .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before { border-color: $glp-gold; }
+    .ant-picker-cell-in-view.ant-picker-cell-in-range::before { background: rgba(197, 145, 44, 0.12); }
+    .ant-picker-header button:hover, .ant-picker-today-btn, a { color: $glp-burg; }
+    .ant-picker-ok .ant-btn-primary { background: var(--gl-gold-grad) !important; color: $glp-ink !important; }
+  }
+
+  /* ── antd: message / notification icons ─────────────────────────────── */
+  .ant-message-notice-content, .ant-notification-notice { @include glp-sheet(0.94); border-radius: 18px !important; }
+  .ant-message-success .anticon, .ant-notification-notice .anticon-check-circle { color: $glp-gold !important; }
+  .ant-message-error .anticon, .ant-notification-notice .anticon-close-circle { color: $glp-burg !important; }
+  .ant-message-warning .anticon, .ant-message-info .anticon, .ant-notification-notice .anticon-info-circle, .ant-notification-notice .anticon-exclamation-circle { color: $glp-burg !important; }
+  .ant-tooltip-inner { background: rgba(43, 15, 30, 0.92); border-radius: 12px; font-size: 12.5px; }
+  .ant-tooltip-arrow::before { background: rgba(43, 15, 30, 0.92); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   3. THE PAGE AREA
+   ════════════════════════════════════════════════════════════════════════ */
+.luxury-dashboard .luxury-main {
+  @include glp-tokens;
+  @include glp-controls;
+
+  /* never let a wide child push the page sideways */
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  color: $glp-ink;
+
+  /* ── typography ─────────────────────────────────────────────────────── */
+  .page-title, .lx-page-title, .lx-section-header .section-title { color: $glp-burg; letter-spacing: -0.01em; }
+  .page-title, .lx-page-title { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .text-muted, .text-secondary { color: $glp-muted !important; }
+  .text-dark, .text-body { color: $glp-ink !important; }
+  .text-primary, .text-info, .text-purple { color: $glp-burg !important; }
+  .text-success, .text-warning, .text-gold { color: $glp-gold-dk !important; }
+  small, .small { font-size: max(12px, 0.875em); }
+  .fs-10, .fs-11 { font-size: 12px !important; }
+
+  /* ── surfaces: Bootstrap cards become clear glass ───────────────────── */
+  .card {
+    @include gl-glass;
+    border-radius: var(--gl-r);
+    color: $glp-ink;
+    .card-header, .card-footer {
+      background: transparent;
+      border-color: $glp-line;
+      padding: 18px 24px;
+    }
+    .card-header h5, .card-header h6, .card-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: $glp-burg;
+    }
+    .card-body { padding: 22px 24px; }
+  }
+  .bg-white, .bg-light { background: rgba(255, 255, 255, 0.6) !important; }
+  .card .bg-light, .lx-card .bg-light { background: rgba(255, 255, 255, 0.5) !important; }
+  .shadow-sm, .shadow { box-shadow: var(--lx-card-shadow) !important; }
+  .border, .border-top, .border-bottom, .border-start, .border-end { border-color: $glp-line !important; }
+  .border-success, .border-warning { border-color: rgba(197, 145, 44, 0.45) !important; }
+  .border-danger, .border-primary, .border-info { border-color: rgba(101, 28, 50, 0.35) !important; }
+  .rounded-3 { border-radius: 18px !important; }
+  hr { border-color: $glp-line; opacity: 1; }
+
+  /* glass panel for content blocks that are not .lx-card */
+  .lx-glass-panel {
+    @include gl-glass;
+    border-radius: var(--gl-r);
+    padding: 22px 24px;
+  }
+
+  /* error banner shown above lists */
+  .lx-alert {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: rgba(101, 28, 50, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(101, 28, 50, 0.14);
+    color: $glp-burg;
+    font-size: 14px;
+    > i { font-size: 20px; flex-shrink: 0; }
+    > span { flex: 1; color: $glp-mid; }
+    &.is-good { background: rgba(197, 145, 44, 0.1); box-shadow: inset 0 0 0 1px rgba(197, 145, 44, 0.3); color: $glp-gold-dk; }
+  }
+
+  /* ── section header: title + actions wrap nicely on phones ──────────── */
+  .lx-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px 16px;
+    .section-title { margin: 0; }
+  }
+
+  /* ── segmented filter tabs (My Courses, Tickets, Quizzes…) ─────────── */
+  .lx-seg {
+    display: inline-flex; align-items: center; gap: 4px;
+    max-width: 100%;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 0 0 1px $glp-line;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+  .lx-seg-btn {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    border: none; border-radius: 999px;
+    background: transparent;
+    color: $glp-mid;
+    font-size: 13px; font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.3s var(--gl-ease), color 0.3s var(--gl-ease), box-shadow 0.3s var(--gl-ease);
+    &:hover { color: $glp-burg; background: rgba(255, 255, 255, 0.7); }
+    .lx-seg-count {
+      min-width: 22px; padding: 1px 7px;
+      border-radius: 999px;
+      background: rgba(101, 28, 50, 0.07);
+      font-size: 12px; line-height: 18px; text-align: center;
+    }
+    &.is-active {
+      background: var(--gl-gold-grad);
+      color: $glp-ink;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 8px 18px -10px rgba(184, 132, 31, 0.85);
+      .lx-seg-count { background: rgba(43, 15, 30, 0.1); }
+    }
+  }
+
+  /* ── Bootstrap nav tabs & pills ─────────────────────────────────────── */
+  .nav-tabs {
+    gap: 4px;
+    border-bottom: 1px solid $glp-line;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+    .nav-link {
+      white-space: nowrap;
+      border: none;
+      border-radius: 14px 14px 0 0;
+      color: $glp-muted;
+      font-weight: 700; font-size: 13.5px;
+      padding: 10px 16px;
+      position: relative;
+      &:hover { color: $glp-burg; background: rgba(255, 255, 255, 0.5); }
+      &.active {
+        color: $glp-burg;
+        background: transparent;
+        &::after {
+          content: '';
+          position: absolute; inset-inline: 12px; bottom: -1px; height: 3px;
+          border-radius: 3px;
+          background: var(--gl-gold-grad);
+        }
+      }
+    }
+  }
+  .nav-pills {
+    gap: 4px;
+    .nav-link {
+      border-radius: 999px;
+      color: $glp-mid;
+      font-weight: 700; font-size: 13.5px;
+      &:hover { color: $glp-burg; background: rgba(255, 255, 255, 0.6); }
+      &.active, .show > & { background: var(--gl-gold-grad) !important; color: $glp-ink !important; }
+    }
+  }
+
+  /* ── antd tabs ──────────────────────────────────────────────────────── */
+  .ant-tabs {
+    .ant-tabs-nav::before { border-bottom-color: $glp-line; }
+    .ant-tabs-tab { color: $glp-muted; font-weight: 700; &:hover { color: $glp-burg; } }
+    .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn { color: $glp-burg !important; }
+    .ant-tabs-ink-bar { background: var(--gl-gold-grad); height: 3px; border-radius: 3px; }
+  }
+  .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: $glp-line;
+    border-radius: 14px 14px 0 0 !important;
+    &.ant-tabs-tab-active { background: rgba(255, 255, 255, 0.9); }
+  }
+
+  /* ── tables (Bootstrap + .lx-table) ─────────────────────────────────── */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0;
+    overscroll-behavior-x: contain;
+  }
+  .lx-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .table {
+    --bs-table-bg: transparent;
+    --bs-table-hover-bg: rgba(245, 218, 223, 0.25);
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.35);
+    background: transparent;
+    border-radius: 0;
+    color: $glp-mid;
+    margin-bottom: 0;
+    thead th, thead td {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: $glp-muted !important;
+      background: rgba(250, 246, 246, 0.7) !important;
+      border-bottom: 1px solid $glp-line !important;
+      padding: 13px 16px;
+      white-space: nowrap;
+    }
+    tbody td { padding: 14px 16px; border-color: rgba(60, 20, 35, 0.05) !important; vertical-align: middle; background: transparent; }
+    tbody tr { transition: background 0.25s ease; }
+    tbody tr:hover, tbody tr:hover td { background: rgba(245, 218, 223, 0.22); }
+    th:first-child, td:first-child { padding-inline-start: 24px; }
+    th:last-child, td:last-child { padding-inline-end: 24px; }
+    tfoot td, tfoot th { border-top: 1px solid $glp-line; color: $glp-burg; font-weight: 700; }
+  }
+  .lx-table thead th { font-size: 12px; }
+
+  /* ── antd table ─────────────────────────────────────────────────────── */
+  .ant-table-wrapper {
+    .ant-table { background: transparent; border-radius: 0; color: $glp-mid; }
+    .ant-table-container { border-radius: 0; }
+    .ant-table-content { overflow-x: auto; }
+    .ant-table-thead > tr > th {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: $glp-muted !important;
+      background: rgba(250, 246, 246, 0.7) !important;
+      border-bottom: 1px solid $glp-line !important;
+      &::before { display: none; }
+    }
+    .ant-table-tbody > tr > td { background: transparent; border-bottom: 1px solid rgba(60, 20, 35, 0.05); }
+    .ant-table-tbody > tr:hover > td, .ant-table-tbody > tr > td.ant-table-cell-row-hover { background: rgba(245, 218, 223, 0.22) !important; }
+    .ant-table-placeholder .ant-table-cell { background: transparent !important; }
+    .ant-empty-description { color: $glp-muted; }
+  }
+
+  /* ── pagination: glass chips, gold for the page you are on ──────────── */
+  .pagination {
+    gap: 6px; flex-wrap: wrap;
+    .page-link {
+      min-width: 38px; height: 38px;
+      border-radius: 999px !important;
+      border: none;
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 0 0 1px $glp-line;
+      color: $glp-burg; font-weight: 700; font-size: 13px;
+      &:hover { background: #fff; color: $glp-burg; }
+    }
+    .page-item.active .page-link { background: var(--gl-gold-grad); color: $glp-ink; box-shadow: 0 8px 18px -10px rgba(184, 132, 31, 0.85); }
+    .page-item.disabled .page-link { opacity: 0.45; background: rgba(255, 255, 255, 0.4); }
+  }
+  .ant-pagination {
+    .ant-pagination-item, .ant-pagination-prev .ant-pagination-item-link, .ant-pagination-next .ant-pagination-item-link {
+      border-radius: 999px;
+      border: none;
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 0 0 1px $glp-line;
+      a { color: $glp-burg; font-weight: 700; }
+    }
+    .ant-pagination-item:hover { background: #fff; }
+    .ant-pagination-item-active {
+      background: var(--gl-gold-grad) !important;
+      box-shadow: 0 8px 18px -10px rgba(184, 132, 31, 0.85);
+      a { color: $glp-ink !important; }
+    }
+    .ant-pagination-disabled .ant-pagination-item-link { opacity: 0.45; }
+    .ant-pagination-options .ant-select-selector { min-height: 32px; }
+  }
+
+  /* ── badges & status ────────────────────────────────────────────────── */
+  .badge {
+    border-radius: 999px;
+    padding: 0.42em 0.9em;
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
+    &.bg-success, &.bg-success-subtle, &.badge-success, &.bg-warning-subtle, &.badge-gold { @include glp-good; }
+    &.bg-warning, &.badge-warning { @include glp-quiet; }
+    &.bg-danger, &.badge-danger { @include glp-bad; }
+    &.bg-info, &.bg-primary, &.bg-info-subtle, &.bg-primary-subtle, &.bg-danger-subtle, &.bg-purple, &.bg-purple-subtle,
+    &.badge-info, &.badge-primary, &.badge-pending { @include glp-soft; }
+    &.bg-secondary, &.bg-secondary-subtle, &.bg-light, &.bg-dark, &.badge-secondary, &.badge-slate, &.badge-light { @include glp-neutral; }
+    &.rounded-circle { padding: 0; }
+  }
+  .lx-badge {
+    font-size: 11px;
+    &.badge-secondary, &.badge-slate { @include glp-neutral; }
+    &.badge-gold { @include glp-good; }
+    &.badge-primary { @include glp-soft; }
+  }
+  /* utility backgrounds used as tints on custom blocks */
+  .bg-success-subtle, .bg-warning-subtle { background: rgba(197, 145, 44, 0.12) !important; }
+  .bg-primary-subtle, .bg-info-subtle, .bg-danger-subtle, .bg-purple-subtle { background: rgba(101, 28, 50, 0.07) !important; }
+  .bg-success:not(.badge) { background: $glp-gold !important; }
+  .bg-primary:not(.badge), .bg-danger:not(.badge) { background: $glp-burg !important; }
+
+  /* ── alerts ─────────────────────────────────────────────────────────── */
+  .alert {
+    border: none;
+    border-radius: 18px;
+    padding: 14px 18px;
+    font-size: 14px;
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  .alert-danger { background: rgba(101, 28, 50, 0.07); color: $glp-burg; box-shadow: inset 0 0 0 1px rgba(101, 28, 50, 0.16); }
+  .alert-success, .alert-warning { background: rgba(197, 145, 44, 0.1); color: $glp-gold-dk; box-shadow: inset 0 0 0 1px rgba(197, 145, 44, 0.3); }
+  .alert-info, .alert-primary, .alert-secondary, .alert-light { background: rgba(255, 255, 255, 0.66); color: $glp-burg; box-shadow: inset 0 0 0 1px $glp-line; }
+
+  /* ── progress bars: gold, always ────────────────────────────────────── */
+  .progress {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(101, 28, 50, 0.08);
+    overflow: hidden;
+    .progress-bar { background: var(--gl-gold-grad) !important; border-radius: 999px; }
+  }
+  .ant-progress {
+    .ant-progress-bg, .ant-progress-success-bg { background: var(--gl-gold-grad) !important; }
+    .ant-progress-inner { background: rgba(101, 28, 50, 0.08); }
+    .ant-progress-text { color: $glp-burg; }
+    .ant-progress-circle-path { stroke: $glp-gold !important; }
+  }
+  .lx-course-card .course-progress-bar .bar-fill { background: var(--gl-gold-grad); }
+  /* "Completed" chip on a course cover */
+  .lx-cover-badge {
+    position: absolute; top: 10px; inset-inline-end: 10px; z-index: 2;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--gl-gold-grad);
+    color: $glp-ink;
+    font-size: 12px; font-weight: 800;
+    box-shadow: 0 8px 18px -8px rgba(184, 132, 31, 0.9);
+    i { font-size: 13px; }
+  }
+
+  /* ── spinners ───────────────────────────────────────────────────────── */
+  .spinner-border { color: $glp-burg; border-color: currentColor; border-right-color: transparent; }
+  .spinner-grow { color: $glp-gold; }
+
+  /* ── antd upload ────────────────────────────────────────────────────── */
+  .ant-upload-wrapper .ant-upload-drag, .ant-upload.ant-upload-drag {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1.5px dashed rgba(101, 28, 50, 0.2);
+    border-radius: var(--gl-r);
+    transition: border-color 0.3s var(--gl-ease), background 0.3s var(--gl-ease);
+    &:hover { border-color: rgba(197, 145, 44, 0.7); background: rgba(255, 255, 255, 0.8); }
+    .ant-upload-drag-icon .anticon { color: $glp-gold; }
+    .ant-upload-text { color: $glp-burg; font-weight: 700; }
+    .ant-upload-hint { color: $glp-muted; }
+  }
+  .ant-upload-wrapper .ant-upload-select-picture-card, .ant-upload-list-picture-card-container, .ant-upload.ant-upload-select {
+    border-radius: 18px;
+  }
+  .ant-upload-wrapper .ant-upload-list .ant-upload-list-item { border-radius: 12px; &:hover { background: rgba(197, 145, 44, 0.08); } }
+  .ant-upload-wrapper .ant-upload-list .ant-upload-list-item-error { color: $glp-burg; }
+
+  /* ── ApexCharts on glass ────────────────────────────────────────────── */
+  .apexcharts-canvas { background: transparent !important; }
+  .apexcharts-text, .apexcharts-xaxis-label, .apexcharts-yaxis-label, .apexcharts-legend-text {
+    fill: $glp-muted !important;
+    color: $glp-muted !important;
+    font-family: 'Inter', sans-serif !important;
+  }
+  .apexcharts-gridline, .apexcharts-grid line { stroke: rgba(60, 20, 35, 0.06) !important; }
+  .apexcharts-xaxis line, .apexcharts-xaxis-tick, .apexcharts-yaxis-tick { stroke: rgba(60, 20, 35, 0.1) !important; }
+  .apexcharts-tooltip {
+    background: rgba(255, 253, 252, 0.92) !important;
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border: none !important; border-radius: 14px !important;
+    color: $glp-ink !important;
+    box-shadow: 0 0 0 1px rgba(60, 20, 35, 0.06), 0 18px 40px -16px rgba(74, 20, 40, 0.4) !important;
+  }
+  .apexcharts-tooltip-title { background: transparent !important; border-bottom: 1px solid $glp-line !important; color: $glp-burg !important; font-weight: 700; }
+  .apexcharts-xaxistooltip { background: #fff; border-color: $glp-line; color: $glp-burg; }
+  .apexcharts-menu { @include glp-sheet(0.94); border-radius: 14px; }
+
+  /* ── empty states inside tables and lists ───────────────────────────── */
+  .lx-empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 44px 20px;
+    background: transparent;
+    .empty-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+    h6 { font-family: 'Playfair Display', serif; font-weight: 700; margin: 0 0 6px; }
+    p { font-size: 14px; max-width: 380px; margin: 0 auto 18px; line-height: 1.55; color: $glp-muted; }
+    p:last-child { margin-bottom: 0; }
+    &.is-compact { padding: 28px 16px; .empty-icon { width: 56px; height: 56px; font-size: 22px; margin-bottom: 12px; } }
+  }
+  /* older empty states set their own tints inline: the glass circle wins */
+  .lx-empty-state .empty-icon[style] {
+    width: 72px !important; height: 72px !important;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.4)) !important;
+    color: $glp-burg !important;
+  }
+  .lx-empty-state .empty-icon i[style] { color: $glp-burg !important; font-size: 28px !important; }
+  .lx-empty-state h6[style] { color: $glp-burg !important; font-weight: 700 !important; }
+  td > .lx-empty-state, .lx-empty-cell { background: transparent !important; }
+  tr:hover > td > .lx-empty-state { background: transparent; }
+
+  /* ── stat icons: page-level inline tints give way to the ink ────────── */
+  .lx-stat-card:not(.is-key):not(.is-hero) .stat-icon[style] {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.25)) !important;
+    color: $glp-burg !important;
+  }
+  .lx-stat-card .stat-icon[style] i { color: inherit !important; }
+
+  /* ── wizard (Add / Edit course) ─────────────────────────────────────── */
+  .add-course-item {
+    @include gl-glass;
+    border: none !important;
+    border-radius: var(--gl-r) !important;
+    box-shadow: var(--gl-shadow) !important;
+
+    .wizard {
+      background: rgba(255, 255, 255, 0.4);
+      border-bottom: 1px solid $glp-line !important;
+      overflow-x: auto;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+      ul li {
+        h5 { font-family: 'Inter', sans-serif; font-size: 12.5px !important; letter-spacing: 0.02em; color: $glp-muted; font-weight: 600 !important; }
+        &::before, &::after { background: rgba(60, 20, 35, 0.1) !important; height: 2px !important; border-radius: 2px; }
+        span.dot-active {
+          background: linear-gradient(145deg, #fff, rgba(255, 255, 255, 0.6)) !important;
+          border: none !important;
+          color: $glp-muted !important;
+          box-shadow: inset 0 1px 0 #fff, 0 0 0 1px $glp-line-strong, 0 8px 18px -10px rgba(74, 20, 40, 0.35) !important;
+        }
+        /* done: burgundy bubble with a gold tick */
+        &.progress-activated {
+          &::before, &::after { background: var(--gl-gold-grad) !important; }
+          span.dot-active {
+            background: linear-gradient(135deg, #7A2440, $glp-burg-deep) !important;
+            color: #F3D58E !important;
+            box-shadow: 0 8px 18px -8px rgba(74, 20, 40, 0.6) !important;
+          }
+          h5 { color: $glp-burg; }
+        }
+        /* current: gold */
+        &.progress-active {
+          &::after { background: rgba(197, 145, 44, 0.3) !important; }
+          span.dot-active {
+            background: var(--gl-gold-grad) !important;
+            color: $glp-ink !important;
+            box-shadow: 0 0 0 5px rgba(197, 145, 44, 0.16), 0 10px 22px -8px rgba(184, 132, 31, 0.85) !important;
+          }
+          h5 { color: $glp-burg; font-weight: 700 !important; }
+        }
+      }
+    }
+
+    label { color: $glp-mid !important; font-size: 13px !important; }
+    input[type='text'], input[type='number'], input[type='email'], input[type='url'], input[type='date'], input[type='time'], input[type='datetime-local'], textarea, select {
+      @include glp-field;
+      background: rgba(255, 255, 255, 0.8) !important;
+      border: 1px solid $glp-line-strong !important;
+      border-radius: 14px !important;
+      &::placeholder { color: rgba(43, 15, 30, 0.42) !important; }
+      &:focus { @include glp-field-focus; border-color: rgba(197, 145, 44, 0.7) !important; box-shadow: 0 0 0 4px rgba(197, 145, 44, 0.18) !important; }
+    }
+    textarea { border-radius: 18px !important; }
+    .course-type-card, [class*='course-type'] {
+      border: 1px solid $glp-line-strong !important;
+      border-radius: 20px !important;
+      background: rgba(255, 255, 255, 0.55) !important;
+      &:hover, &.selected, &.active { border-color: rgba(197, 145, 44, 0.7) !important; background: rgba(255, 255, 255, 0.85) !important; box-shadow: 0 0 0 4px rgba(197, 145, 44, 0.12); }
+    }
+    .rsw-toolbar { background: rgba(255, 255, 255, 0.5) !important; border-bottom: 1px solid $glp-line !important; border-radius: 16px 16px 0 0 !important; }
+    .rsw-editor { border: 1px solid $glp-line-strong !important; border-radius: 16px !important; overflow: hidden; }
+    .rsw-ce { background: rgba(255, 255, 255, 0.8) !important; border: none !important; }
+    .p-chips .p-chips-token { background: rgba(101, 28, 50, 0.08) !important; color: $glp-burg !important; border-radius: 999px !important; }
+    .form-text, small, .text-muted { color: $glp-muted !important; }
+    .btn-primary, .btn-outline-secondary, .btn-secondary { border-radius: 999px !important; }
+    .prev_btns .btn, .btn-left { border-radius: 999px !important; }
+  }
+
+  /* selectable option cards (course format, plan…) */
+  .lx-choice {
+    position: relative;
+    display: block; width: 100%;
+    padding: 20px;
+    border-radius: 22px;
+    border: none;
+    text-align: start;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 0 0 1px $glp-line-strong;
+    transition: box-shadow 0.3s var(--gl-ease), background 0.3s var(--gl-ease), transform 0.3s var(--gl-ease);
+    &:hover { background: rgba(255, 255, 255, 0.85); transform: translateY(-2px); }
+    &.is-selected {
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: inset 0 1px 1px #fff, 0 0 0 2px rgba(197, 145, 44, 0.75), 0 18px 36px -20px rgba(184, 132, 31, 0.7);
+    }
+    &:focus-visible { outline: none; box-shadow: $glp-focus; }
+    .lx-choice-check {
+      position: absolute; top: 14px; inset-inline-end: 14px;
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--gl-gold-grad);
+      color: $glp-ink; font-size: 11px;
+      box-shadow: 0 6px 14px -6px rgba(184, 132, 31, 0.9);
+    }
+    .lx-choice-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding-inline-end: 28px; }
+    .lx-choice-icon {
+      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 21px; color: $glp-burg;
+      background: linear-gradient(145deg, #fff, rgba(255, 255, 255, 0.5));
+      box-shadow: inset 0 1px 0 #fff, 0 0 0 1px rgba(101, 28, 50, 0.1), 0 8px 18px -8px rgba(74, 20, 40, 0.35);
+    }
+    &.is-selected .lx-choice-icon { background: var(--gl-gold-grad); color: $glp-ink; box-shadow: 0 8px 18px -8px rgba(184, 132, 31, 0.8); }
+    .lx-choice-title { margin: 0; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px; color: $glp-burg; }
+    .lx-choice-sub { display: block; font-size: 12.5px; color: $glp-muted; }
+    .lx-choice-list { margin: 0; padding-inline-start: 18px; font-size: 13px; line-height: 1.8; color: $glp-mid; }
+  }
+
+  /* ── messages (shared ChatPage) ─────────────────────────────────────── */
+  .lx-chat {
+    > .row, .lx-chat-shell {
+      @include gl-glass;
+      border: none !important;
+      border-radius: var(--gl-r) !important;
+    }
+    .border-end, .border-bottom, .border-top { border-color: $glp-line !important; }
+    .chat-member {
+      transition: background 0.25s ease;
+      &:hover { background: rgba(255, 255, 255, 0.6) !important; }
+      &.active { background: rgba(197, 145, 44, 0.12) !important; box-shadow: inset 3px 0 0 $glp-gold; [dir='rtl'] & { box-shadow: inset -3px 0 0 $glp-gold; } }
+    }
+    .lx-bubble {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 14px; line-height: 1.5;
+      word-break: break-word;
+      &.is-mine {
+        background: linear-gradient(135deg, #7A2440, $glp-burg-deep);
+        color: #FBF6F0;
+        border-end-end-radius: 6px;
+      }
+      &.is-theirs {
+        background: rgba(255, 255, 255, 0.85);
+        color: $glp-ink;
+        box-shadow: 0 0 0 1px $glp-line;
+        border-end-start-radius: 6px;
+      }
+    }
+    .lx-online-dot { background: $glp-gold !important; box-shadow: 0 0 0 2px #fff; }
+    .lx-chat-read { color: $glp-gold; }
+  }
+
+  /* ── tickets / threads: replies read as glass bubbles ───────────────── */
+  .lx-thread-msg {
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 0 1px $glp-line;
+    &.is-staff { background: rgba(197, 145, 44, 0.08); box-shadow: inset 0 0 0 1px rgba(197, 145, 44, 0.24); }
+  }
+
+  /* ── admin challenge page (scoped css uses .cha-*) ──────────────────── */
+  .cha-btn { border-radius: 999px; }
+
+  /* wide tables scroll inside their card instead of squashing (or pushing the page) */
+  @media (max-width: 767.98px) {
+    .lx-table-scroll > table, .table-responsive > table, .ant-table-content > table { min-width: 620px; }
+  }
+
+  /* ── phones ─────────────────────────────────────────────────────────── */
+  @media (max-width: 575.98px) {
+    .card .card-header, .card .card-footer { padding: 14px 16px; }
+    .card .card-body { padding: 16px; }
+    .table thead th, .table tbody td { padding-left: 12px; padding-right: 12px; }
+    .table th:first-child, .table td:first-child { padding-inline-start: 16px; }
+    .table th:last-child, .table td:last-child { padding-inline-end: 16px; }
+    .modal-content .modal-header, .modal-content .modal-body, .modal-content .modal-footer { padding-left: 16px; padding-right: 16px; }
+    .lx-section-header { align-items: flex-start; }
+    .lx-section-header > .lx-seg, .lx-section-header > div:has(> .lx-seg-btn) { width: 100%; }
+    .lx-empty-state { padding: 32px 12px; }
+    .add-course-item .initialization-form-set { padding: 18px !important; }
+    .add-course-item .wizard { padding: 18px 14px !important; }
+    img, video, iframe { max-width: 100%; }
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   4. PORTALS — modals, drawers and dropdowns that antd / Bootstrap mount on
+   <body> while a dashboard is open. Kept in their own rules so a browser
+   without :has() drops only these.
+   ════════════════════════════════════════════════════════════════════════ */
+body:has(.luxury-dashboard) > .modal,
+body:has(.luxury-dashboard) .ant-modal-root,
+body:has(.luxury-dashboard) .ant-drawer {
+  @include glp-tokens;
+  @include glp-controls;
+}
+body:has(.luxury-dashboard) {
+  @include glp-popups;
+
+  .modal-backdrop.show { background: $glp-ink; opacity: 0.32; }
+  .ant-modal-mask {
+    background: rgba(43, 15, 30, 0.32) !important;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .ant-drawer-mask { background: rgba(43, 15, 30, 0.28) !important; }
+  @media (max-width: 575.98px) {
+    .modal-dialog { margin: 12px; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxury-dashboard .luxury-main {
+    .lx-choice:hover { transform: none; }
+    .lx-seg-btn, .lx-choice { transition: none; }
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { all_routes } from '../../router/all_routes';
@@ -28,11 +29,11 @@ interface StatCardDef {
 }
 
 const statCards: StatCardDef[] = [
-  { label: 'Active Courses', key: 'active', icon: 'isax-play-circle', color: '#2D5F3F', bg: 'rgba(45, 95, 63, 0.06)' },
-  { label: 'Pending Review', key: 'pending', icon: 'isax-clock', color: '#C5973E', bg: 'rgba(197, 151, 62, 0.06)' },
-  { label: 'Draft Courses', key: 'draft', icon: 'isax-document-text', color: '#5C3D2E', bg: 'rgba(92, 61, 46, 0.06)' },
-  { label: 'Free Courses', key: 'free', icon: 'isax-gift', color: '#2D8CFF', bg: 'rgba(45, 140, 255, 0.06)' },
-  { label: 'Paid Courses', key: 'paid', icon: 'isax-wallet-money', color: '#6B1D2A', bg: 'rgba(107, 29, 42, 0.06)' },
+  { label: 'Active Courses', key: 'active', icon: 'isax-play-circle', color: '#855A0E', bg: 'rgba(197, 145, 44, 0.06)' },
+  { label: 'Pending Review', key: 'pending', icon: 'isax-clock', color: '#C5912C', bg: 'rgba(197, 145, 44, 0.06)' },
+  { label: 'Draft Courses', key: 'draft', icon: 'isax-document-text', color: '#66525D', bg: 'rgba(43, 15, 30, 0.06)' },
+  { label: 'Free Courses', key: 'free', icon: 'isax-gift', color: '#651C32', bg: 'rgba(101, 28, 50, 0.06)' },
+  { label: 'Paid Courses', key: 'paid', icon: 'isax-wallet-money', color: '#651C32', bg: 'rgba(101, 28, 50, 0.06)' },
 ];
 // Note: statCards labels are replaced dynamically via t() in the component render
 
@@ -170,7 +171,7 @@ const InstructorCourse = () => {
                   </span>
                   {courseObj?.maxStudents ? (
                     <>
-                      <span style={{ color: 'rgba(107, 29, 42, 0.15)' }}>|</span>
+                      <span style={{ color: 'rgba(101, 28, 50, 0.15)' }}>|</span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                         <i className="isax isax-ticket" style={{ fontSize: 13 }} />
                         {t('instructor.courses.placesLeft', '{{count}}/{{capacity}} places left',
@@ -185,7 +186,7 @@ const InstructorCourse = () => {
                   <i className="isax isax-video-circle" style={{ fontSize: 13 }} />
                   {record.Lessons} Lessons
                 </span>
-                <span style={{ color: 'rgba(107, 29, 42, 0.15)' }}>|</span>
+                <span style={{ color: 'rgba(101, 28, 50, 0.15)' }}>|</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <i className="isax isax-clock" style={{ fontSize: 13 }} />
                   {formatDuration(record.Duration)}
@@ -209,7 +210,7 @@ const InstructorCourse = () => {
       render: (text: string) => (
         <span style={{
           fontWeight: 700, fontSize: 14,
-          color: text === 'Free' ? '#2D5F3F' : 'var(--lx-text)',
+          color: text === 'Free' ? '#855A0E' : 'var(--lx-text)',
         }}>
           {text}
         </span>
@@ -225,7 +226,7 @@ const InstructorCourse = () => {
       dataIndex: 'Ratings',
       render: (text: string) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <i className="isax isax-star-1" style={{ color: '#C5973E', fontSize: 14 }} />
+          <i className="isax isax-star-1" style={{ color: '#C5912C', fontSize: 14 }} />
           <span style={{ fontWeight: 600 }}>{text}</span>
         </div>
       ),
@@ -253,15 +254,15 @@ const InstructorCourse = () => {
               style={{
                 width: 30, height: 30, borderRadius: 6, display: 'flex',
                 alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(107, 29, 42, 0.04)', color: 'var(--lx-text-muted)',
+                background: 'rgba(101, 28, 50, 0.04)', color: 'var(--lx-text-muted)',
                 fontSize: 14, textDecoration: 'none', transition: 'all 0.15s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(107, 29, 42, 0.08)';
+                e.currentTarget.style.background = 'rgba(101, 28, 50, 0.08)';
                 e.currentTarget.style.color = 'var(--lx-primary)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(107, 29, 42, 0.04)';
+                e.currentTarget.style.background = 'rgba(101, 28, 50, 0.04)';
                 e.currentTarget.style.color = 'var(--lx-text-muted)';
               }}
             >
@@ -275,11 +276,11 @@ const InstructorCourse = () => {
             style={{
               width: 30, height: 30, borderRadius: 6, border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(139, 35, 53, 0.05)', color: '#8B2335',
+              background: 'rgba(101, 28, 50, 0.05)', color: '#651C32',
               fontSize: 14, transition: 'all 0.15s',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139, 35, 53, 0.1)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(139, 35, 53, 0.05)'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101, 28, 50, 0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(101, 28, 50, 0.05)'; }}
           >
             <i className="isax isax-trash" />
           </button>
@@ -302,7 +303,7 @@ const InstructorCourse = () => {
             style={{
               padding: 18, borderRadius: 'var(--lx-radius-sm)',
               background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(107, 29, 42, 0.06)',
+              border: '1px solid rgba(101, 28, 50, 0.06)',
               display: 'flex', alignItems: 'center', gap: 14,
             }}
           >
@@ -340,7 +341,7 @@ const InstructorCourse = () => {
             </Link>
             <div style={{
               display: 'flex', gap: 4, padding: 3, borderRadius: 8,
-              background: 'rgba(107, 29, 42, 0.04)', border: '1px solid rgba(107, 29, 42, 0.06)',
+              background: 'rgba(101, 28, 50, 0.04)', border: '1px solid rgba(101, 28, 50, 0.06)',
             }}>
               <span
                 style={{
@@ -370,7 +371,7 @@ const InstructorCourse = () => {
           {loading ? (
             <div style={{ padding: 60, textAlign: 'center' }}>
               <div style={{
-                width: 36, height: 36, border: '3px solid rgba(107, 29, 42, 0.1)',
+                width: 36, height: 36, border: '3px solid rgba(101, 28, 50, 0.1)',
                 borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite', margin: '0 auto 16px',
               }} />
@@ -378,27 +379,16 @@ const InstructorCourse = () => {
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : courses.length === 0 ? (
-            <div style={{ padding: 60, textAlign: 'center' }}>
-              <div style={{
-                width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px',
-                background: 'rgba(107, 29, 42, 0.05)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <i className="isax isax-book-1" style={{ fontSize: 28, color: 'var(--lx-text-muted)' }} />
-              </div>
-              <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courses.noCourses', 'No courses yet')}</h6>
-              <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--lx-text-muted)' }}>
-                {t('instructor.courses.createFirst', 'Create your first course')}!
-              </p>
-              <Link
-                to={all_routes.addNewCourse}
-                className="lx-btn lx-btn-gold"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <i className="isax isax-add-circle" style={{ fontSize: 16 }} />
+            <LxEmptyState
+              icon="isax-book-1"
+              title={t('instructor.courses.noCourses', 'No courses yet')}
+              text={t('instructor.courses.noCoursesSubtitle', 'Create your first course and start sharing your knowledge with students.')}
+            >
+              <Link to={all_routes.addNewCourse} className="lx-btn lx-btn-gold">
+                <i className="isax isax-add-circle" />
                 {t('instructor.courses.addNew', 'Add New Course')}
               </Link>
-            </div>
+            </LxEmptyState>
           ) : (
             <div className="lx-table">
               <Table dataSource={data} columns={columns} Search={true} />
@@ -412,7 +402,7 @@ const InstructorCourse = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setDeleteModal(false); }}
@@ -420,15 +410,15 @@ const InstructorCourse = () => {
           <div style={{
             width: '100%', maxWidth: 420, padding: 32, textAlign: 'center',
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
-              background: 'rgba(139, 35, 53, 0.08)',
+              background: 'rgba(101, 28, 50, 0.08)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
+              <i className="isax isax-trash" style={{ fontSize: 24, color: '#651C32' }} />
             </div>
             <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courses.deleteCourse', 'Delete Course?')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
@@ -441,8 +431,8 @@ const InstructorCourse = () => {
               <button
                 type="button" className="lx-btn" disabled={deleting}
                 style={{
-                  background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335',
-                  border: '1.5px solid rgba(139, 35, 53, 0.15)',
+                  background: 'rgba(101, 28, 50, 0.08)', color: '#651C32',
+                  border: '1.5px solid rgba(101, 28, 50, 0.15)',
                   opacity: deleting ? 0.6 : 1,
                 }}
                 onClick={handleDeleteConfirm}

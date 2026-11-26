@@ -118,28 +118,16 @@ const StudentCourse: React.FC = () => {
       {/* ── Glass Page Header ── */}
       <div className="lx-section-header mb-4">
         <h5 className="section-title">{t('student.courses.title', 'Enrolled Courses')}</h5>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="lx-seg" role="group">
           {tabs.map((tab) => (
             <button
               key={tab.key}
+              type="button"
               onClick={() => setActiveTab(tab.key)}
-              style={{
-                padding: '7px 18px',
-                borderRadius: 'var(--lx-radius)',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'var(--lx-transition)',
-                border: activeTab === tab.key ? 'none' : '1.5px solid rgba(107, 29, 42, 0.10)',
-                background: activeTab === tab.key
-                  ? 'linear-gradient(135deg, var(--lx-primary) 0%, var(--lx-primary-dark) 100%)'
-                  : 'var(--lx-glass-light)',
-                color: activeTab === tab.key ? '#fff' : 'var(--lx-text-mid)',
-                backdropFilter: activeTab === tab.key ? 'none' : 'blur(8px)',
-                boxShadow: activeTab === tab.key ? '0 4px 16px rgba(107, 29, 42, 0.25)' : 'none',
-              }}
+              aria-pressed={activeTab === tab.key}
+              className={`lx-seg-btn${activeTab === tab.key ? ' is-active' : ''}`}
             >
-              {tab.label} ({tab.count})
+              {tab.label} <span className="lx-seg-count">{tab.count}</span>
             </button>
           ))}
         </div>
@@ -147,20 +135,15 @@ const StudentCourse: React.FC = () => {
 
       {/* ── Error state ── */}
       {error && (
-        <div
-          className="lx-card mb-4"
-          style={{ border: '1.5px solid rgba(139, 35, 53, 0.20)', background: 'rgba(139, 35, 53, 0.04)' }}
-        >
-          <div className="lx-card-body d-flex align-items-center gap-3">
-            <i className="isax isax-warning-2" style={{ fontSize: 20, color: '#8B2335' }} />
-            <span style={{ flex: 1, color: 'var(--lx-text-mid)', fontSize: 14 }}>{error}</span>
-            <button
-              className="lx-btn lx-btn-outline lx-btn-sm"
-              onClick={() => dispatch(fetchMyEnrollments({ page, size: PAGE_SIZE }))}
-            >
-              {t('common.tryAgain', 'Retry')}
-            </button>
-          </div>
+        <div className="lx-alert mb-4" role="alert">
+          <i className="isax isax-warning-2" />
+          <span>{error}</span>
+          <button
+            className="lx-btn lx-btn-outline lx-btn-sm"
+            onClick={() => dispatch(fetchMyEnrollments({ page, size: PAGE_SIZE }))}
+          >
+            {t('common.tryAgain', 'Retry')}
+          </button>
         </div>
       )}
 
@@ -227,24 +210,8 @@ const StudentCourse: React.FC = () => {
 
                   {/* Completed badge */}
                   {enrollment.isCompleted && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        background: 'rgba(45, 95, 63, 0.85)',
-                        backdropFilter: 'blur(8px)',
-                        color: '#fff',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: '4px 12px',
-                        borderRadius: 'var(--lx-radius-sm)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                      }}
-                    >
-                      <i className="isax isax-tick-circle" style={{ fontSize: 13 }} />
+                    <span className="lx-cover-badge">
+                      <i className="isax isax-tick-circle" />
                       {t('student.courses.completed', 'Completed')}
                     </span>
                   )}
@@ -336,7 +303,7 @@ const StudentCourse: React.FC = () => {
                   width: 36,
                   height: 36,
                   borderRadius: 'var(--lx-radius-sm)',
-                  border: page === i ? 'none' : '1px solid rgba(107, 29, 42, 0.10)',
+                  border: page === i ? 'none' : '1px solid rgba(101, 28, 50, 0.10)',
                   background: page === i
                     ? 'var(--lx-primary)'
                     : 'var(--lx-glass-light)',
@@ -371,7 +338,7 @@ const StudentCourse: React.FC = () => {
             onClick={closeCertModal}
             style={{
               position: 'fixed', inset: 0,
-              background: 'rgba(44, 24, 16, 0.45)',
+              background: 'rgba(43, 15, 30, 0.45)',
               backdropFilter: 'blur(4px)',
               WebkitBackdropFilter: 'blur(4px)',
               zIndex: 1040,
@@ -383,12 +350,12 @@ const StudentCourse: React.FC = () => {
               background: 'rgba(255,255,255,0.94)',
               backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
               borderRadius: 'var(--lx-radius-lg)',
-              border: '1px solid rgba(107, 29, 42, 0.10)',
-              boxShadow: '0 24px 48px rgba(44, 24, 16, 0.18)',
+              border: '1px solid rgba(101, 28, 50, 0.10)',
+              boxShadow: '0 24px 48px rgba(43, 15, 30, 0.18)',
               overflow: 'hidden',
             }}>
               {/* Modal header */}
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>
                   <i className="isax isax-medal-star" style={{ color: 'var(--lx-gold)', marginRight: 8 }} />
                   {t('student.certificates.title', 'Certificate of Completion')}
@@ -407,7 +374,7 @@ const StudentCourse: React.FC = () => {
                   </div>
                 ) : !certData ? (
                   <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                    <i className="isax isax-warning-2" style={{ fontSize: 32, color: '#8B2335', display: 'block', marginBottom: 12 }} />
+                    <i className="isax isax-warning-2" style={{ fontSize: 32, color: '#651C32', display: 'block', marginBottom: 12 }} />
                     <p style={{ color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('student.certificates.loadError', 'Could not load certificate. Please try again.')}</p>
                   </div>
                 ) : (
@@ -416,13 +383,13 @@ const StudentCourse: React.FC = () => {
                     <div style={{
                       padding: '40px 32px', borderRadius: 'var(--lx-radius)',
                       background: 'linear-gradient(135deg, var(--lx-bg-warm, #fdf8f3) 0%, var(--lx-bg-structure, #f8f4ef) 100%)',
-                      border: '1.5px solid rgba(197, 151, 62, 0.18)',
+                      border: '1.5px solid rgba(197, 145, 44, 0.18)',
                       textAlign: 'center', marginBottom: 24,
                     }}>
-                      <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(197,151,62,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                        <i className="isax isax-medal-star" style={{ fontSize: 36, color: 'var(--lx-gold, #C5973E)' }} />
+                      <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(197, 145, 44,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                        <i className="isax isax-medal-star" style={{ fontSize: 36, color: 'var(--lx-gold, #C5912C)' }} />
                       </div>
-                      <p style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 700, color: 'var(--lx-text-muted)', letterSpacing: '1px', marginBottom: 12 }}>
+                      <p style={{ fontSize: 12, textTransform: 'uppercase', fontWeight: 700, color: 'var(--lx-text-muted)', letterSpacing: '1px', marginBottom: 12 }}>
                         {t('student.certificates.title', 'Certificate of Completion')}
                       </p>
                       <p style={{ fontSize: 15, color: 'var(--lx-text-muted)', marginBottom: 6 }}>{t('student.certificates.certifyText', 'This is to certify that')}</p>
@@ -453,9 +420,9 @@ const StudentCourse: React.FC = () => {
                         ...(certData.instructorName ? [{ label: t('common.instructor', 'Instructor'), value: certData.instructorName }] : []),
                       ].map((item) => (
                         <div key={item.label}>
-                          <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</p>
+                          <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</p>
                           {item.code ? (
-                            <code style={{ fontSize: 12, background: 'rgba(107,29,42,0.04)', padding: '2px 8px', borderRadius: 4 }}>{item.value}</code>
+                            <code style={{ fontSize: 12, background: 'rgba(101, 28, 50,0.04)', padding: '2px 8px', borderRadius: 4 }}>{item.value}</code>
                           ) : (
                             <p style={{ fontWeight: 500, marginBottom: 0, color: 'var(--lx-text)', fontSize: 14 }}>{item.value}</p>
                           )}
@@ -467,7 +434,7 @@ const StudentCourse: React.FC = () => {
               </div>
 
               {/* Modal footer */}
-              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107,29,42,0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50,0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button className="lx-btn lx-btn-outline" onClick={closeCertModal}>{t('common.close', 'Close')}</button>
                 {certData && (
                   <button

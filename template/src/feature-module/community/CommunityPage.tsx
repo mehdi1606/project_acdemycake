@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Spin } from 'antd';
 import LuxuryDashboardLayout from '../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../components/LxEmptyState';
 import communityService from '../../services/api/community.service';
 import { CommunityPost, CreatePostRequest, PostType } from '../../services/api/types';
 import { getFileUrl } from '../../environment';
@@ -240,7 +241,7 @@ const CommunityPage: React.FC = () => {
         {/* Header */}
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h4 className="fw-bold mb-1" style={{ color: 'var(--lx-primary, #6B1D2A)' }}>
+            <h4 className="fw-bold mb-1" style={{ color: 'var(--lx-primary, #651C32)' }}>
               {t('community.title', 'Community')}
             </h4>
             <p className="text-muted mb-0 fs-14">{t('community.description', 'Share, discuss and grow together.')}</p>
@@ -265,21 +266,19 @@ const CommunityPage: React.FC = () => {
               onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
-          <div className="btn-group flex-wrap" role="group">
+          <div className="lx-seg" role="group">
             <button type="button"
-              className={`btn btn-sm ${filterType === '' ? 'btn-dark' : 'btn-outline-secondary'}`}
+              aria-pressed={filterType === ''}
+              className={`lx-seg-btn${filterType === '' ? ' is-active' : ''}`}
               onClick={() => handleFilterType('')}
             >{t('community.all', 'All')}</button>
             {(Object.keys(TYPE_LABELS) as PostType[]).map((ptype) => (
               <button key={ptype} type="button"
-                className={`btn btn-sm ${
-                  filterType === ptype
-                    ? ptype === 'CHALLENGE' ? 'btn-secondary' : `btn-${TYPE_BADGE[ptype]}`
-                    : 'btn-outline-secondary'
-                }`}
+                aria-pressed={filterType === ptype}
+                className={`lx-seg-btn${filterType === ptype ? ' is-active' : ''}`}
                 onClick={() => handleFilterType(ptype)}
               >
-                {ptype === 'CHALLENGE' && <i className="isax isax-crown me-1" style={{ fontSize: 11 }} />}
+                {ptype === 'CHALLENGE' && <i className="isax isax-crown me-1" style={{ fontSize: 12 }} />}
                 {TYPE_LABELS[ptype]}
               </button>
             ))}
@@ -290,9 +289,12 @@ const CommunityPage: React.FC = () => {
         {loading ? (
           <div className="d-flex justify-content-center py-5"><Spin size="large" /></div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-5 text-muted">
-            <i className="isax isax-message-text fs-1 d-block mb-2" />
-            <p>{t('community.noPostsFound', 'No posts found.')}</p>
+          <div className="lx-card">
+            <LxEmptyState
+              icon="isax-message-text"
+              title={t('community.noPostsFound', 'No posts found.')}
+              text={t('emptyStates.communityText', 'Start the conversation: share a question, a tip or a photo of your latest cake.')}
+            />
           </div>
         ) : (
           <div className="row g-3">
@@ -302,19 +304,19 @@ const CommunityPage: React.FC = () => {
                   className="card border-0 shadow-sm h-100"
                   style={{ cursor: 'pointer', transition: 'box-shadow .2s' }}
                   onClick={() => navigate(all_routes.communityPost.replace(':postId', post.id))}
-                  onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(107,29,42,.12)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(101, 28, 50,.12)')}
                   onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '')}
                 >
                   {/* Challenge header strip */}
                   {post.postType === 'CHALLENGE' && (
                     <div style={{
-                      background: 'linear-gradient(90deg, #4E1420 0%, #7A2240 100%)',
+                      background: 'linear-gradient(90deg, #4A1428 0%, #7A2440 100%)',
                       padding: '8px 20px',
                       display: 'flex', alignItems: 'center', gap: 8,
                       borderRadius: '8px 8px 0 0',
                     }}>
                       <i className="isax isax-crown" style={{ color: '#C5912C', fontSize: 14 }} />
-                      <span style={{ color: '#DEBB6B', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                      <span style={{ color: '#E2B866', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                         {t('community.challenge', 'Challenge')} — {t('community.respondInComments', 'Respond in comments')}
                       </span>
                     </div>
@@ -337,7 +339,7 @@ const CommunityPage: React.FC = () => {
                       <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
                         {post.isPinned && (
                           <span className="badge bg-warning-subtle text-warning rounded-pill px-2">
-                            <i className="fa-solid fa-thumbtack me-1" style={{ fontSize: 9 }} />
+                            <i className="fa-solid fa-thumbtack me-1" style={{ fontSize: 12 }} />
                             {t('community.pinned', 'Pinned')}
                           </span>
                         )}
@@ -345,8 +347,8 @@ const CommunityPage: React.FC = () => {
                           post.postType === 'CHALLENGE'
                             ? 'text-white'
                             : `bg-${TYPE_BADGE[post.postType]}-subtle text-${TYPE_BADGE[post.postType]}`
-                        }`} style={post.postType === 'CHALLENGE' ? { background: '#4E1420' } : {}}>
-                          {post.postType === 'CHALLENGE' && <i className="isax isax-crown me-1" style={{ fontSize: 10 }} />}
+                        }`} style={post.postType === 'CHALLENGE' ? { background: '#4A1428' } : {}}>
+                          {post.postType === 'CHALLENGE' && <i className="isax isax-crown me-1" style={{ fontSize: 12 }} />}
                           {TYPE_LABELS[post.postType]}
                         </span>
 
@@ -376,7 +378,7 @@ const CommunityPage: React.FC = () => {
                                   {canManagePost(post) && (
                                     <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                                       onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); openModal(post); }}>
-                                      <i className="isax isax-edit-2 fs-16" style={{ color: '#6B1D2A' }} />
+                                      <i className="isax isax-edit-2 fs-16" style={{ color: '#651C32' }} />
                                       {t('community.edit', 'Edit')}
                                     </button>
                                   )}
@@ -384,7 +386,7 @@ const CommunityPage: React.FC = () => {
                                     <button type="button" className="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                                       onClick={(e) => handleTogglePin(post, e)}>
                                       <i className={`fa-solid fa-thumbtack fs-14 ${post.isPinned ? 'text-warning' : ''}`}
-                                        style={!post.isPinned ? { color: '#6B1D2A' } : {}} />
+                                        style={!post.isPinned ? { color: '#651C32' } : {}} />
                                       {post.isPinned
                                         ? t('community.unpin', 'Unpin')
                                         : t('community.pin', 'Pin')}
@@ -484,7 +486,7 @@ const CommunityPage: React.FC = () => {
         <div style={{ borderRadius: 12, overflow: 'hidden' }}>
           {/* Modal header */}
           <div style={{
-            background: 'linear-gradient(135deg, #4E1420 0%, #6B1D2A 100%)',
+            background: 'linear-gradient(135deg, #4A1428 0%, #651C32 100%)',
             padding: '20px 24px 16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
@@ -508,7 +510,7 @@ const CommunityPage: React.FC = () => {
 
             {/* TYPE */}
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+              <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
                 {t('community.typeLabel', 'Type')}
               </label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -520,12 +522,12 @@ const CommunityPage: React.FC = () => {
                       letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer',
                       border: formType === ptype ? 'none' : '1.5px solid rgba(101,28,50,0.2)',
                       background: formType === ptype
-                        ? (ptype === 'CHALLENGE' ? 'linear-gradient(135deg,#4E1420,#7A2240)' : '#651C32')
+                        ? (ptype === 'CHALLENGE' ? 'linear-gradient(135deg,#4A1428,#7A2440)' : '#651C32')
                         : '#fff',
                       color: formType === ptype ? '#fff' : '#651C32',
                       transition: 'all 0.2s',
                     }}>
-                    {ptype === 'CHALLENGE' && <i className="isax isax-crown me-1" style={{ fontSize: 11 }} />}
+                    {ptype === 'CHALLENGE' && <i className="isax isax-crown me-1" style={{ fontSize: 12 }} />}
                     {TYPE_LABELS[ptype]}
                   </button>
                 ))}
@@ -534,7 +536,7 @@ const CommunityPage: React.FC = () => {
               {formType === 'CHALLENGE' && (
                 <div style={{
                   marginTop: 10, padding: '10px 14px', borderRadius: 8,
-                  background: 'rgba(78,20,32,0.06)', border: '1px solid rgba(78,20,32,0.12)',
+                  background: 'rgba(74, 20, 40,0.06)', border: '1px solid rgba(74, 20, 40,0.12)',
                   fontSize: 12, color: '#651C32', display: 'flex', gap: 8, alignItems: 'flex-start',
                 }}>
                   <i className="isax isax-info-circle" style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }} />
@@ -547,11 +549,11 @@ const CommunityPage: React.FC = () => {
 
             {/* TITLE */}
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
-                {t('community.titleLabel', 'Title')} <span style={{ color: '#B03060' }}>*</span>
+              <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.titleLabel', 'Title')} <span style={{ color: '#651C32' }}>*</span>
               </label>
               <input type="text"
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2C1810' }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2B0F1E' }}
                 placeholder={t('community.titlePlaceholder', "What's on your mind?")}
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
@@ -561,11 +563,11 @@ const CommunityPage: React.FC = () => {
 
             {/* CONTENT */}
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
-                {t('community.contentLabel', 'Content')} <span style={{ color: '#B03060' }}>*</span>
+              <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+                {t('community.contentLabel', 'Content')} <span style={{ color: '#651C32' }}>*</span>
               </label>
               <textarea
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2C1810', resize: 'vertical', minHeight: 120 }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(101,28,50,0.2)', fontSize: 14, outline: 'none', background: '#fff', color: '#2B0F1E', resize: 'vertical', minHeight: 120 }}
                 placeholder={t('community.contentPlaceholder', 'Share your thoughts, question, or resource…')}
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
@@ -575,7 +577,7 @@ const CommunityPage: React.FC = () => {
 
             {/* IMAGE (optional) */}
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
+              <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#651C32', marginBottom: 8, display: 'block' }}>
                 {t('community.attachImage', 'Image (optional)')}
               </label>
               <input
@@ -621,7 +623,7 @@ const CommunityPage: React.FC = () => {
                 </button>
               )}
               {!formImageUrl && !imageUploading && (
-                <p style={{ fontSize: 11, color: '#9B9B9B', marginTop: 6, marginBottom: 0 }}>
+                <p style={{ fontSize: 12, color: '#7C6A73', marginTop: 6, marginBottom: 0 }}>
                   {t('community.imageTip', 'Max size 5 MB. PNG, JPG or WebP.')}
                 </p>
               )}
@@ -637,8 +639,8 @@ const CommunityPage: React.FC = () => {
                 disabled={submitting || !formTitle.trim() || !formContent.trim()}
                 style={{
                   padding: '11px 28px', borderRadius: 10, border: 'none',
-                  background: 'linear-gradient(135deg, #C5912C 0%, #DEBB6B 50%, #C5912C 100%)',
-                  color: '#4E1420', fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #C5912C 0%, #E2B866 50%, #C5912C 100%)',
+                  color: '#4A1428', fontWeight: 800, fontSize: 14, cursor: 'pointer',
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   opacity: (submitting || !formTitle.trim() || !formContent.trim()) ? 0.6 : 1,
                   display: 'flex', alignItems: 'center', gap: 8,

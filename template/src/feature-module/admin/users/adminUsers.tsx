@@ -27,7 +27,7 @@ const GlassModal: React.FC<{ children: React.ReactNode; onClose: () => void; max
   <div
     style={{
       position: 'fixed', inset: 0, zIndex: 1050,
-      background: 'rgba(44, 24, 16, 0.40)', backdropFilter: 'blur(4px)',
+      background: 'rgba(43, 15, 30, 0.40)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
     }}
     onClick={e => { if (e.target === e.currentTarget) onClose(); }}
@@ -35,8 +35,8 @@ const GlassModal: React.FC<{ children: React.ReactNode; onClose: () => void; max
     <div style={{
       width: '100%', maxWidth,
       background: 'rgba(255,255,255,0.93)', backdropFilter: 'blur(32px)',
-      borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107,29,42,0.10)',
-      boxShadow: '0 24px 48px rgba(44,24,16,0.15)',
+      borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50,0.10)',
+      boxShadow: '0 24px 48px rgba(43, 15, 30,0.15)',
     }}>
       {children}
     </div>
@@ -367,13 +367,13 @@ const AdminUsers: React.FC = () => {
                               <img src={bd.image} alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lx-text)' }}>{t(bd.nameKey)}</span>
                               {user.role === 'STUDENT' && studentLevel(progressOf(null, user)) < 1 && (
-                                <span style={{ fontSize: 11, color: 'var(--lx-text-muted)' }}>· {t('admin.users.badgeInProgress', 'in progress')}</span>
+                                <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>· {t('admin.users.badgeInProgress', 'in progress')}</span>
                               )}
                             </div>
                           );
                         })()}
                         {user.role === 'STUDENT' && (
-                          <div style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginTop: 3 }}>
+                          <div style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginTop: 3 }}>
                             {t('admin.users.badgeNumbers2', '{{count}} certificates · quiz {{quiz}} · assignments {{assign}} · {{days}} days', {
                               count: user.certificates ?? 0,
                               quiz: (user.quizzesTaken ?? 0) > 0 ? `${user.avgQuizScore ?? 0}%` : '—',
@@ -387,7 +387,7 @@ const AdminUsers: React.FC = () => {
                           <button
                             type="button"
                             className="lx-btn lx-btn-outline lx-btn-sm"
-                            style={{ marginTop: 6, fontSize: 11.5, padding: '3px 10px' }}
+                            style={{ marginTop: 6, fontSize: 12, padding: '3px 10px' }}
                             onClick={() => handleEliteApproval(String(user.id), !user.eliteApprovedAt)}
                           >
                             {user.eliteApprovedAt
@@ -406,7 +406,7 @@ const AdminUsers: React.FC = () => {
                               color: 'var(--lx-gold)',
                             }}
                           >
-                            <i className="isax isax-crown-1" style={{ fontSize: 11, marginRight: 3 }} />
+                            <i className="isax isax-crown-1" style={{ fontSize: 12, marginRight: 3 }} />
                             {t('admin.users.premium', 'Premium')}
                           </span>
                         ) : (
@@ -423,7 +423,7 @@ const AdminUsers: React.FC = () => {
                           {/* Bank transfers: activate a year, or add a year to an active plan */}
                           <button
                             className="lx-btn lx-btn-outline lx-btn-sm"
-                            style={{ color: '#16a34a', borderColor: 'rgba(22,163,74,0.20)' }}
+                            style={{ color: '#855A0E', borderColor: 'rgba(197, 145, 44,0.20)' }}
                             onClick={() => setPlanModalUserId(String(user.id))}
                             title={user.subscriptionStatus === 'ACTIVE'
                               ? t('admin.users.extendPlan', 'Add 1 year (renewal)')
@@ -434,7 +434,7 @@ const AdminUsers: React.FC = () => {
                           {user.isBanned ? (
                             <button
                               className="lx-btn lx-btn-outline lx-btn-sm"
-                              style={{ color: 'var(--lx-green)', borderColor: 'rgba(45, 95, 63, 0.20)' }}
+                              style={{ color: 'var(--lx-green)', borderColor: 'rgba(197, 145, 44, 0.20)' }}
                               onClick={() => handleUnbanUser(String(user.id))}
                               title="Unban User"
                             >
@@ -443,7 +443,7 @@ const AdminUsers: React.FC = () => {
                           ) : (
                             <button
                               className="lx-btn lx-btn-outline lx-btn-sm"
-                              style={{ color: 'var(--lx-gold)', borderColor: 'rgba(197, 151, 62, 0.20)' }}
+                              style={{ color: 'var(--lx-gold)', borderColor: 'rgba(197, 145, 44, 0.20)' }}
                               onClick={() => handleBanUser(String(user.id))}
                               title="Ban User"
                               disabled={user.role === 'ADMIN'}
@@ -462,9 +462,9 @@ const AdminUsers: React.FC = () => {
                             <button
                               className="lx-btn lx-btn-sm"
                               style={{
-                                background: 'rgba(139, 35, 53, 0.08)',
-                                color: '#8B2335',
-                                border: '1.5px solid rgba(139, 35, 53, 0.15)',
+                                background: 'rgba(101, 28, 50, 0.08)',
+                                color: '#651C32',
+                                border: '1.5px solid rgba(101, 28, 50, 0.15)',
                               }}
                               title="Delete User"
                               disabled={user.role === 'ADMIN'}
@@ -509,7 +509,7 @@ const AdminUsers: React.FC = () => {
         <GlassModal onClose={closeCreateModal}>
           {/* Header */}
           <div style={{
-            padding: '20px 24px', borderBottom: '1px solid rgba(107,29,42,0.08)',
+            padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50,0.08)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
@@ -529,9 +529,9 @@ const AdminUsers: React.FC = () => {
             <div style={{ padding: '40px 24px', textAlign: 'center' }}>
               <div style={{
                 width: 60, height: 60, borderRadius: '50%', margin: '0 auto 16px',
-                background: 'rgba(22,163,74,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(197, 145, 44,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <i className="isax isax-tick-circle" style={{ fontSize: 28, color: '#16a34a' }} />
+                <i className="isax isax-tick-circle" style={{ fontSize: 28, color: '#855A0E' }} />
               </div>
               <h5 style={{ fontWeight: 700, fontSize: 17, color: 'var(--lx-text)', marginBottom: 8 }}>
                 {t('admin.users.userCreated', 'User Created!')}
@@ -560,8 +560,8 @@ const AdminUsers: React.FC = () => {
                 {createError && (
                   <div style={{
                     padding: '10px 14px', borderRadius: 8,
-                    background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)',
-                    color: '#8B2335', fontSize: 13,
+                    background: 'rgba(101, 28, 50,0.06)', border: '1px solid rgba(101, 28, 50,0.12)',
+                    color: '#651C32', fontSize: 13,
                   }}>
                     <i className="isax isax-warning-2" style={{ marginRight: 6 }} />{createError}
                   </div>
@@ -570,7 +570,7 @@ const AdminUsers: React.FC = () => {
                 {/* Full Name */}
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                    {t('admin.users.name', 'Full Name')} <span style={{ color: '#8B2335' }}>*</span>
+                    {t('admin.users.name', 'Full Name')} <span style={{ color: '#651C32' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -580,7 +580,7 @@ const AdminUsers: React.FC = () => {
                     placeholder="e.g. Sarah Johnson"
                     style={{
                       width: '100%', padding: '10px 14px',
-                      border: '1.5px solid rgba(107,29,42,0.12)', borderRadius: 'var(--lx-radius-sm)',
+                      border: '1.5px solid rgba(101, 28, 50,0.12)', borderRadius: 'var(--lx-radius-sm)',
                       fontSize: 14, outline: 'none', background: 'rgba(255,255,255,0.6)', color: 'var(--lx-text)',
                       boxSizing: 'border-box',
                     }}
@@ -590,7 +590,7 @@ const AdminUsers: React.FC = () => {
                 {/* Email */}
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                    {t('admin.users.email', 'Email Address')} <span style={{ color: '#8B2335' }}>*</span>
+                    {t('admin.users.email', 'Email Address')} <span style={{ color: '#651C32' }}>*</span>
                   </label>
                   <input
                     type="email"
@@ -600,7 +600,7 @@ const AdminUsers: React.FC = () => {
                     placeholder="e.g. sarah@example.com"
                     style={{
                       width: '100%', padding: '10px 14px',
-                      border: '1.5px solid rgba(107,29,42,0.12)', borderRadius: 'var(--lx-radius-sm)',
+                      border: '1.5px solid rgba(101, 28, 50,0.12)', borderRadius: 'var(--lx-radius-sm)',
                       fontSize: 14, outline: 'none', background: 'rgba(255,255,255,0.6)', color: 'var(--lx-text)',
                       boxSizing: 'border-box',
                     }}
@@ -610,14 +610,14 @@ const AdminUsers: React.FC = () => {
                 {/* Role */}
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                    {t('admin.users.role', 'Role')} <span style={{ color: '#8B2335' }}>*</span>
+                    {t('admin.users.role', 'Role')} <span style={{ color: '#651C32' }}>*</span>
                   </label>
                   <select
                     value={createForm.role}
                     onChange={e => setCreateForm(f => ({ ...f, role: e.target.value as any }))}
                     style={{
                       width: '100%', padding: '10px 14px',
-                      border: '1.5px solid rgba(107,29,42,0.12)', borderRadius: 'var(--lx-radius-sm)',
+                      border: '1.5px solid rgba(101, 28, 50,0.12)', borderRadius: 'var(--lx-radius-sm)',
                       fontSize: 14, outline: 'none', background: 'rgba(255,255,255,0.6)', color: 'var(--lx-text)',
                       cursor: 'pointer', appearance: 'auto',
                     }}
@@ -631,7 +631,7 @@ const AdminUsers: React.FC = () => {
                 {/* Info hint */}
                 <div style={{
                   display: 'flex', gap: 8, padding: '10px 14px', borderRadius: 8,
-                  background: 'rgba(107,29,42,0.04)', border: '1px solid rgba(107,29,42,0.08)',
+                  background: 'rgba(101, 28, 50,0.04)', border: '1px solid rgba(101, 28, 50,0.08)',
                 }}>
                   <i className="isax isax-info-circle" style={{ color: 'var(--lx-primary)', fontSize: 15, flexShrink: 0, marginTop: 1 }} />
                   <p style={{ margin: 0, fontSize: 12.5, color: 'var(--lx-text-muted)', lineHeight: 1.5 }}>
@@ -642,7 +642,7 @@ const AdminUsers: React.FC = () => {
 
               {/* Footer */}
               <div style={{
-                padding: '16px 24px', borderTop: '1px solid rgba(107,29,42,0.08)',
+                padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50,0.08)',
                 display: 'flex', justifyContent: 'flex-end', gap: 10,
               }}>
                 <button type="button" className="lx-btn lx-btn-outline" onClick={closeCreateModal} disabled={creating}>
@@ -678,7 +678,7 @@ const AdminUsers: React.FC = () => {
         return (
         <GlassModal onClose={() => setPlanModalUserId(null)} maxWidth={420}>
           <div style={{
-            padding: '20px 24px', borderBottom: '1px solid rgba(107,29,42,0.08)',
+            padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50,0.08)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
@@ -695,7 +695,7 @@ const AdminUsers: React.FC = () => {
           <div style={{ padding: 24 }}>
             <div style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px',
-              background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.15)',
+              background: 'rgba(197, 145, 44,0.06)', border: '1px solid rgba(197, 145, 44,0.15)',
               borderRadius: 10, marginBottom: 20,
             }}>
               <i className="isax isax-crown-1" style={{ fontSize: 24, color: 'var(--lx-gold)' }} />
@@ -717,7 +717,7 @@ const AdminUsers: React.FC = () => {
             </p>
           </div>
           <div style={{
-            padding: '16px 24px', borderTop: '1px solid rgba(107,29,42,0.08)',
+            padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50,0.08)',
             display: 'flex', justifyContent: 'flex-end', gap: 10,
           }}>
             <button
