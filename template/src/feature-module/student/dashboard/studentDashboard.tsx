@@ -13,6 +13,7 @@ import {
   fetchStudentStats,
 } from '../../../core/redux/studentSlice';
 import { getFileUrl } from '../../../environment';
+import { hideOnError } from '../../../core/common/imageFallback';
 import BadgePopup from '../../../components/BadgePopup';
 import { getBadgeForUser, isBadgeEarned, progressOf } from '../../../config/badges';
 
@@ -79,10 +80,10 @@ const StudentDashboard = () => {
         {[
           { label: t('student.dashboard.enrolledCourses', 'Enrolled Courses'), value: stats.enrolledCourses,  icon: 'isax isax-book',        color: 'gold' },
           { label: t('student.dashboard.activeCourses', 'Active Courses'),   value: stats.activeCourses,    icon: 'isax isax-play-circle', color: 'rose' },
-          { label: t('common.completed', 'Completed'),        value: stats.completedCourses, icon: 'isax isax-medal',       color: 'sage' },
+          { label: t('common.completed', 'Completed'),        value: stats.completedCourses, icon: 'isax isax-medal',       color: 'sage', key: true },
         ].map((s, i) => (
           <div key={i} className="col-md-4">
-            <div className="lx-stat-card">
+            <div className={`lx-stat-card${'key' in s && s.key ? ' is-key' : ''}`}>
               <div className={`stat-icon ${s.color}`}>
                 <i className={s.icon} />
               </div>
@@ -128,20 +129,17 @@ const StudentDashboard = () => {
             <div key={enr.id} className="col-xl-4 col-md-6">
               <div className="lx-course-card">
                 <div className="course-img-wrap">
-                  <img
-                    src={getFileUrl(enr.courseThumbnail) ?? `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`}
-                    alt={enr.courseTitle}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/assets/img/course/course-01.jpg`;
-                    }}
-                  />
+                  {/* No photo, or a broken one: the branded cover underneath shows instead. */}
+                  {getFileUrl(enr.courseThumbnail) && (
+                    <img src={getFileUrl(enr.courseThumbnail) as string} alt={enr.courseTitle} onError={hideOnError} />
+                  )}
                   <div className="course-progress-bar">
                     <div className="bar-fill" style={{ width: `${enr.progressPercentage}%` }} />
                   </div>
                   <span className="course-pct-badge">{enr.progressPercentage}%</span>
                 </div>
                 <div className="course-info">
-                  <p className="course-cat">{enr.courseCategory || t('student.courses.generalCategory', 'General')}</p>
+                  {enr.courseCategory && <p className="course-cat">{enr.courseCategory}</p>}
                   <Link
                     to={`${all_routes.courseDetails}/${enr.courseSlug}`}
                     className="course-title"

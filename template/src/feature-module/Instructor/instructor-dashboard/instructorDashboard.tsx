@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatMAD } from '../../../core/common/formatMoney';
-import { fallbackTo } from '../../../core/common/imageFallback';
+import { hideOnError } from '../../../core/common/imageFallback';
 import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -53,21 +53,23 @@ const InstructorDashboard = () => {
     };
   }, [dashboardData?.earningsChart]);
 
+  const hasEarnings = chartData.data.some((v) => Number(v) > 0);
   const earningsChart = {
-    chart:  { height: 260, type: 'bar', stacked: true, toolbar: { show: false } },
-    plotOptions: { bar: { borderRadius: 6, horizontal: false } },
-    series: [{ name: 'Earnings ($)', data: chartData.data }],
-    xaxis:  { categories: chartData.categories, labels: { style: { colors: '#8B6D75', fontSize: '12px' } } },
-    yaxis:  { labels: { offsetX: -10, style: { colors: '#8B6D75', fontSize: '12px' }, formatter: (v: number) => formatMAD(v) } },
-    grid:   { borderColor: 'rgba(101,28,50,0.08)', strokeDashArray: 4 },
+    chart:  { height: 260, type: 'bar', toolbar: { show: false }, fontFamily: 'Inter, sans-serif', animations: { easing: 'easeinout', speed: 700 } },
+    plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', columnWidth: '42%' } },
+    series: [{ name: t('instructor.dashboard.earningsSeries', 'Earnings'), data: chartData.data }],
+    xaxis:  { categories: chartData.categories, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: 'rgba(43,15,30,0.5)', fontSize: '12px' } } },
+    yaxis:  { labels: { offsetX: -10, style: { colors: 'rgba(43,15,30,0.5)', fontSize: '12px' }, formatter: (v: number) => formatMAD(v) } },
+    grid:   { borderColor: 'rgba(101,28,50,0.07)', strokeDashArray: 5 },
     legend: { show: false },
     dataLabels: { enabled: false },
+    tooltip: { y: { formatter: (v: number) => formatMAD(v) } },
     fill: {
       type: 'gradient',
       gradient: {
-        shade: 'light', type: 'vertical', shadeIntensity: 0.3,
+        shade: 'light', type: 'vertical', shadeIntensity: 0.2,
         gradientToColors: ['#C5912C'], inverseColors: false,
-        opacityFrom: 0.9, opacityTo: 0.75, stops: [0, 100],
+        opacityFrom: 1, opacityTo: 0.9, stops: [0, 100],
       },
     },
     colors: ['#651C32'],
@@ -78,7 +80,7 @@ const InstructorDashboard = () => {
   const stats = [
     { label: t('instructor.dashboard.totalStudents', 'Total Students'),     value: dashboardData?.totalStudents,        icon: 'isax isax-people',     color: 'gold'  },
     { label: t('instructor.dashboard.totalCourses', 'Total Courses'),      value: dashboardData?.totalCourses,         icon: 'isax isax-book',       color: 'rose'  },
-    { label: t('instructor.dashboard.totalEarnings', 'Total Earnings'),     value: formatMAD(dashboardData?.totalEarnings), icon: 'isax isax-wallet', color: 'sage'  },
+    { label: t('instructor.dashboard.totalEarnings', 'Total Earnings'),     value: formatMAD(dashboardData?.totalEarnings), icon: 'isax isax-wallet', color: 'sage', key: true },
     { label: t('instructor.earnings.pendingPayout', 'Pending Payout'),     value: formatMAD(dashboardData?.pendingPayout), icon: 'isax isax-wallet-money', color: 'amber' },
     { label: t('common.rating', 'Average Rating'),     value: dashboardData?.averageRating?.toFixed(1) ?? '0.0',        icon: 'isax isax-star',   color: 'gold'  },
     { label: t('instructor.dashboard.recentEnrollmentsLast10', 'Recent enrollments (last 10)'), value: dashboardData?.recentEnrollments?.length ?? 0,            icon: 'isax isax-user-add', color: 'slate' },
@@ -100,7 +102,7 @@ const InstructorDashboard = () => {
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">
           <p className="welcome-greeting">{t('common.instructor', 'Instructor')} {t('nav.dashboard', 'Panel')}</p>
-          <h4>{t('instructor.dashboard.welcome', 'Welcome back')}, {firstName}! 🎓</h4>
+          <h4>{t('instructor.dashboard.welcome', 'Welcome back')}, {firstName}</h4>
           <p>{t('instructor.dashboard.welcomeSubtitle', 'Manage your courses, track student progress, and grow your impact.')}</p>
         </div>
         <div className="welcome-actions">
@@ -117,7 +119,7 @@ const InstructorDashboard = () => {
 
       {loading ? (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 400 }}>
-          <Spin size="large" tip="Loading dashboard…" />
+          <Spin size="large" />
         </div>
       ) : (
         <>
@@ -125,7 +127,7 @@ const InstructorDashboard = () => {
           <div className="row g-4 mb-4">
             {stats.map((s, i) => (
               <div key={i} className="col-md-6 col-xl-4">
-                <div className="lx-stat-card">
+                <div className={`lx-stat-card${'key' in s && s.key ? ' is-key' : ''}`}>
                   <div className={`stat-icon ${s.color}`}>
                     <i className={s.icon} />
                   </div>
@@ -150,12 +152,35 @@ const InstructorDashboard = () => {
               </div>
             </div>
             <div className="lx-card-body" style={{ paddingTop: 8 }}>
-              <ReactApexChart
-                options={earningsChart as any}
-                series={earningsChart.series}
-                type="bar"
-                height={260}
-              />
+              {hasEarnings ? (
+                <ReactApexChart
+                  options={earningsChart as any}
+                  series={earningsChart.series}
+                  type="bar"
+                  height={260}
+                />
+              ) : (
+                <div className="lx-chart-empty">
+                  <svg viewBox="0 0 600 110" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="lxChartLine" x1="0" x2="1">
+                        <stop offset="0" stopColor="#651C32" stopOpacity="0.15" />
+                        <stop offset="0.6" stopColor="#651C32" stopOpacity="0.45" />
+                        <stop offset="1" stopColor="#C5912C" stopOpacity="0.9" />
+                      </linearGradient>
+                      <linearGradient id="lxChartFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stopColor="#C5912C" stopOpacity="0.16" />
+                        <stop offset="1" stopColor="#C5912C" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M0 96 C80 92 130 88 200 80 S320 70 380 56 S500 26 600 10 L600 110 L0 110 Z" fill="url(#lxChartFill)" />
+                    <path d="M0 96 C80 92 130 88 200 80 S320 70 380 56 S500 26 600 10" fill="none" stroke="url(#lxChartLine)" strokeWidth="2.5" strokeDasharray="6 7" strokeLinecap="round" />
+                    <circle cx="600" cy="10" r="5" fill="#C5912C" />
+                  </svg>
+                  <h6>{t('instructor.dashboard.chartEmptyTitle', 'Your earnings will draw here')}</h6>
+                  <p>{t('instructor.dashboard.chartEmptyText', 'As soon as students buy your courses, each month appears on this chart.')}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -195,24 +220,15 @@ const InstructorDashboard = () => {
                       recentCourses.map((course) => (
                         <tr key={course.id}>
                           <td>
-                            <div className="d-flex align-items-center gap-2">
-                              <div
-                                style={{
-                                  width: 44, height: 44, borderRadius: 8,
-                                  overflow: 'hidden', flexShrink: 0,
-                                  background: 'rgba(101, 28, 50, 0.06)',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}
-                              >
+                            <div className="d-flex align-items-center gap-3">
+                              <span className="lx-thumb">
                                 {course.thumbnailUrl ? (
-                                  <img src={course.thumbnailUrl} alt={course.title} onError={fallbackTo()} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img src={course.thumbnailUrl} alt="" onError={hideOnError} />
                                 ) : (
-                                  <i className="isax isax-book" style={{ color: '#651C32', fontSize: 18 }} />
+                                  <i className="isax isax-cake" />
                                 )}
-                              </div>
-                              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--lx-brown)' }}>
-                                {course.title}
                               </span>
+                              <span className="lx-row-title">{course.title}</span>
                             </div>
                           </td>
                           <td>{course.enrolledCount}</td>
@@ -223,7 +239,7 @@ const InstructorDashboard = () => {
                               course.status === 'PENDING_REVIEW' ? 'badge-info'    :
                               course.status === 'REJECTED'       ? 'badge-danger'  : 'badge-pending'
                             }`}>
-                              {course.status.replace('_', ' ')}
+                              {t(`enums.courseStatus.${course.status}`, course.status.replace('_', ' '))}
                             </span>
                           </td>
                           <td>

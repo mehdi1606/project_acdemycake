@@ -1267,6 +1267,9 @@
       "logout": "Logout"
     },
     "dashboard": {
+      "earningsSeries": "Earnings",
+      "chartEmptyTitle": "Your earnings will draw here",
+      "chartEmptyText": "As soon as students buy your courses, each month appears on this chart.",
       "title": "Instructor Dashboard",
       "welcome": "Welcome back",
       "totalStudents": "Total Students",

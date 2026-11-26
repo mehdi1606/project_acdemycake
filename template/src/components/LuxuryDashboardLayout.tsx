@@ -54,6 +54,7 @@ const LuxuryDashboardLayout: React.FC<LuxuryDashboardLayoutProps> = ({ children 
       ]
         .filter(Boolean)
         .join(' ')}
+      style={{ ['--lx-crest' as string]: `url(${process.env.PUBLIC_URL}/assets/img/Logos/saralowe-lions-crimson.svg)` }}
     >
       {/* Fixed top bar */}
       <LuxuryTopbar onSidebarToggle={handleSidebarToggle} />

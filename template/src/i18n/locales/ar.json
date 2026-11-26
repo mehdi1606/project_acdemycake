@@ -1298,6 +1298,9 @@
       "logout": "تسجيل الخروج"
     },
     "dashboard": {
+      "earningsSeries": "الأرباح",
+      "chartEmptyTitle": "ستظهر أرباحك هنا",
+      "chartEmptyText": "بمجرد أن يشتري الطلاب دوراتك، يظهر كل شهر على هذا الرسم.",
       "title": "لوحة تحكم المدرب",
       "welcome": "مرحباً بعودتك",
       "totalStudents": "إجمالي الطلاب",

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { COURSE_PLACEHOLDER, fallbackTo } from '../../../core/common/imageFallback';
+import { hideOnError } from '../../../core/common/imageFallback';
 import { Link } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import ReactApexChart from 'react-apexcharts';
@@ -36,10 +36,11 @@ const AdminDashboard = () => {
 
   /* Revenue chart */
   const revenueOptions: ApexOptions = {
-    chart:       { type: 'area', height: 300, toolbar: { show: false }, background: 'transparent' },
-    colors:      ['#6B1D2A', '#C5973E'],
+    chart:       { type: 'area', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'Inter, sans-serif' },
+    colors:      ['#651C32', '#C5912C'],
+    legend:      { fontFamily: 'Inter, sans-serif', markers: { size: 6 } as any },
     dataLabels:  { enabled: false },
-    stroke:      { curve: 'smooth', width: 2 },
+    stroke:      { curve: 'smooth', width: 2.5 },
     fill: {
       type: 'gradient',
       gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] },
@@ -89,7 +90,7 @@ const AdminDashboard = () => {
       <div className="lx-dashboard-welcome">
         <div className="welcome-text">
           <p className="welcome-greeting">{t('admin.sidebar.panel', 'Admin Panel')}</p>
-          <h4>{t('admin.dashboard.title', 'Admin Dashboard')}, {firstName}! 🛡️</h4>
+          <h4>{t('admin.dashboard.title', 'Admin Dashboard')}, {firstName}</h4>
           <p>{t('admin.dashboard.platformStats', "Here's an overview of your academy's performance today.")}</p>
         </div>
         <div className="welcome-actions">
@@ -130,24 +131,24 @@ const AdminDashboard = () => {
           {/* ── Revenue Stats Row ── */}
           <div className="row g-4 mb-4">
             <div className="col-md-6">
-              <div className="lx-stat-card" style={{ background: 'linear-gradient(135deg, #6B1D2A 0%, #4E1420 100%)', border: 'none' }}>
-                <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>
+              <div className="lx-stat-card is-hero">
+                <div className="stat-icon">
                   <i className="isax isax-dollar-circle" />
                 </div>
                 <div className="stat-info">
-                  <p className="stat-label" style={{ color: 'rgba(255,255,255,0.75)' }}>{t('admin.dashboard.totalRevenue', 'Total Revenue')}</p>
-                  <h3 className="stat-value" style={{ color: '#fff' }}>{fmt(dashboard?.totalRevenue)}</h3>
+                  <p className="stat-label">{t('admin.dashboard.totalRevenue', 'Total Revenue')}</p>
+                  <h3 className="stat-value">{fmt(dashboard?.totalRevenue)}</h3>
                 </div>
               </div>
             </div>
             <div className="col-md-6">
-              <div className="lx-stat-card" style={{ background: 'linear-gradient(135deg, #2D5F3F 0%, #1E4A2E 100%)', border: 'none' }}>
-                <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>
+              <div className="lx-stat-card is-hero is-ink">
+                <div className="stat-icon">
                   <i className="isax isax-chart-2" />
                 </div>
                 <div className="stat-info">
-                  <p className="stat-label" style={{ color: 'rgba(255,255,255,0.75)' }}>{t('admin.reports.thisMonth', 'This Month')}</p>
-                  <h3 className="stat-value" style={{ color: '#fff' }}>
+                  <p className="stat-label">{t('admin.reports.thisMonth', 'This Month')}</p>
+                  <h3 className="stat-value">
                     {fmt(dashboard?.monthlyRevenue || dashboard?.revenueThisMonth)}
                   </h3>
                 </div>
@@ -188,35 +189,15 @@ const AdminDashboard = () => {
             <div className="lx-card-body">
               <div className="row g-3">
                 {[
-                  { label: t('admin.sidebar.pendingApprovals', 'Pending Approvals'), icon: 'isax isax-clock',         route: all_routes.adminPendingCourses, color: 'amber' },
-                  { label: t('admin.users.title', 'Manage Users'),                 icon: 'isax isax-user-add',      route: all_routes.adminUsers,          color: 'gold'  },
-                  { label: t('admin.transactions.title', 'Transactions'),           icon: 'isax isax-card',          route: all_routes.adminTransactions,   color: 'sage'  },
-                  { label: t('admin.reports.title', 'View Reports'),               icon: 'isax isax-document-text', route: all_routes.adminReports,        color: 'slate' },
+                  { label: t('admin.sidebar.pendingApprovals', 'Pending Approvals'), icon: 'isax isax-clock',         route: all_routes.adminPendingCourses },
+                  { label: t('admin.users.title', 'Manage Users'),                 icon: 'isax isax-user-add',      route: all_routes.adminUsers },
+                  { label: t('admin.transactions.title', 'Transactions'),           icon: 'isax isax-card',          route: all_routes.adminTransactions },
+                  { label: t('admin.reports.title', 'View Reports'),               icon: 'isax isax-document-text', route: all_routes.adminReports },
                 ].map((a, i) => (
                   <div key={i} className="col-md-3 col-6">
-                    <Link
-                      to={a.route}
-                      className="d-flex flex-column align-items-center justify-content-center gap-2 p-4 text-decoration-none"
-                      style={{
-                        background: 'var(--lx-cream)',
-                        border: '1.5px solid var(--lx-cream-border)',
-                        borderRadius: 'var(--lx-radius)',
-                        transition: 'var(--lx-transition)',
-                        color: 'var(--lx-brown-mid)',
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.borderColor = 'var(--lx-gold)';
-                        (e.currentTarget as HTMLElement).style.background  = 'var(--lx-gold-hover)';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.borderColor = 'var(--lx-cream-border)';
-                        (e.currentTarget as HTMLElement).style.background  = 'var(--lx-cream)';
-                      }}
-                    >
-                      <div className={`stat-icon ${a.color}`} style={{ width: 48, height: 48, fontSize: 22, borderRadius: 12 }}>
-                        <i className={a.icon} />
-                      </div>
-                      <span style={{ fontSize: 13, fontWeight: 600, textAlign: 'center' }}>{a.label}</span>
+                    <Link to={a.route} className="lx-quick-tile">
+                      <i className={a.icon} />
+                      <span>{a.label}</span>
                     </Link>
                   </div>
                 ))}
@@ -247,21 +228,22 @@ const AdminDashboard = () => {
                         {dashboard.topCourses.slice(0, 5).map((item, i) => (
                           <tr key={i}>
                             <td>
-                              <div className="d-flex align-items-center gap-2">
-                                <img
-                                  src={item.course?.thumbnailUrl ? (getFileUrl(item.course.thumbnailUrl) ?? item.course.thumbnailUrl) : COURSE_PLACEHOLDER}
-                                  onError={fallbackTo()}
-                                  alt=""
-                                  style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
-                                />
-                                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-brown)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div className="d-flex align-items-center gap-3">
+                                <span className="lx-thumb">
+                                  {item.course?.thumbnailUrl ? (
+                                    <img src={getFileUrl(item.course.thumbnailUrl) ?? item.course.thumbnailUrl} alt="" onError={hideOnError} />
+                                  ) : (
+                                    <i className="isax isax-cake" />
+                                  )}
+                                </span>
+                                <span className="lx-row-title" style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {item.course?.title || t('admin.dashboard.courseFallback', 'Course')}
                                 </span>
                               </div>
                             </td>
                             <td style={{ textAlign: 'center' }}>{item.enrollmentsCount}</td>
                             <td style={{ textAlign: 'right' }}>
-                              <span style={{ fontWeight: 700, color: '#2D7A4F' }}>{fmt(item.revenue)}</span>
+                              <span className="lx-money">{fmt(item.revenue)}</span>
                             </td>
                           </tr>
                         ))}
@@ -304,14 +286,14 @@ const AdminDashboard = () => {
                                   name={item.user?.fullName}
                                   size={38}
                                 />
-                                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-brown)' }}>
+                                <span className="lx-row-title">
                                   {item.user?.fullName || t('common.instructor', 'Instructor')}
                                 </span>
                               </div>
                             </td>
                             <td style={{ textAlign: 'center' }}>{item.studentsCount}</td>
                             <td style={{ textAlign: 'right' }}>
-                              <span style={{ fontWeight: 700, color: '#2D7A4F' }}>{fmt(item.totalRevenue)}</span>
+                              <span className="lx-money">{fmt(item.totalRevenue)}</span>
                             </td>
                           </tr>
                         ))}
