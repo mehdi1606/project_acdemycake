@@ -231,7 +231,7 @@ const InstructorMasterclassReservations: React.FC = () => {
       </div>
 
       {listLoading ? <Spinner /> : listError ? (
-        <div className="lx-card"><div className="lx-card-body" style={{ color: '#8B2335' }}>{listError}</div></div>
+        <div className="lx-card"><div className="lx-card-body" style={{ color: '#651C32' }}>{listError}</div></div>
       ) : masterclasses.length === 0 ? (
         <div className="lx-card">
           <div className="lx-card-body">
@@ -343,11 +343,11 @@ const InstructorMasterclassReservations: React.FC = () => {
                   <div className="stat-info">
                     <p className="stat-label">{s.label}</p>
                     {loading ? (
-                      <div style={{ height: 24, width: 80, borderRadius: 6, background: 'rgba(107, 29, 42, 0.06)' }} />
+                      <div style={{ height: 24, width: 80, borderRadius: 6, background: 'rgba(101, 28, 50, 0.06)' }} />
                     ) : (
                       <h3 className="stat-value" style={{ fontSize: 18 }}>{s.value}</h3>
                     )}
-                    <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', margin: 0 }}>{s.sub}</p>
+                    <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: 0 }}>{s.sub}</p>
                   </div>
                 </div>
               </div>
@@ -381,9 +381,9 @@ const InstructorMasterclassReservations: React.FC = () => {
             </div>
             <div className="lx-card-body">
               {showAdd && data && (
-                <form onSubmit={submitManual} style={{ padding: 16, borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(37,211,102,0.25)', background: 'rgba(37,211,102,0.04)', marginBottom: 16 }}>
+                <form onSubmit={submitManual} style={{ padding: 16, borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(197, 145, 44,0.25)', background: 'rgba(197, 145, 44,0.04)', marginBottom: 16 }}>
                   <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                    <i className="fa-brands fa-whatsapp me-2" style={{ color: '#25D366' }} />
+                    <i className="fa-brands fa-whatsapp me-2" style={{ color: '#855A0E' }} />
                     {t('mcRes.add.title', 'Add a participant booked on WhatsApp')}
                   </div>
                   <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: '0 0 12px' }}>
@@ -411,7 +411,7 @@ const InstructorMasterclassReservations: React.FC = () => {
                       <input className="form-control form-control-sm" value={form.note} onChange={setField('note')} maxLength={500} placeholder={t('mcRes.add.notePh', 'e.g. paid by bank transfer on 12/11')} />
                     </div>
                   </div>
-                  {formError && <div style={{ color: '#8B2335', fontSize: 13, marginTop: 10 }}><i className="isax isax-warning-2 me-1" />{formError}</div>}
+                  {formError && <div style={{ color: '#651C32', fontSize: 13, marginTop: 10 }}><i className="isax isax-warning-2 me-1" />{formError}</div>}
                   <div className="d-flex gap-2 justify-content-end mt-3">
                     <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" onClick={() => { setShowAdd(false); setForm(emptyForm); setFormError(''); }} disabled={saving}>
                       {t('common.cancel', 'Cancel')}
@@ -423,7 +423,7 @@ const InstructorMasterclassReservations: React.FC = () => {
                 </form>
               )}
               {error && (
-                <div style={{ padding: '12px 16px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)', color: '#8B2335', fontSize: 14, marginBottom: 16 }}>
+                <div style={{ padding: '12px 16px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50,0.06)', border: '1px solid rgba(101, 28, 50,0.12)', color: '#651C32', fontSize: 14, marginBottom: 16 }}>
                   <i className="isax isax-warning-2 me-2" />{error}
                 </div>
               )}
@@ -453,7 +453,7 @@ const InstructorMasterclassReservations: React.FC = () => {
                           <td>
                             <div style={{ fontWeight: 600 }}>{p.fullName || '—'}</div>
                             {p.email && <a href={`mailto:${p.email}`} style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{p.email}</a>}
-                            {p.note && <div style={{ fontSize: 11, color: 'var(--lx-text-muted)', fontStyle: 'italic' }}>{p.note}</div>}
+                            {p.note && <div style={{ fontSize: 12, color: 'var(--lx-text-muted)', fontStyle: 'italic' }}>{p.note}</div>}
                           </td>
                           <td style={{ fontSize: 13 }}>
                             {p.phone ? <a href={`tel:${p.phone}`}>{p.phone}</a> : <span style={{ color: 'var(--lx-text-muted)' }}>—</span>}
@@ -461,7 +461,7 @@ const InstructorMasterclassReservations: React.FC = () => {
                           <td style={{ textAlign: 'right', fontWeight: 600 }}>{p.amount != null ? money(p.amount, p.currency) : '—'}</td>
                           <td>
                             {p.source === 'MANUAL' ? (
-                              <span className="lx-badge" style={{ background: 'rgba(37,211,102,0.12)', color: '#128C7E' }}>
+                              <span className="lx-badge" style={{ background: 'rgba(197, 145, 44,0.12)', color: '#855A0E' }}>
                                 <i className="fa-brands fa-whatsapp me-1" />{t('mcRes.manual', 'WhatsApp')}
                               </span>
                             ) : (

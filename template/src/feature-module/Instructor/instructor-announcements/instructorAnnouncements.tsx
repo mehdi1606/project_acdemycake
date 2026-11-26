@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { instructorService, Announcement } from '../../../services/api/instructor.service';
 import { useTranslation } from 'react-i18next';
 
@@ -8,7 +9,7 @@ type ModalState = 'none' | 'add' | 'view' | 'edit' | 'delete';
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)',
   fontSize: 14,
   outline: 'none',
@@ -157,7 +158,7 @@ const InstructorAnnouncements = () => {
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 1050,
-        background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+        background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
       }}
       onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
@@ -165,8 +166,8 @@ const InstructorAnnouncements = () => {
       <div style={{
         width: '100%', maxWidth,
         background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-        boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+        boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
       }}>
         {children}
       </div>
@@ -174,7 +175,7 @@ const InstructorAnnouncements = () => {
   );
 
   const ModalHeader = ({ title }: { title: string }) => (
-    <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>{title}</h5>
       <button onClick={closeModal} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
         <i className="isax isax-close-circle" />
@@ -200,8 +201,8 @@ const InstructorAnnouncements = () => {
       {error && (
         <div style={{
           padding: '12px 16px', marginBottom: 20, borderRadius: 'var(--lx-radius-sm)',
-          background: 'rgba(139, 35, 53, 0.06)', border: '1px solid rgba(139, 35, 53, 0.12)',
-          color: '#8B2335', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8,
+          background: 'rgba(101, 28, 50, 0.06)', border: '1px solid rgba(101, 28, 50, 0.12)',
+          color: '#651C32', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <i className="isax isax-warning-2" /> {error}
         </div>
@@ -213,65 +214,70 @@ const InstructorAnnouncements = () => {
           <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('common.loading', 'Loading...')}</p>
         </div>
       ) : announcements.length === 0 ? (
-        <div className="lx-empty-state">
-          <span className="empty-icon"><i className="isax isax-notification" style={{ fontSize: 28 }} /></span>
-          <p>{t('instructor.announcements.noAnnouncements', 'No announcements yet. Create your first one!')}</p>
+        <div className="lx-card">
+          <LxEmptyState
+            icon="isax-notification"
+            title={t('emptyStates.announcementsTitle', 'No announcements yet')}
+            text={t('instructor.announcements.noAnnouncements', 'No announcements yet. Create your first one!')}
+          />
         </div>
       ) : (
         <>
           <div className="lx-card">
             <div className="lx-card-body" style={{ padding: 0 }}>
-              <table className="lx-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 110 }}>{t('common.date', 'Date')}</th>
-                    <th>{t('instructor.announcements.title', 'Announcement')}</th>
-                    <th style={{ width: 110 }}>{t('common.status', 'Status')}</th>
-                    <th style={{ width: 120 }}>{t('common.actions', 'Action')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {announcements.map((ann) => (
-                    <tr key={ann.id}>
-                      <td style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{formatDate(ann.createdAt)}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => openView(ann)}
-                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
-                        >
-                          <p style={{ margin: 0, fontWeight: 500, fontSize: 14, color: 'var(--lx-text)' }}>
-                            {ann.title || '(No title)'}
-                          </p>
-                        </button>
-                        <p style={{ margin: '2px 0 0', color: 'var(--lx-text-muted)', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 420 }}>
-                          {ann.content}
-                        </p>
-                      </td>
-                      <td><span className="lx-badge badge-success">{t('common.published', 'Published')}</span></td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('common.view', 'View')} onClick={() => openView(ann)}>
-                            <i className="isax isax-eye" />
-                          </button>
-                          <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('common.edit', 'Edit')} onClick={() => openEdit(ann)}>
-                            <i className="isax isax-edit-2" />
-                          </button>
+              <div className="lx-table-scroll">
+                <table className="lx-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 110 }}>{t('common.date', 'Date')}</th>
+                      <th>{t('instructor.announcements.title', 'Announcement')}</th>
+                      <th style={{ width: 110 }}>{t('common.status', 'Status')}</th>
+                      <th style={{ width: 120 }}>{t('common.actions', 'Action')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {announcements.map((ann) => (
+                      <tr key={ann.id}>
+                        <td style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{formatDate(ann.createdAt)}</td>
+                        <td>
                           <button
                             type="button"
-                            className="lx-btn lx-btn-sm"
-                            title={t('common.delete', 'Delete')}
-                            onClick={() => openDelete(ann)}
-                            style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}
+                            onClick={() => openView(ann)}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
                           >
-                            <i className="isax isax-trash" />
+                            <p style={{ margin: 0, fontWeight: 500, fontSize: 14, color: 'var(--lx-text)' }}>
+                              {ann.title || '(No title)'}
+                            </p>
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <p style={{ margin: '2px 0 0', color: 'var(--lx-text-muted)', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 420 }}>
+                            {ann.content}
+                          </p>
+                        </td>
+                        <td><span className="lx-badge badge-success">{t('common.published', 'Published')}</span></td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('common.view', 'View')} onClick={() => openView(ann)}>
+                              <i className="isax isax-eye" />
+                            </button>
+                            <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('common.edit', 'Edit')} onClick={() => openEdit(ann)}>
+                              <i className="isax isax-edit-2" />
+                            </button>
+                            <button
+                              type="button"
+                              className="lx-btn lx-btn-sm"
+                              title={t('common.delete', 'Delete')}
+                              onClick={() => openDelete(ann)}
+                              style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1px solid rgba(101, 28, 50, 0.12)' }}
+                            >
+                              <i className="isax isax-trash" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
           {renderPagination()}
@@ -285,15 +291,15 @@ const InstructorAnnouncements = () => {
           <form onSubmit={handleAdd}>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={labelStyle}>{t('instructor.announcements.subject', 'Title')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.announcements.subject', 'Title')} <span style={{ color: '#651C32' }}>*</span></label>
                 <input type="text" style={inputStyle} placeholder={t('instructor.announcements.subject', 'Announcement title')} value={addTitle} onChange={(e) => setAddTitle(e.target.value)} required />
               </div>
               <div>
-                <label style={labelStyle}>{t('instructor.announcements.message', 'Content')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.announcements.message', 'Content')} <span style={{ color: '#651C32' }}>*</span></label>
                 <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={5} placeholder={t('instructor.announcements.message', 'Write your announcement here...')} value={addContent} onChange={(e) => setAddContent(e.target.value)} required />
               </div>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
               <button type="submit" className="lx-btn lx-btn-gold" disabled={addSubmitting || !addTitle.trim() || !addContent.trim()}>
                 {addSubmitting ? (
@@ -310,20 +316,20 @@ const InstructorAnnouncements = () => {
         <GlassModal>
           <ModalHeader title={t('instructor.announcements.title', 'Announcement Details')} />
           <div style={{ padding: 24 }}>
-            <div style={{ marginBottom: 20, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
+            <div style={{ marginBottom: 20, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(101, 28, 50, 0.02)', border: '1px solid rgba(101, 28, 50, 0.04)' }}>
               <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('instructor.announcements.subject', 'Title')}</p>
               <p style={{ margin: 0, fontWeight: 500, color: 'var(--lx-text)', fontSize: 15 }}>{selected.title || '(No title)'}</p>
             </div>
-            <div style={{ marginBottom: 20, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
+            <div style={{ marginBottom: 20, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(101, 28, 50, 0.02)', border: '1px solid rgba(101, 28, 50, 0.04)' }}>
               <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('instructor.announcements.message', 'Content')}</p>
               <p style={{ margin: 0, color: 'var(--lx-text)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{selected.content}</p>
             </div>
-            <div style={{ padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)' }}>
+            <div style={{ padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(101, 28, 50, 0.02)', border: '1px solid rgba(101, 28, 50, 0.04)' }}>
               <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('instructor.announcements.published', 'Published on')}</p>
               <p style={{ margin: 0, color: 'var(--lx-text)', fontSize: 14 }}>{formatDate(selected.createdAt)}</p>
             </div>
           </div>
-          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.close', 'Close')}</button>
             <button type="button" className="lx-btn lx-btn-gold" onClick={() => openEdit(selected)}>
               <i className="isax isax-edit-2" style={{ marginRight: 4 }} /> {t('common.edit', 'Edit')}
@@ -339,15 +345,15 @@ const InstructorAnnouncements = () => {
           <form onSubmit={handleEdit}>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={labelStyle}>{t('instructor.announcements.subject', 'Title')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.announcements.subject', 'Title')} <span style={{ color: '#651C32' }}>*</span></label>
                 <input type="text" style={inputStyle} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required />
               </div>
               <div>
-                <label style={labelStyle}>{t('instructor.announcements.message', 'Content')} <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>{t('instructor.announcements.message', 'Content')} <span style={{ color: '#651C32' }}>*</span></label>
                 <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={5} value={editContent} onChange={(e) => setEditContent(e.target.value)} required />
               </div>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.cancel', 'Cancel')}</button>
               <button type="submit" className="lx-btn lx-btn-gold" disabled={editSubmitting || !editTitle.trim() || !editContent.trim()}>
                 {editSubmitting ? (
@@ -365,9 +371,9 @@ const InstructorAnnouncements = () => {
           <div style={{ padding: '32px 24px', textAlign: 'center' }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
-              background: 'rgba(139, 35, 53, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(101, 28, 50, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
+              <i className="isax isax-trash" style={{ fontSize: 24, color: '#651C32' }} />
             </div>
             <h4 style={{ fontSize: 18, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 8 }}>{t('instructor.announcements.delete', 'Delete Announcement')}</h4>
             <p style={{ fontWeight: 500, color: 'var(--lx-text)', marginBottom: 4 }}>"{selected.title || '(No title)'}"</p>
@@ -379,12 +385,12 @@ const InstructorAnnouncements = () => {
               <button
                 type="button"
                 className="lx-btn"
-                style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
+                style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1.5px solid rgba(101, 28, 50, 0.15)' }}
                 onClick={handleDelete}
                 disabled={deleteSubmitting}
               >
                 {deleteSubmitting ? (
-                  <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #8B2335', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} />
+                  <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #651C32', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', display: 'inline-block' }} />
                 ) : 'Yes, Delete'}
               </button>
             </div>

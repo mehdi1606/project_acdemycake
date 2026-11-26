@@ -90,7 +90,7 @@ const StudentWishlist = () => {
           {totalElements > 0 && (
             <span style={{
               marginLeft: 10, padding: '2px 10px', borderRadius: 12,
-              background: 'rgba(107, 29, 42, 0.08)', color: 'var(--lx-primary)',
+              background: 'rgba(101, 28, 50, 0.08)', color: 'var(--lx-primary)',
               fontSize: 12, fontWeight: 600,
             }}>
               {totalElements}
@@ -101,7 +101,7 @@ const StudentWishlist = () => {
           <button
             type="button"
             className="lx-btn lx-btn-sm"
-            style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1px solid rgba(139, 35, 53, 0.12)' }}
+            style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1px solid rgba(101, 28, 50, 0.12)' }}
             onClick={() => setShowRemoveAllModal(true)}
           >
             <i className="isax isax-trash" style={{ marginRight: 4 }} />
@@ -114,8 +114,8 @@ const StudentWishlist = () => {
       {error && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', marginBottom: 20,
-          borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139, 35, 53, 0.06)',
-          border: '1px solid rgba(139, 35, 53, 0.12)', color: '#8B2335', fontSize: 14,
+          borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50, 0.06)',
+          border: '1px solid rgba(101, 28, 50, 0.12)', color: '#651C32', fontSize: 14,
         }}>
           <i className="isax isax-warning-2" />
           <span style={{ flex: 1 }}>{error}</span>
@@ -133,8 +133,8 @@ const StudentWishlist = () => {
       ) : courses.length === 0 ? (
         <div className="lx-card">
           <div className="lx-empty-state">
-            <span className="empty-icon" style={{ background: 'rgba(139, 35, 53, 0.06)' }}>
-              <i className="isax isax-heart" style={{ fontSize: 28, color: '#8B2335' }} />
+            <span className="empty-icon" style={{ background: 'rgba(101, 28, 50, 0.06)' }}>
+              <i className="isax isax-heart" style={{ fontSize: 28, color: '#651C32' }} />
             </span>
             <h6 style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{t('student.wishlist.empty', 'Your wishlist is empty')}</h6>
             <p>{t('student.wishlist.emptyDesc', 'Save courses you\'re interested in and come back to them later.')}</p>
@@ -152,10 +152,10 @@ const StudentWishlist = () => {
               style={{
                 borderRadius: 'var(--lx-radius)', overflow: 'hidden',
                 background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(107, 29, 42, 0.06)',
+                border: '1px solid rgba(101, 28, 50, 0.06)',
                 transition: 'all 0.2s ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(44, 24, 16, 0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(43, 15, 30, 0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               {/* Thumbnail */}
@@ -174,16 +174,16 @@ const StudentWishlist = () => {
                     position: 'absolute', top: 10, left: 10,
                     width: 32, height: 32, borderRadius: '50%',
                     background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(139, 35, 53, 0.1)',
+                    border: '1px solid rgba(101, 28, 50, 0.1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: '#8B2335', fontSize: 16,
+                    cursor: 'pointer', color: '#651C32', fontSize: 16,
                   }}
                   title={t('student.wishlist.remove', 'Remove from wishlist')}
                   disabled={removingId === course.id}
                   onClick={() => handleRemove(course.id)}
                 >
                   {removingId === course.id ? (
-                    <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #8B2335', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
+                    <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #651C32', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
                   ) : (
                     <i className="isax isax-heart5" />
                   )}
@@ -217,7 +217,7 @@ const StudentWishlist = () => {
 
                 {/* Rating */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
-                  <i className="fa-solid fa-star" style={{ fontSize: 12, color: '#C5973E' }} />
+                  <i className="fa-solid fa-star" style={{ fontSize: 12, color: '#C5912C' }} />
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>
                     {course.ratingAverage
                       ? `${Number(course.ratingAverage).toFixed(1)} (${course.ratingCount ?? 0})`
@@ -226,8 +226,8 @@ const StudentWishlist = () => {
                 </div>
 
                 {/* Footer */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid rgba(107, 29, 42, 0.06)' }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: !course.requiresPurchase ? '#2D5F3F' : 'var(--lx-primary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid rgba(101, 28, 50, 0.06)' }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: !course.requiresPurchase ? '#855A0E' : 'var(--lx-primary)' }}>
                     {formatPrice(course)}
                   </span>
                   <Link
@@ -236,7 +236,7 @@ const StudentWishlist = () => {
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                   >
                     {t('common.view', 'View Course')}
-                    <i className="fas fa-angle-right" style={{ fontSize: 10 }} />
+                    <i className="fas fa-angle-right" style={{ fontSize: 12 }} />
                   </Link>
                 </div>
               </div>
@@ -289,7 +289,7 @@ const StudentWishlist = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget && !removingAll) { setShowRemoveAllModal(false); } }}
@@ -297,14 +297,14 @@ const StudentWishlist = () => {
           <div style={{
             width: '100%', maxWidth: 420,
             background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)', padding: 32, textAlign: 'center',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)', padding: 32, textAlign: 'center',
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
-              background: 'rgba(139, 35, 53, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(101, 28, 50, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
+              <i className="isax isax-trash" style={{ fontSize: 24, color: '#651C32' }} />
             </div>
             <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.wishlist.removeAll', 'Remove All')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
@@ -322,7 +322,7 @@ const StudentWishlist = () => {
               <button
                 type="button"
                 className="lx-btn"
-                style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
+                style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1.5px solid rgba(101, 28, 50, 0.15)' }}
                 onClick={handleRemoveAll}
                 disabled={removingAll}
               >

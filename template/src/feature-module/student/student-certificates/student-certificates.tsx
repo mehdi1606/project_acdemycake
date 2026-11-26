@@ -6,9 +6,9 @@ import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import certificateService from '../../../services/api/certificate.service';
 import { Certificate } from '../../../services/api/types';
 
-const PINK_BG = '#FCE6E8';
-const CRIMSON = '#9D1C34';
-const CRIM_DK = '#781224';
+const PINK_BG = '#FBF6F6';
+const CRIMSON = '#651C32';
+const CRIM_DK = '#651C32';
 
 const StudentCertificates = () => {
   const { t, i18n } = useTranslation();
@@ -124,8 +124,8 @@ const StudentCertificates = () => {
       {error && (
         <div style={{
           padding: '10px 14px', borderRadius: 'var(--lx-radius-sm)',
-          background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)',
-          color: '#8B2335', fontSize: 13, marginBottom: 16,
+          background: 'rgba(101, 28, 50,0.06)', border: '1px solid rgba(101, 28, 50,0.12)',
+          color: '#651C32', fontSize: 13, marginBottom: 16,
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <i className="isax isax-warning-2" />{error}
@@ -203,7 +203,7 @@ const StudentCertificates = () => {
                       </td>
                       <td>
                         <code style={{
-                          fontSize: 12, background: 'rgba(107,29,42,0.04)',
+                          fontSize: 12, background: 'rgba(101, 28, 50,0.04)',
                           padding: '2px 8px', borderRadius: 4, color: 'var(--lx-text)',
                         }}>
                           {cert.certificateNumber}
@@ -251,7 +251,7 @@ const StudentCertificates = () => {
             onClick={() => { if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setSelected(null); }}
             style={{
               position: 'fixed', inset: 0,
-              background: 'rgba(20, 8, 12, 0.72)',
+              background: 'rgba(43, 15, 30, 0.72)',
               backdropFilter: 'blur(6px)',
               WebkitBackdropFilter: 'blur(6px)',
               zIndex: 1040,
@@ -270,7 +270,7 @@ const StudentCertificates = () => {
               maxWidth: 640,
               background: '#fff',
               borderRadius: 20,
-              boxShadow: '0 40px 100px rgba(20,8,12,0.35)',
+              boxShadow: '0 40px 100px rgba(43, 15, 30,0.35)',
               overflow: 'hidden',
               border: `1px solid ${CRIMSON}22`,
             }}>
@@ -330,7 +330,7 @@ const StudentCertificates = () => {
               }}>
                 <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                   <div>
-                    <p style={{ fontSize: 10, color: `${CRIMSON}88`, margin: 0, letterSpacing: '0.1em' }}>
+                    <p style={{ fontSize: 12, color: `${CRIMSON}88`, margin: 0, letterSpacing: '0.1em' }}>
                       {t('student.certificates.courseLabel', 'COURSE')}
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 600, color: CRIM_DK, margin: 0 }}>
@@ -338,7 +338,7 @@ const StudentCertificates = () => {
                     </p>
                   </div>
                   <div>
-                    <p style={{ fontSize: 10, color: `${CRIMSON}88`, margin: 0, letterSpacing: '0.1em' }}>
+                    <p style={{ fontSize: 12, color: `${CRIMSON}88`, margin: 0, letterSpacing: '0.1em' }}>
                       {t('student.certificates.issuedLabel', 'ISSUED')}
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 600, color: CRIM_DK, margin: 0 }}>

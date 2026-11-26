@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 /* ── Shared Styles ─────────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
   outline: 'none', background: 'rgba(255,255,255,0.6)',
   color: 'var(--lx-text)', transition: 'border-color 0.2s ease',
@@ -19,10 +19,10 @@ const labelStyle: React.CSSProperties = {
 
 const focusHandlers = {
   onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)';
+    e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)';
   },
   onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)';
+    e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)';
   },
 };
 
@@ -37,7 +37,7 @@ const GlassModal = ({
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 1050,
-        background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+        background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -45,8 +45,8 @@ const GlassModal = ({
       <div style={{
         width: '100%', maxWidth,
         background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-        boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+        boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         {children}
@@ -117,8 +117,8 @@ interface SavedCard {
 }
 
 const savedCards: SavedCard[] = [
-  { type: 'Credit Card', brand: 'Visa', last4: '1568', icon: 'fa-brands fa-cc-visa', color: '#1A1F71', isDefault: true },
-  { type: 'Debit Card', brand: 'Mastercard', last4: '1279', icon: 'fa-brands fa-cc-mastercard', color: '#EB001B', isDefault: false },
+  { type: 'Credit Card', brand: 'Visa', last4: '1568', icon: 'fa-brands fa-cc-visa', color: '#651C32', isDefault: true },
+  { type: 'Debit Card', brand: 'Mastercard', last4: '1279', icon: 'fa-brands fa-cc-mastercard', color: '#651C32', isDefault: false },
 ];
 
 /* ── Component ────────────────────────────────────────── */
@@ -152,7 +152,7 @@ const InstructorPlanSettings = () => {
           <div className="lx-card-body">
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+              paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
             }}>
               <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>Active Plan</h6>
               <button
@@ -167,7 +167,7 @@ const InstructorPlanSettings = () => {
 
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '20px 0', marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+              padding: '20px 0', marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
             }}>
               <div>
                 <h6 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>
@@ -201,7 +201,7 @@ const InstructorPlanSettings = () => {
           <div className="lx-card-body">
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+              paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
             }}>
               <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>Saved Cards</h6>
               <button
@@ -222,10 +222,10 @@ const InstructorPlanSettings = () => {
                   style={{
                     padding: 16, borderRadius: 'var(--lx-radius-sm)',
                     border: card.isDefault
-                      ? '1.5px solid rgba(45, 95, 63, 0.2)'
-                      : '1.5px solid rgba(107, 29, 42, 0.08)',
+                      ? '1.5px solid rgba(197, 145, 44, 0.2)'
+                      : '1.5px solid rgba(101, 28, 50, 0.08)',
                     background: card.isDefault
-                      ? 'rgba(45, 95, 63, 0.03)'
+                      ? 'rgba(197, 145, 44, 0.03)'
                       : 'rgba(255, 255, 255, 0.4)',
                     transition: 'all 0.2s ease',
                   }}
@@ -251,7 +251,7 @@ const InstructorPlanSettings = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {card.isDefault ? (
-                      <span className="lx-badge badge-success" style={{ fontSize: 11 }}>Default</span>
+                      <span className="lx-badge badge-success" style={{ fontSize: 12 }}>Default</span>
                     ) : (
                       <button
                         type="button"
@@ -284,7 +284,7 @@ const InstructorPlanSettings = () => {
                           background: 'none', border: 'none', padding: 4, cursor: 'pointer',
                           color: 'var(--lx-text-muted)', fontSize: 15, transition: 'color 0.15s',
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = '#8B2335'; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#651C32'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--lx-text-muted)'; }}
                       >
                         <i className="isax isax-trash" />
@@ -318,8 +318,8 @@ const InstructorPlanSettings = () => {
               <div style={{
                 position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 10,
                 background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)',
-                borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(107, 29, 42, 0.1)',
-                boxShadow: '0 8px 24px rgba(44, 24, 16, 0.1)', minWidth: 130, overflow: 'hidden',
+                borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(101, 28, 50, 0.1)',
+                boxShadow: '0 8px 24px rgba(43, 15, 30, 0.1)', minWidth: 130, overflow: 'hidden',
               }}>
                 {['All', 'Paid', 'Pending', 'Cancelled'].map((s) => (
                   <button
@@ -331,12 +331,12 @@ const InstructorPlanSettings = () => {
                       padding: '8px 14px', border: 'none', cursor: 'pointer',
                       fontSize: 13, fontWeight: statusFilter === s ? 600 : 400,
                       color: statusFilter === s ? 'var(--lx-primary)' : 'var(--lx-text)',
-                      background: statusFilter === s ? 'rgba(107, 29, 42, 0.04)' : 'transparent',
+                      background: statusFilter === s ? 'rgba(101, 28, 50, 0.04)' : 'transparent',
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107, 29, 42, 0.04)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101, 28, 50, 0.04)'; }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = statusFilter === s ? 'rgba(107, 29, 42, 0.04)' : 'transparent';
+                      e.currentTarget.style.background = statusFilter === s ? 'rgba(101, 28, 50, 0.04)' : 'transparent';
                     }}
                   >
                     {s}
@@ -401,17 +401,17 @@ const InstructorPlanSettings = () => {
                           type="button"
                           onClick={() => setShowInvoice(true)}
                           style={{
-                            background: 'rgba(107, 29, 42, 0.05)', border: 'none', borderRadius: 6,
+                            background: 'rgba(101, 28, 50, 0.05)', border: 'none', borderRadius: 6,
                             width: 30, height: 30, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--lx-text-muted)', fontSize: 15, transition: 'all 0.15s',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(107, 29, 42, 0.1)';
+                            e.currentTarget.style.background = 'rgba(101, 28, 50, 0.1)';
                             e.currentTarget.style.color = 'var(--lx-primary)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(107, 29, 42, 0.05)';
+                            e.currentTarget.style.background = 'rgba(101, 28, 50, 0.05)';
                             e.currentTarget.style.color = 'var(--lx-text-muted)';
                           }}
                         >
@@ -420,17 +420,17 @@ const InstructorPlanSettings = () => {
                         <button
                           type="button"
                           style={{
-                            background: 'rgba(107, 29, 42, 0.05)', border: 'none', borderRadius: 6,
+                            background: 'rgba(101, 28, 50, 0.05)', border: 'none', borderRadius: 6,
                             width: 30, height: 30, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--lx-text-muted)', fontSize: 15, transition: 'all 0.15s',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(107, 29, 42, 0.1)';
+                            e.currentTarget.style.background = 'rgba(101, 28, 50, 0.1)';
                             e.currentTarget.style.color = 'var(--lx-primary)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(107, 29, 42, 0.05)';
+                            e.currentTarget.style.background = 'rgba(101, 28, 50, 0.05)';
                             e.currentTarget.style.color = 'var(--lx-text-muted)';
                           }}
                         >
@@ -449,7 +449,7 @@ const InstructorPlanSettings = () => {
       {/* ══════════════════════════════════════════════════ */}
       {/* ── MODAL: Pricing Plan ── */}
       <GlassModal open={showPricing} onClose={() => setShowPricing(false)} maxWidth={920}>
-        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Pricing Plan</h5>
           <button type="button" onClick={() => setShowPricing(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--lx-text-muted)', padding: 4 }}>
             <i className="isax isax-close-circle" />
@@ -471,10 +471,10 @@ const InstructorPlanSettings = () => {
                 style={{
                   padding: 24, borderRadius: 'var(--lx-radius-sm)',
                   border: plan.highlight
-                    ? '2px solid rgba(107, 29, 42, 0.2)'
-                    : '1.5px solid rgba(107, 29, 42, 0.08)',
+                    ? '2px solid rgba(101, 28, 50, 0.2)'
+                    : '1.5px solid rgba(101, 28, 50, 0.08)',
                   background: plan.highlight
-                    ? 'rgba(107, 29, 42, 0.03)'
+                    ? 'rgba(101, 28, 50, 0.03)'
                     : 'rgba(255, 255, 255, 0.5)',
                   transition: 'all 0.2s ease',
                   display: 'flex', flexDirection: 'column',
@@ -496,15 +496,15 @@ const InstructorPlanSettings = () => {
                   {plan.description}
                 </p>
 
-                <div style={{ borderTop: '1px solid rgba(107, 29, 42, 0.06)', paddingTop: 16, marginBottom: 16, flex: 1 }}>
+                <div style={{ borderTop: '1px solid rgba(101, 28, 50, 0.06)', paddingTop: 16, marginBottom: 16, flex: 1 }}>
                   {plan.features.map((feat) => (
                     <div key={feat} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                       <div style={{
                         width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-                        background: 'rgba(45, 95, 63, 0.08)',
+                        background: 'rgba(197, 145, 44, 0.08)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        <i className="isax isax-tick-circle" style={{ fontSize: 11, color: '#2D5F3F' }} />
+                        <i className="isax isax-tick-circle" style={{ fontSize: 12, color: '#855A0E' }} />
                       </div>
                       <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>{feat}</span>
                     </div>
@@ -528,7 +528,7 @@ const InstructorPlanSettings = () => {
 
       {/* ── MODAL: View Invoice ── */}
       <GlassModal open={showInvoice} onClose={() => setShowInvoice(false)} maxWidth={720}>
-        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Invoice</h5>
           <button type="button" onClick={() => setShowInvoice(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--lx-text-muted)', padding: 4 }}>
             <i className="isax isax-close-circle" />
@@ -538,13 +538,13 @@ const InstructorPlanSettings = () => {
           {/* Header */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-            paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+            paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
             flexWrap: 'wrap', gap: 16,
           }}>
             <div>
               <div style={{
                 width: 48, height: 48, borderRadius: 'var(--lx-radius-sm)',
-                background: 'rgba(107, 29, 42, 0.06)',
+                background: 'rgba(101, 28, 50, 0.06)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10,
               }}>
                 <i className="isax isax-receipt-item" style={{ fontSize: 22, color: 'var(--lx-primary)' }} />
@@ -567,24 +567,24 @@ const InstructorPlanSettings = () => {
           {/* From / To */}
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 20,
-            paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+            paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
           }}>
             <div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--lx-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'block' }}>From</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'block' }}>From</span>
               <h6 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>Thomas Lawler</h6>
               <p style={{ margin: '0 0 2px', fontSize: 13, color: 'var(--lx-text-muted)' }}>2077 Chicago Avenue Orosi, CA 93647</p>
               <p style={{ margin: '0 0 2px', fontSize: 13, color: 'var(--lx-text-muted)' }}>thomaslawler@example.com</p>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)' }}>+1 987 654 3210</p>
             </div>
             <div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--lx-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'block' }}>To</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'block' }}>To</span>
               <h6 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--lx-text)' }}>Ronald Richard</h6>
               <p style={{ margin: '0 0 2px', fontSize: 13, color: 'var(--lx-text-muted)' }}>3103 Trainer Avenue Peoria, IL 61602</p>
               <p style={{ margin: '0 0 2px', fontSize: 13, color: 'var(--lx-text-muted)' }}>adre3@example.com</p>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--lx-text-muted)' }}>+1 987 471 6589</p>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--lx-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'block' }}>Status</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--lx-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'block' }}>Status</span>
               <span className="lx-badge badge-success">Completed</span>
             </div>
           </div>
@@ -616,7 +616,7 @@ const InstructorPlanSettings = () => {
           {/* Totals */}
           <div style={{
             display: 'flex', justifyContent: 'flex-end',
-            paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+            paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
           }}>
             <div style={{ width: 260 }}>
               {[
@@ -626,7 +626,7 @@ const InstructorPlanSettings = () => {
               ].map((row) => (
                 <div key={row.label} style={{
                   display: 'flex', justifyContent: 'space-between', padding: '6px 0',
-                  borderBottom: '1px solid rgba(107, 29, 42, 0.04)',
+                  borderBottom: '1px solid rgba(101, 28, 50, 0.04)',
                 }}>
                   <span style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{row.label}</span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lx-text)' }}>{row.value}</span>
@@ -664,7 +664,7 @@ const InstructorPlanSettings = () => {
 
       {/* ── MODAL: Add New Card ── */}
       <GlassModal open={showAddCard} onClose={() => setShowAddCard(false)} maxWidth={480}>
-        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Add New Card</h5>
           <button type="button" onClick={() => setShowAddCard(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--lx-text-muted)', padding: 4 }}>
             <i className="isax isax-close-circle" />
@@ -673,7 +673,7 @@ const InstructorPlanSettings = () => {
         <form>
           <div style={{ padding: '20px 28px' }}>
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Payment Method <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>Payment Method <span style={{ color: '#651C32' }}>*</span></label>
               <select style={inputStyle}>
                 <option value="">Select</option>
                 <option value="credit">Credit Card</option>
@@ -683,26 +683,26 @@ const InstructorPlanSettings = () => {
               </select>
             </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Card Number <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>Card Number <span style={{ color: '#651C32' }}>*</span></label>
               <input type="text" style={inputStyle} placeholder="0000 0000 0000 0000" {...focusHandlers} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
-                <label style={labelStyle}>Expiration Date <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>Expiration Date <span style={{ color: '#651C32' }}>*</span></label>
                 <input type="text" style={inputStyle} placeholder="MM/YY" {...focusHandlers} />
               </div>
               <div>
-                <label style={labelStyle}>CVV <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>CVV <span style={{ color: '#651C32' }}>*</span></label>
                 <input type="text" style={inputStyle} placeholder="***" {...focusHandlers} />
               </div>
             </div>
             <div style={{ marginBottom: 4 }}>
-              <label style={labelStyle}>Name on Card <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>Name on Card <span style={{ color: '#651C32' }}>*</span></label>
               <input type="text" style={inputStyle} placeholder="Cardholder name" {...focusHandlers} />
             </div>
           </div>
           <div style={{
-            padding: '16px 28px', borderTop: '1px solid rgba(107, 29, 42, 0.06)',
+            padding: '16px 28px', borderTop: '1px solid rgba(101, 28, 50, 0.06)',
             display: 'flex', justifyContent: 'flex-end', gap: 10,
           }}>
             <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowAddCard(false)}>
@@ -717,7 +717,7 @@ const InstructorPlanSettings = () => {
 
       {/* ── MODAL: Edit Card ── */}
       <GlassModal open={showEditCard} onClose={() => setShowEditCard(false)} maxWidth={480}>
-        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Edit Card</h5>
           <button type="button" onClick={() => setShowEditCard(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--lx-text-muted)', padding: 4 }}>
             <i className="isax isax-close-circle" />
@@ -726,7 +726,7 @@ const InstructorPlanSettings = () => {
         <form>
           <div style={{ padding: '20px 28px' }}>
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Payment Method <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>Payment Method <span style={{ color: '#651C32' }}>*</span></label>
               <select style={inputStyle} defaultValue="credit">
                 <option value="credit">Credit Card</option>
                 <option value="debit">Debit Card</option>
@@ -735,26 +735,26 @@ const InstructorPlanSettings = () => {
               </select>
             </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Card Number <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>Card Number <span style={{ color: '#651C32' }}>*</span></label>
               <input type="text" style={inputStyle} defaultValue="9834 7923 4098 1568" {...focusHandlers} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
-                <label style={labelStyle}>Expiration Date <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>Expiration Date <span style={{ color: '#651C32' }}>*</span></label>
                 <input type="text" style={inputStyle} placeholder="MM/YY" {...focusHandlers} />
               </div>
               <div>
-                <label style={labelStyle}>CVV <span style={{ color: '#8B2335' }}>*</span></label>
+                <label style={labelStyle}>CVV <span style={{ color: '#651C32' }}>*</span></label>
                 <input type="text" style={inputStyle} defaultValue="725" {...focusHandlers} />
               </div>
             </div>
             <div style={{ marginBottom: 4 }}>
-              <label style={labelStyle}>Name on Card <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>Name on Card <span style={{ color: '#651C32' }}>*</span></label>
               <input type="text" style={inputStyle} defaultValue="Eugene Andre" {...focusHandlers} />
             </div>
           </div>
           <div style={{
-            padding: '16px 28px', borderTop: '1px solid rgba(107, 29, 42, 0.06)',
+            padding: '16px 28px', borderTop: '1px solid rgba(101, 28, 50, 0.06)',
             display: 'flex', justifyContent: 'flex-end', gap: 10,
           }}>
             <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowEditCard(false)}>
@@ -772,10 +772,10 @@ const InstructorPlanSettings = () => {
         <div style={{ padding: 32, textAlign: 'center' }}>
           <div style={{
             width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
-            background: 'rgba(139, 35, 53, 0.08)',
+            background: 'rgba(101, 28, 50, 0.08)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
+            <i className="isax isax-trash" style={{ fontSize: 24, color: '#651C32' }} />
           </div>
           <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>Delete Card?</h5>
           <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
@@ -789,8 +789,8 @@ const InstructorPlanSettings = () => {
               type="button"
               className="lx-btn"
               style={{
-                background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335',
-                border: '1.5px solid rgba(139, 35, 53, 0.15)',
+                background: 'rgba(101, 28, 50, 0.08)', color: '#651C32',
+                border: '1.5px solid rgba(101, 28, 50, 0.15)',
               }}
               onClick={() => setShowDeleteCard(false)}
             >

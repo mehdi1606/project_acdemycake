@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { adminService } from '../../../services/api/admin.service';
 import { extractApiError } from '../../../services/api/error.utils';
 
@@ -96,11 +97,13 @@ const AdminSubscriptions: React.FC = () => {
         )}
 
         {/* Filters */}
-        <div className="d-flex gap-2 flex-wrap mb-3">
+        <div className="lx-seg mb-3" role="group">
           {['', 'ACTIVE', 'PAST_DUE', 'CANCELLED', 'EXPIRED'].map((s) => (
             <button
               key={s}
-              className={`btn btn-sm ${statusFilter === s ? 'btn-dark' : 'btn-outline-secondary'}`}
+              type="button"
+              aria-pressed={statusFilter === s}
+              className={`lx-seg-btn${statusFilter === s ? ' is-active' : ''}`}
               onClick={() => handleStatus(s)}
             >
               {s ? subStatusLabel(s) : t('common.all', 'All')}
@@ -132,7 +135,14 @@ const AdminSubscriptions: React.FC = () => {
                     </tr>
                   ) : rows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-5 text-muted">{t('admin.subscriptions.noSubscriptions', 'No subscriptions found.')}</td>
+                      <td colSpan={6}>
+                        <LxEmptyState
+                          compact
+                          icon="isax-crown"
+                          title={t('admin.subscriptions.noSubscriptions', 'No subscriptions found.')}
+                          text={t('emptyStates.subscriptionsText', 'Members who subscribe to a plan will be listed here.')}
+                        />
+                      </td>
                     </tr>
                   ) : (
                     rows.map((r) => (

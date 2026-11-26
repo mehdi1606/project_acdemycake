@@ -4842,5 +4842,31 @@
     "downloading": "Preparing your invoice…",
     "notAvailable": "The invoice for this payment is not available yet. Please try again in a few minutes.",
     "downloadError": "We couldn't download the invoice. Please try again."
+  },
+  "emptyStates": {
+    "addModule": "Add Module",
+    "announcementsTitle": "No announcements yet",
+    "attachmentsTitle": "No files attached",
+    "challengeText": "Cakes in this status will appear here. Try another tab or refresh.",
+    "chartTitle": "Nothing to chart yet",
+    "chatPickText": "Select a conversation to start chatting.",
+    "chatPickTitle": "Choose a conversation",
+    "chatSearchText": "Try another name or clear the search.",
+    "chatSearchTitle": "No matching conversations",
+    "chatText": "Your conversations with students and instructors will appear here.",
+    "chatTitle": "No conversations yet",
+    "communityText": "Start the conversation: share a question, a tip or a photo of your latest cake.",
+    "instructorsText": "Instructors will appear here once they join the academy.",
+    "lessonsTitle": "No lessons in this module",
+    "messagesText": "Say hello! Your first message starts the conversation.",
+    "messagesTitle": "No messages yet",
+    "reportText": "Figures appear here as soon as there is activity in this period.",
+    "searchText": "Try another name or clear the search.",
+    "studentCoursesTitle": "No courses yet",
+    "studentsSearchTitle": "No matching students",
+    "studentsTitle": "No students yet",
+    "subscriptionsText": "Members who subscribe to a plan will be listed here.",
+    "ticketThreadText": "Replies on this ticket will appear here.",
+    "votesText": "Votes for this cake will be listed here as they come in."
   }
 }

@@ -9,7 +9,7 @@ import { InstructorDashboard as InstructorDashboardType } from '../../../service
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)',
   fontSize: 14,
   outline: 'none',
@@ -44,10 +44,10 @@ const InstructorPayout = () => {
       {/* Info Banner */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', marginBottom: 24,
-        borderRadius: 'var(--lx-radius-sm)', background: 'rgba(197, 151, 62, 0.08)',
-        border: '1px solid rgba(197, 151, 62, 0.15)',
+        borderRadius: 'var(--lx-radius-sm)', background: 'rgba(197, 145, 44, 0.08)',
+        border: '1px solid rgba(197, 145, 44, 0.15)',
       }}>
-        <i className="isax isax-information" style={{ color: '#C5973E', flexShrink: 0 }} />
+        <i className="isax isax-information" style={{ color: '#C5912C', flexShrink: 0 }} />
         <span style={{ fontSize: 13, color: 'var(--lx-text-mid)', flex: 1 }}>
           Set up your payout method to receive earnings directly to your account.
         </span>
@@ -64,7 +64,7 @@ const InstructorPayout = () => {
             {/* Earnings Card */}
             <div style={{
               padding: 24, borderRadius: 'var(--lx-radius-lg)',
-              background: 'linear-gradient(135deg, var(--lx-primary) 0%, #4E1420 100%)',
+              background: 'linear-gradient(135deg, var(--lx-primary) 0%, #4A1428 100%)',
               color: '#fff', display: 'flex', alignItems: 'center', gap: 20,
             }}>
               <div style={{
@@ -101,14 +101,14 @@ const InstructorPayout = () => {
                     onClick={() => setPaymentMethod(m.key)}
                     style={{
                       padding: '14px 16px', borderRadius: 'var(--lx-radius)',
-                      background: paymentMethod === m.key ? 'rgba(107, 29, 42, 0.06)' : 'rgba(255,255,255,0.6)',
-                      border: paymentMethod === m.key ? '2px solid var(--lx-primary)' : '1.5px solid rgba(107, 29, 42, 0.1)',
+                      background: paymentMethod === m.key ? 'rgba(101, 28, 50, 0.06)' : 'rgba(255,255,255,0.6)',
+                      border: paymentMethod === m.key ? '2px solid var(--lx-primary)' : '1.5px solid rgba(101, 28, 50, 0.1)',
                       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
                     }}
                   >
                     <div style={{
                       width: 16, height: 16, borderRadius: '50%',
-                      border: paymentMethod === m.key ? '5px solid var(--lx-primary)' : '2px solid rgba(107, 29, 42, 0.2)',
+                      border: paymentMethod === m.key ? '5px solid var(--lx-primary)' : '2px solid rgba(101, 28, 50, 0.2)',
                       flexShrink: 0,
                     }} />
                     <i className={`isax ${m.icon}`} style={{ fontSize: 18, color: 'var(--lx-text-mid)' }} />
@@ -136,18 +136,18 @@ const InstructorPayout = () => {
           {/* Withdraw Modal */}
           {showWithdraw && (
             <div
-              style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+              style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
               onClick={(e) => { if (e.target === e.currentTarget) setShowWithdraw(false); }}
             >
-              <div style={{ width: '100%', maxWidth: 460, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)', boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)' }}>
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ width: '100%', maxWidth: 460, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)', boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)' }}>
+                <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>Withdrawal Request</h5>
                   <button onClick={() => setShowWithdraw(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--lx-text-muted)' }}>
                     <i className="isax isax-close-circle" />
                   </button>
                 </div>
                 <div style={{ padding: 24 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)', marginBottom: 20 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: 16, borderRadius: 'var(--lx-radius)', background: 'rgba(101, 28, 50, 0.02)', border: '1px solid rgba(101, 28, 50, 0.04)', marginBottom: 20 }}>
                     <div>
                       <p style={{ margin: '0 0 4px', fontSize: 12, color: 'var(--lx-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Withdrawal Balance</p>
                       <h6 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
@@ -161,7 +161,7 @@ const InstructorPayout = () => {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 6 }}>
-                      Amount <span style={{ color: '#8B2335' }}>*</span>
+                      Amount <span style={{ color: '#651C32' }}>*</span>
                     </label>
                     <input type="text" style={inputStyle} defaultValue="MAD " />
                     <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--lx-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -169,7 +169,7 @@ const InstructorPayout = () => {
                     </p>
                   </div>
                 </div>
-                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
                   <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowWithdraw(false)}>Cancel</button>
                   <button type="button" className="lx-btn lx-btn-gold">Submit</button>
                 </div>

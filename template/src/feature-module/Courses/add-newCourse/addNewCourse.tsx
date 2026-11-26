@@ -749,7 +749,7 @@ const AddNewCourse = () => {
           <div className="lx-card-body text-center py-5">
             {loadingEdit ? <Spin /> : (
               <>
-                <p style={{ color: '#8B2335', marginBottom: 12 }}>{editError}</p>
+                <p style={{ color: '#651C32', marginBottom: 12 }}>{editError}</p>
                 <Link to={route.instructorCourse} className="lx-btn lx-btn-outline lx-btn-sm">
                   {t('addCourse.edit.back', 'Back to my courses')}
                 </Link>
@@ -997,41 +997,24 @@ const AddNewCourse = () => {
                                 {/* Plan card */}
                                 <div className="col-md-6">
                                   <div
+                                    role="radio"
+                                    aria-checked={formData.courseType === 'PLAN'}
+                                    tabIndex={0}
                                     onClick={() => handleInputChange('courseType', 'PLAN')}
-                                    style={{
-                                      border: `2px solid ${formData.courseType === 'PLAN' ? '#651C32' : 'rgba(101,28,50,0.15)'}`,
-                                      borderRadius: 12,
-                                      padding: '20px 22px',
-                                      cursor: 'pointer',
-                                      background: formData.courseType === 'PLAN' ? 'rgba(101,28,50,0.04)' : '#fff',
-                                      transition: 'all 0.2s ease',
-                                      position: 'relative',
-                                    }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleInputChange('courseType', 'PLAN'); } }}
+                                    className={`lx-choice h-100${formData.courseType === 'PLAN' ? ' is-selected' : ''}`}
                                   >
                                     {formData.courseType === 'PLAN' && (
-                                      <span style={{
-                                        position: 'absolute', top: 12, right: 14,
-                                        width: 20, height: 20, borderRadius: '50%',
-                                        background: '#651C32',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                      }}>
-                                        <i className="fa-solid fa-check" style={{ fontSize: 10, color: '#fff' }} />
-                                      </span>
+                                      <span className="lx-choice-check" aria-hidden="true"><i className="fa-solid fa-check" /></span>
                                     )}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                                      <span style={{
-                                        width: 44, height: 44, borderRadius: 10,
-                                        background: 'rgba(101,28,50,0.08)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                                      }}>
-                                        <i className="isax isax-book-1" style={{ fontSize: 22, color: '#651C32' }} />
-                                      </span>
+                                    <div className="lx-choice-head">
+                                      <span className="lx-choice-icon"><i className="isax isax-book-1" /></span>
                                       <div>
-                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#651C32', fontSize: 15 }}>{t('addCourse.step1.planCourseTitle')}</h6>
-                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>{t('addCourse.step1.planCourseSubtitle')}</span>
+                                        <h6 className="lx-choice-title">{t('addCourse.step1.planCourseTitle')}</h6>
+                                        <span className="lx-choice-sub">{t('addCourse.step1.planCourseSubtitle')}</span>
                                       </div>
                                     </div>
-                                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
+                                    <ul className="lx-choice-list">
                                       <li>{t('addCourse.step1.planBullet1')}</li>
                                       <li>{t('addCourse.step1.planBullet2')}</li>
                                       <li>{t('addCourse.step1.planBullet3')}</li>
@@ -1041,41 +1024,24 @@ const AddNewCourse = () => {
                                 {/* Masterclass card */}
                                 <div className="col-md-6">
                                   <div
+                                    role="radio"
+                                    aria-checked={formData.courseType === 'MASTERCLASS'}
+                                    tabIndex={0}
                                     onClick={() => handleInputChange('courseType', 'MASTERCLASS')}
-                                    style={{
-                                      border: `2px solid ${formData.courseType === 'MASTERCLASS' ? '#C5912C' : 'rgba(197,145,44,0.2)'}`,
-                                      borderRadius: 12,
-                                      padding: '20px 22px',
-                                      cursor: 'pointer',
-                                      background: formData.courseType === 'MASTERCLASS' ? 'rgba(197,145,44,0.04)' : '#fff',
-                                      transition: 'all 0.2s ease',
-                                      position: 'relative',
-                                    }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleInputChange('courseType', 'MASTERCLASS'); } }}
+                                    className={`lx-choice h-100${formData.courseType === 'MASTERCLASS' ? ' is-selected' : ''}`}
                                   >
                                     {formData.courseType === 'MASTERCLASS' && (
-                                      <span style={{
-                                        position: 'absolute', top: 12, right: 14,
-                                        width: 20, height: 20, borderRadius: '50%',
-                                        background: '#C5912C',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                      }}>
-                                        <i className="fa-solid fa-check" style={{ fontSize: 10, color: '#fff' }} />
-                                      </span>
+                                      <span className="lx-choice-check" aria-hidden="true"><i className="fa-solid fa-check" /></span>
                                     )}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                                      <span style={{
-                                        width: 44, height: 44, borderRadius: 10,
-                                        background: 'rgba(197,145,44,0.1)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                                      }}>
-                                        <i className="isax isax-crown" style={{ fontSize: 22, color: '#C5912C' }} />
-                                      </span>
+                                    <div className="lx-choice-head">
+                                      <span className="lx-choice-icon"><i className="isax isax-crown" /></span>
                                       <div>
-                                        <h6 style={{ margin: 0, fontWeight: 700, color: '#9A6F1A', fontSize: 15 }}>{t('addCourse.step1.masterclassTitle')}</h6>
-                                        <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>{t('addCourse.step1.masterclassSubtitle')}</span>
+                                        <h6 className="lx-choice-title">{t('addCourse.step1.masterclassTitle')}</h6>
+                                        <span className="lx-choice-sub">{t('addCourse.step1.masterclassSubtitle')}</span>
                                       </div>
                                     </div>
-                                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
+                                    <ul className="lx-choice-list">
                                       <li>{t('addCourse.step1.masterclassBullet1')}</li>
                                       <li>{t('addCourse.step1.masterclassBullet2')}</li>
                                       <li>{t('addCourse.step1.masterclassBullet3')}</li>
@@ -1100,12 +1066,7 @@ const AddNewCourse = () => {
                                     {[
                                       {
                                         value: 'RECORDED',
-                                        icon: 'isax isax-video-play',
-                                        accent: '#C5912C',
-                                        titleColor: '#9A6F1A',
-                                        tint: 'rgba(197,145,44,0.1)',
-                                        idleBorder: 'rgba(197,145,44,0.2)',
-                                        selectedBg: 'rgba(197,145,44,0.04)',
+                                        icon: 'isax isax-video-play',
                                         title: t('addCourse.step1.recordedTitle', 'Recorded course'),
                                         sub: t('addCourse.step1.recordedSubtitle', 'Students pay online and watch the lessons'),
                                         bullets: [
@@ -1115,12 +1076,7 @@ const AddNewCourse = () => {
                                       },
                                       {
                                         value: 'LIVE',
-                                        icon: 'fa-brands fa-whatsapp',
-                                        accent: '#1DA851',
-                                        titleColor: '#146C35',
-                                        tint: 'rgba(37,211,102,0.12)',
-                                        idleBorder: 'rgba(37,211,102,0.3)',
-                                        selectedBg: 'rgba(37,211,102,0.05)',
+                                        icon: 'fa-brands fa-whatsapp',
                                         title: t('addCourse.step1.liveTitleV2', 'Live — in-person session'),
                                         sub: t('addCourse.step1.liveSubtitleV2', 'A dated session with limited places'),
                                         bullets: [
@@ -1133,43 +1089,24 @@ const AddNewCourse = () => {
                                       return (
                                         <div className="col-md-6" key={opt.value}>
                                           <div
+                                            role="radio"
+                                            aria-checked={active}
+                                            tabIndex={0}
                                             onClick={() => handleInputChange('masterclassFormat', opt.value)}
-                                            style={{
-                                              // Same box as the Plan / Masterclass cards above.
-                                              border: `2px solid ${active ? opt.accent : opt.idleBorder}`,
-                                              borderRadius: 12,
-                                              padding: '20px 22px',
-                                              cursor: 'pointer',
-                                              background: active ? opt.selectedBg : '#fff',
-                                              transition: 'all 0.2s ease',
-                                              position: 'relative',
-                                              height: '100%',
-                                            }}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleInputChange('masterclassFormat', opt.value); } }}
+                                            className={`lx-choice h-100${active ? ' is-selected' : ''}`}
                                           >
                                             {active && (
-                                              <span style={{
-                                                position: 'absolute', top: 12, right: 14,
-                                                width: 20, height: 20, borderRadius: '50%',
-                                                background: opt.accent,
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                              }}>
-                                                <i className="fa-solid fa-check" style={{ fontSize: 10, color: '#fff' }} />
-                                              </span>
+                                              <span className="lx-choice-check" aria-hidden="true"><i className="fa-solid fa-check" /></span>
                                             )}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                                              <span style={{
-                                                width: 44, height: 44, borderRadius: 10,
-                                                background: opt.tint,
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                                              }}>
-                                                <i className={opt.icon} style={{ fontSize: 22, color: opt.accent }} />
-                                              </span>
+                                            <div className="lx-choice-head">
+                                              <span className="lx-choice-icon"><i className={opt.icon} /></span>
                                               <div>
-                                                <h6 style={{ margin: 0, fontWeight: 700, color: opt.titleColor, fontSize: 15 }}>{opt.title}</h6>
-                                                <span style={{ fontSize: 12, color: 'rgba(58,30,32,0.55)', fontWeight: 400 }}>{opt.sub}</span>
+                                                <h6 className="lx-choice-title">{opt.title}</h6>
+                                                <span className="lx-choice-sub">{opt.sub}</span>
                                               </div>
                                             </div>
-                                            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'rgba(58,30,32,0.65)', lineHeight: 1.8 }}>
+                                            <ul className="lx-choice-list">
                                               {opt.bullets.map((b, i) => <li key={i}>{b}</li>)}
                                             </ul>
                                           </div>
@@ -1840,9 +1777,9 @@ const AddNewCourse = () => {
                           {/* Course type context banner */}
                           {skipCurriculum ? (
                             <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
-                              style={{ background: 'rgba(37,211,102,0.07)', border: '1px solid rgba(37,211,102,0.25)' }}>
-                              <i className="fa-brands fa-whatsapp" style={{ fontSize: 18, color: '#1da851' }} />
-                              <span style={{ fontSize: 13, color: '#146c35', fontWeight: 500 }}>
+                              style={{ background: 'rgba(197, 145, 44,0.07)', border: '1px solid rgba(197, 145, 44,0.25)' }}>
+                              <i className="fa-brands fa-whatsapp" style={{ fontSize: 18, color: '#855A0E' }} />
+                              <span style={{ fontSize: 13, color: '#855A0E', fontWeight: 500 }}>
                                 {t('addCourse.step5.liveBannerV2',
                                    'Live masterclass — set the session details, capacity and price. Students can reserve on WhatsApp or pay online by card; only confirmed card payments take a place.')}
                               </span>
@@ -1851,15 +1788,15 @@ const AddNewCourse = () => {
                             <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
                               style={{ background: 'rgba(197,145,44,0.07)', border: '1px solid rgba(197,145,44,0.2)' }}>
                               <i className="isax isax-crown" style={{ fontSize: 18, color: '#C5912C' }} />
-                              <span style={{ fontSize: 13, color: '#7A5A0A', fontWeight: 500 }}>
+                              <span style={{ fontSize: 13, color: '#855A0E', fontWeight: 500 }}>
                                 {t('addCourse.step5.masterclassBanner')}
                               </span>
                             </div>
                           ) : formData.courseType === 'PLAN' ? (
                             <div className="d-flex align-items-center gap-2 mt-2 p-3 rounded-3"
-                              style={{ background: 'rgba(45,95,63,0.06)', border: '1px solid rgba(45,95,63,0.18)' }}>
-                              <i className="isax isax-tick-circle" style={{ fontSize: 18, color: '#2D5F3F' }} />
-                              <span style={{ fontSize: 13, color: '#2D5F3F', fontWeight: 500 }}>
+                              style={{ background: 'rgba(197, 145, 44,0.06)', border: '1px solid rgba(197, 145, 44,0.18)' }}>
+                              <i className="isax isax-tick-circle" style={{ fontSize: 18, color: '#855A0E' }} />
+                              <span style={{ fontSize: 13, color: '#855A0E', fontWeight: 500 }}>
                                 {t('addCourse.step5.planBanner')}
                               </span>
                             </div>
@@ -1876,8 +1813,8 @@ const AddNewCourse = () => {
                             return (
                               <div className="row g-3 mb-2">
                                 <div className="col-12">
-                                  <h6 className="mb-0" style={{ fontWeight: 700, color: '#4E1420' }}>
-                                    <i className="isax isax-calendar-1 me-2" style={{ color: '#1da851' }} />
+                                  <h6 className="mb-0" style={{ fontWeight: 700, color: '#4A1428' }}>
+                                    <i className="isax isax-calendar-1 me-2" style={{ color: '#855A0E' }} />
                                     {t('addCourse.live.sessionTitle', 'Session')}
                                   </h6>
                                 </div>
@@ -1934,8 +1871,8 @@ const AddNewCourse = () => {
                                 </div>
 
                                 <div className="col-12 mt-4">
-                                  <h6 className="mb-0" style={{ fontWeight: 700, color: '#4E1420' }}>
-                                    <i className="isax isax-people me-2" style={{ color: '#1da851' }} />
+                                  <h6 className="mb-0" style={{ fontWeight: 700, color: '#4A1428' }}>
+                                    <i className="isax isax-people me-2" style={{ color: '#855A0E' }} />
                                     {t('addCourse.live.capacityTitle', 'Capacity & price')}
                                   </h6>
                                 </div>
@@ -1971,7 +1908,7 @@ const AddNewCourse = () => {
                                 </div>
                                 {Number.isInteger(seats) && seats >= 1 && formData.price.trim() !== '' && !isNaN(price) && price >= 0 && (
                                   <div className="col-12">
-                                    <div className="p-3 rounded-3" style={{ background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)', fontSize: 13, color: '#146c35' }}>
+                                    <div className="p-3 rounded-3" style={{ background: 'rgba(197, 145, 44,0.06)', border: '1px solid rgba(197, 145, 44,0.2)', fontSize: 13, color: '#855A0E' }}>
                                       <i className="isax isax-info-circle me-2" />
                                       {price > 0
                                         ? t('addCourse.live.summaryPaid', '{{seats}} places at {{price}} MAD. Available places start at {{seats}} and decrease only when a card payment is confirmed (max. revenue {{total}} MAD).',

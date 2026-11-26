@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../router/all_routes';
 import { instructorService, InstructorStudentInfo } from '../../../services/api/instructor.service';
@@ -163,16 +164,18 @@ const StudentGrid: React.FC = () => {
           <p className="mt-2 text-muted">{t('instructor.students.loading', 'Loading students...')}</p>
         </div>
       ) : students.length === 0 ? (
-        <div className="text-center py-5">
-          <i className="isax isax-people fs-1 text-muted" />
-          <p className="mt-2 text-muted">
-            {search ? t('instructor.students.noSearchResults', 'No students found matching "{{search}}"', { search }) : t('instructor.students.noStudents', 'No students enrolled in your courses yet.')}
-          </p>
-          {!search && (
-            <Link to={all_routes.instructorCourse} className="btn btn-sm btn-outline-primary">
-              {t('instructor.students.checkCourses', 'Check that your courses are published')}
-            </Link>
-          )}
+        <div className="lx-card">
+          <LxEmptyState
+            icon="isax-people"
+            title={search ? t('emptyStates.studentsSearchTitle', 'No matching students') : t('emptyStates.studentsTitle', 'No students yet')}
+            text={search ? t('instructor.students.noSearchResults', 'No students found matching "{{search}}"', { search }) : t('instructor.students.noStudents', 'No students enrolled in your courses yet.')}
+          >
+            {!search && (
+              <Link to={all_routes.instructorCourse} className="lx-btn lx-btn-outline lx-btn-sm">
+                {t('instructor.students.checkCourses', 'Check that your courses are published')}
+              </Link>
+            )}
+          </LxEmptyState>
         </div>
       ) : (
         <>

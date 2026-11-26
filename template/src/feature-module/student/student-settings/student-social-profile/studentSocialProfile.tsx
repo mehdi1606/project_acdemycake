@@ -9,16 +9,16 @@ import profileService from '../../../../services/api/profile.service';
 import { extractApiError } from '../../../../services/api/error.utils';
 
 const socialFields = [
-  { key: 'twitter',   label: 'Twitter',   placeholder: 'https://www.twitter.com/yourprofile',   icon: 'fa-brands fa-x-twitter',    color: '#1DA1F2' },
-  { key: 'facebook',  label: 'Facebook',  placeholder: 'https://www.facebook.com/yourprofile',  icon: 'fa-brands fa-facebook-f',   color: '#1877F2' },
-  { key: 'instagram', label: 'Instagram', placeholder: 'https://www.instagram.com/yourprofile', icon: 'fa-brands fa-instagram',    color: '#E4405F' },
-  { key: 'linkedin',  label: 'LinkedIn',  placeholder: 'https://www.linkedin.com/in/yourprofile', icon: 'fa-brands fa-linkedin-in', color: '#0A66C2' },
-  { key: 'youtube',   label: 'YouTube',   placeholder: 'https://www.youtube.com/@yourchannel',  icon: 'fa-brands fa-youtube',      color: '#FF0000' },
+  { key: 'twitter',   label: 'Twitter',   placeholder: 'https://www.twitter.com/yourprofile',   icon: 'fa-brands fa-x-twitter',    color: '#651C32' },
+  { key: 'facebook',  label: 'Facebook',  placeholder: 'https://www.facebook.com/yourprofile',  icon: 'fa-brands fa-facebook-f',   color: '#651C32' },
+  { key: 'instagram', label: 'Instagram', placeholder: 'https://www.instagram.com/yourprofile', icon: 'fa-brands fa-instagram',    color: '#651C32' },
+  { key: 'linkedin',  label: 'LinkedIn',  placeholder: 'https://www.linkedin.com/in/yourprofile', icon: 'fa-brands fa-linkedin-in', color: '#651C32' },
+  { key: 'youtube',   label: 'YouTube',   placeholder: 'https://www.youtube.com/@yourchannel',  icon: 'fa-brands fa-youtube',      color: '#651C32' },
 ];
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px 10px 42px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
   outline: 'none', background: 'rgba(255,255,255,0.6)',
   color: 'var(--lx-text)', transition: 'border-color 0.2s ease',
@@ -100,7 +100,7 @@ const StudentSocialProfile = () => {
                       background: `${field.color}12`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <i className={field.icon} style={{ fontSize: 11, color: field.color }} />
+                      <i className={field.icon} style={{ fontSize: 12, color: field.color }} />
                     </div>
                     <input
                       type="url"
@@ -108,15 +108,15 @@ const StudentSocialProfile = () => {
                       placeholder={field.placeholder}
                       value={links[field.key]}
                       onChange={(e) => handleChange(field.key, e.target.value)}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)'; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)'; }}
                     />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid rgba(107, 29, 42, 0.06)' }}>
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid rgba(101, 28, 50, 0.06)' }}>
               <button className="lx-btn lx-btn-gold" type="submit" disabled={saving}>
                 {saving ? t('student.settings.saving', 'Saving...') : t('student.socialProfile.save', 'Save Social Profile')}
               </button>

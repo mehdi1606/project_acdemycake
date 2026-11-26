@@ -4,16 +4,16 @@ import InstructorSettingsLink from '../settings-link/instructorSettingsLink';
 import { useTranslation } from 'react-i18next';
 
 const socialFields = [
-  { label: 'Twitter', placeholder: 'https://www.twitter.com/', icon: 'fa-brands fa-x-twitter', color: '#1DA1F2' },
-  { label: 'Facebook', placeholder: 'https://www.facebook.com/', icon: 'fa-brands fa-facebook-f', color: '#1877F2' },
-  { label: 'Instagram', placeholder: 'https://www.instagram.com/', icon: 'fa-brands fa-instagram', color: '#E4405F' },
-  { label: 'LinkedIn', placeholder: 'https://www.linkedin.com/', icon: 'fa-brands fa-linkedin-in', color: '#0A66C2' },
-  { label: 'YouTube', placeholder: 'https://www.youtube.com/', icon: 'fa-brands fa-youtube', color: '#FF0000' },
+  { label: 'Twitter', placeholder: 'https://www.twitter.com/', icon: 'fa-brands fa-x-twitter', color: '#651C32' },
+  { label: 'Facebook', placeholder: 'https://www.facebook.com/', icon: 'fa-brands fa-facebook-f', color: '#651C32' },
+  { label: 'Instagram', placeholder: 'https://www.instagram.com/', icon: 'fa-brands fa-instagram', color: '#651C32' },
+  { label: 'LinkedIn', placeholder: 'https://www.linkedin.com/', icon: 'fa-brands fa-linkedin-in', color: '#651C32' },
+  { label: 'YouTube', placeholder: 'https://www.youtube.com/', icon: 'fa-brands fa-youtube', color: '#651C32' },
 ];
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px 10px 42px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
   outline: 'none', background: 'rgba(255,255,255,0.6)',
   color: 'var(--lx-text)', transition: 'border-color 0.2s ease',
@@ -55,21 +55,21 @@ const InstructorSocialprofileSettings = () => {
                       background: `${field.color}12`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <i className={field.icon} style={{ fontSize: 11, color: field.color }} />
+                      <i className={field.icon} style={{ fontSize: 12, color: field.color }} />
                     </div>
                     <input
                       type="url"
                       style={inputStyle}
                       placeholder={field.placeholder}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)'; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)'; }}
                     />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid rgba(107, 29, 42, 0.06)' }}>
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid rgba(101, 28, 50, 0.06)' }}>
               <button className="lx-btn lx-btn-gold" type="submit">
                 Save Social Profile
               </button>

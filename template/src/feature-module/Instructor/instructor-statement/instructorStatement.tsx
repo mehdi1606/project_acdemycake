@@ -78,7 +78,7 @@ const InstructorStatement: React.FC = () => {
 
   const selectStyle: React.CSSProperties = {
     padding: '6px 12px',
-    border: '1.5px solid rgba(107, 29, 42, 0.12)',
+    border: '1.5px solid rgba(101, 28, 50, 0.12)',
     borderRadius: 'var(--lx-radius-sm)',
     fontSize: 13,
     background: 'rgba(255,255,255,0.6)',
@@ -117,7 +117,7 @@ const InstructorStatement: React.FC = () => {
             type="button"
             className="lx-btn lx-btn-sm"
             onClick={() => { setFilterSource('ALL'); setFilterStatus('ALL'); setCurrentPage(0); }}
-            style={{ color: '#8B2335', background: 'rgba(139, 35, 53, 0.06)', border: 'none', fontSize: 12 }}
+            style={{ color: '#651C32', background: 'rgba(101, 28, 50, 0.06)', border: 'none', fontSize: 12 }}
           >
             <i className="isax isax-close-circle" style={{ marginInlineEnd: 4 }} /> {t('instructor.statementsPage.clearFilters', 'Clear filters')}
           </button>
@@ -131,7 +131,7 @@ const InstructorStatement: React.FC = () => {
           <p style={{ marginTop: 12, color: 'var(--lx-text-muted)', fontSize: 14 }}>{t('instructor.statementsPage.loading', 'Loading statements...')}</p>
         </div>
       ) : error ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139, 35, 53, 0.06)', border: '1px solid rgba(139, 35, 53, 0.12)', color: '#8B2335', fontSize: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50, 0.06)', border: '1px solid rgba(101, 28, 50, 0.12)', color: '#651C32', fontSize: 14 }}>
           <i className="isax isax-info-circle" /> {error}
           <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" style={{ marginInlineStart: 'auto' }} onClick={() => fetchStatements(currentPage)}>{t('common.tryAgain', 'Try Again')}</button>
         </div>
@@ -145,48 +145,50 @@ const InstructorStatement: React.FC = () => {
       ) : (
         <div className="lx-card">
           <div className="lx-card-body" style={{ padding: 0 }}>
-            <table className="lx-table">
-              <thead>
-                <tr>
-                  <th>{t('instructor.statementsPage.orderId', 'Order ID')}</th>
-                  <th>{t('instructor.statementsPage.course', 'Course')}</th>
-                  <th>{t('common.date', 'Date')}</th>
-                  <th>{t('common.type', 'Type')}</th>
-                  <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.gross', 'Gross')}</th>
-                  <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.platformFee', 'Platform Fee')}</th>
-                  <th style={{ textAlign: 'end' }}>{t('instructor.statementsPage.netEarned', 'Net Earned')}</th>
-                  <th>{t('common.status', 'Status')}</th>
-                  <th style={{ textAlign: 'center' }}>{t('common.actions', 'Actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <button type="button" onClick={() => openModal(item)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--lx-primary)', fontWeight: 600, fontSize: 13 }}>
-                        {shortId(item.id)}
-                      </button>
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 500, fontSize: 13 }} title={item.courseName}>
-                        {item.courseName ? (item.courseName.length > 30 ? `${item.courseName.slice(0, 30)}…` : item.courseName) : <span style={{ color: 'var(--lx-text-muted)' }}>—</span>}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(item.createdAt, dateLocale)}</td>
-                    <td><SourceBadge type={item.sourceType} /></td>
-                    <td style={{ textAlign: 'end', fontWeight: 500 }}>{formatAmount(item.amount, item.currency)}</td>
-                    <td style={{ textAlign: 'end', color: '#8B2335' }}>− {formatAmount(item.platformFee, item.currency)}</td>
-                    <td style={{ textAlign: 'end', fontWeight: 600, color: '#2D5F3F' }}>{formatAmount(item.netAmount, item.currency)}</td>
-                    <td><PayoutStatusBadge status={item.payoutStatus} /></td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('instructor.statementsPage.viewDetails', 'View details')} onClick={() => openModal(item)}>
-                        <i className="isax isax-eye" />
-                      </button>
-                    </td>
+            <div className="lx-table-scroll">
+              <table className="lx-table">
+                <thead>
+                  <tr>
+                    <th>{t('instructor.statementsPage.orderId', 'Order ID')}</th>
+                    <th>{t('instructor.statementsPage.course', 'Course')}</th>
+                    <th>{t('common.date', 'Date')}</th>
+                    <th>{t('common.type', 'Type')}</th>
+                    <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.gross', 'Gross')}</th>
+                    <th style={{ textAlign: 'end' }}>{t('instructor.earningsPage.platformFee', 'Platform Fee')}</th>
+                    <th style={{ textAlign: 'end' }}>{t('instructor.statementsPage.netEarned', 'Net Earned')}</th>
+                    <th>{t('common.status', 'Status')}</th>
+                    <th style={{ textAlign: 'center' }}>{t('common.actions', 'Actions')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map((item) => (
+                    <tr key={item.id}>
+                      <td>
+                        <button type="button" onClick={() => openModal(item)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--lx-primary)', fontWeight: 600, fontSize: 13 }}>
+                          {shortId(item.id)}
+                        </button>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 500, fontSize: 13 }} title={item.courseName}>
+                          {item.courseName ? (item.courseName.length > 30 ? `${item.courseName.slice(0, 30)}…` : item.courseName) : <span style={{ color: 'var(--lx-text-muted)' }}>—</span>}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{formatDate(item.createdAt, dateLocale)}</td>
+                      <td><SourceBadge type={item.sourceType} /></td>
+                      <td style={{ textAlign: 'end', fontWeight: 500 }}>{formatAmount(item.amount, item.currency)}</td>
+                      <td style={{ textAlign: 'end', color: '#651C32' }}>− {formatAmount(item.platformFee, item.currency)}</td>
+                      <td style={{ textAlign: 'end', fontWeight: 600, color: '#855A0E' }}>{formatAmount(item.netAmount, item.currency)}</td>
+                      <td><PayoutStatusBadge status={item.payoutStatus} /></td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button type="button" className="lx-btn lx-btn-outline lx-btn-sm" title={t('instructor.statementsPage.viewDetails', 'View details')} onClick={() => openModal(item)}>
+                          <i className="isax isax-eye" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -207,11 +209,11 @@ const InstructorStatement: React.FC = () => {
       {/* Detail Modal */}
       {showModal && selected && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
         >
-          <div style={{ width: '100%', maxWidth: 620, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)', boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ width: '100%', maxWidth: 620, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)', boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--lx-text)' }}>
                 {t('instructor.statementsPage.detailTitle', 'Statement Detail — {{id}}', { id: shortId(selected.id) })}
               </h5>
@@ -222,7 +224,7 @@ const InstructorStatement: React.FC = () => {
 
             <div style={{ padding: 24 }}>
               {/* Meta */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
                 {[
                   { label: t('instructor.earningsPage.reference', 'Reference'), value: shortId(selected.id) },
                   { label: t('common.date', 'Date'), value: formatDate(selected.createdAt, dateLocale) },
@@ -237,14 +239,14 @@ const InstructorStatement: React.FC = () => {
               </div>
 
               {selected.courseName && (
-                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
                   <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('instructor.statementsPage.course', 'Course')}</p>
                   <p style={{ margin: 0, fontWeight: 600, color: 'var(--lx-text)' }}>{selected.courseName}</p>
                 </div>
               )}
 
               {selected.description && (
-                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+                <div style={{ paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
                   <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--lx-text-muted)', margin: '0 0 4px' }}>{t('common.description', 'Description')}</p>
                   <p style={{ margin: 0, color: 'var(--lx-text)' }}>{selected.description}</p>
                 </div>
@@ -252,28 +254,28 @@ const InstructorStatement: React.FC = () => {
 
               {/* Amount Breakdown */}
               <h6 style={{ fontSize: 14, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 12 }}>{t('instructor.statementsPage.breakdown', 'Amount Breakdown')}</h6>
-              <div style={{ borderRadius: 'var(--lx-radius)', overflow: 'hidden', border: '1px solid rgba(107, 29, 42, 0.08)' }}>
+              <div style={{ borderRadius: 'var(--lx-radius)', overflow: 'hidden', border: '1px solid rgba(101, 28, 50, 0.08)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ background: 'rgba(107, 29, 42, 0.03)' }}>
+                    <tr style={{ background: 'rgba(101, 28, 50, 0.03)' }}>
                       <th style={{ padding: '10px 16px', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', textAlign: 'start' }}>{t('common.description', 'Description')}</th>
                       <th style={{ padding: '10px 16px', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', textAlign: 'end' }}>{t('instructor.statementsPage.amountIn', 'Amount ({{currency}})', { currency: selected.currency })}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ borderTop: '1px solid rgba(107, 29, 42, 0.06)' }}>
+                    <tr style={{ borderTop: '1px solid rgba(101, 28, 50, 0.06)' }}>
                       <td style={{ padding: '10px 16px', fontSize: 14 }}>{t('instructor.statementsPage.grossSale', 'Gross Sale Amount')}</td>
                       <td style={{ padding: '10px 16px', fontSize: 14, textAlign: 'end' }}>{formatAmount(selected.amount, selected.currency)}</td>
                     </tr>
-                    <tr style={{ borderTop: '1px solid rgba(107, 29, 42, 0.06)' }}>
-                      <td style={{ padding: '10px 16px', fontSize: 14, color: '#8B2335' }}>{t('instructor.statementsPage.feeDeducted', 'Platform Fee (deducted)')}</td>
-                      <td style={{ padding: '10px 16px', fontSize: 14, textAlign: 'end', color: '#8B2335' }}>− {formatAmount(selected.platformFee, selected.currency)}</td>
+                    <tr style={{ borderTop: '1px solid rgba(101, 28, 50, 0.06)' }}>
+                      <td style={{ padding: '10px 16px', fontSize: 14, color: '#651C32' }}>{t('instructor.statementsPage.feeDeducted', 'Platform Fee (deducted)')}</td>
+                      <td style={{ padding: '10px 16px', fontSize: 14, textAlign: 'end', color: '#651C32' }}>− {formatAmount(selected.platformFee, selected.currency)}</td>
                     </tr>
                   </tbody>
                   <tfoot>
-                    <tr style={{ borderTop: '2px solid rgba(107, 29, 42, 0.1)', background: 'rgba(45, 95, 63, 0.04)' }}>
+                    <tr style={{ borderTop: '2px solid rgba(101, 28, 50, 0.1)', background: 'rgba(197, 145, 44, 0.04)' }}>
                       <th style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, textAlign: 'start' }}>{t('instructor.statementsPage.netAmount', 'Net Amount (Your Earnings)')}</th>
-                      <th style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, textAlign: 'end', color: '#2D5F3F' }}>{formatAmount(selected.netAmount, selected.currency)}</th>
+                      <th style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, textAlign: 'end', color: '#855A0E' }}>{formatAmount(selected.netAmount, selected.currency)}</th>
                     </tr>
                   </tfoot>
                 </table>
@@ -284,7 +286,7 @@ const InstructorStatement: React.FC = () => {
               </p>
             </div>
 
-            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end' }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={closeModal}>{t('common.close', 'Close')}</button>
             </div>
           </div>

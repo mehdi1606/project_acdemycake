@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Spin } from 'antd';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { formatMAD } from '../../../core/common/formatMoney';
 import adminService, { AdminReport, ReportType } from '../../../services/api/admin.service';
 import { extractApiError } from '../../../services/api/error.utils';
@@ -83,35 +84,35 @@ const BREAKDOWNS: Record<ReportType, Breakdown> = {
   revenue: {
     totalKey: 'totalRevenue', titleKey: 'admin.reports.revenueSplit', titleFallback: 'Revenue by source', money: true,
     parts: [
-      { key: 'subscriptionRevenue', labelKey: 'admin.reports.metrics.subscriptionRevenue', fallback: 'Subscription revenue', color: '#6B1D2A' },
-      { key: 'courseRevenue',       labelKey: 'admin.reports.metrics.courseRevenue',       fallback: 'Course sales',         color: '#C5973E' },
-      { key: 'ebookRevenue',        labelKey: 'admin.reports.metrics.ebookRevenue',        fallback: 'Ebook sales',          color: '#2D7A4F' },
+      { key: 'subscriptionRevenue', labelKey: 'admin.reports.metrics.subscriptionRevenue', fallback: 'Subscription revenue', color: '#651C32' },
+      { key: 'courseRevenue',       labelKey: 'admin.reports.metrics.courseRevenue',       fallback: 'Course sales',         color: '#C5912C' },
+      { key: 'ebookRevenue',        labelKey: 'admin.reports.metrics.ebookRevenue',        fallback: 'Ebook sales',          color: '#855A0E' },
     ],
   },
   users: {
     totalKey: 'totalUsers', titleKey: 'admin.reports.usersSplit', titleFallback: 'Users by role',
     parts: [
-      { key: 'students',    labelKey: 'admin.reports.metrics.students',    fallback: 'Students',    color: '#C5973E' },
-      { key: 'instructors', labelKey: 'admin.reports.metrics.instructors', fallback: 'Instructors', color: '#2D7A4F' },
-      { key: 'admins',      labelKey: 'admin.reports.metrics.admins',      fallback: 'Admins',      color: '#6B1D2A' },
+      { key: 'students',    labelKey: 'admin.reports.metrics.students',    fallback: 'Students',    color: '#C5912C' },
+      { key: 'instructors', labelKey: 'admin.reports.metrics.instructors', fallback: 'Instructors', color: '#855A0E' },
+      { key: 'admins',      labelKey: 'admin.reports.metrics.admins',      fallback: 'Admins',      color: '#651C32' },
     ],
   },
   courses: {
     totalKey: 'totalCourses', titleKey: 'admin.reports.coursesSplit', titleFallback: 'Courses by status',
     parts: [
-      { key: 'publishedCourses',     labelKey: 'admin.reports.metrics.publishedCourses',     fallback: 'Published',      color: '#2D7A4F' },
-      { key: 'pendingReviewCourses', labelKey: 'admin.reports.metrics.pendingReviewCourses', fallback: 'Pending review', color: '#C5973E' },
-      { key: 'draftCourses',         labelKey: 'admin.reports.metrics.draftCourses',         fallback: 'Drafts',         color: '#8B6D75' },
-      { key: 'archivedCourses',      labelKey: 'admin.reports.metrics.archivedCourses',      fallback: 'Archived',       color: '#6B1D2A' },
+      { key: 'publishedCourses',     labelKey: 'admin.reports.metrics.publishedCourses',     fallback: 'Published',      color: '#855A0E' },
+      { key: 'pendingReviewCourses', labelKey: 'admin.reports.metrics.pendingReviewCourses', fallback: 'Pending review', color: '#C5912C' },
+      { key: 'draftCourses',         labelKey: 'admin.reports.metrics.draftCourses',         fallback: 'Drafts',         color: '#7C6A73' },
+      { key: 'archivedCourses',      labelKey: 'admin.reports.metrics.archivedCourses',      fallback: 'Archived',       color: '#651C32' },
     ],
   },
   subscriptions: {
     totalKey: 'totalSubscriptions', titleKey: 'admin.reports.subscriptionsSplit', titleFallback: 'Subscriptions by status',
     parts: [
-      { key: 'activeSubscriptions',    labelKey: 'admin.reports.metrics.activeSubscriptions',    fallback: 'Active',    color: '#2D7A4F' },
-      { key: 'pastDueSubscriptions',   labelKey: 'admin.reports.metrics.pastDueSubscriptions',   fallback: 'Past due',  color: '#C5973E' },
-      { key: 'cancelledSubscriptions', labelKey: 'admin.reports.metrics.cancelledSubscriptions', fallback: 'Cancelled', color: '#6B1D2A' },
-      { key: 'expiredSubscriptions',   labelKey: 'admin.reports.metrics.expiredSubscriptions',   fallback: 'Expired',   color: '#8B6D75' },
+      { key: 'activeSubscriptions',    labelKey: 'admin.reports.metrics.activeSubscriptions',    fallback: 'Active',    color: '#855A0E' },
+      { key: 'pastDueSubscriptions',   labelKey: 'admin.reports.metrics.pastDueSubscriptions',   fallback: 'Past due',  color: '#C5912C' },
+      { key: 'cancelledSubscriptions', labelKey: 'admin.reports.metrics.cancelledSubscriptions', fallback: 'Cancelled', color: '#651C32' },
+      { key: 'expiredSubscriptions',   labelKey: 'admin.reports.metrics.expiredSubscriptions',   fallback: 'Expired',   color: '#7C6A73' },
     ],
   },
 };
@@ -198,8 +199,8 @@ const AdminReports: React.FC = () => {
       </div>
 
       {error && (
-        <div className="lx-card mb-4" style={{ borderColor: 'rgba(139,35,53,0.25)' }}>
-          <div className="lx-card-body" style={{ color: '#8B2335', fontSize: 14 }}>
+        <div className="lx-card mb-4" style={{ borderColor: 'rgba(101, 28, 50,0.25)' }}>
+          <div className="lx-card-body" style={{ color: '#651C32', fontSize: 14 }}>
             <i className="isax isax-warning-2" style={{ marginRight: 6 }} />{error}
           </div>
         </div>
@@ -235,9 +236,12 @@ const AdminReports: React.FC = () => {
             </div>
             <div className="lx-card-body">
               {breakdownTotal <= 0 ? (
-                <p style={{ margin: 0, fontSize: 14, color: 'var(--lx-text-muted)' }}>
-                  {t('admin.reports.noData', 'No data yet.')}
-                </p>
+                <LxEmptyState
+                  compact
+                  icon="isax-chart-21"
+                  title={t('admin.reports.noData', 'No data yet.')}
+                  text={t('emptyStates.reportText', 'Figures appear here as soon as there is activity in this period.')}
+                />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {breakdown.parts.map((part) => {
@@ -251,7 +255,7 @@ const AdminReports: React.FC = () => {
                             {breakdown.money ? formatMAD(value, currency) : value.toLocaleString(i18n.language)} · {pct}%
                           </span>
                         </div>
-                        <div style={{ height: 8, borderRadius: 4, background: 'rgba(107,29,42,0.06)', overflow: 'hidden' }}>
+                        <div style={{ height: 8, borderRadius: 4, background: 'rgba(101, 28, 50,0.06)', overflow: 'hidden' }}>
                           <div style={{ width: `${pct}%`, height: '100%', borderRadius: 4, background: part.color, transition: 'width .4s ease' }} />
                         </div>
                       </div>

@@ -60,7 +60,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
   <>
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-        {t('instructor.earningsPage.amount', 'Amount')} <span style={{ color: '#8B2335' }}>*</span>
+        {t('instructor.earningsPage.amount', 'Amount')} <span style={{ color: '#651C32' }}>*</span>
       </label>
       <div className="d-flex">
         <input
@@ -74,7 +74,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
           style={{
             flex: 1,
             padding: '10px 14px',
-            border: '1.5px solid rgba(107, 29, 42, 0.12)',
+            border: '1.5px solid rgba(101, 28, 50, 0.12)',
             borderRadius: 'var(--lx-radius-sm) 0 0 var(--lx-radius-sm)',
             fontSize: 14,
             outline: 'none',
@@ -85,8 +85,8 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
         <span
           style={{
             padding: '10px 14px',
-            background: 'rgba(107, 29, 42, 0.04)',
-            border: '1.5px solid rgba(107, 29, 42, 0.12)',
+            background: 'rgba(101, 28, 50, 0.04)',
+            border: '1.5px solid rgba(101, 28, 50, 0.12)',
             borderLeft: 'none',
             borderRadius: '0 var(--lx-radius-sm) var(--lx-radius-sm) 0',
             fontSize: 13,
@@ -104,7 +104,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
 
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-        {t('instructor.earningsPage.paymentMethod', 'Payment Method')} <span style={{ color: '#8B2335' }}>*</span>
+        {t('instructor.earningsPage.paymentMethod', 'Payment Method')} <span style={{ color: '#651C32' }}>*</span>
       </label>
       <select
         value={form.paymentMethod}
@@ -112,7 +112,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
         style={{
           width: '100%',
           padding: '10px 14px',
-          border: '1.5px solid rgba(107, 29, 42, 0.12)',
+          border: '1.5px solid rgba(101, 28, 50, 0.12)',
           borderRadius: 'var(--lx-radius-sm)',
           fontSize: 14,
           outline: 'none',
@@ -129,7 +129,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
 
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-        {t('instructor.earningsPage.accountInfo', 'Bank / Account Info')} <span style={{ color: '#8B2335' }}>*</span>
+        {t('instructor.earningsPage.accountInfo', 'Bank / Account Info')} <span style={{ color: '#651C32' }}>*</span>
       </label>
       <textarea
         rows={3}
@@ -139,7 +139,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
         style={{
           width: '100%',
           padding: '10px 14px',
-          border: '1.5px solid rgba(107, 29, 42, 0.12)',
+          border: '1.5px solid rgba(101, 28, 50, 0.12)',
           borderRadius: 'var(--lx-radius-sm)',
           fontSize: 14,
           outline: 'none',
@@ -162,7 +162,7 @@ const PayoutFormFields = ({ form, pending, onChange }: PayoutFormProps) => {
         style={{
           width: '100%',
           padding: '10px 14px',
-          border: '1.5px solid rgba(107, 29, 42, 0.12)',
+          border: '1.5px solid rgba(101, 28, 50, 0.12)',
           borderRadius: 'var(--lx-radius-sm)',
           fontSize: 14,
           outline: 'none',
@@ -291,16 +291,16 @@ const InstructorEarning = () => {
 
   const chartOptions: ApexOptions = {
     chart: { type: 'area', height: 280, toolbar: { show: false }, zoom: { enabled: false } },
-    colors: ['#6B1D2A'],
+    colors: ['#651C32'],
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 2 },
     fill: {
       type: 'gradient',
-      gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, gradientToColors: ['#E8A0A8'] },
+      gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, gradientToColors: ['#F3D58E'] },
     },
     xaxis: {
       categories: chartLabels.length ? chartLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      labels: { style: { fontSize: '11px', colors: 'var(--lx-text-muted)' } },
+      labels: { style: { fontSize: '12px', colors: 'var(--lx-text-muted)' } },
     },
     yaxis: {
       labels: {
@@ -443,11 +443,11 @@ const InstructorEarning = () => {
               <div className="stat-info">
                 <p className="stat-label">{s.label}</p>
                 {summaryLoading ? (
-                  <div style={{ height: 24, width: 80, borderRadius: 6, background: 'rgba(107, 29, 42, 0.06)', animation: 'pulse 1.5s infinite' }} />
+                  <div style={{ height: 24, width: 80, borderRadius: 6, background: 'rgba(101, 28, 50, 0.06)', animation: 'pulse 1.5s infinite' }} />
                 ) : (
                   <h3 className="stat-value" style={{ fontSize: 18 }}>{s.value}</h3>
                 )}
-                <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', margin: 0 }}>{s.sub}</p>
+                <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: 0 }}>{s.sub}</p>
               </div>
             </div>
           </div>
@@ -479,47 +479,22 @@ const InstructorEarning = () => {
       {/* ── Tabs ── */}
       <div className="lx-card">
         <div className="lx-card-header">
-          <div className="d-flex gap-2">
+          <div className="lx-seg" role="group">
             {(['earnings', 'payouts'] as ActiveTab[]).map((tab) => (
               <button
                 key={tab}
+                type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`lx-btn lx-btn-sm ${activeTab === tab ? '' : 'lx-btn-outline'}`}
-                style={activeTab === tab ? {
-                  background: 'var(--lx-primary)',
-                  color: '#fff',
-                  border: '1.5px solid var(--lx-primary)',
-                } : {}}
+                aria-pressed={activeTab === tab}
+                className={`lx-seg-btn${activeTab === tab ? ' is-active' : ''}`}
               >
                 <i className={tab === 'earnings' ? 'isax isax-dollar-circle' : 'isax isax-money-send'} />
                 {tab === 'earnings' ? t('instructor.earningsPage.transactions', 'Transactions') : t('instructor.earningsPage.payoutHistory', 'Payout History')}
                 {tab === 'earnings' && !earningsLoading && eTotalElements > 0 && (
-                  <span
-                    style={{
-                      marginLeft: 6,
-                      background: activeTab === tab ? 'rgba(255,255,255,0.2)' : 'rgba(107, 29, 42, 0.08)',
-                      padding: '1px 8px',
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {eTotalElements}
-                  </span>
+                  <span className="lx-seg-count">{eTotalElements}</span>
                 )}
                 {tab === 'payouts' && !payoutsLoading && pTotalElements > 0 && (
-                  <span
-                    style={{
-                      marginLeft: 6,
-                      background: activeTab === tab ? 'rgba(255,255,255,0.2)' : 'rgba(107, 29, 42, 0.08)',
-                      padding: '1px 8px',
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {pTotalElements}
-                  </span>
+                  <span className="lx-seg-count">{pTotalElements}</span>
                 )}
               </button>
             ))}
@@ -535,9 +510,9 @@ const InstructorEarning = () => {
                   style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--lx-radius-sm)',
-                    background: 'rgba(139, 35, 53, 0.06)',
-                    border: '1px solid rgba(139, 35, 53, 0.12)',
-                    color: '#8B2335',
+                    background: 'rgba(101, 28, 50, 0.06)',
+                    border: '1px solid rgba(101, 28, 50, 0.12)',
+                    color: '#651C32',
                     fontSize: 14,
                     marginBottom: 16,
                     display: 'flex',
@@ -586,7 +561,7 @@ const InstructorEarning = () => {
                           <tr key={e.id}>
                             <td style={{ color: 'var(--lx-text-muted)', fontSize: 13 }}>{fmtDate(e.createdAt, dateLocale)}</td>
                             <td>
-                              <span className="lx-badge badge-info" style={{ fontSize: 11 }}>
+                              <span className="lx-badge badge-info" style={{ fontSize: 12 }}>
                                 {sourceLabel(t, e.sourceType)}
                               </span>
                             </td>
@@ -594,7 +569,7 @@ const InstructorEarning = () => {
                               {e.description ?? '—'}
                             </td>
                             <td style={{ textAlign: 'right', fontSize: 14 }}>{Number(e.amount).toFixed(2)}</td>
-                            <td style={{ textAlign: 'right', fontSize: 14, color: '#8B2335' }}>
+                            <td style={{ textAlign: 'right', fontSize: 14, color: '#651C32' }}>
                               -{Number(e.platformFee).toFixed(2)}
                             </td>
                             <td style={{ textAlign: 'right', fontSize: 14, fontWeight: 600, color: 'var(--lx-green)' }}>
@@ -620,9 +595,9 @@ const InstructorEarning = () => {
                   style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--lx-radius-sm)',
-                    background: 'rgba(139, 35, 53, 0.06)',
-                    border: '1px solid rgba(139, 35, 53, 0.12)',
-                    color: '#8B2335',
+                    background: 'rgba(101, 28, 50, 0.06)',
+                    border: '1px solid rgba(101, 28, 50, 0.12)',
+                    color: '#651C32',
                     fontSize: 14,
                     marginBottom: 16,
                     display: 'flex',
@@ -680,7 +655,7 @@ const InstructorEarning = () => {
                             <td style={{ fontSize: 13 }}>{p.paymentMethod ? t(`enums.paymentMethod.${p.paymentMethod}`, PAYMENT_METHOD_LABELS[p.paymentMethod] ?? p.paymentMethod) : '—'}</td>
                             <td>
                               {p.transactionReference ? (
-                                <code style={{ fontSize: 12, background: 'rgba(107, 29, 42, 0.04)', padding: '2px 8px', borderRadius: 4 }}>
+                                <code style={{ fontSize: 12, background: 'rgba(101, 28, 50, 0.04)', padding: '2px 8px', borderRadius: 4 }}>
                                   {p.transactionReference}
                                 </code>
                               ) : (
@@ -710,7 +685,7 @@ const InstructorEarning = () => {
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(44, 24, 16, 0.4)',
+              background: 'rgba(43, 15, 30, 0.4)',
               backdropFilter: 'blur(4px)',
               WebkitBackdropFilter: 'blur(4px)',
               zIndex: 1040,
@@ -725,13 +700,13 @@ const InstructorEarning = () => {
                 backdropFilter: 'blur(32px)',
                 WebkitBackdropFilter: 'blur(32px)',
                 borderRadius: 'var(--lx-radius-lg)',
-                border: '1px solid rgba(107, 29, 42, 0.1)',
-                boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+                border: '1px solid rgba(101, 28, 50, 0.1)',
+                boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
                 overflow: 'hidden',
               }}
             >
               {/* Modal header */}
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>{t('instructor.earningsPage.requestPayout', 'Request Payout')}</h5>
                 <button
                   onClick={closePayoutModal}
@@ -750,7 +725,7 @@ const InstructorEarning = () => {
                         width: 56,
                         height: 56,
                         borderRadius: '50%',
-                        background: 'rgba(45, 95, 63, 0.08)',
+                        background: 'rgba(197, 145, 44, 0.08)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -771,9 +746,9 @@ const InstructorEarning = () => {
                         style={{
                           padding: '10px 14px',
                           borderRadius: 'var(--lx-radius-sm)',
-                          background: 'rgba(139, 35, 53, 0.06)',
-                          border: '1px solid rgba(139, 35, 53, 0.12)',
-                          color: '#8B2335',
+                          background: 'rgba(101, 28, 50, 0.06)',
+                          border: '1px solid rgba(101, 28, 50, 0.12)',
+                          color: '#651C32',
                           fontSize: 13,
                           marginBottom: 16,
                           display: 'flex',
@@ -795,7 +770,7 @@ const InstructorEarning = () => {
 
               {/* Modal footer */}
               {!payoutSuccess && (
-                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                   <button
                     className="lx-btn lx-btn-outline"
                     onClick={closePayoutModal}

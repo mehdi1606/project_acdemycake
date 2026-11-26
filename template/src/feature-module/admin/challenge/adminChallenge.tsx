@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { extractApiError } from '../../../services/api/error.utils';
 import { AdminEntry, AdminVote, challengeService, EntryStatus } from '../../../services/api/challenge.service';
 import './adminChallenge.css';
@@ -96,7 +97,13 @@ const AdminChallenge: React.FC = () => {
 
         {err && <p className="cha__err" role="alert">{err}</p>}
         {loading ? <p className="cha__empty">{t('common.loading', 'Loading…')}</p> : shown.length === 0 ? (
-          <p className="cha__empty">{t('challengeAdmin.empty', 'Nothing here.')}</p>
+          <div className="lx-card">
+            <LxEmptyState
+              icon="isax-cake"
+              title={t('challengeAdmin.empty', 'Nothing here.')}
+              text={t('emptyStates.challengeText', 'Cakes in this status will appear here. Try another tab or refresh.')}
+            />
+          </div>
         ) : (
           <div className="cha__list">
             {shown.map((r) => (
@@ -176,35 +183,39 @@ const VotesDrawer: React.FC<{ entry: AdminEntry; onClose: () => void }> = ({ ent
         </div>
         <p className="cha-drawer__help">{t('challengeAdmin.votesHelp', '⚑ marks accounts created after the challenge opened. Many votes from the same network address can also be a sign of fake accounts. Removed votes no longer count.')}</p>
         {err && <p className="cha__err">{err}</p>}
-        {!votes ? <p>{t('common.loading', 'Loading…')}</p> : votes.length === 0 ? <p>{t('challengeAdmin.noVotes', 'No votes yet.')}</p> : (
-          <table className="cha-votes">
-            <thead><tr>
-              <th>{t('challengeAdmin.voter', 'Voter')}</th><th>{t('challengeAdmin.role', 'Role')}</th><th>{t('challengeAdmin.pts', 'Pts')}</th>
-              <th>{t('challengeAdmin.account', 'Account created')}</th><th>{t('challengeAdmin.ip', 'Network')}</th><th>{t('challengeAdmin.when', 'Voted')}</th><th />
-            </tr></thead>
-            <tbody>
-              {votes.map((v) => (
-                <tr key={v.id} className={v.voided ? 'is-void' : ''}>
-                  <td>{v.newAccount && <span className="cha-flag">⚑</span>} {v.voterName}<br /><small>{v.voterEmail}</small></td>
-                  <td>{v.voterRole}</td>
-                  <td>{v.points}</td>
-                  <td>{fmt(v.accountCreatedAt)}</td>
-                  <td>{v.ipAddress ?? '—'}{v.sameIpVotes > 1 && <small className="cha-same"> ×{v.sameIpVotes}</small>}</td>
-                  <td>{fmt(v.createdAt)}</td>
-                  <td>
-                    {!v.voided && (
-                      <input className="cha-why-input" placeholder={t('challengeAdmin.voidReasonPh', 'Reason')}
-                        value={why[v.id] ?? ''} onChange={(e) => setWhy((w) => ({ ...w, [v.id]: e.target.value }))} />
-                    )}
-                    <button type="button" className={`cha-btn ${v.voided ? 'cha-btn--line' : 'cha-btn--bad'}`} onClick={() => toggle(v)}>
-                      {v.voided ? t('challengeAdmin.restore', 'Restore') : t('challengeAdmin.void', 'Remove')}
-                    </button>
-                    {v.voided && v.voidedReason && <small className="cha-why">{v.voidedReason}</small>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {!votes ? <p>{t('common.loading', 'Loading…')}</p> : votes.length === 0 ? (
+          <LxEmptyState compact icon="isax-like-1" title={t('challengeAdmin.noVotes', 'No votes yet.')} text={t('emptyStates.votesText', 'Votes for this cake will be listed here as they come in.')} />
+        ) : (
+          <div className="lx-table-scroll">
+            <table className="cha-votes">
+              <thead><tr>
+                <th>{t('challengeAdmin.voter', 'Voter')}</th><th>{t('challengeAdmin.role', 'Role')}</th><th>{t('challengeAdmin.pts', 'Pts')}</th>
+                <th>{t('challengeAdmin.account', 'Account created')}</th><th>{t('challengeAdmin.ip', 'Network')}</th><th>{t('challengeAdmin.when', 'Voted')}</th><th />
+              </tr></thead>
+              <tbody>
+                {votes.map((v) => (
+                  <tr key={v.id} className={v.voided ? 'is-void' : ''}>
+                    <td>{v.newAccount && <span className="cha-flag">⚑</span>} {v.voterName}<br /><small>{v.voterEmail}</small></td>
+                    <td>{v.voterRole}</td>
+                    <td>{v.points}</td>
+                    <td>{fmt(v.accountCreatedAt)}</td>
+                    <td>{v.ipAddress ?? '—'}{v.sameIpVotes > 1 && <small className="cha-same"> ×{v.sameIpVotes}</small>}</td>
+                    <td>{fmt(v.createdAt)}</td>
+                    <td>
+                      {!v.voided && (
+                        <input className="cha-why-input" placeholder={t('challengeAdmin.voidReasonPh', 'Reason')}
+                          value={why[v.id] ?? ''} onChange={(e) => setWhy((w) => ({ ...w, [v.id]: e.target.value }))} />
+                      )}
+                      <button type="button" className={`cha-btn ${v.voided ? 'cha-btn--line' : 'cha-btn--bad'}`} onClick={() => toggle(v)}>
+                        {v.voided ? t('challengeAdmin.restore', 'Restore') : t('challengeAdmin.void', 'Remove')}
+                      </button>
+                      {v.voided && v.voidedReason && <small className="cha-why">{v.voidedReason}</small>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

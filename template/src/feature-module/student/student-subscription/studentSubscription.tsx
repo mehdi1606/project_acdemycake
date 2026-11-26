@@ -39,10 +39,10 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!open) return null;
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(44,24,16,.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(43, 15, 30,.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ width: '100%', maxWidth: 440, background: 'rgba(255,255,255,.94)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107,29,42,.1)', boxShadow: '0 24px 48px rgba(44,24,16,.15)', padding: 32 }}>
+      <div style={{ width: '100%', maxWidth: 440, background: 'rgba(255,255,255,.94)', backdropFilter: 'blur(32px)', borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50,.1)', boxShadow: '0 24px 48px rgba(43, 15, 30,.15)', padding: 32 }}>
         <h5 className="fw-bold mb-2">{title}</h5>
         <p className="text-muted fs-14 mb-4">{message}</p>
         <div className="d-flex gap-2 justify-content-end">

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { instructorService } from '../../../services/api/instructor.service';
@@ -12,7 +13,7 @@ import { getFileUrl } from '../../../environment';
 /* ── Shared Styles ─────────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
   outline: 'none', background: 'rgba(255,255,255,0.6)',
   color: 'var(--lx-text)', transition: 'border-color 0.2s ease',
@@ -36,10 +37,10 @@ const labelStyle: React.CSSProperties = {
 
 const focusHandlers = {
   onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)';
+    e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)';
   },
   onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)';
+    e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)';
   },
 };
 
@@ -59,18 +60,18 @@ const RichToolbar: React.FC<RichToolbarProps> = ({ editorRef }) => {
       type="button" title={title} onMouseDown={(e) => { e.preventDefault(); exec(cmd, val); }}
       style={{
         border: 'none', background: 'transparent', cursor: 'pointer',
-        padding: '4px 7px', borderRadius: 5, fontSize: 13, color: '#4b5563',
+        padding: '4px 7px', borderRadius: 5, fontSize: 13, color: '#66525D',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.15s', ...style,
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107,29,42,0.08)'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101, 28, 50,0.08)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
     >
       {icon.startsWith('fa-') ? <i className={`fa-solid ${icon}`} /> : icon}
     </button>
   );
   const sep = () => (
-    <span style={{ width: 1, height: 20, background: 'rgba(107,29,42,0.12)', margin: '0 4px', display: 'inline-block', verticalAlign: 'middle' }} />
+    <span style={{ width: 1, height: 20, background: 'rgba(101, 28, 50,0.12)', margin: '0 4px', display: 'inline-block', verticalAlign: 'middle' }} />
   );
   return (
     <div style={{
@@ -108,10 +109,10 @@ const RichToolbar: React.FC<RichToolbarProps> = ({ editorRef }) => {
         }}
         style={{
           border: 'none', background: 'transparent', cursor: 'pointer',
-          padding: '4px 7px', borderRadius: 5, fontSize: 13, color: '#4b5563',
+          padding: '4px 7px', borderRadius: 5, fontSize: 13, color: '#66525D',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107,29,42,0.08)'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101, 28, 50,0.08)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
       >
         <i className="fa-solid fa-link" />
@@ -132,7 +133,7 @@ const GlassModal = ({
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 1050,
-        background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+        background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
       }}
       onClick={(e) => { if (closable && e.target === e.currentTarget) onClose(); }}
@@ -140,12 +141,12 @@ const GlassModal = ({
       <div style={{
         width: '100%', maxWidth,
         background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-        boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+        boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{
-          padding: '22px 28px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)',
+          padding: '22px 28px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <h5 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--lx-text)' }}>{title}</h5>
@@ -177,7 +178,7 @@ const ConfirmModal = ({
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 1060,
-        background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+        background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -185,15 +186,15 @@ const ConfirmModal = ({
       <div style={{
         width: '100%', maxWidth: 420, padding: 32, textAlign: 'center',
         background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(32px)',
-        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-        boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+        borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+        boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
       }}>
         <div style={{
           width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
-          background: 'rgba(139, 35, 53, 0.08)',
+          background: 'rgba(101, 28, 50, 0.08)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
+          <i className="isax isax-trash" style={{ fontSize: 24, color: '#651C32' }} />
         </div>
         <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{title}</h5>
         <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>{text}</p>
@@ -202,8 +203,8 @@ const ConfirmModal = ({
           <button
             type="button" className="lx-btn" disabled={loading}
             style={{
-              background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335',
-              border: '1.5px solid rgba(139, 35, 53, 0.15)', opacity: loading ? 0.6 : 1,
+              background: 'rgba(101, 28, 50, 0.08)', color: '#651C32',
+              border: '1.5px solid rgba(101, 28, 50, 0.15)', opacity: loading ? 0.6 : 1,
             }}
             onClick={onConfirm}
           >
@@ -339,7 +340,7 @@ const CourseManage: React.FC = () => {
       setUploadingResource(true);
       const res = await instructorService.uploadLessonResource(textLesson.id, file, file.name);
       // Insert an embed marker into the editor — rendered as an inline PDF viewer for students
-      const marker = `<div class="sl-pdf-embed" data-pdf-url="${res.url}" contenteditable="false" style="display:flex;align-items:center;gap:10px;padding:14px 18px;margin:10px 0;background:#FBF7F0;border:1.5px solid #E5D5B8;border-radius:10px;font-weight:600;color:#6B1D2A;">📄 ${file.name} — displayed as lesson content</div><p><br/></p>`;
+      const marker = `<div class="sl-pdf-embed" data-pdf-url="${res.url}" contenteditable="false" style="display:flex;align-items:center;gap:10px;padding:14px 18px;margin:10px 0;background:#FBF7F0;border:1.5px solid #E5D5B8;border-radius:10px;font-weight:600;color:#651C32;">📄 ${file.name} — displayed as lesson content</div><p><br/></p>`;
       if (editorRef.current) {
         editorRef.current.innerHTML += marker;
       }
@@ -634,7 +635,7 @@ const CourseManage: React.FC = () => {
       error: { cls: 'badge-danger', label: t('instructor.courseManage.videoError', 'Error') },
     };
     const s = map[status] || { cls: 'badge-slate', label: t('instructor.courseManage.noVideo', 'No Video') };
-    return <span className={`lx-badge ${s.cls}`} style={{ fontSize: 10 }}>{s.label}</span>;
+    return <span className={`lx-badge ${s.cls}`} style={{ fontSize: 12 }}>{s.label}</span>;
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -659,7 +660,7 @@ const CourseManage: React.FC = () => {
       <LuxuryDashboardLayout>
         <div className="lx-card" style={{ padding: 60, textAlign: 'center' }}>
           <div style={{
-            width: 36, height: 36, border: '3px solid rgba(107, 29, 42, 0.1)',
+            width: 36, height: 36, border: '3px solid rgba(101, 28, 50, 0.1)',
             borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto 16px',
           }} />
@@ -677,10 +678,10 @@ const CourseManage: React.FC = () => {
         <div className="lx-card" style={{ padding: 60, textAlign: 'center' }}>
           <div style={{
             width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px',
-            background: 'rgba(139, 35, 53, 0.06)',
+            background: 'rgba(101, 28, 50, 0.06)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <i className="isax isax-warning-2" style={{ fontSize: 28, color: '#8B2335' }} />
+            <i className="isax isax-warning-2" style={{ fontSize: 28, color: '#651C32' }} />
           </div>
           <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courseManage.notFoundTitle', 'Course Not Found')}</h6>
           <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--lx-text-muted)' }}>
@@ -732,22 +733,16 @@ const CourseManage: React.FC = () => {
 
       {/* ── Modules ── */}
       {modules.length === 0 ? (
-        <div className="lx-card" style={{ padding: 60, textAlign: 'center' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px',
-            background: 'rgba(107, 29, 42, 0.05)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <i className="isax isax-book-1" style={{ fontSize: 28, color: 'var(--lx-text-muted)' }} />
-          </div>
-          <h6 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('instructor.courseManage.noModulesTitle', 'No Modules Yet')}</h6>
-          <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--lx-text-muted)' }}>
-            {t('instructor.courseManage.noModulesText', 'Start by adding your first module to organize your course content.')}
-          </p>
-          <button className="lx-btn lx-btn-gold" onClick={handleAddModule}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <i className="isax isax-add" style={{ fontSize: 16 }} /> Add Module
-          </button>
+        <div className="lx-card">
+          <LxEmptyState
+            icon="isax-book-1"
+            title={t('instructor.courseManage.noModulesTitle', 'No Modules Yet')}
+            text={t('instructor.courseManage.noModulesText', 'Start by adding your first module to organize your course content.')}
+          >
+            <button type="button" className="lx-btn lx-btn-gold" onClick={handleAddModule}>
+              <i className="isax isax-add" /> {t('emptyStates.addModule', 'Add Module')}
+            </button>
+          </LxEmptyState>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -768,7 +763,7 @@ const CourseManage: React.FC = () => {
                 >
                   <div style={{
                     width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-                    background: 'rgba(107, 29, 42, 0.06)',
+                    background: 'rgba(101, 28, 50, 0.06)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'transform 0.2s ease',
                     transform: module.isExpanded ? 'rotate(90deg)' : 'rotate(0)',
@@ -802,12 +797,12 @@ const CourseManage: React.FC = () => {
               {module.isExpanded && (
                 <div style={{ padding: '4px 0' }}>
                   {module.lessons?.length === 0 ? (
-                    <p style={{
-                      textAlign: 'center', padding: '28px 20px', margin: 0,
-                      fontSize: 14, color: 'var(--lx-text-muted)',
-                    }}>
-                      {t('instructor.courseManage.noLessons', 'No lessons yet. Click "Add Lesson" to create one.')}
-                    </p>
+                    <LxEmptyState
+                      compact
+                      icon="isax-video-play"
+                      title={t('emptyStates.lessonsTitle', 'No lessons in this module')}
+                      text={t('instructor.courseManage.noLessons', 'No lessons yet. Click "Add Lesson" to create one.')}
+                    />
                   ) : (
                     module.lessons.map((lesson, li) => (
                       <div
@@ -816,16 +811,16 @@ const CourseManage: React.FC = () => {
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                           padding: '12px 20px', margin: '0 12px',
                           borderBottom: li < module.lessons.length - 1
-                            ? '1px solid rgba(107, 29, 42, 0.04)' : 'none',
+                            ? '1px solid rgba(101, 28, 50, 0.04)' : 'none',
                           transition: 'background 0.15s',
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(107, 29, 42, 0.015)'; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101, 28, 50, 0.015)'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <span style={{
                             width: 26, height: 26, borderRadius: 6, flexShrink: 0,
-                            background: 'rgba(107, 29, 42, 0.04)', fontSize: 12, fontWeight: 700,
+                            background: 'rgba(101, 28, 50, 0.04)', fontSize: 12, fontWeight: 700,
                             color: 'var(--lx-text-muted)', display: 'flex',
                             alignItems: 'center', justifyContent: 'center',
                           }}>
@@ -841,7 +836,7 @@ const CourseManage: React.FC = () => {
                               </span>
                               {lesson.contentType === 'VIDEO' && (
                                 <>
-                                  <span style={{ color: 'rgba(107, 29, 42, 0.15)' }}>|</span>
+                                  <span style={{ color: 'rgba(101, 28, 50, 0.15)' }}>|</span>
                                   {getVideoStatusBadge((lesson as any).videoStatus || 'pending')}
                                 </>
                               )}
@@ -854,7 +849,7 @@ const CourseManage: React.FC = () => {
                             <button
                               type="button" className="lx-btn lx-btn-sm lx-btn-gold"
                               onClick={() => handleUploadVideoClick(lesson.id)}
-                              style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                              style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                             >
                               <i className="isax isax-video-add" style={{ fontSize: 13 }} /> Upload Video
                             </button>
@@ -864,9 +859,9 @@ const CourseManage: React.FC = () => {
                               type="button" className="lx-btn lx-btn-sm"
                               onClick={() => handleOpenTextEditor(lesson)}
                               style={{
-                                fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4,
-                                background: 'rgba(59,130,246,0.08)', color: '#3B82F6',
-                                border: '1px solid rgba(59,130,246,0.2)',
+                                fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4,
+                                background: 'rgba(101, 28, 50,0.08)', color: '#651C32',
+                                border: '1px solid rgba(101, 28, 50,0.2)',
                               }}
                             >
                               <i className="isax isax-document-text" style={{ fontSize: 13 }} /> Edit Content
@@ -877,9 +872,9 @@ const CourseManage: React.FC = () => {
                               type="button" className="lx-btn lx-btn-sm"
                               onClick={() => navigate(`${all_routes.instructorQuiz}?lessonId=${lesson.id}&courseId=${courseId}`)}
                               style={{
-                                fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4,
-                                background: 'rgba(197,151,62,0.10)', color: '#C5973E',
-                                border: '1px solid rgba(197,151,62,0.25)',
+                                fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4,
+                                background: 'rgba(197, 145, 44,0.10)', color: '#C5912C',
+                                border: '1px solid rgba(197, 145, 44,0.25)',
                               }}
                             >
                               <i className="isax isax-award" style={{ fontSize: 13 }} /> Manage Quiz
@@ -910,7 +905,7 @@ const CourseManage: React.FC = () => {
           {/* Module Title — EN / AR side by side */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>{t('instructor.courseManage.moduleTitleEn', 'Module Title (English)')} <span style={{ color: '#8B2335' }}>*</span></label>
+              <label style={labelStyle}>{t('instructor.courseManage.moduleTitleEn', 'Module Title (English)')} <span style={{ color: '#651C32' }}>*</span></label>
               <input
                 type="text" style={inputStyle} placeholder={t('instructor.courseManage.moduleTitlePh', 'e.g., Introduction to Cake Design')}
                 value={moduleTitle} onChange={(e) => setModuleTitle(e.target.value)}
@@ -966,7 +961,7 @@ const CourseManage: React.FC = () => {
       >
         <form onSubmit={handleLessonSubmit}>
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>{t('instructor.courseManage.lessonTitle', 'Lesson Title')} <span style={{ color: '#8B2335' }}>*</span></label>
+            <label style={labelStyle}>{t('instructor.courseManage.lessonTitle', 'Lesson Title')} <span style={{ color: '#651C32' }}>*</span></label>
             <input
               type="text" style={inputStyle} placeholder={t('instructor.courseManage.lessonTitlePh', 'e.g., Setting Up Your Workspace')}
               value={lessonTitle} onChange={(e) => setLessonTitle(e.target.value)}
@@ -982,7 +977,7 @@ const CourseManage: React.FC = () => {
             />
           </div>
           <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>{t('instructor.courseManage.contentType', 'Content Type')} <span style={{ color: '#8B2335' }}>*</span></label>
+            <label style={labelStyle}>{t('instructor.courseManage.contentType', 'Content Type')} <span style={{ color: '#651C32' }}>*</span></label>
             <select
               style={selectStyle} value={lessonType}
               onChange={(e) => setLessonType(e.target.value as 'VIDEO' | 'TEXT' | 'QUIZ')}
@@ -998,10 +993,10 @@ const CourseManage: React.FC = () => {
           {!editingLesson && (
             <div style={{
               padding: '12px 16px', borderRadius: 'var(--lx-radius-sm)',
-              background: 'rgba(45, 140, 255, 0.04)', border: '1px solid rgba(45, 140, 255, 0.1)',
+              background: 'rgba(101, 28, 50, 0.04)', border: '1px solid rgba(101, 28, 50, 0.1)',
               marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <i className="isax isax-info-circle" style={{ fontSize: 16, color: '#2D8CFF', flexShrink: 0 }} />
+              <i className="isax isax-info-circle" style={{ fontSize: 16, color: '#651C32', flexShrink: 0 }} />
               <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
                 {t('instructor.courseManage.videoAfterCreate', 'After creating the lesson, you can upload the video from the lesson list.')}
               </span>
@@ -1032,7 +1027,7 @@ const CourseManage: React.FC = () => {
             {/* Drop Zone */}
             <div
               style={{
-                border: '2px dashed rgba(107, 29, 42, 0.12)', borderRadius: 'var(--lx-radius-sm)',
+                border: '2px dashed rgba(101, 28, 50, 0.12)', borderRadius: 'var(--lx-radius-sm)',
                 padding: '40px 24px', textAlign: 'center', cursor: 'pointer',
                 background: 'rgba(101,28,50,0.015)', transition: 'border-color 0.2s, background 0.2s',
               }}
@@ -1049,7 +1044,7 @@ const CourseManage: React.FC = () => {
               <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="video/*" style={{ display: 'none' }} />
               <div style={{
                 width: 52, height: 52, borderRadius: '50%', margin: '0 auto 14px',
-                background: 'rgba(107, 29, 42, 0.05)',
+                background: 'rgba(101, 28, 50, 0.05)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <i className="isax isax-video-play" style={{ fontSize: 24, color: 'var(--lx-text-muted)' }} />
@@ -1083,10 +1078,10 @@ const CourseManage: React.FC = () => {
                 <button
                   type="button" onClick={() => setSelectedFile(null)}
                   style={{
-                    background: 'rgba(139, 35, 53, 0.06)', border: 'none', borderRadius: 6,
+                    background: 'rgba(101, 28, 50, 0.06)', border: 'none', borderRadius: 6,
                     width: 30, height: 30, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#8B2335', fontSize: 14,
+                    color: '#651C32', fontSize: 14,
                   }}
                 >
                   <i className="isax isax-trash" />
@@ -1110,7 +1105,7 @@ const CourseManage: React.FC = () => {
           /* Upload Progress */
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div style={{
-              width: 36, height: 36, border: '3px solid rgba(107, 29, 42, 0.1)',
+              width: 36, height: 36, border: '3px solid rgba(101, 28, 50, 0.1)',
               borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
               animation: 'spin 0.8s linear infinite', margin: '0 auto 16px',
             }} />
@@ -1125,11 +1120,11 @@ const CourseManage: React.FC = () => {
             {/* Progress Bar */}
             <div style={{
               width: '100%', height: 8, borderRadius: 4,
-              background: 'rgba(107, 29, 42, 0.08)', overflow: 'hidden', marginBottom: 8,
+              background: 'rgba(101, 28, 50, 0.08)', overflow: 'hidden', marginBottom: 8,
             }}>
               <div style={{
                 height: '100%', borderRadius: 4,
-                background: 'linear-gradient(90deg, var(--lx-primary), #C5973E)',
+                background: 'linear-gradient(90deg, var(--lx-primary), #C5912C)',
                 width: `${uploadProgress}%`, transition: 'width 0.3s ease',
               }} />
             </div>
@@ -1145,10 +1140,10 @@ const CourseManage: React.FC = () => {
         {/* Info Banner */}
         <div style={{
           marginTop: 20, padding: '12px 16px', borderRadius: 'var(--lx-radius-sm)',
-          background: 'rgba(45, 140, 255, 0.04)', border: '1px solid rgba(45, 140, 255, 0.1)',
+          background: 'rgba(101, 28, 50, 0.04)', border: '1px solid rgba(101, 28, 50, 0.1)',
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
-          <i className="isax isax-info-circle" style={{ fontSize: 16, color: '#2D8CFF', flexShrink: 0 }} />
+          <i className="isax isax-info-circle" style={{ fontSize: 16, color: '#651C32', flexShrink: 0 }} />
           <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
             Your video is stored directly on the server and is ready to stream as soon as the upload completes — no processing delay.
           </span>
@@ -1167,7 +1162,7 @@ const CourseManage: React.FC = () => {
         {textLoadingContent ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{
-              width: 32, height: 32, border: '3px solid rgba(107,29,42,0.1)',
+              width: 32, height: 32, border: '3px solid rgba(101, 28, 50,0.1)',
               borderTopColor: 'var(--lx-primary)', borderRadius: '50%',
               animation: 'spin 0.8s linear infinite', margin: '0 auto 12px',
             }} />
@@ -1179,15 +1174,15 @@ const CourseManage: React.FC = () => {
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
                 <label style={{ ...labelStyle, margin: 0 }}>
-                  <i className="fa-solid fa-pen-to-square" style={{ marginRight: 6, color: '#6B1D2A' }} />
+                  <i className="fa-solid fa-pen-to-square" style={{ marginRight: 6, color: '#651C32' }} />
                   {t('instructor.courseManage.lessonContent', 'Lesson Content')}
                 </label>
                 <label style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '6px 14px', borderRadius: 8, cursor: uploadingResource ? 'wait' : 'pointer',
-                  background: 'linear-gradient(135deg, rgba(197,151,62,0.12), rgba(197,151,62,0.06))',
-                  color: '#8a6516', fontWeight: 700, fontSize: 12,
-                  border: '1px solid rgba(197,151,62,0.3)',
+                  background: 'linear-gradient(135deg, rgba(197, 145, 44,0.12), rgba(197, 145, 44,0.06))',
+                  color: '#855A0E', fontWeight: 700, fontSize: 12,
+                  border: '1px solid rgba(197, 145, 44,0.3)',
                   opacity: uploadingResource ? 0.7 : 1,
                 }}>
                   <i className={`fa-solid ${uploadingResource ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} />
@@ -1212,7 +1207,7 @@ const CourseManage: React.FC = () => {
                 suppressContentEditableWarning
                 style={{
                   minHeight: 260, padding: '14px 16px',
-                  border: '1.5px solid rgba(107,29,42,0.12)',
+                  border: '1.5px solid rgba(101, 28, 50,0.12)',
                   borderRadius: '0 0 8px 8px',
                   fontSize: 14, lineHeight: 1.75, color: 'var(--lx-text)',
                   background: '#fff', outline: 'none', overflowY: 'auto',
@@ -1221,7 +1216,7 @@ const CourseManage: React.FC = () => {
                 onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(101,28,50,0.30)'; }}
                 onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(101,28,50,0.12)'; }}
               />
-              <p style={{ fontSize: 11, color: 'var(--lx-text-muted)', marginTop: 4, marginBottom: 0 }}>
+              <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', marginTop: 4, marginBottom: 0 }}>
                 Tip: Select text and use the toolbar to format. Supports bold, headings, lists, code blocks & more.
               </p>
             </div>
@@ -1229,20 +1224,20 @@ const CourseManage: React.FC = () => {
             {/* ─ Attachments (PDF, Docs, etc.) ─ */}
             <div style={{
               marginBottom: 24, padding: 18,
-              background: 'rgba(107,29,42,0.015)', borderRadius: 10,
-              border: '1.5px solid rgba(107,29,42,0.08)',
+              background: 'rgba(101, 28, 50,0.015)', borderRadius: 10,
+              border: '1.5px solid rgba(101, 28, 50,0.08)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <label style={{ ...labelStyle, margin: 0 }}>
-                  <i className="fa-solid fa-paperclip" style={{ marginRight: 6, color: '#6B1D2A' }} />
+                  <i className="fa-solid fa-paperclip" style={{ marginRight: 6, color: '#651C32' }} />
                   Attachments &amp; Resources
                 </label>
                 <label style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '6px 14px', borderRadius: 8, cursor: uploadingResource ? 'wait' : 'pointer',
-                  background: uploadingResource ? 'rgba(107,29,42,0.04)' : 'rgba(107,29,42,0.06)',
-                  color: '#6B1D2A', fontWeight: 600, fontSize: 12,
-                  border: '1px solid rgba(107,29,42,0.12)',
+                  background: uploadingResource ? 'rgba(101, 28, 50,0.04)' : 'rgba(101, 28, 50,0.06)',
+                  color: '#651C32', fontWeight: 600, fontSize: 12,
+                  border: '1px solid rgba(101, 28, 50,0.12)',
                   opacity: uploadingResource ? 0.7 : 1,
                 }}>
                   <i className={`fa-solid ${uploadingResource ? 'fa-spinner fa-spin' : 'fa-plus'}`} />
@@ -1264,31 +1259,29 @@ const CourseManage: React.FC = () => {
 
               {/* File list */}
               {resources.length === 0 ? (
-                <div style={{
-                  textAlign: 'center', padding: '20px 0',
-                  border: '2px dashed rgba(107,29,42,0.1)', borderRadius: 8,
-                  color: 'var(--lx-text-muted)',
-                }}>
-                  <i className="fa-solid fa-file-arrow-up" style={{ fontSize: 28, marginBottom: 8, display: 'block', opacity: 0.4 }} />
-                  <p style={{ margin: 0, fontSize: 13 }}>{t('instructor.courseManage.noAttachments', 'No attachments yet. Click "Attach File" to add resources.')}</p>
-                </div>
+                <LxEmptyState
+                  compact
+                  icon="isax-document-upload"
+                  title={t('emptyStates.attachmentsTitle', 'No files attached')}
+                  text={t('instructor.courseManage.noAttachments', 'No attachments yet. Click "Attach File" to add resources.')}
+                />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {resources.map((res) => {
                     const ext = res.name.split('.').pop()?.toLowerCase() ?? '';
                     const iconMap: Record<string, { icon: string; color: string }> = {
-                      pdf:  { icon: 'fa-file-pdf',          color: '#EF4444' },
-                      doc:  { icon: 'fa-file-word',         color: '#2563EB' },
-                      docx: { icon: 'fa-file-word',         color: '#2563EB' },
-                      ppt:  { icon: 'fa-file-powerpoint',   color: '#F97316' },
-                      pptx: { icon: 'fa-file-powerpoint',   color: '#F97316' },
-                      txt:  { icon: 'fa-file-lines',        color: '#6B7280' },
-                      png:  { icon: 'fa-file-image',        color: '#8B5CF6' },
-                      jpg:  { icon: 'fa-file-image',        color: '#8B5CF6' },
-                      jpeg: { icon: 'fa-file-image',        color: '#8B5CF6' },
-                      gif:  { icon: 'fa-file-image',        color: '#8B5CF6' },
+                      pdf:  { icon: 'fa-file-pdf',          color: '#651C32' },
+                      doc:  { icon: 'fa-file-word',         color: '#651C32' },
+                      docx: { icon: 'fa-file-word',         color: '#651C32' },
+                      ppt:  { icon: 'fa-file-powerpoint',   color: '#651C32' },
+                      pptx: { icon: 'fa-file-powerpoint',   color: '#651C32' },
+                      txt:  { icon: 'fa-file-lines',        color: '#66525D' },
+                      png:  { icon: 'fa-file-image',        color: '#651C32' },
+                      jpg:  { icon: 'fa-file-image',        color: '#651C32' },
+                      jpeg: { icon: 'fa-file-image',        color: '#651C32' },
+                      gif:  { icon: 'fa-file-image',        color: '#651C32' },
                     };
-                    const fi = iconMap[ext] ?? { icon: 'fa-file', color: '#6B7280' };
+                    const fi = iconMap[ext] ?? { icon: 'fa-file', color: '#66525D' };
                     const sizeLabel = res.size
                       ? res.size > 1024 * 1024
                         ? `${(res.size / 1024 / 1024).toFixed(1)} MB`
@@ -1309,7 +1302,7 @@ const CourseManage: React.FC = () => {
                               href={getFileUrl(res.url) ?? res.url}
                               target="_blank" rel="noopener noreferrer"
                               style={{
-                                fontSize: 13, fontWeight: 600, color: '#2C1810',
+                                fontSize: 13, fontWeight: 600, color: '#2B0F1E',
                                 textDecoration: 'none', display: 'block',
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                               }}
@@ -1317,7 +1310,7 @@ const CourseManage: React.FC = () => {
                               {res.name}
                             </a>
                             {sizeLabel && (
-                              <span style={{ fontSize: 11, color: 'var(--lx-text-muted)' }}>{sizeLabel}</span>
+                              <span style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{sizeLabel}</span>
                             )}
                           </div>
                         </div>
@@ -1328,10 +1321,10 @@ const CourseManage: React.FC = () => {
                             title={t('instructor.courseManage.previewDownload', 'Preview / Download')}
                             style={{
                               width: 30, height: 30, borderRadius: 7,
-                              background: 'rgba(59,130,246,0.06)',
-                              border: '1px solid rgba(59,130,246,0.15)',
+                              background: 'rgba(101, 28, 50,0.06)',
+                              border: '1px solid rgba(101, 28, 50,0.15)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: '#3B82F6', textDecoration: 'none', fontSize: 13,
+                              color: '#651C32', textDecoration: 'none', fontSize: 13,
                             }}
                           >
                             <i className="fa-solid fa-arrow-down-to-line" />
@@ -1342,9 +1335,9 @@ const CourseManage: React.FC = () => {
                             onClick={() => handleDeleteResource(res.id, res.name)}
                             style={{
                               width: 30, height: 30, borderRadius: 7, border: 'none',
-                              background: 'rgba(139,35,53,0.06)', cursor: 'pointer',
+                              background: 'rgba(101, 28, 50,0.06)', cursor: 'pointer',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: '#8B2335', fontSize: 13,
+                              color: '#651C32', fontSize: 13,
                             }}
                           >
                             <i className="fa-solid fa-trash" />
@@ -1414,17 +1407,17 @@ const ActionBtn = ({
     type="button" title={title} onClick={onClick}
     style={{
       width: 30, height: 30, borderRadius: 6, border: 'none', cursor: 'pointer',
-      background: danger ? 'rgba(139, 35, 53, 0.05)' : 'rgba(107, 29, 42, 0.04)',
+      background: danger ? 'rgba(101, 28, 50, 0.05)' : 'rgba(101, 28, 50, 0.04)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: danger ? '#8B2335' : 'var(--lx-text-muted)', fontSize: 14,
+      color: danger ? '#651C32' : 'var(--lx-text-muted)', fontSize: 14,
       transition: 'all 0.15s',
     }}
     onMouseEnter={(e) => {
-      e.currentTarget.style.background = danger ? 'rgba(139, 35, 53, 0.1)' : 'rgba(107, 29, 42, 0.08)';
+      e.currentTarget.style.background = danger ? 'rgba(101, 28, 50, 0.1)' : 'rgba(101, 28, 50, 0.08)';
       if (!danger) e.currentTarget.style.color = 'var(--lx-primary)';
     }}
     onMouseLeave={(e) => {
-      e.currentTarget.style.background = danger ? 'rgba(139, 35, 53, 0.05)' : 'rgba(107, 29, 42, 0.04)';
+      e.currentTarget.style.background = danger ? 'rgba(101, 28, 50, 0.05)' : 'rgba(101, 28, 50, 0.04)';
       if (!danger) e.currentTarget.style.color = 'var(--lx-text-muted)';
     }}
   >

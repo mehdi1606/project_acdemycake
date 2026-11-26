@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { all_routes } from '../../router/all_routes';
 import ebookService, { Ebook } from '../../../services/api/ebook.service';
 
-const GOLD = '#C5973E';
+const GOLD = '#C5912C';
 
 /** The buyer's own library: everything they have paid for, readable inside the platform (no download). */
 const StudentEbooks: React.FC = () => {
@@ -47,18 +48,15 @@ const StudentEbooks: React.FC = () => {
         </div>
       ) : ebooks.length === 0 ? (
         <div className="lx-card">
-          <div className="lx-card-body" style={{ textAlign: 'center', padding: '56px 24px' }}>
-            <i className="isax isax-book-1" style={{ fontSize: 44, color: 'rgba(107,29,42,0.18)', display: 'block', marginBottom: 14 }} />
-            <h6 style={{ color: 'var(--lx-text)', marginBottom: 8 }}>
-              {t('ebooks.libraryEmpty', 'No ebooks yet')}
-            </h6>
-            <p style={{ color: 'var(--lx-text-muted)', marginBottom: 18 }}>
-              {t('ebooks.libraryEmptyHint', 'Ebooks you buy appear here to read any time on the platform.')}
-            </p>
+          <LxEmptyState
+            icon="isax-book-1"
+            title={t('ebooks.libraryEmpty', 'No ebooks yet')}
+            text={t('ebooks.libraryEmptyHint', 'Ebooks you buy appear here to read any time on the platform.')}
+          >
             <Link to={all_routes.ebooks} className="lx-btn lx-btn-gold">
               {t('ebooks.browse', 'Browse ebooks')}
             </Link>
-          </div>
+          </LxEmptyState>
         </div>
       ) : (
         <div className="row g-3">

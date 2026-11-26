@@ -12,7 +12,7 @@ const hasSpecial = (v: string) => /[!#@$%^&*)(+=._-]/.test(v);
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 42px 11px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
   outline: 'none', background: 'rgba(255,255,255,0.6)',
   color: 'var(--lx-text)', transition: 'border-color 0.2s ease',
@@ -32,15 +32,15 @@ const eyeStyle: React.CSSProperties = {
 type StrengthLevel = '' | 'poor' | 'weak' | 'strong' | 'heavy';
 
 const strengthMeta: Record<string, { color: string; labelKey: string; label: string; width: string }> = {
-  poor:  { color: '#8B2335', labelKey: 'student.changePassword.strengthPoor', label: 'Too short: at least 8 characters are required', width: '25%' },
-  weak:  { color: '#C5973E', labelKey: 'student.changePassword.strengthWeak', label: 'OK. Tip (optional): adding a number makes it stronger', width: '50%' },
-  strong:{ color: '#4A7DAA', labelKey: 'student.changePassword.strengthGood', label: 'Good. Tip (optional): a symbol like ! or @ makes it even stronger', width: '75%' },
-  heavy: { color: '#2D5F3F', labelKey: 'student.changePassword.strengthStrong', label: 'Strong password!', width: '100%' },
+  poor:  { color: '#651C32', labelKey: 'student.changePassword.strengthPoor', label: 'Too short: at least 8 characters are required', width: '25%' },
+  weak:  { color: '#C5912C', labelKey: 'student.changePassword.strengthWeak', label: 'OK. Tip (optional): adding a number makes it stronger', width: '50%' },
+  strong:{ color: '#651C32', labelKey: 'student.changePassword.strengthGood', label: 'Good. Tip (optional): a symbol like ! or @ makes it even stronger', width: '75%' },
+  heavy: { color: '#855A0E', labelKey: 'student.changePassword.strengthStrong', label: 'Strong password!', width: '100%' },
 };
 
 interface PwErrors { current?: string; next?: string; confirm?: string; form?: string }
 
-const errorTextStyle: React.CSSProperties = { fontSize: 12, color: '#8B2335', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 };
+const errorTextStyle: React.CSSProperties = { fontSize: 12, color: '#651C32', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 };
 
 const calcStrength = (v: string): StrengthLevel => {
   if (!v) return '';
@@ -104,7 +104,7 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
       <div className="lx-card">
         <div className="lx-card-body">
           {/* Change Password */}
-          <div style={{ paddingBottom: 28, marginBottom: 28, borderBottom: '1px solid rgba(107, 29, 42, 0.06)' }}>
+          <div style={{ paddingBottom: 28, marginBottom: 28, borderBottom: '1px solid rgba(101, 28, 50, 0.06)' }}>
             <div style={{ maxWidth: 520 }}>
               <h6 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>
                 {t('student.changePassword.title', 'Change Password')}
@@ -117,7 +117,7 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
                 {/* Current Password */}
                 <div style={{ marginBottom: 16 }}>
                   <label style={labelStyle}>
-                    {t('student.changePassword.currentPassword', 'Current Password')} <span style={{ color: '#8B2335' }}>*</span>
+                    {t('student.changePassword.currentPassword', 'Current Password')} <span style={{ color: '#651C32' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
@@ -126,8 +126,8 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
                       placeholder={t('student.changePassword.enterCurrentPassword', 'Enter current password')}
                       value={currentPassword}
                       onChange={(e) => { setCurrentPassword(e.target.value); if (errors.current || errors.form) setErrors((p) => ({ ...p, current: undefined, form: undefined })); }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)'; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)'; }}
                     />
                     <button type="button" style={eyeStyle} onClick={() => setCurrentPwVisible(!currentPwVisible)}>
                       <i className={`isax ${currentPwVisible ? 'isax-eye' : 'isax-eye-slash'}`} />
@@ -139,7 +139,7 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
                 {/* New Password */}
                 <div style={{ marginBottom: 16 }}>
                   <label style={labelStyle}>
-                    {t('student.changePassword.newPassword', 'New Password')} <span style={{ color: '#8B2335' }}>*</span>
+                    {t('student.changePassword.newPassword', 'New Password')} <span style={{ color: '#651C32' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
@@ -148,21 +148,21 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
                       placeholder={t('student.changePassword.enterNewPassword', 'Enter new password')}
                       value={newPassword}
                       onChange={(e) => { setNewPassword(e.target.value); if (errors.next) setErrors((p) => ({ ...p, next: undefined })); }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)'; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)'; }}
                     />
                     <button type="button" style={eyeStyle} onClick={() => setNewPwVisible(!newPwVisible)}>
                       <i className={`isax ${newPwVisible ? 'isax-eye' : 'isax-eye-slash'}`} />
                     </button>
                   </div>
-                  <span style={{ fontSize: 12, color: newPassword.length >= 8 ? '#2D5F3F' : 'var(--lx-text-muted)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 12, color: newPassword.length >= 8 ? '#855A0E' : 'var(--lx-text-muted)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <i className={`isax ${newPassword.length >= 8 ? 'isax-tick-circle' : 'isax-info-circle'}`} />
                     {t('auth.register.pwRule', 'At least 8 characters')}
                   </span>
                   {errors.next && <span style={errorTextStyle}><i className="isax isax-info-circle" />{errors.next}</span>}
                   {newPassword && (
                     <div style={{ marginTop: 10 }}>
-                      <div style={{ height: 4, borderRadius: 2, background: 'rgba(107, 29, 42, 0.06)', overflow: 'hidden', marginBottom: 6 }}>
+                      <div style={{ height: 4, borderRadius: 2, background: 'rgba(101, 28, 50, 0.06)', overflow: 'hidden', marginBottom: 6 }}>
                         <div style={{ height: '100%', borderRadius: 2, width: meta?.width || '0%', background: meta?.color || 'transparent', transition: 'all 0.3s ease' }} />
                       </div>
                       {meta && <span style={{ fontSize: 12, color: meta.color, fontWeight: 500 }}>{t(meta.labelKey, meta.label)}</span>}
@@ -173,7 +173,7 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
                 {/* Confirm Password */}
                 <div style={{ marginBottom: 20 }}>
                   <label style={labelStyle}>
-                    {t('student.changePassword.confirmPassword', 'Confirm Password')} <span style={{ color: '#8B2335' }}>*</span>
+                    {t('student.changePassword.confirmPassword', 'Confirm Password')} <span style={{ color: '#651C32' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
@@ -182,8 +182,8 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
                       placeholder={t('student.changePassword.confirmNewPassword', 'Confirm new password')}
                       value={confirmPassword}
                       onChange={(e) => { setConfirmPassword(e.target.value); if (errors.confirm) setErrors((p) => ({ ...p, confirm: undefined })); }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.3)'; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(107, 29, 42, 0.12)'; }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.3)'; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(101, 28, 50, 0.12)'; }}
                     />
                     <button type="button" style={eyeStyle} onClick={() => setConfirmPwVisible(!confirmPwVisible)}>
                       <i className={`isax ${confirmPwVisible ? 'isax-eye' : 'isax-eye-slash'}`} />
@@ -192,14 +192,14 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
                   {errors.confirm ? (
                     <span style={errorTextStyle}><i className="isax isax-info-circle" />{errors.confirm}</span>
                   ) : confirmPassword && newPassword && confirmPassword !== newPassword && (
-                    <span style={{ fontSize: 12, color: '#8B2335', marginTop: 6, display: 'block' }}>
+                    <span style={{ fontSize: 12, color: '#651C32', marginTop: 6, display: 'block' }}>
                       {t('student.changePassword.passwordsNoMatch', 'Passwords do not match')}
                     </span>
                   )}
                 </div>
 
                 {errors.form && (
-                  <div role="alert" style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(139,35,53,0.06)', border: '1px solid rgba(139,35,53,0.12)', color: '#8B2335', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div role="alert" style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 'var(--lx-radius-sm)', background: 'rgba(101, 28, 50,0.06)', border: '1px solid rgba(101, 28, 50,0.12)', color: '#651C32', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <i className="isax isax-warning-2" />{errors.form}
                   </div>
                 )}
@@ -220,7 +220,7 @@ const StudentChangePassword = ({ links }: { links?: React.ReactNode } = {}) => {
               {t('student.changePassword.currentEmailIs', 'Your current email address is')}{' '}
               <span style={{ fontWeight: 600, color: 'var(--lx-text)' }}>{user?.email ?? '—'}</span>
             </p>
-            <p style={{ margin: 0, fontSize: 12, color: 'var(--lx-text-muted)', padding: '10px 14px', background: 'rgba(107, 29, 42, 0.03)', borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(107, 29, 42, 0.05)' }}>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--lx-text-muted)', padding: '10px 14px', background: 'rgba(101, 28, 50, 0.03)', borderRadius: 'var(--lx-radius-sm)', border: '1px solid rgba(101, 28, 50, 0.05)' }}>
               <i className="isax isax-info-circle me-2" />
               {t('student.changePassword.emailChangeNote', 'Email changes are not supported at this time. Contact support if you need to update your email.')}
             </p>

@@ -13,10 +13,10 @@ import AvatarImage from '../../../components/AvatarImage';
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)',
   fontSize: 14,
-  background: 'rgba(107, 29, 42, 0.03)',
+  background: 'rgba(101, 28, 50, 0.03)',
   color: 'var(--lx-text)',
   cursor: 'not-allowed',
   outline: 'none',
@@ -93,11 +93,11 @@ const AdminSettings = () => {
           <div style={{
             display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28,
             padding: 20, borderRadius: 'var(--lx-radius)',
-            background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)',
+            background: 'rgba(101, 28, 50, 0.02)', border: '1px solid rgba(101, 28, 50, 0.04)',
           }}>
             <div style={{
               width: 72, height: 72, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-              border: '3px solid rgba(107, 29, 42, 0.1)',
+              border: '3px solid rgba(101, 28, 50, 0.1)',
             }}>
               <AvatarImage
                 src={user?.avatarUrl ? (getFileUrl(user.avatarUrl) ?? user.avatarUrl) : null}
@@ -119,10 +119,10 @@ const AdminSettings = () => {
           {/* Info Notice */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', marginBottom: 24,
-            borderRadius: 'var(--lx-radius-sm)', background: 'rgba(197, 151, 62, 0.08)',
-            border: '1px solid rgba(197, 151, 62, 0.15)',
+            borderRadius: 'var(--lx-radius-sm)', background: 'rgba(197, 145, 44, 0.08)',
+            border: '1px solid rgba(197, 145, 44, 0.15)',
           }}>
-            <i className="isax isax-info-circle" style={{ color: '#C5973E', flexShrink: 0 }} />
+            <i className="isax isax-info-circle" style={{ color: '#C5912C', flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: 'var(--lx-text-mid)' }}>
               {t('admin.settings.securityNotice', 'Admin account settings are managed through the database for security reasons.')}
             </span>
@@ -215,10 +215,10 @@ const AdminSettings = () => {
         <div className="lx-card-body">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {[
-              { to: all_routes.adminDashboard, icon: 'isax-category', color: '#6B1D2A', label: t('admin.sidebar.dashboard', 'Dashboard'), desc: t('admin.settings.viewPlatformOverview', 'View platform overview') },
-              { to: all_routes.adminUsers, icon: 'isax-people', color: '#2D5F3F', label: t('admin.sidebar.userManagement', 'User Management'), desc: t('admin.settings.managePlatformUsers', 'Manage platform users') },
-              { to: all_routes.adminCourses, icon: 'isax-book', color: '#C5973E', label: t('admin.sidebar.courseManagement', 'Course Management'), desc: t('admin.settings.manageAllCourses', 'Manage all courses') },
-              { to: all_routes.adminTransactions, icon: 'isax-card', color: '#8B6D5E', label: t('admin.transactions.title', 'Transactions'), desc: t('admin.settings.viewPaymentHistory', 'View payment history') },
+              { to: all_routes.adminDashboard, icon: 'isax-category', color: '#651C32', label: t('admin.sidebar.dashboard', 'Dashboard'), desc: t('admin.settings.viewPlatformOverview', 'View platform overview') },
+              { to: all_routes.adminUsers, icon: 'isax-people', color: '#855A0E', label: t('admin.sidebar.userManagement', 'User Management'), desc: t('admin.settings.managePlatformUsers', 'Manage platform users') },
+              { to: all_routes.adminCourses, icon: 'isax-book', color: '#C5912C', label: t('admin.sidebar.courseManagement', 'Course Management'), desc: t('admin.settings.manageAllCourses', 'Manage all courses') },
+              { to: all_routes.adminTransactions, icon: 'isax-card', color: '#7C6A73', label: t('admin.transactions.title', 'Transactions'), desc: t('admin.settings.viewPaymentHistory', 'View payment history') },
             ].map((item) => (
               <Link
                 key={item.to}
@@ -227,7 +227,7 @@ const AdminSettings = () => {
                   display: 'flex', alignItems: 'center', gap: 16, padding: 16,
                   borderRadius: 'var(--lx-radius)',
                   background: 'rgba(255, 255, 255, 0.6)', backdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(107, 29, 42, 0.06)',
+                  border: '1px solid rgba(101, 28, 50, 0.06)',
                   textDecoration: 'none', transition: 'all 0.2s',
                 }}
               >

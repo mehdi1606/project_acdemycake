@@ -17,7 +17,7 @@ import AvatarImage from "../../../components/AvatarImage";
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)',
   fontSize: 14,
   outline: 'none',
@@ -143,13 +143,13 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
             <div style={{
               display: 'flex', alignItems: 'center', gap: 20, marginBottom: 32,
               padding: 20, borderRadius: 'var(--lx-radius)',
-              background: 'rgba(107, 29, 42, 0.02)', border: '1px solid rgba(107, 29, 42, 0.04)',
+              background: 'rgba(101, 28, 50, 0.02)', border: '1px solid rgba(101, 28, 50, 0.04)',
             }}>
               <Link
                 to={route.studentProfile}
                 style={{
                   width: 88, height: 88, borderRadius: '50%', flexShrink: 0,
-                  border: '3px solid rgba(107, 29, 42, 0.1)', overflow: 'hidden',
+                  border: '3px solid rgba(101, 28, 50, 0.1)', overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(255,255,255,0.6)',
                 }}
@@ -196,19 +196,19 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
               <h5 style={{ fontSize: 16, fontWeight: 700, color: 'var(--lx-text)', marginBottom: 4 }}>{t('student.settings.personalDetails', 'Personal Details')}</h5>
               <p style={{ fontSize: 13, color: 'var(--lx-text-muted)', margin: 0 }}>{t('student.settings.personalDetailsDesc', 'Edit your personal information')}</p>
               <p style={{ fontSize: 12, color: 'var(--lx-text-muted)', margin: '6px 0 0' }}>
-                <span style={{ color: '#8B2335' }}>*</span> {t('common.requiredFields', 'Required fields')}
+                <span style={{ color: '#651C32' }}>*</span> {t('common.requiredFields', 'Required fields')}
               </p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
               <div>
                 <label style={labelStyle}>
-                  {t('student.profile.fullName', 'Full Name')} <span style={{ color: '#8B2335' }}>*</span>
+                  {t('student.profile.fullName', 'Full Name')} <span style={{ color: '#651C32' }}>*</span>
                 </label>
                 <input
                   type="text"
                   name="fullName"
-                  style={nameError ? { ...inputStyle, borderColor: '#B03060' } : inputStyle}
+                  style={nameError ? { ...inputStyle, borderColor: '#651C32' } : inputStyle}
                   aria-invalid={!!nameError}
                   value={formData.fullName}
                   onChange={handleInputChange}
@@ -218,7 +218,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                   required
                 />
                 {nameError && (
-                  <small style={{ fontSize: 12, color: '#B03060', display: 'flex', alignItems: 'center', gap: 4, marginTop: 5 }}>
+                  <small style={{ fontSize: 12, color: '#651C32', display: 'flex', alignItems: 'center', gap: 4, marginTop: 5 }}>
                     <i className="isax isax-info-circle" />{nameError}
                   </small>
                 )}
@@ -228,7 +228,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                 <label style={labelStyle}>{t('student.profile.email', 'Email')}</label>
                 <input
                   type="email"
-                  style={{ ...inputStyle, background: 'rgba(107, 29, 42, 0.03)', cursor: 'not-allowed' }}
+                  style={{ ...inputStyle, background: 'rgba(101, 28, 50, 0.03)', cursor: 'not-allowed' }}
                   value={user?.email || ""}
                   disabled
                 />
@@ -255,7 +255,7 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
                 <label style={labelStyle}>{t('student.settings.memberSince', 'Member Since')}</label>
                 <input
                   type="text"
-                  style={{ ...inputStyle, background: 'rgba(107, 29, 42, 0.03)', cursor: 'not-allowed' }}
+                  style={{ ...inputStyle, background: 'rgba(101, 28, 50, 0.03)', cursor: 'not-allowed' }}
                   value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : ""}
                   disabled
                 />
@@ -306,9 +306,9 @@ const StudentSettings = ({ links }: { links?: React.ReactNode } = {}) => {
             type="button"
             className="lx-btn"
             style={{
-              background: 'rgba(139, 35, 53, 0.08)',
-              color: '#8B2335',
-              border: '1.5px solid rgba(139, 35, 53, 0.15)',
+              background: 'rgba(101, 28, 50, 0.08)',
+              color: '#651C32',
+              border: '1.5px solid rgba(101, 28, 50, 0.15)',
             }}
             data-bs-toggle="modal"
             data-bs-target="#delete_account"

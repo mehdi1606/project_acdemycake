@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { all_routes } from '../../router/all_routes';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { message } from 'antd';
 import { reviewService, MyReview } from '../../../services/api/review.service';
 import { extractApiError } from '../../../services/api/error.utils';
@@ -21,7 +22,7 @@ const renderStars = (rating: number, interactive = false, onSet?: (n: number) =>
         onClick={interactive && onSet ? () => onSet(star) : undefined}
         style={{
           fontSize: interactive ? 20 : 14,
-          color: star <= rating ? '#C5973E' : 'rgba(107, 29, 42, 0.12)',
+          color: star <= rating ? '#C5912C' : 'rgba(101, 28, 50, 0.12)',
           cursor: interactive ? 'pointer' : 'default',
         }}
       />
@@ -42,7 +43,7 @@ const formatDate = (t: TFunction, iso: string) => {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
-  border: '1.5px solid rgba(107, 29, 42, 0.12)',
+  border: '1.5px solid rgba(101, 28, 50, 0.12)',
   borderRadius: 'var(--lx-radius-sm)', fontSize: 14,
   outline: 'none', background: 'rgba(255,255,255,0.6)',
   color: 'var(--lx-text)', resize: 'vertical',
@@ -134,19 +135,16 @@ const StudentReviews = () => {
           <p style={{ color: 'var(--lx-text-muted)', margin: 0 }}>{t('student.reviews.loading', 'Loading reviews...')}</p>
         </div>
       ) : reviews.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: '60px 24px',
-          background: 'rgba(255,255,255,0.55)', borderRadius: 'var(--lx-radius)',
-          border: '1px solid rgba(107, 29, 42, 0.06)',
-        }}>
-          <i className="fa-solid fa-star" style={{ fontSize: 40, color: 'rgba(107, 29, 42, 0.15)', marginBottom: 16, display: 'block' }} />
-          <h6 style={{ color: 'var(--lx-text)', marginBottom: 8 }}>{t('student.reviews.noReviews', 'No reviews yet')}</h6>
-          <p style={{ color: 'var(--lx-text-muted)', margin: '0 0 16px' }}>
-            {t('student.reviews.emptyText', "Rate a course you've taken: open it from My courses and leave a review. It will appear here.")}
-          </p>
-          <Link to={all_routes.studentCourses} className="lx-btn lx-btn-gold lx-btn-sm">
-            <i className="isax isax-teacher" /> {t('student.reviews.myCourses', 'My courses')}
-          </Link>
+        <div className="lx-card">
+          <LxEmptyState
+            icon="isax-star"
+            title={t('student.reviews.noReviews', 'No reviews yet')}
+            text={t('student.reviews.emptyText', "Rate a course you've taken: open it from My courses and leave a review. It will appear here.")}
+          >
+            <Link to={all_routes.studentCourses} className="lx-btn lx-btn-gold lx-btn-sm">
+              <i className="isax isax-teacher" /> {t('student.reviews.myCourses', 'My courses')}
+            </Link>
+          </LxEmptyState>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -156,21 +154,21 @@ const StudentReviews = () => {
               style={{
                 padding: '18px 20px', borderRadius: 'var(--lx-radius)',
                 background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(107, 29, 42, 0.06)',
+                border: '1px solid rgba(101, 28, 50, 0.06)',
               }}
             >
               {/* Course name */}
               <div style={{ marginBottom: 12 }}>
                 <span style={{
                   fontSize: 12, fontWeight: 600, color: 'var(--lx-primary)',
-                  background: 'rgba(107, 29, 42, 0.06)', padding: '3px 10px',
+                  background: 'rgba(101, 28, 50, 0.06)', padding: '3px 10px',
                   borderRadius: 20,
                 }}>
                   {review.courseTitle}
                 </span>
                 {review.isVerifiedPurchase && (
                   <span style={{
-                    fontSize: 12, color: '#2D5F3F', background: 'rgba(45, 95, 63, 0.08)',
+                    fontSize: 12, color: '#855A0E', background: 'rgba(197, 145, 44, 0.08)',
                     padding: '3px 10px', borderRadius: 20, marginInlineStart: 6,
                   }}>
                     <i className="fa-solid fa-check-circle me-1" /> {t('student.reviews.verified', 'Verified')}
@@ -220,7 +218,7 @@ const StudentReviews = () => {
                   style={{
                     background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                     display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 13, color: '#8B2335', fontWeight: 500,
+                    fontSize: 13, color: '#651C32', fontWeight: 500,
                   }}
                 >
                   <i className="isax isax-trash" /> {t('common.delete', 'Delete')}
@@ -273,7 +271,7 @@ const StudentReviews = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setEditingReview(null); }}
@@ -281,10 +279,10 @@ const StudentReviews = () => {
           <div style={{
             width: '100%', maxWidth: 500,
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
           }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.reviews.editReview', 'Edit Review')}</h5>
                 <p style={{ margin: 0, fontSize: 12, color: 'var(--lx-text-muted)' }}>{editingReview.courseTitle}</p>
@@ -296,7 +294,7 @@ const StudentReviews = () => {
             <div style={{ padding: 24 }}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text-mid)', marginBottom: 8 }}>
-                  {t('common.rating', 'Rating')} <span style={{ color: '#8B2335' }}>*</span>
+                  {t('common.rating', 'Rating')} <span style={{ color: '#651C32' }}>*</span>
                 </label>
                 {renderStars(editRating, true, setEditRating)}
               </div>
@@ -315,7 +313,7 @@ const StudentReviews = () => {
                 <small style={{ fontSize: 12, color: 'var(--lx-text-muted)' }}>{editText.length}/2000</small>
               </div>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button type="button" className="lx-btn lx-btn-outline" onClick={() => setEditingReview(null)}>{t('common.cancel', 'Cancel')}</button>
               <button type="button" className="lx-btn lx-btn-gold" onClick={handleSaveEdit} disabled={saving}>
                 {saving ? t('common.saving', 'Saving...') : t('common.saveChanges', 'Save Changes')}
@@ -330,7 +328,7 @@ const StudentReviews = () => {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1050,
-            background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)',
+            background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setDeleteConfirmId(null); }}
@@ -338,14 +336,14 @@ const StudentReviews = () => {
           <div style={{
             width: '100%', maxWidth: 400,
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(32px)',
-            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(107, 29, 42, 0.1)',
-            boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)', padding: 32, textAlign: 'center',
+            borderRadius: 'var(--lx-radius-lg)', border: '1px solid rgba(101, 28, 50, 0.1)',
+            boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)', padding: 32, textAlign: 'center',
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%', margin: '0 auto 16px',
-              background: 'rgba(139, 35, 53, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(101, 28, 50, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <i className="isax isax-trash" style={{ fontSize: 24, color: '#8B2335' }} />
+              <i className="isax isax-trash" style={{ fontSize: 24, color: '#651C32' }} />
             </div>
             <h5 style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--lx-text)' }}>{t('student.reviews.deleteReview', 'Delete Review')}</h5>
             <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--lx-text-mid)' }}>
@@ -358,7 +356,7 @@ const StudentReviews = () => {
               <button
                 type="button"
                 className="lx-btn"
-                style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
+                style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1.5px solid rgba(101, 28, 50, 0.15)' }}
                 disabled={!!deletingId}
                 onClick={() => handleDelete(deleteConfirmId)}
               >

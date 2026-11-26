@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
+import LxEmptyState from '../../../components/LxEmptyState';
 import { Spin, message } from 'antd';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
@@ -209,7 +210,7 @@ const StudentTickets: React.FC = () => {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '10px 14px',
-    border: '1.5px solid rgba(107, 29, 42, 0.12)',
+    border: '1.5px solid rgba(101, 28, 50, 0.12)',
     borderRadius: 'var(--lx-radius-sm)',
     fontSize: 14,
     outline: 'none',
@@ -273,9 +274,9 @@ const StudentTickets: React.FC = () => {
           style={{
             padding: '12px 16px',
             borderRadius: 'var(--lx-radius-sm)',
-            background: 'rgba(139, 35, 53, 0.06)',
-            border: '1px solid rgba(139, 35, 53, 0.12)',
-            color: '#8B2335',
+            background: 'rgba(101, 28, 50, 0.06)',
+            border: '1px solid rgba(101, 28, 50, 0.12)',
+            color: '#651C32',
             fontSize: 14,
           }}
         >
@@ -354,7 +355,7 @@ const StudentTickets: React.FC = () => {
         <>
           <div
             onClick={() => setShowCreateModal(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 1040 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 1040 }}
           />
           <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050, padding: 16 }}>
             <div
@@ -365,12 +366,12 @@ const StudentTickets: React.FC = () => {
                 backdropFilter: 'blur(32px)',
                 WebkitBackdropFilter: 'blur(32px)',
                 borderRadius: 'var(--lx-radius-lg)',
-                border: '1px solid rgba(107, 29, 42, 0.1)',
-                boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+                border: '1px solid rgba(101, 28, 50, 0.1)',
+                boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
                 overflow: 'hidden',
               }}
             >
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 16 }}>{t('student.tickets.newTicket', 'Open New Support Ticket')}</h5>
                 <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--lx-text-muted)', fontSize: 20 }}>
                   <i className="isax isax-close-circle" />
@@ -380,7 +381,7 @@ const StudentTickets: React.FC = () => {
                 <div style={{ padding: 24 }}>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                      {t('student.tickets.subject', 'Subject')} <span style={{ color: '#8B2335' }}>*</span>
+                      {t('student.tickets.subject', 'Subject')} <span style={{ color: '#651C32' }}>*</span>
                     </label>
                     <input
                       type="text"
@@ -394,7 +395,7 @@ const StudentTickets: React.FC = () => {
                   <div className="row g-3" style={{ marginBottom: 16 }}>
                     <div className="col-md-6">
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                        {t('common.category', 'Category')} <span style={{ color: '#8B2335' }}>*</span>
+                        {t('common.category', 'Category')} <span style={{ color: '#651C32' }}>*</span>
                       </label>
                       <select
                         style={inputStyle}
@@ -408,7 +409,7 @@ const StudentTickets: React.FC = () => {
                     </div>
                     <div className="col-md-6">
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                        {t('student.tickets.priority', 'Priority')} <span style={{ color: '#8B2335' }}>*</span>
+                        {t('student.tickets.priority', 'Priority')} <span style={{ color: '#651C32' }}>*</span>
                       </label>
                       <select
                         style={inputStyle}
@@ -423,7 +424,7 @@ const StudentTickets: React.FC = () => {
                   </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--lx-text)', marginBottom: 6 }}>
-                      {t('student.tickets.description', 'Description')} <span style={{ color: '#8B2335' }}>*</span>
+                      {t('student.tickets.description', 'Description')} <span style={{ color: '#651C32' }}>*</span>
                     </label>
                     <textarea
                       style={{ ...inputStyle, resize: 'vertical' } as React.CSSProperties}
@@ -435,7 +436,7 @@ const StudentTickets: React.FC = () => {
                     />
                   </div>
                 </div>
-                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.06)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                   <button type="button" className="lx-btn lx-btn-outline" onClick={() => setShowCreateModal(false)}>{t('common.cancel', 'Cancel')}</button>
                   <button type="submit" className="lx-btn lx-btn-gold" disabled={creating}>
                     {creating ? (
@@ -454,7 +455,7 @@ const StudentTickets: React.FC = () => {
         <>
           <div
             onClick={() => setActiveTicket(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(44, 24, 16, 0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 1040 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(43, 15, 30, 0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 1040 }}
           />
           <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050, padding: 16 }}>
             <div
@@ -468,13 +469,13 @@ const StudentTickets: React.FC = () => {
                 backdropFilter: 'blur(32px)',
                 WebkitBackdropFilter: 'blur(32px)',
                 borderRadius: 'var(--lx-radius-lg)',
-                border: '1px solid rgba(107, 29, 42, 0.1)',
-                boxShadow: '0 24px 48px rgba(44, 24, 16, 0.15)',
+                border: '1px solid rgba(101, 28, 50, 0.1)',
+                boxShadow: '0 24px 48px rgba(43, 15, 30, 0.15)',
                 overflow: 'hidden',
               }}
             >
               {/* Header */}
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(107, 29, 42, 0.06)', flexShrink: 0 }}>
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(101, 28, 50, 0.06)', flexShrink: 0 }}>
                 <div className="d-flex align-items-start justify-content-between">
                   <div>
                     <h5 style={{ fontWeight: 700, color: 'var(--lx-text)', margin: 0, fontSize: 15 }}>
@@ -497,7 +498,7 @@ const StudentTickets: React.FC = () => {
                 {detailLoading ? (
                   <div className="d-flex justify-content-center py-4"><Spin /></div>
                 ) : !activeTicket.messages || activeTicket.messages.length === 0 ? (
-                  <p style={{ color: 'var(--lx-text-muted)', textAlign: 'center', padding: '16px 0' }}>{t('student.tickets.noMessages', 'No messages yet.')}</p>
+                  <LxEmptyState compact icon="isax-messages-2" title={t('student.tickets.noMessages', 'No messages yet.')} text={t('emptyStates.ticketThreadText', 'Replies on this ticket will appear here.')} />
                 ) : (
                   activeTicket.messages.map((msg: TicketMessage) => (
                     <div key={msg.id} className={`d-flex mb-3 ${msg.isAdminReply ? '' : 'flex-row-reverse'}`}>
@@ -516,7 +517,7 @@ const StudentTickets: React.FC = () => {
                             fontSize: 14,
                             lineHeight: 1.6,
                             ...(msg.isAdminReply
-                              ? { background: 'rgba(107, 29, 42, 0.04)', border: '1px solid rgba(107, 29, 42, 0.06)', color: 'var(--lx-text)' }
+                              ? { background: 'rgba(101, 28, 50, 0.04)', border: '1px solid rgba(101, 28, 50, 0.06)', color: 'var(--lx-text)' }
                               : { background: 'var(--lx-primary)', color: '#fff' }),
                           }}
                         >
@@ -531,7 +532,7 @@ const StudentTickets: React.FC = () => {
 
               {/* Reply area */}
               {activeTicket.status !== 'CLOSED' ? (
-                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', flexShrink: 0 }}>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.06)', flexShrink: 0 }}>
                   <div className="d-flex gap-2">
                     <textarea
                       style={{ ...inputStyle, resize: 'none', flex: 1 } as React.CSSProperties}
@@ -558,7 +559,7 @@ const StudentTickets: React.FC = () => {
                     <button
                       type="button"
                       className="lx-btn lx-btn-sm"
-                      style={{ background: 'rgba(139, 35, 53, 0.08)', color: '#8B2335', border: '1.5px solid rgba(139, 35, 53, 0.15)' }}
+                      style={{ background: 'rgba(101, 28, 50, 0.08)', color: '#651C32', border: '1.5px solid rgba(101, 28, 50, 0.15)' }}
                       onClick={handleClose}
                       disabled={closing}
                     >
@@ -567,13 +568,13 @@ const StudentTickets: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(107, 29, 42, 0.06)', flexShrink: 0 }}>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(101, 28, 50, 0.06)', flexShrink: 0 }}>
                   <div
                     style={{
                       padding: '10px 14px',
                       borderRadius: 'var(--lx-radius-sm)',
-                      background: 'rgba(107, 29, 42, 0.04)',
-                      border: '1px solid rgba(107, 29, 42, 0.06)',
+                      background: 'rgba(101, 28, 50, 0.04)',
+                      border: '1px solid rgba(101, 28, 50, 0.06)',
                       color: 'var(--lx-text-muted)',
                       fontSize: 14,
                       textAlign: 'center',
