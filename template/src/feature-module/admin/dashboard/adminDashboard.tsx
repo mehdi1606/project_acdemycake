@@ -216,7 +216,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="lx-card-body" style={{ padding: 0 }}>
                   {dashboard?.topCourses?.length ? (
-                    <table className="lx-table">
+                    <div className="table-responsive"><table className="lx-table">
                       <thead>
                         <tr>
                           <th>{t('admin.courses.courseTitle', 'Course')}</th>
@@ -236,7 +236,7 @@ const AdminDashboard = () => {
                                     <i className="isax isax-cake" />
                                   )}
                                 </span>
-                                <span className="lx-row-title" style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <span className="lx-row-title" style={{ maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {item.course?.title || t('admin.dashboard.courseFallback', 'Course')}
                                 </span>
                               </div>
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   ) : (
                     <div className="lx-empty-state" style={{ padding: '32px 0' }}>
                       <div className="empty-icon"><i className="isax isax-book" /></div>
@@ -268,7 +268,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="lx-card-body" style={{ padding: 0 }}>
                   {dashboard?.topInstructors?.length ? (
-                    <table className="lx-table">
+                    <div className="table-responsive"><table className="lx-table">
                       <thead>
                         <tr>
                           <th>{t('admin.courses.instructor', 'Instructor')}</th>
@@ -298,7 +298,7 @@ const AdminDashboard = () => {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   ) : (
                     <div className="lx-empty-state" style={{ padding: '32px 0' }}>
                       <div className="empty-icon"><i className="isax isax-teacher" /></div>
