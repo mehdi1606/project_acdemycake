@@ -45,8 +45,8 @@ public interface InstructorEarningRepository extends JpaRepository<InstructorEar
      * Uses a native PostgreSQL query so EXTRACT works correctly.
      */
     @Query(value =
-            "SELECT EXTRACT(YEAR  FROM e.created_at)::int AS year, " +
-            "       EXTRACT(MONTH FROM e.created_at)::int AS month, " +
+            "SELECT CAST(EXTRACT(YEAR  FROM e.created_at) AS integer) AS year, " +
+            "       CAST(EXTRACT(MONTH FROM e.created_at) AS integer) AS month, " +
             "       COALESCE(SUM(e.net_amount), 0)          AS total " +
             "FROM instructor_earnings e " +
             "WHERE e.instructor_id = :instructorId AND e.created_at >= :since " +
