@@ -121,6 +121,20 @@ app:
     currency: MAD
     platform-fee-percentage: 20
 
+  # Invoices (PDF issued for every successful payment). Seller details are printed
+  # on each invoice; empty values are not printed. vat-rate is a percentage
+  # (e.g. 20); 0 prints only "Total payé" with no HT/TVA breakdown.
+  invoice:
+    seller:
+      name: ${INVOICE_SELLER_NAME:SARALÖWE Academy}
+      address: ${INVOICE_SELLER_ADDRESS:}
+      ice: ${INVOICE_SELLER_ICE:}
+      if: ${INVOICE_SELLER_IF:}
+      rc: ${INVOICE_SELLER_RC:}
+      email: ${INVOICE_SELLER_EMAIL:}
+      phone: ${INVOICE_SELLER_PHONE:}
+    vat-rate: ${INVOICE_VAT_RATE:0}
+
   # Dynamic AR↔EN translation via self-hosted LibreTranslate (Docker).
   # Local dev: http://localhost:5000  ·  In docker-compose: http://libretranslate:5000
   translation:

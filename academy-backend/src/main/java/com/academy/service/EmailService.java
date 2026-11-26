@@ -21,6 +21,9 @@ public interface EmailService {
 
     void sendCoursePurchaseConfirmation(User user, com.academy.entity.Course course);
 
+    /** Same email; {@code withInvoice} adds where to download the invoice (card payments only). */
+    void sendCoursePurchaseConfirmation(User user, com.academy.entity.Course course, boolean withInvoice);
+
     void sendCourseEnrollmentConfirmation(User user, String courseTitle);
 
     void sendNewLessonNotification(User user, String courseTitle, String lessonTitle);

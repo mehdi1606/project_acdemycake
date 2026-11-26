@@ -57,6 +57,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final MasterclassBookingService masterclassBookingService;
     private final com.academy.repository.UserRepository userRepository;
     private final com.academy.repository.InstructorEarningRepository instructorEarningRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -257,6 +258,12 @@ public class PaymentServiceImpl implements PaymentService {
                     transaction.setPayzoneTransactionId(transactionId);
                     transaction.setCompletedAt(LocalDateTime.now());
                     transactionRepository.save(transaction);
+                }
+
+                // Invoice: issued right after this transaction commits (one per payment).
+                if (transactionRepository.findStatusById(transaction.getId()) == PaymentStatus.COMPLETED) {
+                    eventPublisher.publishEvent(
+                            new com.academy.service.invoice.PaymentCompletedEvent(transaction.getId()));
                 }
 
                 log.info("Payment completed successfully: {}", orderId);
@@ -578,7 +585,7 @@ public class PaymentServiceImpl implements PaymentService {
         );
 
         // Send email notification
-        emailService.sendCoursePurchaseConfirmation(user, course);
+        emailService.sendCoursePurchaseConfirmation(user, course, true);
 
         // Send in-app notification
         notificationService.createNotification(
