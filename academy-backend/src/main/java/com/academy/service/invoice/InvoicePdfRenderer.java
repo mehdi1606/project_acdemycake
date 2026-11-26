@@ -69,7 +69,7 @@ public class InvoicePdfRenderer {
             info.setCreator(settings.getSellerName());
 
             Document doc = new Document(pdf, PageSize.A4);
-            doc.setMargins(54, 56, 70, 56);
+            doc.setMargins(46, 56, 64, 56);
             Fonts f = loadFonts();
 
             header(doc, inv, f);
@@ -77,7 +77,6 @@ public class InvoicePdfRenderer {
             itemTable(doc, inv, f);
             totals(doc, inv, f);
             payment(doc, inv, f);
-            thanks(doc, f);
             footer(pdf, f);
 
             doc.close();
@@ -95,7 +94,7 @@ public class InvoicePdfRenderer {
         Cell brand = plain().setVerticalAlignment(VerticalAlignment.MIDDLE);
         Image logo = logo();
         if (logo != null) {
-            brand.add(logo.scaleToFit(92, 86).setHorizontalAlignment(HorizontalAlignment.LEFT));
+            brand.add(logo.scaleToFit(80, 75).setHorizontalAlignment(HorizontalAlignment.LEFT));
         } else {
             brand.add(new Paragraph(settings.getSellerName()).setFont(f.title()).setFontSize(18).setFontColor(BURGUNDY));
         }
@@ -105,13 +104,13 @@ public class InvoicePdfRenderer {
         title.add(new Paragraph("FACTURE").setFont(f.title()).setFontSize(30).setFontColor(BURGUNDY)
                 .setCharacterSpacing(3).setMargin(0).setMultipliedLeading(1f));
         title.add(new Paragraph("INVOICE").setFont(f.body()).setFontSize(8.5f).setFontColor(GOLD)
-                .setCharacterSpacing(4.5f).setMarginTop(2).setMarginBottom(12));
+                .setCharacterSpacing(4.5f).setMarginTop(2).setMarginBottom(8));
         title.add(labelValue("N°", "No.", inv.getInvoiceNumber(), f, TextAlignment.RIGHT));
         title.add(labelValue("Date", "Date", inv.getIssuedAt().format(DATE), f, TextAlignment.RIGHT));
         t.addCell(title);
 
         doc.add(t);
-        doc.add(hairline(0.8f).setMarginTop(16).setMarginBottom(20));
+        doc.add(hairline(0.8f).setMarginTop(12).setMarginBottom(14));
     }
 
     private void parties(Document doc, Invoice inv, Fonts f) {
@@ -121,11 +120,11 @@ public class InvoicePdfRenderer {
         seller.add(sectionLabel("Vendeur", "Seller", f));
         seller.add(strong(settings.getSellerName(), f));
         for (String line : splitLines(settings.getSellerAddress())) seller.add(line(line, f));
-        addIfPresent(seller, "ICE", settings.getSellerIce(), f);
-        addIfPresent(seller, "IF", settings.getSellerIf(), f);
-        addIfPresent(seller, "RC", settings.getSellerRc(), f);
-        if (!settings.getSellerEmail().isEmpty()) seller.add(line(settings.getSellerEmail(), f));
-        if (!settings.getSellerPhone().isEmpty()) seller.add(line(settings.getSellerPhone(), f));
+        addIdentifiers(seller, f, "ICE", settings.getSellerIce());
+        addIdentifiers(seller, f, "IF", settings.getSellerIf(), "RC", settings.getSellerRc());
+        String contact = String.join("  ·  ", java.util.stream.Stream.of(settings.getSellerEmail(), settings.getSellerPhone())
+                .filter(v -> !v.isEmpty()).toList());
+        if (!contact.isEmpty()) seller.add(line(contact, f));
         t.addCell(seller);
 
         Cell buyer = plain().setPaddingLeft(18).setBorderLeft(new SolidBorder(GOLD, 0.5f));
@@ -143,7 +142,7 @@ public class InvoicePdfRenderer {
 
     private void itemTable(Document doc, Invoice inv, Fonts f) {
         Table t = new Table(UnitValue.createPercentArray(new float[]{52, 10, 19, 19}))
-                .useAllAvailableWidth().setMarginTop(30);
+                .useAllAvailableWidth().setMarginTop(20);
 
         t.addHeaderCell(headCell("Désignation", "Item", TextAlignment.LEFT, f));
         t.addHeaderCell(headCell("Qté", "Qty", TextAlignment.CENTER, f));
@@ -163,11 +162,10 @@ public class InvoicePdfRenderer {
         }
     }
 
+    /** Totals on the right; the thank-you line sits in the space to their left. */
     private void totals(Document doc, Invoice inv, Fonts f) {
-        Table t = new Table(UnitValue.createPercentArray(new float[]{60, 40}))
-                .setWidth(UnitValue.createPercentValue(48))
-                .setHorizontalAlignment(HorizontalAlignment.RIGHT)
-                .setMarginTop(18);
+        Table t = new Table(UnitValue.createPercentArray(new float[]{30, 22}))
+                .setWidth(UnitValue.createPercentValue(48));
 
         boolean vat = inv.getVatRate() != null && inv.getVatRate().signum() > 0;
         if (vat) {
@@ -178,13 +176,22 @@ public class InvoicePdfRenderer {
         } else {
             totalRow(t, "Total payé", "Total paid", InvoiceMath.money(inv.getAmountTtc(), inv.getCurrency()), f, true);
         }
-        doc.add(t);
+
+        Table row = new Table(UnitValue.createPercentArray(new float[]{52, 48})).useAllAvailableWidth().setMarginTop(10);
+        Cell thanks = plain().setVerticalAlignment(VerticalAlignment.BOTTOM).setPaddingRight(16).setPaddingBottom(4)
+                .add(new Paragraph("Merci pour votre confiance").setFont(f.script()).setFontSize(22)
+                        .setFontColor(BURGUNDY).setMargin(0).setMultipliedLeading(1f))
+                .add(new Paragraph("Thank you for your trust").setFont(f.italic()).setFontSize(8.5f)
+                        .setFontColor(GOLD).setCharacterSpacing(1).setMargin(0).setMarginTop(2));
+        row.addCell(thanks);
+        row.addCell(plain().add(t.useAllAvailableWidth()));
+        doc.add(row);
     }
 
     private void payment(Document doc, Invoice inv, Fonts f) {
-        Table t = new Table(UnitValue.createPercentArray(new float[]{100})).useAllAvailableWidth().setMarginTop(30);
+        Table t = new Table(UnitValue.createPercentArray(new float[]{100})).useAllAvailableWidth().setMarginTop(14);
         Cell c = new Cell().setBorder(Border.NO_BORDER).setBackgroundColor(CREAM)
-                .setBorderLeft(new SolidBorder(GOLD, 1.5f)).setPadding(12).setPaddingLeft(14);
+                .setBorderLeft(new SolidBorder(GOLD, 1.5f)).setPadding(10).setPaddingLeft(14);
         c.add(sectionLabel("Paiement", "Payment", f));
 
         Table rows = new Table(UnitValue.createPercentArray(new float[]{34, 66})).useAllAvailableWidth();
@@ -196,13 +203,6 @@ public class InvoicePdfRenderer {
         c.add(rows);
         t.addCell(c);
         doc.add(t);
-    }
-
-    private void thanks(Document doc, Fonts f) {
-        doc.add(new Paragraph("Merci pour votre confiance").setFont(f.script()).setFontSize(24)
-                .setFontColor(BURGUNDY).setTextAlignment(TextAlignment.CENTER).setMarginTop(34).setMarginBottom(0));
-        doc.add(new Paragraph("Thank you for your trust").setFont(f.italic()).setFontSize(8.5f)
-                .setFontColor(GOLD).setCharacterSpacing(1).setTextAlignment(TextAlignment.CENTER).setMarginTop(0));
     }
 
     /** Hairline and seller legal line at the bottom of every page. */
@@ -268,12 +268,19 @@ public class InvoicePdfRenderer {
                 .setMultipliedLeading(1.3f);
     }
 
-    private static void addIfPresent(Cell cell, String label, String value, Fonts f) {
-        if (value == null || value.isEmpty()) return;
-        cell.add(new Paragraph()
-                .add(new Text(label + "  ").setFont(f.body()).setFontSize(8).setFontColor(GOLD))
-                .add(new Text(value).setFont(f.body()).setFontSize(9).setFontColor(MUTED))
-                .setMargin(0).setMultipliedLeading(1.3f));
+    /** One line of label/value pairs (e.g. "IF 123  RC 456"); empty values are skipped. */
+    private static void addIdentifiers(Cell cell, Fonts f, String... labelValues) {
+        Paragraph p = new Paragraph().setMargin(0).setMultipliedLeading(1.3f);
+        boolean any = false;
+        for (int i = 0; i + 1 < labelValues.length; i += 2) {
+            String value = labelValues[i + 1];
+            if (value == null || value.isEmpty()) continue;
+            if (any) p.add(new Text("     "));
+            p.add(new Text(labelValues[i] + "  ").setFont(f.body()).setFontSize(8).setFontColor(GOLD));
+            p.add(new Text(value).setFont(f.body()).setFontSize(9).setFontColor(MUTED));
+            any = true;
+        }
+        if (any) cell.add(p);
     }
 
     private static Cell headCell(String fr, String en, TextAlignment align, Fonts f) {
@@ -288,7 +295,7 @@ public class InvoicePdfRenderer {
 
     private static Cell bodyCell(String text, TextAlignment align, Fonts f) {
         return new Cell().setBorder(Border.NO_BORDER).setBorderBottom(new SolidBorder(GOLD, 0.4f))
-                .setPaddingTop(12).setPaddingBottom(12).setPaddingLeft(4).setPaddingRight(4)
+                .setPaddingTop(10).setPaddingBottom(10).setPaddingLeft(4).setPaddingRight(4)
                 .setTextAlignment(align).setVerticalAlignment(VerticalAlignment.MIDDLE)
                 .add(new Paragraph(text == null ? "" : text).setFont(f.body()).setFontSize(10)
                         .setFontColor(INK).setMargin(0));
@@ -318,12 +325,12 @@ public class InvoicePdfRenderer {
 
     private static void payRow(Table t, String fr, String en, String value, Fonts f) {
         if (value == null || value.isBlank()) return;
-        t.addCell(new Cell().setBorder(Border.NO_BORDER).setPadding(1.5f).setPaddingLeft(0)
+        t.addCell(new Cell().setBorder(Border.NO_BORDER).setPadding(1f).setPaddingLeft(0)
                 .add(new Paragraph()
                         .add(new Text(fr).setFont(f.body()).setFontSize(8.5f).setFontColor(MUTED))
                         .add(new Text(" / " + en).setFont(f.italic()).setFontSize(7).setFontColor(GOLD))
                         .setMargin(0)));
-        t.addCell(new Cell().setBorder(Border.NO_BORDER).setPadding(1.5f)
+        t.addCell(new Cell().setBorder(Border.NO_BORDER).setPadding(1f)
                 .add(new Paragraph(value).setFont(f.body()).setFontSize(9).setFontColor(INK).setMargin(0)));
     }
 
