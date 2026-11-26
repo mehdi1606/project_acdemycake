@@ -23,10 +23,10 @@ const localized = (e: Ebook, lang: string) => {
 };
 
 /** A printed book: cover, spine shading, page edges, gloss. */
-const Book: React.FC<{ src?: string; title: string; className?: string }> = ({ src, title, className }) => (
+const Book: React.FC<{ src?: string; title: string; className?: string; eager?: boolean }> = ({ src, title, className, eager }) => (
   <span className={`lib-book${className ? ` ${className}` : ''}`}>
     <span className="lib-book__body">
-      {src ? <img src={src} alt={title} loading="lazy" /> : <span className="lib-book__blank">{title}</span>}
+      {src ? <img src={src} alt={title} loading={eager ? 'eager' : 'lazy'} decoding="async" {...(eager ? { fetchPriority: 'high' as const } : {})} /> : <span className="lib-book__blank">{title}</span>}
       <span className="lib-book__spine" />
       <span className="lib-book__gloss" />
     </span>
@@ -126,7 +126,7 @@ const EbooksPage: React.FC = () => {
             <span className="lib-hero__light" />
             <div className="lib-hero__books">
               {ebooks.slice(0, 3).map((b, i) => (
-                <Book key={b.id} src={b.coverUrl} title={localized(b, i18n.language).title} className={`lib-hero__book lib-hero__book--${i}`} />
+                <Book key={b.id} src={b.coverUrl} title={localized(b, i18n.language).title} className={`lib-hero__book lib-hero__book--${i}`} eager />
               ))}
             </div>
             <span className="lib-hero__plinth" />
@@ -174,7 +174,7 @@ const EbooksPage: React.FC = () => {
                   return (
                     <article key={b.id} className="lib-item">
                       <Link to={b.isOwned ? readHref(b) : detailHref(b)} className="lib-item__cover" aria-label={title}>
-                        <Book src={b.coverUrl} title={title} />
+                        <Book src={b.coverUrl} title={title} eager />
                         {b.isOwned && <span className="lib-item__owned">{t('ebooks.owned', 'Owned')}</span>}
                       </Link>
                       <div className="lib-item__info">
