@@ -19,6 +19,7 @@ public class InvoiceResponse {
     private UUID id;
     private String invoiceNumber;
     private UUID paymentId;
+    private UUID manualBookingId;
     private UUID userId;
     private String buyerName;
     private String buyerEmail;
@@ -36,6 +37,7 @@ public class InvoiceResponse {
                 .id(i.getId())
                 .invoiceNumber(i.getInvoiceNumber())
                 .paymentId(i.getPaymentId())
+                .manualBookingId(i.getManualBookingId())
                 .userId(i.getUserId())
                 .buyerName(i.getBuyerName())
                 .buyerEmail(i.getBuyerEmail())

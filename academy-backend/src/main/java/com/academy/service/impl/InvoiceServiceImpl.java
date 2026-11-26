@@ -8,7 +8,10 @@ import com.academy.entity.enums.PaymentStatus;
 import com.academy.entity.enums.UserRole;
 import com.academy.exception.ForbiddenException;
 import com.academy.exception.ResourceNotFoundException;
+import com.academy.entity.MasterclassManualBooking;
+import com.academy.repository.CourseRepository;
 import com.academy.repository.InvoiceRepository;
+import com.academy.repository.MasterclassManualBookingRepository;
 import com.academy.repository.PaymentTransactionRepository;
 import com.academy.security.UserPrincipal;
 import com.academy.service.InvoiceService;
@@ -35,6 +38,8 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final PaymentTransactionRepository transactionRepository;
     private final InvoiceIssuer invoiceIssuer;
     private final InvoicePdfRenderer renderer;
+    private final MasterclassManualBookingRepository manualBookingRepository;
+    private final CourseRepository courseRepository;
 
     @Override
     public PageResponse<InvoiceResponse> getMyInvoices(int page, int size) {
@@ -48,7 +53,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoicePdf download(UUID invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", "id", invoiceId));
-        checkAccess(invoice.getUserId());
+        checkAccess(invoice);
         return toPdf(invoice);
     }
 
@@ -56,7 +61,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoicePdf downloadForPayment(UUID paymentId) {
         PaymentTransaction payment = transactionRepository.findById(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", paymentId));
-        checkAccess(payment.getUser().getId());
+        checkAccess(payment.getUser().getId(), courseOfPayment(payment));
 
         Invoice invoice = invoiceRepository.findByPaymentId(paymentId).orElse(null);
         if (invoice == null && payment.getStatus() == PaymentStatus.COMPLETED) {
@@ -67,6 +72,26 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         if (invoice == null) {
             throw new ResourceNotFoundException("No invoice exists for this payment");
+        }
+        return toPdf(invoice);
+    }
+
+    @Override
+    public InvoicePdf downloadForManualBooking(UUID bookingId) {
+        MasterclassManualBooking booking = manualBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+        checkAccess(booking.getUser() != null ? booking.getUser().getId() : null, booking.getCourse().getId());
+
+        Invoice invoice = invoiceRepository.findByManualBookingId(bookingId).orElse(null);
+        boolean due = booking.getCancelledAt() == null
+                && booking.getAmountPaid() != null && booking.getAmountPaid().signum() > 0;
+        if (invoice == null && due) {
+            // Normally issued right after the booking is added; this covers a missed run.
+            invoiceIssuer.issueMissing();
+            invoice = invoiceRepository.findByManualBookingId(bookingId).orElse(null);
+        }
+        if (invoice == null) {
+            throw new ResourceNotFoundException("No invoice exists for this booking");
         }
         return toPdf(invoice);
     }
@@ -87,13 +112,36 @@ public class InvoiceServiceImpl implements InvoiceService {
         return new InvoicePdf(invoice.getInvoiceNumber() + ".pdf", renderer.render(invoice));
     }
 
-    /** The buyer, or an admin, may read an invoice. Anyone else gets 403. */
-    private void checkAccess(UUID ownerId) {
+    private void checkAccess(Invoice invoice) {
+        UUID courseId = null;
+        if (invoice.getManualBookingId() != null) {
+            courseId = manualBookingRepository.findById(invoice.getManualBookingId())
+                    .map(b -> b.getCourse().getId()).orElse(null);
+        } else if (invoice.getPaymentId() != null) {
+            courseId = transactionRepository.findById(invoice.getPaymentId())
+                    .map(this::courseOfPayment).orElse(null);
+        }
+        checkAccess(invoice.getUserId(), courseId);
+    }
+
+    /**
+     * An admin, the buyer, or the instructor of the masterclass/course that was
+     * bought (who already sees these reservations) may read an invoice. Anyone else gets 403.
+     */
+    private void checkAccess(UUID ownerId, UUID courseId) {
         UserPrincipal me = currentUser();
         if (me.getRole() == UserRole.ADMIN) return;
-        if (ownerId == null || !ownerId.equals(me.getId())) {
-            throw new ForbiddenException("You don't have access to this invoice");
+        if (ownerId != null && ownerId.equals(me.getId())) return;
+        if (courseId != null && courseRepository.findById(courseId)
+                .map(c -> c.getInstructor() != null && me.getId().equals(c.getInstructor().getId()))
+                .orElse(false)) {
+            return;
         }
+        throw new ForbiddenException("You don't have access to this invoice");
+    }
+
+    private UUID courseOfPayment(PaymentTransaction payment) {
+        return "COURSE_PURCHASE".equals(payment.getTransactionType()) ? payment.getReferenceId() : null;
     }
 
     private static Pageable pageable(int page, int size) {

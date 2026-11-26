@@ -5,8 +5,9 @@ import { PaginatedResponse } from './types';
 export interface Invoice {
   id: string;
   invoiceNumber: string;   // e.g. "SL-2026-000001"
-  paymentId: string;
-  userId: string;
+  paymentId?: string | null;
+  manualBookingId?: string | null;
+  userId?: string | null;
   buyerName?: string;
   buyerEmail?: string;
   itemDescription: string;
@@ -54,8 +55,22 @@ class InvoiceService {
    */
   async downloadForPayment(paymentId: string, admin = false): Promise<void> {
     const path = admin ? `/admin/invoices/payment/${paymentId}/pdf` : `/invoices/payment/${paymentId}/pdf`;
+    await this.download(path, paymentId);
+  }
+
+  /** Downloads an invoice by its id (buyer, admin, or the instructor of the course bought). */
+  async downloadInvoice(invoiceId: string): Promise<void> {
+    await this.download(`/invoices/${invoiceId}/pdf`, invoiceId);
+  }
+
+  /** Downloads the invoice of a masterclass booking paid outside the platform (added by hand). */
+  async downloadForManualBooking(bookingId: string): Promise<void> {
+    await this.download(`/invoices/manual-booking/${bookingId}/pdf`, bookingId);
+  }
+
+  private async download(path: string, id: string): Promise<void> {
     const response = await api.get(path, { responseType: 'blob' });
-    const name = filenameFrom(response.headers?.['content-disposition'], `invoice-${paymentId.substring(0, 8)}.pdf`);
+    const name = filenameFrom(response.headers?.['content-disposition'], `invoice-${id.substring(0, 8)}.pdf`);
     saveBlob(response.data as Blob, name);
   }
 }

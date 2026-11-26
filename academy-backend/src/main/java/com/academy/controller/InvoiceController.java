@@ -50,6 +50,13 @@ public class InvoiceController {
         return pdf(invoiceService.downloadForPayment(paymentId));
     }
 
+    @GetMapping("/invoices/manual-booking/{bookingId}/pdf")
+    @Operation(summary = "Download the invoice of a masterclass booking paid outside the platform "
+            + "(admin, the masterclass's instructor, or the linked account)")
+    public ResponseEntity<byte[]> downloadForManualBooking(@PathVariable UUID bookingId) {
+        return pdf(invoiceService.downloadForManualBooking(bookingId));
+    }
+
     // ── Admin ────────────────────────────────────────────────────────────────
 
     @GetMapping("/admin/invoices")

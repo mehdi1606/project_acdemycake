@@ -76,6 +76,18 @@ public final class InvoiceMath {
         return r.toPlainString().replace('.', ',') + " %";
     }
 
+    /**
+     * Buyer block lines, first one emphasised: the name (unless it is in Arabic, which
+     * the PDF cannot print), then the email, or the phone when there is no email.
+     */
+    public static java.util.List<String> buyerLines(String name, String email, String phone) {
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        if (name != null && !name.isBlank() && !hasArabic(name)) lines.add(name.trim());
+        if (email != null && !email.isBlank()) lines.add(email.trim());
+        else if (phone != null && !phone.isBlank()) lines.add(phone.trim());
+        return lines;
+    }
+
     /** True when the text holds Arabic letters (the PDF fonts cannot shape them). */
     public static boolean hasArabic(String s) {
         if (s == null) return false;

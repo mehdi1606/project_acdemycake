@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * An invoice issued for one successful payment. Everything printed on it is a
+ * An invoice issued for one successful payment (card payment or manual masterclass booking). Everything printed on it is a
  * snapshot taken at issue time; rows are inserted once and never updated.
  * The buyer is kept as a plain id (not a relation) so soft-deleted users,
  * hidden by User's SQL restriction, never break reading an old invoice.
@@ -40,10 +40,16 @@ public class Invoice {
     @Column(name = "sequence_number", nullable = false)
     private Integer sequenceNumber;
 
-    @Column(name = "payment_id", nullable = false, unique = true)
+    /** The card payment invoiced; null for a manual booking. */
+    @Column(name = "payment_id", unique = true)
     private UUID paymentId;
 
-    @Column(name = "user_id", nullable = false)
+    /** The masterclass booking paid outside the platform; null for a card payment. */
+    @Column(name = "manual_booking_id", unique = true)
+    private UUID manualBookingId;
+
+    /** Buyer account; null for a manual booking without a linked account. */
+    @Column(name = "user_id")
     private UUID userId;
 
     @Column(name = "buyer_name", length = 255)
@@ -51,6 +57,9 @@ public class Invoice {
 
     @Column(name = "buyer_email", length = 255)
     private String buyerEmail;
+
+    @Column(name = "buyer_phone", length = 30)
+    private String buyerPhone;
 
     @Column(name = "item_description", nullable = false, length = 500)
     private String itemDescription;

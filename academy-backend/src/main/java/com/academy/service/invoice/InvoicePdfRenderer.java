@@ -41,7 +41,7 @@ import java.util.List;
  * gold hairlines, the gold Saralöwe crest. French with short English sub-labels.
  * Uses only the fonts already bundled for certificates (Cinzel, Lato, Great Vibes);
  * no Arabic is printed (iText 7 cannot shape it without add-ons), so an Arabic-only
- * buyer name is replaced by the buyer's email.
+ * buyer name is replaced by the buyer's email or phone.
  */
 @Slf4j
 @Component
@@ -129,12 +129,8 @@ public class InvoicePdfRenderer {
 
         Cell buyer = plain().setPaddingLeft(18).setBorderLeft(new SolidBorder(GOLD, 0.5f));
         buyer.add(sectionLabel("Client", "Bill to", f));
-        String name = inv.getBuyerName();
-        boolean printableName = name != null && !name.isBlank() && !InvoiceMath.hasArabic(name);
-        if (printableName) buyer.add(strong(name.trim(), f));
-        if (inv.getBuyerEmail() != null && !inv.getBuyerEmail().isBlank()) {
-            buyer.add(printableName ? line(inv.getBuyerEmail(), f) : strong(inv.getBuyerEmail(), f));
-        }
+        List<String> lines = InvoiceMath.buyerLines(inv.getBuyerName(), inv.getBuyerEmail(), inv.getBuyerPhone());
+        for (int i = 0; i < lines.size(); i++) buyer.add(i == 0 ? strong(lines.get(i), f) : line(lines.get(i), f));
         t.addCell(buyer);
 
         doc.add(t);
@@ -197,7 +193,8 @@ public class InvoicePdfRenderer {
         Table rows = new Table(UnitValue.createPercentArray(new float[]{34, 66})).useAllAvailableWidth();
         payRow(rows, "Statut", "Status", "Payé / Paid", f);
         payRow(rows, "Date de paiement", "Payment date", inv.getIssuedAt().format(DATE), f);
-        payRow(rows, "Moyen de paiement", "Method", inv.getPaymentMethod(), f);
+        payRow(rows, "Moyen de paiement", "Method", inv.getPaymentMethod(),
+                inv.getManualBookingId() != null ? "Direct payment (bank transfer / cash)" : null, f);
         payRow(rows, "Référence commande", "Order ref.", inv.getOrderReference(), f);
         payRow(rows, "Autorisation", "Auth. code", inv.getPaymentReference(), f);
         c.add(rows);
@@ -324,6 +321,11 @@ public class InvoicePdfRenderer {
     }
 
     private static void payRow(Table t, String fr, String en, String value, Fonts f) {
+        payRow(t, fr, en, value, null, f);
+    }
+
+    /** A payment line; {@code valueEn} is an optional English sub-label under the value. */
+    private static void payRow(Table t, String fr, String en, String value, String valueEn, Fonts f) {
         if (value == null || value.isBlank()) return;
         t.addCell(new Cell().setBorder(Border.NO_BORDER).setPadding(1f).setPaddingLeft(0)
                 .add(new Paragraph()
@@ -331,7 +333,11 @@ public class InvoicePdfRenderer {
                         .add(new Text(" / " + en).setFont(f.italic()).setFontSize(7).setFontColor(GOLD))
                         .setMargin(0)));
         t.addCell(new Cell().setBorder(Border.NO_BORDER).setPadding(1f)
-                .add(new Paragraph(value).setFont(f.body()).setFontSize(9).setFontColor(INK).setMargin(0)));
+                .add(new Paragraph()
+                        .add(new Text(value).setFont(f.body()).setFontSize(9).setFontColor(INK))
+                        .add(valueEn == null ? new Text("")
+                                : new Text("  " + valueEn).setFont(f.italic()).setFontSize(7).setFontColor(GOLD))
+                        .setMargin(0)));
     }
 
     private static List<String> splitLines(String text) {

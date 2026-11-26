@@ -56,6 +56,8 @@ public class MasterclassParticipantsResponse {
     public static class Participant {
         private UUID reservationId;
         private UUID userId;
+        /** Invoice of this reservation (card payment or manual booking with an amount), if issued. */
+        private UUID invoiceId;
         private String fullName;
         private String email;
         private String phone;

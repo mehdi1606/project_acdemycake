@@ -16,6 +16,7 @@ import adminService from '../../../services/api/admin.service';
 import { useAppSelector } from '../../../core/redux/hooks';
 import { Course, MasterclassParticipants } from '../../../services/api/types';
 import { all_routes } from '../../router/all_routes';
+import InvoiceDownloadButton from '../../../components/InvoiceDownloadButton';
 import {
   formatSessionDate,
   formatSessionTimeRange,
@@ -477,6 +478,11 @@ const InstructorMasterclassReservations: React.FC = () => {
                           </td>
                           <td style={{ fontSize: 13, color: 'var(--lx-text-muted)' }}>{fmtDateTime(p.reservedAt)}</td>
                           <td style={{ textAlign: 'right' }}>
+                            {p.invoiceId ? (
+                              <InvoiceDownloadButton invoiceId={p.invoiceId} />
+                            ) : p.source === 'MANUAL' && p.bookingStatus === 'CONFIRMED' && Number(p.amount ?? 0) > 0 ? (
+                              <InvoiceDownloadButton manualBookingId={p.reservationId} />
+                            ) : null}{' '}
                             {p.source === 'MANUAL' && p.bookingStatus === 'CONFIRMED' && (
                               <button
                                 className="lx-btn lx-btn-outline lx-btn-sm"

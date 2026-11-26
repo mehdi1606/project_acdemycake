@@ -59,6 +59,8 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
     private final com.academy.service.EmailService emailService;
     // Provider: EnrollmentService -> CourseService -> this service would be a cycle.
     private final ObjectProvider<EnrollmentService> enrollmentServiceProvider;
+    private final com.academy.repository.InvoiceRepository invoiceRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     // ── Classification ───────────────────────────────────────────────────────
 
@@ -191,10 +193,19 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
                 course, List.of(PaymentStatus.COMPLETED, PaymentStatus.REFUNDED));
         List<MasterclassManualBooking> manual = manualBookingRepository.findAllForCourse(course);
 
+        // Invoices: manual ones by booking id; card ones by buyer + authorisation code.
+        java.util.Map<UUID, UUID> manualInvoices = new java.util.HashMap<>();
+        if (!manual.isEmpty()) {
+            invoiceRepository.findByManualBookingIdIn(manual.stream().map(MasterclassManualBooking::getId).toList())
+                    .forEach(i -> manualInvoices.put(i.getManualBookingId(), i.getId()));
+        }
+        List<com.academy.entity.Invoice> cardInvoices = invoiceRepository.findCardInvoicesForCourse(course.getId());
+
         List<MasterclassParticipantsResponse.Participant> participants = new ArrayList<>();
         purchases.forEach(p -> participants.add(MasterclassParticipantsResponse.Participant.builder()
                         .reservationId(p.getId())
                         .userId(p.getUser().getId())
+                        .invoiceId(cardInvoiceFor(cardInvoices, p))
                         .fullName(p.getUser().getFullName())
                         .email(p.getUser().getEmail())
                         .phone(p.getUser().getPhone())
@@ -208,6 +219,7 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
         manual.forEach(b -> participants.add(MasterclassParticipantsResponse.Participant.builder()
                         .reservationId(b.getId())
                         .userId(b.getUser() != null ? b.getUser().getId() : null)
+                        .invoiceId(manualInvoices.get(b.getId()))
                         .fullName(b.getFullName())
                         .email(b.getEmail())
                         .phone(b.getPhone())
@@ -253,6 +265,17 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
                 .build();
     }
 
+    /** The invoice of a card purchase: same buyer, same authorisation code (else the buyer's latest). */
+    private static UUID cardInvoiceFor(List<com.academy.entity.Invoice> invoices, CoursePurchase p) {
+        UUID buyer = p.getUser().getId();
+        String auth = p.getPayzonePaymentIntentId();
+        List<com.academy.entity.Invoice> mine = invoices.stream().filter(i -> buyer.equals(i.getUserId())).toList();
+        return mine.stream().filter(i -> auth != null && auth.equals(i.getPaymentReference())).findFirst()
+                .or(() -> mine.stream().max(Comparator.comparing(com.academy.entity.Invoice::getIssuedAt)))
+                .map(com.academy.entity.Invoice::getId)
+                .orElse(null);
+    }
+
     @Override
     @Transactional
     public MasterclassParticipantsResponse addManualParticipant(UUID courseId, AddManualParticipantRequest request) {
@@ -285,6 +308,11 @@ public class MasterclassBookingServiceImpl implements MasterclassBookingService 
                 .addedBy(current)
                 .build();
         manualBookingRepository.save(booking);
+
+        // Paid outside the platform: issue its invoice once this transaction commits.
+        if (booking.getAmountPaid() != null && booking.getAmountPaid().signum() > 0) {
+            eventPublisher.publishEvent(new com.academy.service.invoice.ManualBookingAddedEvent(booking.getId()));
+        }
 
         // A matching account sees "Your place is confirmed" on the masterclass page.
         if (account != null) {

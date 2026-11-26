@@ -797,6 +797,8 @@ export interface CourseQueryParams extends PaginationParams {
 export interface MasterclassParticipant {
   reservationId: string;
   userId?: string | null;
+  /** Invoice of this reservation (card payment, or manual booking with an amount), once issued. */
+  invoiceId?: string | null;
   fullName: string;
   email?: string | null;
   phone?: string | null;
