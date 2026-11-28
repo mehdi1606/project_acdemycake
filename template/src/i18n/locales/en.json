@@ -341,7 +341,8 @@
     "browseCourses": "Browse courses",
     "backToSite": "Back to site",
     "challenge": "New Year Challenge",
-    "challengeAdmin": "Cake Challenge"
+    "challengeAdmin": "Cake Challenge",
+    "memberMessages": "Member messages"
   },
   "auth": {
     "comingSoon": {
@@ -4821,7 +4822,16 @@
     "restore": "Restore",
     "void": "Remove",
     "voidWhy": "Write why this vote is removed first.",
-    "voidReasonPh": "Reason"
+    "voidReasonPh": "Reason",
+    "registered": "Registered",
+    "noRegistered": "Nobody has registered yet.",
+    "colMember": "Member",
+    "colContact": "Contact",
+    "colRegistered": "Registered on",
+    "colEntry": "Their cake",
+    "noPhotos": "No photos yet",
+    "photosCount_one": "{{count}} photo",
+    "photosCount_other": "{{count}} photos"
   },
   "experience": {
     "welcome": "Welcome to the atelier",
@@ -5028,6 +5038,21 @@
     "challengeIn": "In the New Year Cake Challenge",
     "currentBadge": "Current badge",
     "topLevel": "The highest level of the academy.",
-    "viewMine": "See my profile as others see it"
+    "viewMine": "See my profile as others see it",
+    "message": "Message"
+  },
+  "chat": {
+    "placeholder": "Type a message… (Enter to send, Shift+Enter for new line)",
+    "safetyNote": "Be kind. For everyone's safety, the SARALÖWE team can review conversations."
+  },
+  "adminMessages": {
+    "title": "Member messages",
+    "sub": "Every conversation between members, newest first. Read-only; messages that someone deleted are still shown here.",
+    "search": "Search by name or email",
+    "empty": "No conversations yet.",
+    "count_one": "{{count}} message",
+    "count_other": "{{count}} messages",
+    "pick": "Choose a conversation",
+    "attachment": "Attachment"
   }
 }

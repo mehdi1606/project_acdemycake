@@ -82,6 +82,7 @@ const AdminCategories               = lazy(() => import("../admin/categories/adm
 const AdminTransactions             = lazy(() => import("../admin/transactions/adminTransactions"));
 const AdminInvoices                 = lazy(() => import("../admin/invoices/adminInvoices"));
 const AdminTickets                  = lazy(() => import("../admin/tickets/adminTickets"));
+const AdminMessages                 = lazy(() => import("../admin/messages/adminMessages"));
 const AdminSettings                 = lazy(() => import("../admin/settings/adminSettings"));
 const AdminAnalytics                = lazy(() => import("../admin/analytics/adminAnalytics"));
 const AdminSubscriptions            = lazy(() => import("../admin/subscriptions/adminSubscriptions"));
@@ -562,6 +563,11 @@ export const publicRoutes = [
   {
     path: routes.adminTransactions,
     element: <RoleGuard allowedRoles={['ADMIN']}><AdminTransactions  /></RoleGuard>,
+    route: Route,
+  },
+  {
+    path: routes.adminMessages,
+    element: <RoleGuard allowedRoles={['ADMIN']}><AdminMessages /></RoleGuard>,
     route: Route,
   },
   {

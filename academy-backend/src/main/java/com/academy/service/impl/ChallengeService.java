@@ -339,6 +339,22 @@ public class ChallengeService {
         }).toList();
     }
 
+    /** Every registered member, including those who have not sent photos yet ("NONE"). */
+    @Transactional(readOnly = true)
+    public List<AdminRegistration> adminRegistrations(String slug) {
+        Challenge c = bySlug(slug);
+        Map<UUID, ChallengeEntry> byUser = new java.util.HashMap<>();
+        for (ChallengeEntry e : entries.findByChallengeIdOrderByCreatedAtAsc(c.getId())) {
+            byUser.put(e.getUser().getId(), e);
+        }
+        return registrations.findAllForAdmin(c.getId()).stream().map(r -> {
+            User u = r.getUser();
+            ChallengeEntry e = byUser.get(u.getId());
+            return new AdminRegistration(u.getId(), displayName(u), u.getEmail(), u.getPhone(), u.getAvatarUrl(),
+                    r.getCreatedAt(), e == null ? "NONE" : e.getStatus(), e == null ? 0 : photos(e).size());
+        }).toList();
+    }
+
     @Transactional
     public AdminEntry setStatus(String slug, UUID entryId, StatusRequest req, User admin) {
         Challenge c = bySlug(slug);

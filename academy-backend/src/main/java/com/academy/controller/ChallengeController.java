@@ -110,6 +110,11 @@ public class ChallengeController {
 
     // ── admin (secured by /api/v1/admin/** -> ADMIN) ───────────────────────────
 
+    @GetMapping("/api/v1/admin/challenges/{slug}/registrations")
+    public ResponseEntity<ApiResponse<List<AdminRegistration>>> adminRegistrations(@PathVariable String slug) {
+        return ResponseEntity.ok(ApiResponse.success(service.adminRegistrations(slug)));
+    }
+
     @GetMapping("/api/v1/admin/challenges/{slug}/entries")
     public ResponseEntity<ApiResponse<List<AdminEntry>>> adminEntries(@PathVariable String slug) {
         return ResponseEntity.ok(ApiResponse.success(service.adminEntries(slug)));

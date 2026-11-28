@@ -150,6 +150,7 @@ const LuxurySidebar: React.FC<LuxurySidebarProps> = ({ collapsed, onToggle }) =>
       label: t('sidebar.account', 'Account'),
       items: [
         { title: t('sidebar.supportTickets', 'Support Tickets'), icon: 'isax isax-ticket',          route: all_routes.adminTickets },
+        { title: t('sidebar.memberMessages', 'Member messages'),  icon: 'isax isax-messages-3',     route: all_routes.adminMessages },
         { title: t('sidebar.challengeAdmin', 'Cake Challenge'),   icon: 'isax isax-cake',             route: all_routes.adminChallenge },
         { title: t('sidebar.coupons', 'Coupons'),                icon: 'isax isax-discount-shape',   route: all_routes.adminCoupons },
         { title: t('sidebar.siteSettings', 'Site Settings'),     icon: 'isax isax-setting-2',        route: all_routes.adminSettings },

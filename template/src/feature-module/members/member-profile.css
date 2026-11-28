@@ -47,6 +47,8 @@
 .mp-social:hover { background: rgba(255, 255, 255, .22); transform: translateY(-1px); }
 .mp-social i { font-size: 16px; }
 .mp-social--ghost { background: transparent; }
+.mp-social--primary { background: linear-gradient(135deg, #B8841F 0%, #D9AE52 45%, #F3D58E 100%); color: #2B0F1E !important; border-color: transparent; }
+.mp-social--primary:hover { background: linear-gradient(135deg, #C38E25 0%, #E2B95C 45%, #F7DD9C 100%); }
 
 /* body */
 .mp-body { padding-top: 28px; padding-bottom: 64px; }

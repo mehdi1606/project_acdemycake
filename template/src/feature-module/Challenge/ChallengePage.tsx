@@ -154,13 +154,6 @@ const ChallengePage: React.FC = () => {
             {(phase === 'TALLYING' || phase === 'RESULTS' || phase === 'BETWEEN') && <a href="#ch-gallery" className="ch-btn ch-btn--gold">{t('challenge.ctaGallery', 'See the cakes')}</a>}
             <a href="#ch-rules" className="ch-btn ch-btn--line">{t('challenge.ctaRules', 'Read the rules')}</a>
           </div>
-          {ch && (
-            <p className="ch-stats">
-              {t('challenge.statsRegistered', { count: ch.registrations, defaultValue: '{{count}} registered' })}
-              <span aria-hidden="true"> · </span>
-              {t('challenge.statsCakes', { count: cards.length, defaultValue: '{{count}} cakes in the gallery' })}
-            </p>
-          )}
         </div>
       </section>
 
@@ -193,193 +186,193 @@ const ChallengePage: React.FC = () => {
         </section>
       )}
 
-      {/* ── quick navigation ─────────────────────────────────────────────── */}
-      <nav className="ch-wrap ch-subnav" aria-label={t('challenge.nav.label', 'On this page')}>
-        <a href="#ch-how">{t('challenge.nav.how', 'How to enter')}</a>
-        <a href="#ch-take-part">{t('challenge.nav.take', 'My entry')}</a>
-        <a href="#ch-gallery">{t('challenge.nav.gallery', 'Gallery')}</a>
-        <a href="#ch-rules">{t('challenge.nav.rules', 'Rules')}</a>
-        <a href="#ch-faq">{t('challenge.nav.faq', 'FAQ')}</a>
+      {/* ── quick navigation (stays under the header while scrolling) ───── */}
+      <nav className="ch-subnav" aria-label={t('challenge.nav.label', 'On this page')}>
+        <div className="ch-wrap ch-subnav__in">
+          <a href="#ch-how">{t('challenge.nav.how', 'How to enter')}</a>
+          <a href="#ch-take-part">{t('challenge.nav.take', 'My entry')}</a>
+          <a href="#ch-gallery">{t('challenge.nav.gallery', 'Gallery')}</a>
+          <a href="#ch-faq">{t('challenge.nav.faq', 'FAQ')}</a>
+          <a href="#ch-rules">{t('challenge.nav.rules', 'Rules')}</a>
+        </div>
       </nav>
 
-      {/* ── live numbers + invite ────────────────────────────────────────── */}
-      {ch && (
-        <section className="ch-wrap ch-live">
-          <div className="ch-live__stats">
-            {[
-              { n: ch.registrations, l: t('challenge.live.registered', 'registered') },
-              { n: ch.approvedEntries, l: t('challenge.live.cakes', 'cakes in the gallery') },
-              { n: ch.totalVotes, l: t('challenge.live.votes', 'votes cast') },
-              { n: ch.voters, l: t('challenge.live.voters', 'voters') },
-            ].map((x) => (
-              <div key={x.l} className="ch-live__stat"><b>{x.n}</b><span>{x.l}</span></div>
-            ))}
-            <span className="ch-live__tag"><span className="ch-live__dot" aria-hidden="true" />{t('challenge.live.tag', 'Live')}</span>
+      {/* ── how to take part + your entry, side by side ───────────────────── */}
+      <section id="ch-how" className="ch-wrap ch-join">
+        <div className="ch-join__steps">
+          <div className="ch-head ch-head--start">
+            <p className="ch-kicker">{t('challenge.howKicker', 'How to take part')}</p>
+            <h2>{t('challenge.howTitle', 'Four steps to the gallery')}</h2>
           </div>
-          <div className="ch-live__invite">
-            <div>
-              <h3>{t('challenge.invite.title', 'Bring your people')}</h3>
-              <p>{t('challenge.invite.text', 'Invite friends and family: anyone with a free account can vote, and every vote counts.')}</p>
+          {filmOk && (
+            <div className="ch-film">
+              <video className="ch-film__video" controls playsInline preload="metadata" poster={`${A}film-poster.jpg`} src={filmSrc} />
             </div>
-            <ShareBar url={challengeService.shareUrl(SLUG)} text={shareText} dark />
+          )}
+          <ol className="ch-steps">
+            {[1, 2, 3, 4].map((n) => (
+              <li key={n} className="ch-steps__item">
+                <span className="ch-steps__num" aria-hidden="true">{n}</span>
+                <div>
+                  <h3><i className={`isax ${['isax-edit-2', 'isax-cake', 'isax-camera', 'isax-send-2'][n - 1]}`} aria-hidden="true" /> {t(`challenge.step${n}.title`, ['Register', 'Create one tier', 'Photograph on white', 'Submit & certify'][n - 1])}</h3>
+                  <p>{t(`challenge.step${n}.text`, [
+                    'Join the challenge from this page before 25 December.',
+                    'One single tier, real or dummy, in any technique: fondant, buttercream, ganache, modelling, airbrush, painting…',
+                    '3 to 5 photos on a completely white background and white surface, with at least one full front view.',
+                    'Upload your photos, certify that you made the cake yourself, and wait for the academy to approve it.',
+                  ][n - 1])}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div id="ch-take-part" className="ch-join__panel">
+          <div className="ch-panel">
+            <TakePart
+              ch={ch} phase={phase} me={me} isAuthenticated={isAuthenticated} role={user?.role} myCard={myCard}
+              from={location.pathname} onChange={(m) => { setMe(m); loadAll(); }}
+            />
           </div>
-        </section>
-      )}
-
-      {/* ── how to enter ─────────────────────────────────────────────────── */}
-      <section id="ch-how" className="ch-wrap ch-how">
-        <div className="ch-head">
-          <p className="ch-kicker">{t('challenge.howKicker', 'How to take part')}</p>
-          <h2>{t('challenge.howTitle', 'Four steps to the gallery')}</h2>
         </div>
-        {filmOk && (
-        <div className="ch-film">
-          <video
-            className="ch-film__video"
-            controls
-            playsInline
-            preload="metadata"
-            poster={`${A}film-poster.jpg`}
-            src={filmSrc}
-          />
-        </div>
-        )}
-        <ol className="ch-how__grid">
-          {[1, 2, 3, 4].map((n) => (
-            <li key={n} className="ch-card">
-              <div className="ch-card__media" aria-hidden="true">
-                <span className="ch-card__num">{n}</span>
-                <i className={`isax ${['isax-edit-2', 'isax-cake', 'isax-camera', 'isax-send-2'][n - 1]} ch-card__icon`} />
-              </div>
-              <h3>{t(`challenge.step${n}.title`, ['Register', 'Create one tier', 'Photograph on white', 'Submit & certify'][n - 1])}</h3>
-              <p>{t(`challenge.step${n}.text`, [
-                'Join the challenge from this page before 25 December.',
-                'One single tier, real or dummy, in any technique: fondant, buttercream, ganache, modelling, airbrush, painting…',
-                '3 to 5 photos on a completely white background and white surface, with at least one full front view.',
-                'Upload your photos, certify that you made the cake yourself, and wait for the academy to approve it.',
-              ][n - 1])}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ── your participation ───────────────────────────────────────────── */}
-      <section id="ch-take-part" className="ch-wrap">
-        <div className="ch-panel">
-          <TakePart
-            ch={ch} phase={phase} me={me} isAuthenticated={isAuthenticated} role={user?.role} myCard={myCard}
-            from={location.pathname} onChange={(m) => { setMe(m); loadAll(); }}
-          />
-        </div>
-      </section>
-
-      {/* ── points ───────────────────────────────────────────────────────── */}
-      <section className="ch-wrap ch-points">
-        <div className="ch-points__item"><b>1</b><span>{t('challenge.ptStudent', 'point for a student vote')}</span></div>
-        <div className="ch-points__item"><b>10</b><span>{t('challenge.ptStaff', 'points for an instructor or admin vote')}</span></div>
-        <div className="ch-points__item"><b>{ch?.minVoters ?? 3}+</b><span>{t('challenge.ptMin', 'different accounts must vote for a cake before it can win')}</span></div>
       </section>
 
       {/* ── gallery & live ranking ───────────────────────────────────────── */}
-      <section id="ch-gallery" className="ch-wrap ch-gallery">
-        <div className="ch-head">
-          <p className="ch-kicker">{phase === 'VOTING' ? t('challenge.liveRanking', 'Live ranking') : t('challenge.galleryKicker', 'The gallery')}</p>
-          <h2>{phase === 'RESULTS' ? t('challenge.winnersTitle', 'Our New Year champions') : t('challenge.galleryTitle', 'The cakes of 2027')}</h2>
-          {phase === 'SUBMISSIONS' && <p className="ch-sub">{t('challenge.galleryWait', 'Approved cakes appear here. Voting opens on 26 December.')}</p>}
-        </div>
-        {voteMsg && <p className="ch-alert" role="alert">{voteMsg}</p>}
-        {cards.length > 0 && (
-          <div className="ch-tools">
-            <label className="ch-search">
-              <i className="isax isax-search-normal-1" aria-hidden="true" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('challenge.tools.search', 'Search a cake or a student')} aria-label={t('challenge.tools.search', 'Search a cake or a student')} />
-            </label>
-            <div className="ch-sort" role="radiogroup" aria-label={t('challenge.tools.sort', 'Sort')}>
-              {([['rank', t('challenge.tools.rank', 'Ranking')], ['new', t('challenge.tools.new', 'Newest')], ['discover', t('challenge.tools.discover', 'Discover')]] as const).map(([k, l]) => (
-                <button key={k} type="button" role="radio" aria-checked={sort === k} className={sort === k ? 'is-on' : ''} onClick={() => setSort(k)}>{l}</button>
+      <section id="ch-gallery" className="ch-gallery">
+        <div className="ch-wrap">
+          <div className="ch-gallery__top">
+            <div className="ch-head ch-head--start">
+              <p className="ch-kicker">{phase === 'VOTING' ? t('challenge.liveRanking', 'Live ranking') : t('challenge.galleryKicker', 'The gallery')}</p>
+              <h2>{phase === 'RESULTS' ? t('challenge.winnersTitle', 'Our New Year champions') : t('challenge.galleryTitle', 'The cakes of 2027')}</h2>
+              {phase === 'SUBMISSIONS' && <p className="ch-sub">{t('challenge.galleryWait', 'Approved cakes appear here. Voting opens on 26 December.')}</p>}
+            </div>
+            {ch && (
+              <div className="ch-live__stats">
+                <span className="ch-live__tag"><span className="ch-live__dot" aria-hidden="true" />{t('challenge.live.tag', 'Live')}</span>
+                {[
+                  { n: ch.registrations, l: t('challenge.live.registered', 'registered') },
+                  { n: ch.approvedEntries, l: t('challenge.live.cakes', 'cakes in the gallery') },
+                  { n: ch.totalVotes, l: t('challenge.live.votes', 'votes cast') },
+                  { n: ch.voters, l: t('challenge.live.voters', 'voters') },
+                ].map((x) => (
+                  <div key={x.l} className="ch-live__stat"><b>{x.n}</b><span>{x.l}</span></div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <ul className="ch-points">
+            <li><b>1</b>{t('challenge.ptStudent', 'point for a student vote')}</li>
+            <li><b>10</b>{t('challenge.ptStaff', 'points for an instructor or admin vote')}</li>
+            <li><b>{ch?.minVoters ?? 3}+</b>{t('challenge.ptMin', 'different accounts must vote for a cake before it can win')}</li>
+          </ul>
+
+          {voteMsg && <p className="ch-alert" role="alert">{voteMsg}</p>}
+          {cards.length > 0 && (
+            <div className="ch-tools">
+              <label className="ch-search">
+                <i className="isax isax-search-normal-1" aria-hidden="true" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('challenge.tools.search', 'Search a cake or a student')} aria-label={t('challenge.tools.search', 'Search a cake or a student')} />
+              </label>
+              <div className="ch-sort" role="radiogroup" aria-label={t('challenge.tools.sort', 'Sort')}>
+                {([['rank', t('challenge.tools.rank', 'Ranking')], ['new', t('challenge.tools.new', 'Newest')], ['discover', t('challenge.tools.discover', 'Discover')]] as const).map(([k, l]) => (
+                  <button key={k} type="button" role="radio" aria-checked={sort === k} className={sort === k ? 'is-on' : ''} onClick={() => setSort(k)}>{l}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {podium.length > 0 && (
+            <div className="ch-podium">
+              {podium.map((c) => (
+                <button key={c.id} type="button" className={`ch-podium__item ch-podium__item--${c.rank}`} onClick={() => setOpen(c)}>
+                  <span className="ch-podium__medal">{c.rank}</span>
+                  <img src={c.photos[0]} alt={c.title} loading="lazy" />
+                  <span className="ch-podium__name">{c.title}</span>
+                  <span className="ch-podium__pts">{t('challenge.points', { count: c.points, defaultValue: '{{count}} pts' })}</span>
+                </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {podium.length > 0 && (
-          <div className="ch-podium">
-            {podium.map((c) => (
-              <button key={c.id} type="button" className={`ch-podium__item ch-podium__item--${c.rank}`} onClick={() => setOpen(c)}>
-                <span className="ch-podium__medal">{c.rank}</span>
-                <img src={c.photos[0]} alt={c.title} loading="lazy" />
-                <span className="ch-podium__name">{c.title}</span>
-                <span className="ch-podium__pts">{t('challenge.points', { count: c.points, defaultValue: '{{count}} pts' })}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {cards.length > 0 && shown.length === 0 && <p className="ch-empty">{t('challenge.tools.none', 'No cake matches your search.')}</p>}
-        {cards.length === 0 ? (
-          <p className="ch-empty">{t('challenge.galleryEmpty', 'The first approved cakes will appear here soon.')}</p>
-        ) : (
-          <div className="ch-grid">
-            {shown.map((c) => (
-              <article key={c.id} className="ch-entry">
-                <button type="button" className="ch-entry__photo" onClick={() => setOpen(c)} aria-label={t('challenge.openCake', { title: c.title, defaultValue: 'Open {{title}}' })}>
-                  <img src={c.photos[0]} alt={c.title} loading="lazy" />
-                  {(phase === 'VOTING' || phase === 'TALLYING' || phase === 'RESULTS') && <span className="ch-entry__rank">#{c.rank}</span>}
-                </button>
-                <div className="ch-entry__body">
-                  <h3><Link to={`${all_routes.challenge}/cake/${c.id}`}>{c.title}</Link></h3>
-                  <p className="ch-entry__by">
-                    <MemberLink id={c.authorId} name={c.authorName}>{t('challenge.by', { name: c.authorName, defaultValue: 'by {{name}}' })}</MemberLink>
-                  </p>
-                  <div className="ch-entry__foot">
-                    <span className="ch-entry__pts">
-                      <b>{c.points}</b> {t('challenge.pts', 'pts')}
-                      <small>{t('challenge.voters', { count: c.voters, defaultValue: '{{count}} voters' })}</small>
-                    </span>
-                    <VoteButton card={c} phase={phase} voted={voted.has(c.id)} own={c.id === myEntryId}
-                      busy={busyVote === c.id} isAuthenticated={isAuthenticated} emailVerified={me?.emailVerified ?? true}
-                      onVote={() => vote(c)} />
+          {cards.length > 0 && shown.length === 0 && <p className="ch-empty">{t('challenge.tools.none', 'No cake matches your search.')}</p>}
+          {cards.length === 0 ? (
+            <div className="ch-empty ch-empty--art">
+              <i className="isax isax-cake" aria-hidden="true" />
+              <p>{t('challenge.galleryEmpty', 'The first approved cakes will appear here soon.')}</p>
+            </div>
+          ) : (
+            <div className="ch-grid">
+              {shown.map((c) => (
+                <article key={c.id} className="ch-entry">
+                  <button type="button" className="ch-entry__photo" onClick={() => setOpen(c)} aria-label={t('challenge.openCake', { title: c.title, defaultValue: 'Open {{title}}' })}>
+                    <img src={c.photos[0]} alt={c.title} loading="lazy" />
+                    {(phase === 'VOTING' || phase === 'TALLYING' || phase === 'RESULTS') && <span className="ch-entry__rank">#{c.rank}</span>}
+                  </button>
+                  <div className="ch-entry__body">
+                    <h3><Link to={`${all_routes.challenge}/cake/${c.id}`}>{c.title}</Link></h3>
+                    <p className="ch-entry__by">
+                      <MemberLink id={c.authorId} name={c.authorName}>{t('challenge.by', { name: c.authorName, defaultValue: 'by {{name}}' })}</MemberLink>
+                    </p>
+                    <div className="ch-entry__foot">
+                      <span className="ch-entry__pts">
+                        <b>{c.points}</b> {t('challenge.pts', 'pts')}
+                        <small>{t('challenge.voters', { count: c.voters, defaultValue: '{{count}} voters' })}</small>
+                      </span>
+                      <VoteButton card={c} phase={phase} voted={voted.has(c.id)} own={c.id === myEntryId}
+                        busy={busyVote === c.id} isAuthenticated={isAuthenticated} emailVerified={me?.emailVerified ?? true}
+                        onVote={() => vote(c)} />
+                    </div>
                   </div>
-                </div>
-              </article>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {ch && (
+            <div className="ch-invite">
+              <div>
+                <h3>{t('challenge.invite.title', 'Bring your people')}</h3>
+                <p>{t('challenge.invite.text', 'Invite friends and family: anyone with a free account can vote, and every vote counts.')}</p>
+              </div>
+              <ShareBar url={challengeService.shareUrl(SLUG)} text={shareText} dark />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── FAQ + rules, side by side ─────────────────────────────────────── */}
+      <section className="ch-wrap ch-info">
+        <div id="ch-faq" className="ch-info__col">
+          <div className="ch-head ch-head--start">
+            <p className="ch-kicker">{t('challenge.faq.kicker', 'Questions')}</p>
+            <h2>{t('challenge.faq.title', 'Good to know')}</h2>
+          </div>
+          <div className="ch-faq__list">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <details key={n} className="ch-faq__item">
+                <summary>{t(`challenge.faq.q${n}`)}</summary>
+                <p>{t(`challenge.faq.a${n}`)}</p>
+              </details>
             ))}
           </div>
-        )}
-      </section>
-
-      {/* ── FAQ ─────────────────────────────────────────────────────────── */}
-      <section id="ch-faq" className="ch-wrap ch-faq">
-        <div className="ch-head">
-          <p className="ch-kicker">{t('challenge.faq.kicker', 'Questions')}</p>
-          <h2>{t('challenge.faq.title', 'Good to know')}</h2>
         </div>
-        <div className="ch-faq__grid">
-          {[1, 2, 3, 4, 5, 6].map((n) => (
-            <details key={n} className="ch-faq__item">
-              <summary>{t(`challenge.faq.q${n}`)}</summary>
-              <p>{t(`challenge.faq.a${n}`)}</p>
-            </details>
-          ))}
+        <div id="ch-rules" className="ch-info__col">
+          <div className="ch-head ch-head--start">
+            <p className="ch-kicker">{t('challenge.rulesKicker', 'Official competition rules')}</p>
+            <h2>{t('challenge.rulesTitle', 'The rules')}</h2>
+          </div>
+          {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
+            const items = t(`challenge.rules.r${n}.items`, { returnObjects: true }) as unknown;
+            return (
+              <details key={n} className="ch-rule" open={n === 1}>
+                <summary><span>{n}</span>{t(`challenge.rules.r${n}.title`)}</summary>
+                <ul>{Array.isArray(items) && (items as string[]).map((x, i) => <li key={i}>{x}</li>)}</ul>
+              </details>
+            );
+          })}
         </div>
       </section>
-
-      {/* ── rules ───────────────────────────────────────────────────────── */}
-      <section id="ch-rules" className="ch-wrap ch-rules">
-        <div className="ch-head">
-          <p className="ch-kicker">{t('challenge.rulesKicker', 'Official competition rules')}</p>
-          <h2>{t('challenge.rulesTitle', 'The rules')}</h2>
-        </div>
-        {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
-          const items = t(`challenge.rules.r${n}.items`, { returnObjects: true }) as unknown;
-          return (
-            <details key={n} className="ch-rule" open={n <= 2}>
-              <summary><span>{n}</span>{t(`challenge.rules.r${n}.title`)}</summary>
-              <ul>{Array.isArray(items) && (items as string[]).map((x, i) => <li key={i}>{x}</li>)}</ul>
-            </details>
-          );
-        })}
-        <p className="ch-goal">{t('challenge.rules.goal', 'The goal is to celebrate creativity, originality, technical skill and the artistic talent of SARALÖWE Academy students.')}</p>
-      </section>
+      <p className="ch-wrap ch-goal">{t('challenge.rules.goal', 'The goal is to celebrate creativity, originality, technical skill and the artistic talent of SARALÖWE Academy students.')}</p>
 
       {open && (
         <Lightbox card={open} onClose={() => setOpen(null)} shareUrl={challengeService.shareUrl(SLUG, open.id)}

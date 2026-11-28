@@ -69,6 +69,18 @@ export interface SaveEntry {
   publicationConsent: boolean;
 }
 
+/** A registered member, with or without photos sent ("NONE" = nothing sent yet). */
+export interface AdminRegistration {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userPhone?: string;
+  avatarUrl?: string;
+  registeredAt: string;
+  entryStatus: 'NONE' | EntryStatus | string;
+  photos: number;
+}
+
 export interface AdminEntry extends Omit<MyEntry, 'updatedAt'> {
   createdAt: string;
   updatedAt?: string;
@@ -138,6 +150,7 @@ export const challengeService = {
   unvote: (slug: string, entryId: string) => d<string[]>(api.delete(`/challenges/${slug}/entries/${entryId}/vote`)),
 
   adminEntries: (slug: string) => d<AdminEntry[]>(api.get(`/admin/challenges/${slug}/entries`)),
+  adminRegistrations: (slug: string) => d<AdminRegistration[]>(api.get(`/admin/challenges/${slug}/registrations`)),
   setStatus: (slug: string, entryId: string, status: EntryStatus, note?: string) =>
     d<AdminEntry>(api.put(`/admin/challenges/${slug}/entries/${entryId}/status`, { status, note })),
   adminVotes: (slug: string, entryId: string) => d<AdminVote[]>(api.get(`/admin/challenges/${slug}/entries/${entryId}/votes`)),

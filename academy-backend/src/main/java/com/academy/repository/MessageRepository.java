@@ -22,6 +22,11 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
             "ORDER BY m.createdAt DESC")
     Page<Message> findConversation(@Param("user1") User user1, @Param("user2") User user2, Pageable pageable);
 
+    /** Admin oversight: every message between two people, including ones either side deleted. */
+    @Query("SELECT m FROM Message m WHERE (m.sender = :user1 AND m.receiver = :user2) OR (m.sender = :user2 AND m.receiver = :user1) " +
+            "ORDER BY m.createdAt DESC")
+    Page<Message> findAllBetweenForAdmin(@Param("user1") User user1, @Param("user2") User user2, Pageable pageable);
+
     @Query("SELECT DISTINCT m.sender FROM Message m WHERE m.receiver = :user AND m.isDeletedByReceiver = false")
     List<User> findSenders(@Param("user") User user);
 

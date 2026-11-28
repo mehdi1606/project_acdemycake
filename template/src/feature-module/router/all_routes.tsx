@@ -93,6 +93,7 @@ export const all_routes = {
     adminTransactions: '/admin/transactions',
     adminInvoices: '/admin/invoices',
     adminTickets: '/admin/tickets',
+    adminMessages: '/admin/messages',
     adminSubscriptions: '/admin/subscriptions',
     adminAnalytics: '/admin/analytics',
     adminReports: '/admin/reports',

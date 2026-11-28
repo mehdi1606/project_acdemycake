@@ -512,7 +512,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
                       ref={inputRef}
                       className="form-control"
                       rows={1}
-                      placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
+                      placeholder={t('chat.placeholder', 'Type a message… (Enter to send, Shift+Enter for new line)')}
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -532,6 +532,10 @@ const ChatPage: React.FC<ChatPageProps> = ({
                       )}
                     </button>
                   </div>
+                  <p className="px-3 pb-2 mb-0 text-muted" style={{ fontSize: 11.5 }}>
+                    <i className="isax isax-shield-tick me-1" />
+                    {t('chat.safetyNote', "Be kind. For everyone's safety, the SARALÖWE team can review conversations.")}
+                  </p>
                 </>
               )}
             </div>

@@ -341,7 +341,8 @@
     "browseCourses": "تصفّحوا الدورات",
     "backToSite": "العودة إلى الموقع",
     "challenge": "تحدّي رأس السنة",
-    "challengeAdmin": "تحدّي الكعك"
+    "challengeAdmin": "تحدّي الكعك",
+    "memberMessages": "رسائل الأعضاء"
   },
   "auth": {
     "login": {
@@ -4892,7 +4893,20 @@
     "restore": "استرجاع",
     "void": "حذف",
     "voidWhy": "اكتبوا سبب حذف هذا الصوت أولًا.",
-    "voidReasonPh": "السبب"
+    "voidReasonPh": "السبب",
+    "registered": "المسجّلون",
+    "noRegistered": "لم يسجّل أحد بعد.",
+    "colMember": "العضو",
+    "colContact": "التواصل",
+    "colRegistered": "تاريخ التسجيل",
+    "colEntry": "كعكته",
+    "noPhotos": "لا صور بعد",
+    "photosCount_zero": "{{count}} صورة",
+    "photosCount_one": "صورة واحدة",
+    "photosCount_two": "صورتان",
+    "photosCount_few": "{{count}} صور",
+    "photosCount_many": "{{count}} صورة",
+    "photosCount_other": "{{count}} صورة"
   },
   "experience": {
     "welcome": "مرحبًا بكم في الأتيليه",
@@ -5099,6 +5113,25 @@
     "challengeIn": "مشارك في تحدي كعكة رأس السنة",
     "currentBadge": "الشارة الحالية",
     "topLevel": "أعلى مستوى في الأكاديمية.",
-    "viewMine": "شاهدوا ملفكم كما يراه الآخرون"
+    "viewMine": "شاهدوا ملفكم كما يراه الآخرون",
+    "message": "مراسلة"
+  },
+  "chat": {
+    "placeholder": "اكتبوا رسالة… (Enter للإرسال، Shift+Enter لسطر جديد)",
+    "safetyNote": "كونوا لطفاء. حفاظاً على سلامة الجميع، يمكن لفريق SARALÖWE مراجعة المحادثات."
+  },
+  "adminMessages": {
+    "title": "رسائل الأعضاء",
+    "sub": "جميع المحادثات بين الأعضاء، الأحدث أولاً. للقراءة فقط؛ تظهر هنا حتى الرسائل التي حذفها أحد الطرفين.",
+    "search": "البحث بالاسم أو البريد الإلكتروني",
+    "empty": "لا توجد محادثات بعد.",
+    "count_zero": "{{count}} رسالة",
+    "count_one": "رسالة واحدة",
+    "count_two": "رسالتان",
+    "count_few": "{{count}} رسائل",
+    "count_many": "{{count}} رسالة",
+    "count_other": "{{count}} رسالة",
+    "pick": "اختاروا محادثة",
+    "attachment": "مرفق"
   }
 }

@@ -7,18 +7,20 @@ import { useTranslation } from 'react-i18next';
 import LuxuryDashboardLayout from '../../../components/LuxuryDashboardLayout';
 import LxEmptyState from '../../../components/LxEmptyState';
 import { extractApiError } from '../../../services/api/error.utils';
-import { AdminEntry, AdminVote, challengeService, EntryStatus } from '../../../services/api/challenge.service';
+import { AdminEntry, AdminRegistration, AdminVote, challengeService, EntryStatus } from '../../../services/api/challenge.service';
+import MemberLink from '../../../components/MemberLink';
 import './adminChallenge.css';
 import CampaignPanel from './CampaignPanel';
 
 const SLUG = 'new-year-cake-2027';
-type Filter = 'ALL' | 'PENDING' | 'APPROVED' | 'CHANGES_REQUESTED' | 'OUT';
+type Filter = 'REGISTERED' | 'ALL' | 'PENDING' | 'APPROVED' | 'CHANGES_REQUESTED' | 'OUT';
 
 const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
 const AdminChallenge: React.FC = () => {
   const { t } = useTranslation();
   const [rows, setRows] = useState<AdminEntry[]>([]);
+  const [regs, setRegs] = useState<AdminRegistration[]>([]);
   const [filter, setFilter] = useState<Filter>('PENDING');
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(true);
@@ -29,11 +31,15 @@ const AdminChallenge: React.FC = () => {
 
   const load = useCallback(async () => {
     try {
-      const list = await challengeService.adminEntries(SLUG);
+      const [list, registered] = await Promise.all([
+        challengeService.adminEntries(SLUG),
+        challengeService.adminRegistrations(SLUG),
+      ]);
       setRows(list);
+      setRegs(registered);
       setErr('');
       // First visit: open on "To review", or on "All" when nothing is waiting.
-      setFilter((f) => (f === 'PENDING' && !list.some((r) => r.status === 'PENDING') ? 'ALL' : f));
+      setFilter((f) => (f === 'PENDING' && !list.some((r) => r.status === 'PENDING') ? 'REGISTERED' : f));
     }
     catch (e) { setErr(extractApiError(e)); }
     finally { setLoading(false); }
@@ -41,14 +47,15 @@ const AdminChallenge: React.FC = () => {
   useEffect(() => { load(); }, [load]);
 
   const counts = useMemo(() => ({
+    REGISTERED: regs.length,
     ALL: rows.length,
     PENDING: rows.filter((r) => r.status === 'PENDING').length,
     APPROVED: rows.filter((r) => r.status === 'APPROVED').length,
     CHANGES_REQUESTED: rows.filter((r) => r.status === 'CHANGES_REQUESTED').length,
     OUT: rows.filter((r) => r.status === 'REJECTED' || r.status === 'DISQUALIFIED').length,
-  }), [rows]);
+  }), [rows, regs]);
 
-  const shown = rows.filter((r) =>
+  const shown = filter === 'REGISTERED' ? [] : rows.filter((r) =>
     filter === 'ALL' ? true : filter === 'OUT' ? (r.status === 'REJECTED' || r.status === 'DISQUALIFIED') : r.status === filter);
 
   const setStatus = async (r: AdminEntry, status: EntryStatus) => {
@@ -87,16 +94,54 @@ const AdminChallenge: React.FC = () => {
         <CampaignPanel />
 
         <div className="cha__tabs" role="tablist">
-          {(['PENDING', 'APPROVED', 'CHANGES_REQUESTED', 'OUT', 'ALL'] as Filter[]).map((f) => (
+          {(['REGISTERED', 'PENDING', 'APPROVED', 'CHANGES_REQUESTED', 'OUT', 'ALL'] as Filter[]).map((f) => (
             <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'is-on' : ''} onClick={() => setFilter(f)}>
-              {f === 'ALL' ? t('challengeAdmin.all', 'All') : f === 'OUT' ? t('challengeAdmin.out', 'Rejected / disqualified') : statusLabel[f]}
+              {f === 'REGISTERED' ? t('challengeAdmin.registered', 'Registered') : f === 'ALL' ? t('challengeAdmin.all', 'All cakes') : f === 'OUT' ? t('challengeAdmin.out', 'Rejected / disqualified') : statusLabel[f]}
               <span>{counts[f]}</span>
             </button>
           ))}
         </div>
 
         {err && <p className="cha__err" role="alert">{err}</p>}
-        {loading ? <p className="cha__empty">{t('common.loading', 'Loading…')}</p> : shown.length === 0 ? (
+        {!loading && filter === 'REGISTERED' ? (
+          regs.length === 0 ? (
+            <div className="lx-card">
+              <LxEmptyState icon="isax-people" title={t('challengeAdmin.noRegistered', 'Nobody has registered yet.')} text="" />
+            </div>
+          ) : (
+            <div className="lx-card cha-regs">
+              <div className="table-responsive">
+                <table className="table mb-0">
+                  <thead>
+                    <tr>
+                      <th>{t('challengeAdmin.colMember', 'Member')}</th>
+                      <th>{t('challengeAdmin.colContact', 'Contact')}</th>
+                      <th>{t('challengeAdmin.colRegistered', 'Registered on')}</th>
+                      <th>{t('challengeAdmin.colEntry', 'Their cake')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {regs.map((r) => (
+                      <tr key={r.userId}>
+                        <td><MemberLink id={r.userId} name={r.userName} style={{ fontWeight: 700, color: 'var(--lx-primary)' }}>{r.userName}</MemberLink></td>
+                        <td style={{ fontSize: 13 }}>
+                          <a href={`mailto:${r.userEmail}`}>{r.userEmail}</a>
+                          {r.userPhone && <div><a href={`https://wa.me/${r.userPhone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">{r.userPhone}</a></div>}
+                        </td>
+                        <td style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{fmt(r.registeredAt)}</td>
+                        <td>
+                          {r.entryStatus === 'NONE'
+                            ? <span className="cha-pill cha-pill--none">{t('challengeAdmin.noPhotos', 'No photos yet')}</span>
+                            : <span className={`cha-pill cha-pill--${String(r.entryStatus).toLowerCase()}`}>{statusLabel[r.entryStatus] ?? r.entryStatus} · {t('challengeAdmin.photosCount', { count: r.photos, defaultValue: '{{count}} photos' })}</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        ) : loading ? <p className="cha__empty">{t('common.loading', 'Loading…')}</p> : shown.length === 0 ? (
           <div className="lx-card">
             <LxEmptyState
               icon="isax-cake"

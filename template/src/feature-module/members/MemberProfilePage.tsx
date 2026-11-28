@@ -14,6 +14,7 @@ import { useCheckLabel } from '../../components/BadgeRequirementList';
 import AvatarImage from '../../components/AvatarImage';
 import { getFileUrl } from '../../environment';
 import { all_routes } from '../router/all_routes';
+import { useAppSelector } from '../../core/redux/hooks';
 import './member-profile.css';
 
 const fmtMonthYear = (iso: string | undefined, lang: string) => {
@@ -27,12 +28,21 @@ const fmtMonthYear = (iso: string | undefined, lang: string) => {
   }
 };
 
+/** Members chat from their own messages page; instructors and admins from theirs. */
+const messagePath = (viewerRole: string | undefined, id: string, name: string) => {
+  const q = (a: string, b: string) => `?${a}=${encodeURIComponent(id)}&${b}=${encodeURIComponent(name)}`;
+  return viewerRole === 'INSTRUCTOR' || viewerRole === 'ADMIN'
+    ? all_routes.instructorMessage + q('studentId', 'studentName')
+    : all_routes.studentMessage + q('userId', 'userName');
+};
+
 const MemberProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const label = useCheckLabel();
   const [p, setP] = useState<MemberProfile | null>(null);
   const [state, setState] = useState<'loading' | 'ok' | 'missing'>('loading');
+  const viewerRole = useAppSelector((s) => s.auth.user?.role);
 
   useEffect(() => {
     if (!id) return;
@@ -99,6 +109,11 @@ const MemberProfilePage: React.FC = () => {
               {since && <span>{t('member.since', 'Member since {{date}}', { date: since })}</span>}
             </p>
             <div className="mp-actions">
+              {!p.me && (
+                <Link className="mp-social mp-social--primary" to={messagePath(viewerRole, p.id, p.fullName)}>
+                  <i className="isax isax-messages-3" /> {t('member.message', 'Message')}
+                </Link>
+              )}
               {p.instagram && (
                 <a className="mp-social" href={p.instagram} target="_blank" rel="noopener noreferrer nofollow">
                   <i className="fa-brands fa-instagram" /> Instagram

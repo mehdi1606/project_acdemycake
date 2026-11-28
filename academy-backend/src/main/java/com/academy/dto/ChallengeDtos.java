@@ -43,6 +43,11 @@ public final class ChallengeDtos {
 
     public record VoidRequest(Boolean voided, String reason) {}
 
+    /** Admin view of a registered member, with or without an entry yet. */
+    public record AdminRegistration(
+            UUID userId, String userName, String userEmail, String userPhone, String avatarUrl,
+            LocalDateTime registeredAt, String entryStatus, int photos) {}
+
     /** Admin view of an entry, any status. */
     public record AdminEntry(
             UUID id, String title, String description, List<String> photos,
