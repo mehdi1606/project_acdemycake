@@ -11,6 +11,7 @@ import { CommunityPost as Post, CommunityComment, PostType } from '../../../serv
 import { useAppSelector } from '../../../core/redux/hooks';
 import { getFileUrl } from '../../../environment';
 import BadgeAvatar from '../../../components/BadgeAvatar';
+import MemberLink from '../../../components/MemberLink';
 import { getBadgeFromRole } from '../../../config/badges';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -249,15 +250,17 @@ const PostModal: React.FC<{
 
             {/* Author row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
-              <BadgeAvatar
-                avatarUrl={avatar ?? undefined}
-                name={post.userName}
-                badge={getBadgeFromRole((post as any).userRole)}
-                size="md"
-              />
+              <MemberLink id={(post as any).userId} name={post.userName}>
+                <BadgeAvatar
+                  avatarUrl={avatar ?? undefined}
+                  name={post.userName}
+                  badge={getBadgeFromRole((post as any).userRole)}
+                  size="md"
+                />
+              </MemberLink>
               <div>
                 <p style={{ margin: 0, fontFamily: 'var(--sl-font-body)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--sl-burgundy)' }}>
-                  {post.userName}
+                  <MemberLink id={(post as any).userId} name={post.userName}>{post.userName}</MemberLink>
                 </p>
                 <p style={{ margin: 0, fontFamily: 'var(--sl-font-body)', fontSize: '0.72rem', color: 'rgba(101,28,50,0.5)' }}>
                   {formatDate(post.createdAt)}
@@ -443,16 +446,18 @@ const PostModal: React.FC<{
                         padding: '1rem',
                         background: '#fff', border: '1px solid rgba(197,145,44,0.1)',
                       }}>
-                        <BadgeAvatar
-                          avatarUrl={cAvatar ?? undefined}
-                          name={c.userName}
-                          badge={getBadgeFromRole((c as any).userRole)}
-                          size="sm"
-                        />
+                        <MemberLink id={(c as any).userId} name={c.userName}>
+                          <BadgeAvatar
+                            avatarUrl={cAvatar ?? undefined}
+                            name={c.userName}
+                            badge={getBadgeFromRole((c as any).userRole)}
+                            size="sm"
+                          />
+                        </MemberLink>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                             <span style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.78rem', fontWeight: 600, color: 'var(--sl-burgundy)' }}>
-                              {c.userName}
+                              <MemberLink id={(c as any).userId} name={c.userName}>{c.userName}</MemberLink>
                             </span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                               <span style={{ fontFamily: 'var(--sl-font-body)', fontSize: '0.65rem', color: 'rgba(101,28,50,0.4)' }}>
@@ -710,18 +715,20 @@ const PostCard: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           {/* Author */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <BadgeAvatar
-              avatarUrl={avatar ?? undefined}
-              name={post.userName}
-              badge={getBadgeFromRole((post as any).userRole)}
-              size="sm"
-            />
+            <MemberLink id={(post as any).userId} name={post.userName}>
+              <BadgeAvatar
+                avatarUrl={avatar ?? undefined}
+                name={post.userName}
+                badge={getBadgeFromRole((post as any).userRole)}
+                size="sm"
+              />
+            </MemberLink>
             <span style={{
               fontFamily: 'var(--sl-font-body)',
               fontSize: '0.72rem', fontWeight: 600,
               color: 'rgba(58,30,32,0.75)',
             }}>
-              {post.userName}
+              <MemberLink id={(post as any).userId} name={post.userName}>{post.userName}</MemberLink>
             </span>
           </div>
 
