@@ -71,16 +71,18 @@ public class PayPalPaymentController {
 
     @PostMapping("/initiate/course/{courseId}")
     public ResponseEntity<ApiResponse<Initiated>> initiateCourse(@PathVariable UUID courseId,
+                                                                 @RequestParam(required = false) String couponCode,
                                                                  @AuthenticationPrincipal UserPrincipal principal) {
         User user = userService.findById(principal.getId());
-        return ResponseEntity.ok(ApiResponse.success("PayPal order ready", payPal.initiateCourse(courseId, user)));
+        return ResponseEntity.ok(ApiResponse.success("PayPal order ready", payPal.initiateCourse(courseId, couponCode, user)));
     }
 
     @PostMapping("/initiate/ebook/{ebookId}")
     public ResponseEntity<ApiResponse<Initiated>> initiateEbook(@PathVariable UUID ebookId,
+                                                                @RequestParam(required = false) String couponCode,
                                                                 @AuthenticationPrincipal UserPrincipal principal) {
         User user = userService.findById(principal.getId());
-        return ResponseEntity.ok(ApiResponse.success("PayPal order ready", payPal.initiateEbook(ebookId, user)));
+        return ResponseEntity.ok(ApiResponse.success("PayPal order ready", payPal.initiateEbook(ebookId, couponCode, user)));
     }
 
     // ── Browser back from PayPal (NO JWT) ─────────────────────────────────────

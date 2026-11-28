@@ -21,6 +21,7 @@ interface CouponRow {
   expiresAt: string | null;
   description: string | null;
   createdAt: string;
+  appliesTo?: string[];
 }
 
 interface CreateForm {
@@ -29,6 +30,7 @@ interface CreateForm {
   maxUses: string;
   expiresAt: string;
   description: string;
+  appliesTo: string[];
 }
 
 const EMPTY_FORM: CreateForm = {
@@ -37,7 +39,14 @@ const EMPTY_FORM: CreateForm = {
   maxUses: '1',
   expiresAt: '',
   description: '',
+  appliesTo: ['SUBSCRIPTION', 'COURSE', 'EBOOK'],
 };
+
+const SCOPES = [
+  { key: 'SUBSCRIPTION', icon: 'isax-crown-1', label: 'Memberships', labelKey: 'admin.coupons.scopeSubscription' },
+  { key: 'COURSE', icon: 'isax-teacher', label: 'Courses & masterclasses', labelKey: 'admin.coupons.scopeCourse' },
+  { key: 'EBOOK', icon: 'isax-book-1', label: 'Ebooks', labelKey: 'admin.coupons.scopeEbook' },
+];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmt = (iso?: string | null) =>
@@ -121,6 +130,10 @@ const AdminCoupons: React.FC = () => {
     setFormError(null);
 
     const code = form.code.trim().toUpperCase();
+    if (form.appliesTo.length === 0) {
+      setFormError(t('admin.coupons.pickScope', 'Choose at least one place where the coupon can be used.'));
+      return;
+    }
     if (!code) { setFormError(t('admin.coupons.codeRequired', 'Coupon code is required')); return; }
     if (!form.discountPercent || Number(form.discountPercent) < 1 || Number(form.discountPercent) > 100) {
       setFormError(t('admin.coupons.discountRange', 'Discount must be between 1% and 100%')); return;
@@ -134,6 +147,7 @@ const AdminCoupons: React.FC = () => {
         maxUses: form.maxUses ? Number(form.maxUses) : null,
         expiresAt: form.expiresAt ? toLocalDateTime(form.expiresAt) : null,
         description: form.description.trim() || null,
+        appliesTo: form.appliesTo,
       });
       flash(t('admin.coupons.couponCreated', { code, defaultValue: `Coupon "${code}" created successfully` }));
       setForm(EMPTY_FORM);
@@ -320,6 +334,33 @@ const AdminCoupons: React.FC = () => {
                 </div>
               </div>
 
+              {/* Where it works */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>{t('admin.coupons.appliesTo', 'Can be used on')} *</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {SCOPES.map((sc) => {
+                    const on = form.appliesTo.includes(sc.key);
+                    return (
+                      <label key={sc.key} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
+                        border: on ? '1.5px solid #651C32' : '1.5px solid rgba(101,28,50,0.15)', background: on ? 'rgba(101,28,50,0.06)' : '#fff',
+                        fontSize: 13, fontWeight: 700, color: '#4A1428',
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => setForm((f) => ({
+                            ...f,
+                            appliesTo: on ? f.appliesTo.filter((x) => x !== sc.key) : [...f.appliesTo, sc.key],
+                          }))}
+                        />
+                        <i className={`isax ${sc.icon}`} /> {t(sc.labelKey, sc.label)}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Description */}
               <div style={{ marginBottom: 20 }}>
                 <label style={labelStyle}>{t('admin.coupons.descriptionNote', 'Description / Note (optional)')}</label>
@@ -345,7 +386,7 @@ const AdminCoupons: React.FC = () => {
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#4A1428' }}>{form.code}</div>
                     <div style={{ fontSize: 12, color: '#7C6A73' }}>
-                      {form.discountPercent}% {t('admin.coupons.annualPlan', 'Annual plan')} (3,900 MAD → {Math.round(3900 * (1 - Number(form.discountPercent) / 100)).toLocaleString()} MAD)
+                      {form.discountPercent}% · {form.appliesTo.map((k) => { const sc = SCOPES.find((x) => x.key === k); return sc ? t(sc.labelKey, sc.label) : k; }).join(', ')}
                       {form.maxUses ? ` · Max ${form.maxUses}` : ` · ${t('admin.coupons.unlimited', 'Unlimited')}`}
                       {form.expiresAt ? ` · ${fmt(form.expiresAt)}` : ''}
                     </div>
@@ -451,6 +492,18 @@ const AdminCoupons: React.FC = () => {
                         {coupon.description && (
                           <div style={{ fontSize: 12, color: '#7C6A73', marginTop: 2 }}>
                             {coupon.description}
+                          </div>
+                        )}
+                        {coupon.appliesTo && coupon.appliesTo.length > 0 && (
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                            {coupon.appliesTo.map((k) => {
+                              const sc = SCOPES.find((x) => x.key === k);
+                              return (
+                                <span key={k} style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(101,28,50,0.07)', color: '#651C32' }}>
+                                  {sc ? t(sc.labelKey, sc.label) : k}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
                       </td>

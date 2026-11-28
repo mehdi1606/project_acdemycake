@@ -44,4 +44,17 @@ public class Coupon extends BaseEntity {
     /** Optional description/note for the admin */
     @Column(name = "description", length = 255)
     private String description;
+
+    /** Where it can be used: comma-separated SUBSCRIPTION, COURSE, EBOOK. */
+    @Column(name = "applies_to", nullable = false, length = 60)
+    @Builder.Default
+    private String appliesTo = "SUBSCRIPTION,COURSE,EBOOK";
+
+    public boolean appliesTo(String target) {
+        if (appliesTo == null || appliesTo.isBlank()) return true;
+        for (String t : appliesTo.split(",")) {
+            if (t.trim().equalsIgnoreCase(target)) return true;
+        }
+        return false;
+    }
 }

@@ -54,6 +54,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final EmailService emailService;
     private final UserService userService;
     private final PayZoneService payZoneService;
+    private final com.academy.service.CouponService couponService;
     private final com.academy.integration.paypal.PayPalRefundService payPalRefundService;
     private final MasterclassBookingService masterclassBookingService;
     private final com.academy.repository.UserRepository userRepository;
@@ -259,6 +260,14 @@ public class PaymentServiceImpl implements PaymentService {
                     transaction.setPayzoneTransactionId(transactionId);
                     transaction.setCompletedAt(LocalDateTime.now());
                     transactionRepository.save(transaction);
+                }
+
+                // Coupon on a course / masterclass / ebook: consumed only now that it is paid
+                // (memberships record theirs in SubscriptionService).
+                if (!"SUBSCRIPTION".equals(transaction.getTransactionType())
+                        && transaction.getCouponCode() != null
+                        && transactionRepository.findStatusById(transaction.getId()) == PaymentStatus.COMPLETED) {
+                    couponService.recordUsage(transaction.getCouponCode(), transaction.getUser());
                 }
 
                 // Invoice: issued right after this transaction commits (one per payment).

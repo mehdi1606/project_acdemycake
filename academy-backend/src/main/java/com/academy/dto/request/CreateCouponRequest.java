@@ -28,4 +28,7 @@ public class CreateCouponRequest {
 
     /** Optional description/note */
     private String description;
+
+    /** SUBSCRIPTION, COURSE (courses and masterclasses), EBOOK. Empty = everywhere. */
+    private java.util.List<String> appliesTo;
 }

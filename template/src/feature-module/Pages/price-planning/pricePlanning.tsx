@@ -321,7 +321,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
     setValidatingCoupon(true);
     setCouponValidation(null);
     try {
-      const result = await subscriptionService.validateCoupon(couponInput.trim().toUpperCase());
+      const result = await subscriptionService.validateCoupon(couponInput.trim().toUpperCase(), plan.id);
       setCouponValidation(result);
       if (result.valid) {
         setAppliedCoupon(couponInput.trim().toUpperCase());
@@ -467,7 +467,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
           </div>
 
           {/* Coupon input — Annual only */}
-          {isAnnual && (
+          {(isAnnual || plan.id === 'monthly') && (
             <div style={{ marginBottom: 22 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#9B7B50', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
                 <i className="isax isax-discount-shape me-1" />

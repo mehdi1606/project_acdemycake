@@ -30,6 +30,9 @@ public interface CouponService {
      */
     ValidateCouponResponse validateCoupon(String code, User user, BigDecimal originalPrice);
 
+    /** Same, for a given kind of purchase (SUBSCRIPTION, COURSE, EBOOK). */
+    ValidateCouponResponse validateCoupon(String code, User user, BigDecimal originalPrice, String target);
+
     /**
      * Validates a coupon for this user and returns the final (discounted) price.
      * Called when the checkout is created; records nothing.
@@ -37,6 +40,9 @@ public interface CouponService {
      * @throws com.academy.exception.BadRequestException if coupon is invalid
      */
     BigDecimal applyCoupon(String code, User user, BigDecimal originalPrice);
+
+    /** Same, for a given kind of purchase (SUBSCRIPTION, COURSE, EBOOK). */
+    BigDecimal applyCoupon(String code, User user, BigDecimal originalPrice, String target);
 
     /**
      * Records that this user used the coupon. Called only after the payment

@@ -11,7 +11,7 @@
  *  5. CMI redirects back to /payment/callback → paymentCallback.tsx polls DB
  *  6. On success, callback page checks sl_checkout_queue and re-routes here if needed
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fallbackTo } from '../../../core/common/imageFallback';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,7 @@ import { getFileUrl } from '../../../environment';
 import PaymentBadges from '../../common/PaymentBadges';
 import { paymentService } from '../../../services/api/payment.service';
 import PaymentMethodPicker, { usePayMethod } from '../../../components/PaymentMethodPicker';
+import CouponField, { AppliedCoupon } from '../../../components/CouponField';
 
 /* ── Design tokens ── */
 const GOLD   = '#C5973E';
@@ -48,7 +49,12 @@ const CourseCheckout = () => {
   const savedTotal = payable.reduce((s, i) => s + Math.max(0, (i.originalPrice ?? i.price) - i.price), 0);
   // CMI charges one course per payment, at its price (prices are final — no tax is
   // added on top). With several courses the buyer comes back here for the next one.
-  const chargedNow = payable.length > 0 ? (payable[0].price ?? 0) : 0;
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const firstId = payable.length > 0 ? payable[0].id : null;
+  // A coupon belongs to one course: drop it if the course being paid changes.
+  useEffect(() => { setCoupon(null); }, [firstId]);
+  const listPrice = payable.length > 0 ? (payable[0].price ?? 0) : 0;
+  const chargedNow = coupon ? coupon.finalPrice : listPrice;
 
   const [processing, setProcessing] = useState(false);
   const [payMethod, setPayMethod] = usePayMethod();
@@ -76,7 +82,7 @@ const CourseCheckout = () => {
       // Take the first paid course; store the rest in a queue
       const [firstItem, ...remainingItems] = payable;
 
-      const started = await paymentService.startPayment(payMethod, { kind: 'course', id: firstItem.id });
+      const started = await paymentService.startPayment(payMethod, { kind: 'course', id: firstItem.id, couponCode: coupon?.code });
       sessionStorage.setItem('sl_pending_txn_id', started.transactionId);
       sessionStorage.setItem('sl_pending_plan_id', 'course');
       sessionStorage.setItem('sl_pending_course_id', firstItem.id);
@@ -428,6 +434,14 @@ const CourseCheckout = () => {
                       </p>
                     </div>
 
+                    {firstId && (
+                      <CouponField target="COURSE" itemId={String(firstId)} applied={coupon} onChange={setCoupon} disabled={processing} />
+                    )}
+                    {coupon && (
+                      <p style={{ margin: '-6px 0 14px', fontSize: 12.5, color: '#666' }}>
+                        <s>{listPrice.toFixed(2)} MAD</s> → <b style={{ color: '#1A7F4B' }}>{chargedNow.toFixed(2)} MAD</b>
+                      </p>
+                    )}
                     <PaymentMethodPicker value={payMethod} onChange={setPayMethod} amountMad={chargedNow} disabled={processing} />
 
                     {/* ⚠️ CMI no-refresh warning */}

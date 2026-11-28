@@ -72,18 +72,8 @@ public class CheckoutOrderService {
             throw new BadRequestException("Coupons can't be combined with the current offer: the offer price is already applied.");
         }
 
-        // Apply coupon (yearly only)
-        if (couponCode != null && !couponCode.isBlank()) {
-            if (!"yearly".equalsIgnoreCase(planId)) {
-                throw new BadRequestException("Coupons are only valid for the Annual plan");
-            }
-            price = couponService.applyCoupon(couponCode, user, price);
-            if (price.signum() <= 0) {
-                // A card payment of 0.00 is refused by CMI; full-discount access is
-                // granted by an admin (Users → Activate plan) instead.
-                throw new BadRequestException("This coupon covers the full price — please contact support to activate your plan.");
-            }
-        }
+        // Apply coupon (monthly or yearly)
+        price = discounted(couponCode, user, price, "SUBSCRIPTION");
 
         String orderId = planPrefix + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -108,6 +98,11 @@ public class CheckoutOrderService {
 
     @Transactional
     public PaymentTransaction prepareCourse(UUID courseId, User user, String paymentMethod) {
+        return prepareCourse(courseId, user, paymentMethod, null);
+    }
+
+    @Transactional
+    public PaymentTransaction prepareCourse(UUID courseId, User user, String paymentMethod, String couponCode) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
 
@@ -131,6 +126,7 @@ public class CheckoutOrderService {
             masterclassBookingService.assertCanStartCardPayment(course, user);
         }
 
+        BigDecimal price = discounted(couponCode, user, course.getPrice(), "COURSE");
         String orderId = "CRS-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         PaymentTransaction txn = transactionRepository.save(
@@ -139,8 +135,9 @@ public class CheckoutOrderService {
                 .payzoneOrderId(orderId)
                 .transactionType("COURSE_PURCHASE")
                 .referenceId(courseId)
-                .amount(course.getPrice())
+                .amount(price)
                 .currency("MAD")
+                .couponCode(couponOf(couponCode))
                 .status(PaymentStatus.PENDING)
                 .paymentMethod(paymentMethod)
                 .expiresAt(liveMasterclass
@@ -165,6 +162,11 @@ public class CheckoutOrderService {
      */
     @Transactional
     public PaymentTransaction prepareEbook(UUID ebookId, User user, String paymentMethod) {
+        return prepareEbook(ebookId, user, paymentMethod, null);
+    }
+
+    @Transactional
+    public PaymentTransaction prepareEbook(UUID ebookId, User user, String paymentMethod, String couponCode) {
         Ebook ebook = ebookService.findById(ebookId);
 
         if (ebook.getStatus() != EbookStatus.PUBLISHED) {
@@ -174,6 +176,7 @@ public class CheckoutOrderService {
             throw new BadRequestException("You already own this ebook");
         }
 
+        BigDecimal price = discounted(couponCode, user, ebook.getPrice(), "EBOOK");
         String orderId = "EBK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         PaymentTransaction txn = transactionRepository.save(
@@ -182,8 +185,9 @@ public class CheckoutOrderService {
                 .payzoneOrderId(orderId)
                 .transactionType("EBOOK_PURCHASE")
                 .referenceId(ebookId)
-                .amount(ebook.getPrice())
+                .amount(price)
                 .currency("MAD")
+                .couponCode(couponOf(couponCode))
                 .status(PaymentStatus.PENDING)
                 .paymentMethod(paymentMethod)
                 .expiresAt(LocalDateTime.now().plusHours(1))
@@ -191,5 +195,21 @@ public class CheckoutOrderService {
         );
 
         return txn;
+    }
+
+    /** Price after the coupon (if any). A full discount can't be charged by card or PayPal. */
+    private BigDecimal discounted(String couponCode, User user, BigDecimal price, String target) {
+        if (couponCode == null || couponCode.isBlank()) return price;
+        BigDecimal p = couponService.applyCoupon(couponCode, user, price, target);
+        if (p.signum() <= 0) {
+            // A payment of 0.00 is refused by the gateways; full-discount access is
+            // granted by an admin instead.
+            throw new BadRequestException("This coupon covers the full price — please contact support to get access.");
+        }
+        return p;
+    }
+
+    private static String couponOf(String couponCode) {
+        return couponCode != null && !couponCode.isBlank() ? couponCode.trim().toUpperCase() : null;
     }
 }

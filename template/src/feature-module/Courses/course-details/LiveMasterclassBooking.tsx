@@ -18,6 +18,7 @@ import { App, Spin } from 'antd';
 import { Course } from '../../../services/api/types';
 import { paymentService, PayMethod } from '../../../services/api/payment.service';
 import PaymentMethodPicker, { usePayMethod, usePayPalConfig } from '../../../components/PaymentMethodPicker';
+import CouponField, { AppliedCoupon, fmtPrice } from '../../../components/CouponField';
 import { all_routes } from '../../router/all_routes';
 
 const WA = '#1da851';
@@ -87,6 +88,7 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
   const [savedMethod, saveMethod] = usePayMethod();
   // Read by the confirm dialog's OK button (the dialog content keeps its own state).
   const methodRef = useRef<PayMethod>(savedMethod);
+  const couponRef = useRef<string | undefined>(undefined);
 
   const price = Number(c?.price ?? 0);
   const currency = c?.currency || 'MAD';
@@ -121,7 +123,7 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
     if (!c) return;
     setPaying(true);
     try {
-      const resp = await paymentService.startPayment(methodRef.current, { kind: 'course', id: c.id });
+      const resp = await paymentService.startPayment(methodRef.current, { kind: 'course', id: c.id, couponCode: couponRef.current });
       const pending = JSON.stringify({ slug: c.slug, title: c.title, date: dateLabel, time: timeLabel, location: c.sessionLocation });
       try {
         sessionStorage.setItem('sl_pending_txn_id', resp.transactionId);
@@ -154,6 +156,7 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
     if (!c) return;
     if (!isAuthenticated) { goToLogin(); return; }
     methodRef.current = savedMethod;
+    couponRef.current = undefined;
     modal.confirm({
       title: t('liveBooking.confirmTitlePay', 'Pay {{price}} {{currency}} to book your place?', { price, currency }),
       content: (
@@ -163,9 +166,11 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
           {c.sessionLocation && <div>{c.sessionLocation}</div>}
           <div style={{ marginTop: 12 }}>
             <DialogMethodChoice
+              courseId={c.id}
               initial={savedMethod}
               amountMad={price}
               onChange={(m) => { methodRef.current = m; saveMethod(m); }}
+              onCoupon={(code) => { couponRef.current = code; }}
             />
           </div>
           <div style={{ marginTop: 4 }}>
@@ -185,10 +190,25 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
 }
 
 /** Card / PayPal choice inside the confirm dialog (the dialog's content can't use the hook's state). */
-const DialogMethodChoice: React.FC<{ initial: PayMethod; amountMad: number; onChange: (m: PayMethod) => void }> = ({ initial, amountMad, onChange }) => {
+const DialogMethodChoice: React.FC<{
+  courseId: string; initial: PayMethod; amountMad: number;
+  onChange: (m: PayMethod) => void; onCoupon: (code: string | undefined) => void;
+}> = ({ courseId, initial, amountMad, onChange, onCoupon }) => {
   const [m, setM] = useState<PayMethod>(initial);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const pick = React.useCallback((next: PayMethod) => { setM(next); onChange(next); }, [onChange]);
-  return <PaymentMethodPicker value={m} onChange={pick} amountMad={amountMad} />;
+  const amount = coupon ? coupon.finalPrice : amountMad;
+  return (
+    <>
+      <CouponField target="COURSE" itemId={courseId} applied={coupon} onChange={(c) => { setCoupon(c); onCoupon(c?.code); }} />
+      {coupon && (
+        <p style={{ margin: '-6px 0 12px', fontSize: 12.5 }}>
+          <s>{amountMad} MAD</s> → <b style={{ color: '#1A7F4B' }}>{fmtPrice(amount)} MAD</b>
+        </p>
+      )}
+      <PaymentMethodPicker value={m} onChange={pick} amountMad={amount} />
+    </>
+  );
 };
 
 /* ── component ─────────────────────────────────────────────────────────────── */

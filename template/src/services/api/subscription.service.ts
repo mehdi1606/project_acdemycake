@@ -34,7 +34,7 @@ class SubscriptionService {
   }
 
   // Validate a coupon code for the Annual plan
-  async validateCoupon(code: string): Promise<{
+  async validateCoupon(code: string, planId?: string): Promise<{
     valid: boolean;
     code?: string;
     discountPercent?: number;
@@ -43,7 +43,7 @@ class SubscriptionService {
     finalPrice?: number;
     message?: string;
   }> {
-    const response = await api.get('/coupons/validate', { params: { code } });
+    const response = await api.get('/coupons/validate', { params: { code, target: 'SUBSCRIPTION', planId } });
     return response.data;
   }
 

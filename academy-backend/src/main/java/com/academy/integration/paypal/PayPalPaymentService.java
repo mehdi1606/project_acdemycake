@@ -78,16 +78,16 @@ public class PayPalPaymentService {
         return createPayPalOrder(txn, label);
     }
 
-    public Initiated initiateCourse(UUID courseId, User user) {
+    public Initiated initiateCourse(UUID courseId, String couponCode, User user) {
         requireEnabled();
-        PaymentTransaction txn = checkoutOrderService.prepareCourse(courseId, user, CheckoutOrderService.METHOD_PAYPAL);
+        PaymentTransaction txn = checkoutOrderService.prepareCourse(courseId, user, CheckoutOrderService.METHOD_PAYPAL, couponCode);
         String label = courseRepository.findById(courseId).map(c -> c.getTitle()).orElse("Course");
         return createPayPalOrder(txn, label);
     }
 
-    public Initiated initiateEbook(UUID ebookId, User user) {
+    public Initiated initiateEbook(UUID ebookId, String couponCode, User user) {
         requireEnabled();
-        PaymentTransaction txn = checkoutOrderService.prepareEbook(ebookId, user, CheckoutOrderService.METHOD_PAYPAL);
+        PaymentTransaction txn = checkoutOrderService.prepareEbook(ebookId, user, CheckoutOrderService.METHOD_PAYPAL, couponCode);
         String label = "Ebook: " + ebookService.findById(ebookId).getTitle();
         return createPayPalOrder(txn, label);
     }

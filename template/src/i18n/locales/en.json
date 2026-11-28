@@ -2311,7 +2311,12 @@
       "subtitle": "Generate discount codes redeemable once per user on the Annual plan.",
       "title": "Coupon Management",
       "unlimited": "Unlimited",
-      "usage": "Usage"
+      "usage": "Usage",
+      "appliesTo": "Can be used on",
+      "scopeSubscription": "Memberships",
+      "scopeCourse": "Courses & masterclasses",
+      "scopeEbook": "Ebooks",
+      "pickScope": "Choose at least one place where the coupon can be used."
     }
   },
   "pricing": {
@@ -5054,5 +5059,14 @@
     "count_other": "{{count}} messages",
     "pick": "Choose a conversation",
     "attachment": "Attachment"
+  },
+  "coupon": {
+    "have": "Have a coupon code?",
+    "placeholder": "Coupon code",
+    "apply": "Apply",
+    "remove": "Remove",
+    "invalid": "This coupon is not valid.",
+    "checkFailed": "We couldn't check this coupon. Please try again.",
+    "fullPrice": "This coupon covers the full price. Please contact support to get access."
   }
 }

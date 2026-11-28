@@ -25,6 +25,7 @@ public class CouponResponse {
     private LocalDateTime expiresAt;
     private String description;
     private LocalDateTime createdAt;
+    private java.util.List<String> appliesTo;
 
     public static CouponResponse fromEntity(Coupon coupon) {
         return CouponResponse.builder()
@@ -37,6 +38,7 @@ public class CouponResponse {
                 .expiresAt(coupon.getExpiresAt())
                 .description(coupon.getDescription())
                 .createdAt(coupon.getCreatedAt())
+                .appliesTo(coupon.getAppliesTo() == null ? java.util.List.of() : java.util.Arrays.stream(coupon.getAppliesTo().split(",")).map(String::trim).filter(x -> !x.isEmpty()).toList())
                 .build();
     }
 }

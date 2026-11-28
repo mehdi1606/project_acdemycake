@@ -68,10 +68,11 @@ public class CmiPaymentController {
     @Operation(summary = "Initiate CMI course purchase — returns form params to submit to gateway")
     public ResponseEntity<ApiResponse<CmiInitiateResponse>> initiateCourse(
             @PathVariable UUID courseId,
+            @RequestParam(required = false) String couponCode,
             @AuthenticationPrincipal UserPrincipal principal) {
 
         User user = userService.findById(principal.getId());
-        CmiInitiateResponse response = cmiPaymentService.initiateCmiCoursePayment(courseId, user);
+        CmiInitiateResponse response = cmiPaymentService.initiateCmiCoursePayment(courseId, couponCode, user);
         return ResponseEntity.ok(ApiResponse.success("CMI payment form ready", response));
     }
 
@@ -79,10 +80,11 @@ public class CmiPaymentController {
     @Operation(summary = "Initiate CMI ebook purchase — no subscription required")
     public ResponseEntity<ApiResponse<CmiInitiateResponse>> initiateEbook(
             @PathVariable UUID ebookId,
+            @RequestParam(required = false) String couponCode,
             @AuthenticationPrincipal UserPrincipal principal) {
 
         User user = userService.findById(principal.getId());
-        CmiInitiateResponse response = cmiPaymentService.initiateCmiEbookPayment(ebookId, user);
+        CmiInitiateResponse response = cmiPaymentService.initiateCmiEbookPayment(ebookId, couponCode, user);
         return ResponseEntity.ok(ApiResponse.success("CMI payment form ready", response));
     }
 

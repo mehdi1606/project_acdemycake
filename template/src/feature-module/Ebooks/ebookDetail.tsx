@@ -13,6 +13,7 @@ import { all_routes } from '../router/all_routes';
 import ebookService, { Ebook } from '../../services/api/ebook.service';
 import paymentService, { PayMethod } from '../../services/api/payment.service';
 import PaymentMethodPicker, { usePayMethod, usePayPalConfig } from '../../components/PaymentMethodPicker';
+import CouponField, { AppliedCoupon, fmtPrice } from '../../components/CouponField';
 import { extractApiError } from '../../services/api/error.utils';
 import { useAppSelector } from '../../core/redux/hooks';
 import { getShowcase, ShowcaseLang, ShowcaseText } from './ebookShowcase';
@@ -77,6 +78,7 @@ const EbookDetail: React.FC = () => {
   const [buying, setBuying] = useState(false);
   const [payMethod, setPayMethod] = usePayMethod();
   const [chooseOpen, setChooseOpen] = useState(false);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const payPalOn = !!usePayPalConfig()?.enabled;
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [photo, setPhoto] = useState(0);
@@ -112,16 +114,15 @@ const EbookDetail: React.FC = () => {
       navigate(all_routes.login, { state: { from: `/ebooks/${ebook.slug}` } });
       return;
     }
-    // With PayPal on, ask how to pay first; otherwise straight to the card page.
-    if (payPalOn) setChooseOpen(true);
-    else pay('card');
+    // Ask how to pay (and for a coupon) first.
+    setChooseOpen(true);
   };
 
   const pay = async (method: PayMethod) => {
     if (!ebook) return;
     setBuying(true);
     try {
-      const res = await paymentService.startPayment(method, { kind: 'ebook', id: ebook.id });
+      const res = await paymentService.startPayment(method, { kind: 'ebook', id: ebook.id, couponCode: coupon?.code });
       // Same keys as the other checkouts, so the payment result page shows the
       // ebook screen (not a stale subscription / course one).
       sessionStorage.setItem('sl_pending_txn_id', String(res.transactionId));
@@ -387,15 +388,18 @@ const EbookDetail: React.FC = () => {
         onCancel={() => { if (!buying) setChooseOpen(false); }}
         title={t('payMethod.dialogTitle', 'Complete your purchase')}
         okText={buying ? t('common.loading', 'Loading…') : t('payMethod.continue', 'Continue to payment')}
-        onOk={() => pay(payMethod)}
+        onOk={() => pay(payPalOn ? payMethod : 'card')}
         okButtonProps={{ loading: buying, style: { background: '#651C32', borderColor: '#651C32' } }}
         cancelText={t('common.cancel', 'Cancel')}
         destroyOnClose
       >
         <p style={{ margin: '0 0 14px', fontWeight: 700 }}>
-          {title} · {ebook.price} {ebook.currency}
+          {title} · {coupon
+            ? <><s style={{ fontWeight: 400, color: '#888' }}>{ebook.price}</s> <span style={{ color: '#1A7F4B' }}>{fmtPrice(coupon.finalPrice)}</span></>
+            : ebook.price} {ebook.currency}
         </p>
-        <PaymentMethodPicker value={payMethod} onChange={setPayMethod} amountMad={Number(ebook.price) || 0} disabled={buying} />
+        <CouponField target="EBOOK" itemId={ebook.id} applied={coupon} onChange={setCoupon} disabled={buying} />
+        <PaymentMethodPicker value={payMethod} onChange={setPayMethod} amountMad={coupon ? coupon.finalPrice : (Number(ebook.price) || 0)} disabled={buying} />
       </Modal>
 
       {/* ── Slim purchase bar ── */}

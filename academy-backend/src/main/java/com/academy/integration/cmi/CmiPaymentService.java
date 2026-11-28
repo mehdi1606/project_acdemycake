@@ -96,11 +96,19 @@ public class CmiPaymentService {
     }
 
     public CmiInitiateResponse initiateCmiCoursePayment(UUID courseId, User user) {
-        return toForm(checkoutOrderService.prepareCourse(courseId, user, CheckoutOrderService.METHOD_CMI), user);
+        return initiateCmiCoursePayment(courseId, null, user);
+    }
+
+    public CmiInitiateResponse initiateCmiCoursePayment(UUID courseId, String couponCode, User user) {
+        return toForm(checkoutOrderService.prepareCourse(courseId, user, CheckoutOrderService.METHOD_CMI, couponCode), user);
     }
 
     public CmiInitiateResponse initiateCmiEbookPayment(UUID ebookId, User user) {
-        return toForm(checkoutOrderService.prepareEbook(ebookId, user, CheckoutOrderService.METHOD_CMI), user);
+        return initiateCmiEbookPayment(ebookId, null, user);
+    }
+
+    public CmiInitiateResponse initiateCmiEbookPayment(UUID ebookId, String couponCode, User user) {
+        return toForm(checkoutOrderService.prepareEbook(ebookId, user, CheckoutOrderService.METHOD_CMI, couponCode), user);
     }
 
     private CmiInitiateResponse toForm(PaymentTransaction txn, User user) {

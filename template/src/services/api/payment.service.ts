@@ -31,8 +31,8 @@ export interface PayPalInitiateResponse {
 /** What to buy — the server decides the price. */
 export type CheckoutTarget =
   | { kind: 'subscription'; planId: string; couponCode?: string }
-  | { kind: 'course'; id: string }
-  | { kind: 'ebook'; id: string };
+  | { kind: 'course'; id: string; couponCode?: string }
+  | { kind: 'ebook'; id: string; couponCode?: string };
 
 /** A started payment: remember transactionId, then call go() to leave for the gateway. */
 export interface StartedPayment {
@@ -113,17 +113,19 @@ class PaymentService {
    * Initiate a CMI course purchase.
    * Returns form params that the frontend must auto-submit to the CMI gateway.
    */
-  async initiateCmiCourse(courseId: string): Promise<CmiInitiateResponse> {
+  async initiateCmiCourse(courseId: string, couponCode?: string): Promise<CmiInitiateResponse> {
     const response = await api.post<CmiInitiateResponse>(
-      `/payments/cmi/initiate/course/${courseId}`
+      `/payments/cmi/initiate/course/${courseId}`, null,
+      { params: couponCode?.trim() ? { couponCode: couponCode.trim() } : undefined }
     );
     return response.data;
   }
 
   /** Ebook purchase — a one-off buy that needs no subscription. */
-  async initiateCmiEbook(ebookId: string): Promise<CmiInitiateResponse> {
+  async initiateCmiEbook(ebookId: string, couponCode?: string): Promise<CmiInitiateResponse> {
     const response = await api.post<CmiInitiateResponse>(
-      `/payments/cmi/initiate/ebook/${ebookId}`
+      `/payments/cmi/initiate/ebook/${ebookId}`, null,
+      { params: couponCode?.trim() ? { couponCode: couponCode.trim() } : undefined }
     );
     return response.data;
   }
@@ -155,7 +157,8 @@ class PaymentService {
       if (target.couponCode?.trim()) params.couponCode = target.couponCode.trim();
       response = await api.post<PayPalInitiateResponse>('/payments/paypal/initiate/subscription', null, { params });
     } else {
-      response = await api.post<PayPalInitiateResponse>(`/payments/paypal/initiate/${target.kind}/${target.id}`);
+      response = await api.post<PayPalInitiateResponse>(`/payments/paypal/initiate/${target.kind}/${target.id}`, null,
+        { params: target.couponCode?.trim() ? { couponCode: target.couponCode.trim() } : undefined });
     }
     return response.data;
   }
@@ -172,8 +175,8 @@ class PaymentService {
     const r = target.kind === 'subscription'
       ? await this.initiateCmiSubscription(target.planId, target.couponCode)
       : target.kind === 'course'
-        ? await this.initiateCmiCourse(target.id)
-        : await this.initiateCmiEbook(target.id);
+        ? await this.initiateCmiCourse(target.id, target.couponCode)
+        : await this.initiateCmiEbook(target.id, target.couponCode);
     return { transactionId: r.transactionId, go: () => this.submitCmiForm(r.gatewayUrl, r.formParams) };
   }
 

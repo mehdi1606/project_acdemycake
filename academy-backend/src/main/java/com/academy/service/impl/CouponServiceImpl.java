@@ -49,6 +49,7 @@ public class CouponServiceImpl implements CouponService {
                 .description(request.getDescription())
                 .isActive(true)
                 .usedCount(0)
+                .appliesTo(scope(request.getAppliesTo()))
                 .build();
 
         coupon = couponRepository.save(coupon);
@@ -82,8 +83,36 @@ public class CouponServiceImpl implements CouponService {
         log.info("Coupon deleted: {}", coupon.getCode());
     }
 
+    private static final java.util.Set<String> TARGETS = java.util.Set.of("SUBSCRIPTION", "COURSE", "EBOOK");
+
+    /** Admin's choice of where the coupon works; nothing chosen = everywhere. */
+    private static String scope(java.util.List<String> chosen) {
+        if (chosen == null) return "SUBSCRIPTION,COURSE,EBOOK";
+        String s = chosen.stream().map(x -> x == null ? "" : x.trim().toUpperCase())
+                .filter(TARGETS::contains).distinct().sorted().collect(java.util.stream.Collectors.joining(","));
+        return s.isEmpty() ? "SUBSCRIPTION,COURSE,EBOOK" : s;
+    }
+
+    private static String scopeMessage(String target) {
+        return switch (target) {
+            case "COURSE" -> "This coupon can't be used on courses or masterclasses";
+            case "EBOOK" -> "This coupon can't be used on ebooks";
+            default -> "This coupon can't be used on memberships";
+        };
+    }
+
     @Override
     public ValidateCouponResponse validateCoupon(String code, User user, BigDecimal originalPrice) {
+        return validateCoupon(code, user, originalPrice, "SUBSCRIPTION");
+    }
+
+    @Override
+    public BigDecimal applyCoupon(String code, User user, BigDecimal originalPrice) {
+        return applyCoupon(code, user, originalPrice, "SUBSCRIPTION");
+    }
+
+    @Override
+    public ValidateCouponResponse validateCoupon(String code, User user, BigDecimal originalPrice, String target) {
         if (code == null || code.isBlank()) {
             return ValidateCouponResponse.builder()
                     .valid(false)
@@ -126,6 +155,14 @@ public class CouponServiceImpl implements CouponService {
                     .build();
         }
 
+        if (!coupon.appliesTo(target)) {
+            return ValidateCouponResponse.builder()
+                    .valid(false)
+                    .code(normalizedCode)
+                    .message(scopeMessage(target))
+                    .build();
+        }
+
         if (user != null && couponUsageRepository.existsByCouponAndUser(coupon, user)) {
             return ValidateCouponResponse.builder()
                     .valid(false)
@@ -152,7 +189,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional
-    public BigDecimal applyCoupon(String code, User user, BigDecimal originalPrice) {
+    public BigDecimal applyCoupon(String code, User user, BigDecimal originalPrice, String target) {
         String normalizedCode = code.trim().toUpperCase();
 
         Coupon coupon = couponRepository.findByCode(normalizedCode)
@@ -168,6 +205,10 @@ public class CouponServiceImpl implements CouponService {
 
         if (coupon.getMaxUses() != null && coupon.getUsedCount() >= coupon.getMaxUses()) {
             throw new BadRequestException("Coupon '" + normalizedCode + "' has reached its usage limit");
+        }
+
+        if (!coupon.appliesTo(target)) {
+            throw new BadRequestException(scopeMessage(target));
         }
 
         if (couponUsageRepository.existsByCouponAndUser(coupon, user)) {
