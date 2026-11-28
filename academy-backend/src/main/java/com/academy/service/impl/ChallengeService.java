@@ -99,7 +99,8 @@ public class ChallengeService {
                     long[] s = score.getOrDefault(e.getId(), new long[]{0, 0});
                     return new EntryCard(e.getId(), e.getTitle(), e.getDescription(), photos(e),
                             displayName(e.getUser()), e.getUser().getAvatarUrl(),
-                            s[0], s[1], rank.getOrDefault(e.getId(), 0), s[1] >= c.getMinVoters(), e.getReviewedAt());
+                            s[0], s[1], rank.getOrDefault(e.getId(), 0), s[1] >= c.getMinVoters(), e.getReviewedAt(),
+                            e.getUser().getId());
                 })
                 .toList();
     }

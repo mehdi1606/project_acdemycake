@@ -31,6 +31,8 @@ export interface EntryCard {
   photos: string[];
   authorName: string;
   authorAvatar?: string;
+  /** Opens the author's member profile. */
+  authorId?: string;
   points: number;
   voters: number;
   rank: number;

@@ -1,3 +1,4 @@
+import MemberLink from '../../components/MemberLink';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { hideOnError } from '../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
@@ -471,14 +472,16 @@ const CommunityPostDetail: React.FC = () => {
             <h4 className="fw-bold mb-3">{post.title}</h4>
 
             <div className="d-flex align-items-center gap-2 mb-3">
-              <BadgeAvatar
-                avatarUrl={avatarUrl(post.userAvatar)}
-                name={post.userName}
-                badge={getBadgeFromRole((post as any).userRole)}
-                size="sm"
-              />
+              <MemberLink id={(post as any).userId} name={post.userName}>
+                <BadgeAvatar
+                  avatarUrl={avatarUrl(post.userAvatar)}
+                  name={post.userName}
+                  badge={getBadgeFromRole((post as any).userRole)}
+                  size="sm"
+                />
+              </MemberLink>
               <div>
-                <p className="mb-0 fw-semibold fs-14">{post.userName}</p>
+                <p className="mb-0 fw-semibold fs-14"><MemberLink id={(post as any).userId} name={post.userName}>{post.userName}</MemberLink></p>
                 <p className="mb-0 text-muted fs-12">{formatDate(post.createdAt)}</p>
               </div>
             </div>
@@ -784,15 +787,17 @@ const CommunityPostDetail: React.FC = () => {
                   )}
 
                   <div className="d-flex align-items-start gap-3">
-                    <BadgeAvatar
-                      avatarUrl={avatarUrl(comment.userAvatar)}
-                      name={comment.userName}
-                      badge={getBadgeFromRole((comment as any).userRole)}
-                      size="sm"
-                    />
+                    <MemberLink id={(comment as any).userId} name={comment.userName}>
+                      <BadgeAvatar
+                        avatarUrl={avatarUrl(comment.userAvatar)}
+                        name={comment.userName}
+                        badge={getBadgeFromRole((comment as any).userRole)}
+                        size="sm"
+                      />
+                    </MemberLink>
                     <div className="flex-grow-1">
                       <div className="d-flex align-items-center gap-2 mb-1">
-                        <span className="fw-semibold fs-14">{comment.userName}</span>
+                        <span className="fw-semibold fs-14"><MemberLink id={(comment as any).userId} name={comment.userName}>{comment.userName}</MemberLink></span>
                         <span className="text-muted fs-12">{formatDate(comment.createdAt)}</span>
                         {comment.isEdited && (
                           <span className="text-muted fs-11">(edited)</span>

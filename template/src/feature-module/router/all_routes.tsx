@@ -77,6 +77,7 @@ export const all_routes = {
     studentSettings: '/student/student-settings',
     studentChangePassword: '/student/student-change-password',
     studentSocialProfile: '/student/student-social-profile',
+    memberProfile: '/members/:id',
     studentLinkedAccounts: '/student/student-linked-accounts',
     studentNotification: '/student/student-notifications',
     studentBillingAddress: '/student/student-billing-address',

@@ -3,6 +3,7 @@
  * own entry, the gallery with live ranking and voting, and the official rules.
  * Every rule is enforced by the server; this page only explains and asks.
  */
+import MemberLink from '../../components/MemberLink';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -327,7 +328,9 @@ const ChallengePage: React.FC = () => {
                 </button>
                 <div className="ch-entry__body">
                   <h3><Link to={`${all_routes.challenge}/cake/${c.id}`}>{c.title}</Link></h3>
-                  <p className="ch-entry__by">{t('challenge.by', { name: c.authorName, defaultValue: 'by {{name}}' })}</p>
+                  <p className="ch-entry__by">
+                    <MemberLink id={c.authorId} name={c.authorName}>{t('challenge.by', { name: c.authorName, defaultValue: 'by {{name}}' })}</MemberLink>
+                  </p>
                   <div className="ch-entry__foot">
                     <span className="ch-entry__pts">
                       <b>{c.points}</b> {t('challenge.pts', 'pts')}
@@ -425,7 +428,11 @@ const Lightbox: React.FC<{ card: EntryCard; onClose: () => void; voteButton: Rea
         <div className="ch-lb__info">
           <div>
             <h3>{card.title}</h3>
-            <p className="ch-entry__by">{t('challenge.by', { name: card.authorName, defaultValue: 'by {{name}}' })}</p>
+            <p className="ch-entry__by">
+              <MemberLink id={card.authorId} name={card.authorName} style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                {t('challenge.by', { name: card.authorName, defaultValue: 'by {{name}}' })}
+              </MemberLink>
+            </p>
             {card.description && <p className="ch-lb__desc">{card.description}</p>}
             <div className="ch-lb__share">
               <ShareBar url={shareUrl} text={t('challenge.share.cakeText', { title: card.title, defaultValue: 'Vote for “{{title}}” in the SARALÖWE New Year Cake Challenge:' })} />

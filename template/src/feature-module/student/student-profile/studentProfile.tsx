@@ -157,6 +157,18 @@ const StudentProfile = () => {
           >
             {t(userBadge.descKey)}
           </p>
+          {user?.id && (
+            <Link
+              to={all_routes.memberProfile.replace(':id', String(user.id))}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12,
+                padding: '7px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 700,
+                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff',
+              }}
+            >
+              <i className="isax isax-eye" /> {t('member.viewMine', 'See my profile as others see it')}
+            </Link>
+          )}
         </div>
         {/* Stars */}
         {userBadge.stars > 0 && (

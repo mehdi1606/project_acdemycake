@@ -9,9 +9,10 @@ import profileService from '../../../../services/api/profile.service';
 import { extractApiError } from '../../../../services/api/error.utils';
 
 const socialFields = [
+  { key: 'instagram', label: 'Instagram', placeholder: 'https://www.instagram.com/yourprofile', icon: 'fa-brands fa-instagram',    color: '#651C32' },
+  { key: 'tiktok',    label: 'TikTok',    placeholder: 'https://www.tiktok.com/@yourprofile',   icon: 'fa-brands fa-tiktok',       color: '#651C32' },
   { key: 'twitter',   label: 'Twitter',   placeholder: 'https://www.twitter.com/yourprofile',   icon: 'fa-brands fa-x-twitter',    color: '#651C32' },
   { key: 'facebook',  label: 'Facebook',  placeholder: 'https://www.facebook.com/yourprofile',  icon: 'fa-brands fa-facebook-f',   color: '#651C32' },
-  { key: 'instagram', label: 'Instagram', placeholder: 'https://www.instagram.com/yourprofile', icon: 'fa-brands fa-instagram',    color: '#651C32' },
   { key: 'linkedin',  label: 'LinkedIn',  placeholder: 'https://www.linkedin.com/in/yourprofile', icon: 'fa-brands fa-linkedin-in', color: '#651C32' },
   { key: 'youtube',   label: 'YouTube',   placeholder: 'https://www.youtube.com/@yourchannel',  icon: 'fa-brands fa-youtube',      color: '#651C32' },
 ];
@@ -36,7 +37,7 @@ const StudentSocialProfile = () => {
   const [saving, setSaving] = useState(false);
 
   const [links, setLinks] = useState<Record<string, string>>({
-    twitter: '', facebook: '', instagram: '', linkedin: '', youtube: '',
+    instagram: '', tiktok: '', twitter: '', facebook: '', linkedin: '', youtube: '',
   });
 
   // Parse user.socialLinks JSON on mount / user change

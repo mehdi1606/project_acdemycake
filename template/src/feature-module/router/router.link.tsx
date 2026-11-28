@@ -1,4 +1,5 @@
 import React, { lazy } from "react";
+import ProtectedRoute from "../../components/ProtectedRoute";
 import { Navigate, Route } from "react-router";
 import { all_routes } from "./all_routes";
 import SubscriptionGuard from "../common/SubscriptionGuard";
@@ -47,6 +48,7 @@ const StudentsDetails               = lazy(() => import("../Instructor/student-d
 
 const StudentDashboard              = lazy(() => import("../student/dashboard/studentDashboard"));
 const StudentProfile                = lazy(() => import("../student/student-profile/studentProfile"));
+const MemberProfilePage             = lazy(() => import("../members/MemberProfilePage"));
 const StudentCourse                 = lazy(() => import("../student/student-course/studentCourse"));
 const StudentCertificates           = lazy(() => import("../student/student-certificates/student-certificates"));
 const StudentWishlist               = lazy(() => import("../student/student-wishlist/studentWishlist"));
@@ -605,6 +607,12 @@ export const publicRoutes = [
   {
     path: routes.community,
     element: <CommunityPage />,
+    route: Route,
+  },
+  {
+    // Member profiles: signed-in members only
+    path: routes.memberProfile,
+    element: <ProtectedRoute><MemberProfilePage /></ProtectedRoute>,
     route: Route,
   },
   {

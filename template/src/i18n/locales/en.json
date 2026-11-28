@@ -5006,5 +5006,28 @@
     "paypalNote": "PayPal charges in {{currency}} (1 {{currency}} = {{rate}} MAD). You will be taken to PayPal to confirm, then brought back here automatically.",
     "dialogTitle": "Complete your purchase",
     "continue": "Continue to payment"
+  },
+  "member": {
+    "openProfileOf": "Open {{name}}'s profile",
+    "openProfile": "Open profile",
+    "notFound": "This profile is not available",
+    "backToCommunity": "Back to the community",
+    "roleInstructor": "Instructor",
+    "roleAdmin": "SARALÖWE team",
+    "roleMember": "Member",
+    "statCourses": "courses completed",
+    "statMasterclasses": "masterclasses attended",
+    "statPosts": "community posts",
+    "yourProfile": "Your profile",
+    "profile": "Profile",
+    "inProgress": "in progress",
+    "since": "Member since {{date}}",
+    "editLinks": "Edit my links",
+    "howOthersSee": "This is how other members see your profile.",
+    "achievements": "Achievements",
+    "challengeIn": "In the New Year Cake Challenge",
+    "currentBadge": "Current badge",
+    "topLevel": "The highest level of the academy.",
+    "viewMine": "See my profile as others see it"
   }
 }

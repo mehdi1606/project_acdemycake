@@ -1,3 +1,4 @@
+import MemberLink from '../../../components/MemberLink';
 import React, { useState, useEffect, useCallback } from 'react';
 import useIsPhone from '../../../hooks/useIsPhone';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -63,6 +64,10 @@ const StarBar = ({ pct }: { pct: number }) => (
 );
 
 /* ================================================ */
+/** Reviews come flat from the server (userId, userName, userAvatar); older shape nested them under `user`. */
+const revUserId = (r: CourseReview): string | undefined => (r as any).userId ?? (r.user?.id != null ? String(r.user.id) : undefined);
+const revName = (r: CourseReview): string | undefined => r.user?.fullName ?? (r as any).userName;
+
 const CourseDetails = () => {
   const { t, i18n } = useTranslation();
   const { slug }   = useParams<{ slug: string }>();
@@ -846,15 +851,17 @@ const CourseDetails = () => {
                         display: 'flex', gap: 16, padding: '18px 0',
                         borderBottom: idx < reviews.length - 1 ? '1px solid rgba(197,145,44,0.08)' : 'none',
                       }}>
-                        <BadgeAvatar
-                          avatarUrl={getFileUrl(rev.user?.avatarUrl) ?? undefined}
-                          name={rev.user?.fullName}
-                          badge={getBadgeFromRole('STUDENT')}
-                          size="sm"
-                        />
+                        <MemberLink id={revUserId(rev)} name={revName(rev)}>
+                          <BadgeAvatar
+                            avatarUrl={getFileUrl(rev.user?.avatarUrl ?? (rev as any).userAvatar) ?? undefined}
+                            name={revName(rev)}
+                            badge={getBadgeFromRole('STUDENT')}
+                            size="sm"
+                          />
+                        </MemberLink>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
-                            <strong style={{ fontSize: 14, color: '#2C1810' }}>{rev.user?.fullName}</strong>
+                            <strong style={{ fontSize: 14, color: '#2C1810' }}><MemberLink id={revUserId(rev)} name={revName(rev)}>{revName(rev)}</MemberLink></strong>
                             {rev.isOwner && (
                               <span style={{ fontSize: 10, fontWeight: 800, background: 'rgba(101,28,50,0.08)', color: '#651C32', padding: '1px 8px', borderRadius: 10 }}>{t('courseDetails.you', 'You')}</span>
                             )}

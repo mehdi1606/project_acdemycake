@@ -21,7 +21,9 @@ public final class ChallengeDtos {
     public record EntryCard(
             UUID id, String title, String description, List<String> photos,
             String authorName, String authorAvatar,
-            long points, long voters, int rank, boolean eligible, LocalDateTime approvedAt) {}
+            long points, long voters, int rank, boolean eligible, LocalDateTime approvedAt,
+            /** Opens the author's member profile. */
+            UUID authorId) {}
 
     /** What the signed-in person can do and what they have done. */
     public record MyStatus(

@@ -3,6 +3,7 @@
  * in votes. Large photos, the story, the live score, the vote button, sharing,
  * and more cakes to discover.
  */
+import MemberLink from '../../components/MemberLink';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -116,7 +117,11 @@ const CakePage: React.FC = () => {
             <aside className="cp-side">
               <p className="ch-kicker">{t('challenge.cake.kicker', 'In the gallery')}</p>
               <h1 className="cp-title">{card.title}</h1>
-              <p className="cp-by">{t('challenge.by', { name: card.authorName, defaultValue: 'by {{name}}' })}</p>
+              <p className="cp-by">
+                <MemberLink id={card.authorId} name={card.authorName} style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                  {t('challenge.by', { name: card.authorName, defaultValue: 'by {{name}}' })}
+                </MemberLink>
+              </p>
               {card.description && <p className="cp-desc">{card.description}</p>}
 
               <div className="cp-score">

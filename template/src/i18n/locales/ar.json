@@ -5077,5 +5077,28 @@
     "paypalNote": "يتم الدفع عبر PayPal بعملة {{currency}} (1 {{currency}} = {{rate}} درهم). ستنتقلون إلى PayPal لتأكيد الدفع، ثم تعودون إلى هنا تلقائياً.",
     "dialogTitle": "أكملوا عملية الشراء",
     "continue": "متابعة الدفع"
+  },
+  "member": {
+    "openProfileOf": "فتح ملف {{name}}",
+    "openProfile": "فتح الملف الشخصي",
+    "notFound": "هذا الملف الشخصي غير متاح",
+    "backToCommunity": "العودة إلى المجتمع",
+    "roleInstructor": "مدرّب",
+    "roleAdmin": "فريق SARALÖWE",
+    "roleMember": "عضو",
+    "statCourses": "دورات مكتملة",
+    "statMasterclasses": "ماستركلاس تمّ حضورها",
+    "statPosts": "منشورات في المجتمع",
+    "yourProfile": "ملفكم الشخصي",
+    "profile": "الملف الشخصي",
+    "inProgress": "قيد التقدّم",
+    "since": "عضو منذ {{date}}",
+    "editLinks": "تعديل روابطي",
+    "howOthersSee": "هكذا يرى الأعضاء الآخرون ملفكم الشخصي.",
+    "achievements": "الإنجازات",
+    "challengeIn": "مشارك في تحدي كعكة رأس السنة",
+    "currentBadge": "الشارة الحالية",
+    "topLevel": "أعلى مستوى في الأكاديمية.",
+    "viewMine": "شاهدوا ملفكم كما يراه الآخرون"
   }
 }

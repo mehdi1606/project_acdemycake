@@ -1,3 +1,4 @@
+import MemberLink from '../../components/MemberLink';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { hideOnError } from '../../core/common/imageFallback';
 import { useTranslation } from 'react-i18next';
@@ -325,14 +326,16 @@ const CommunityPage: React.FC = () => {
                   <div className="card-body p-4">
                     <div className="d-flex align-items-start justify-content-between gap-2 mb-2">
                       <div className="d-flex align-items-center gap-2">
-                        <BadgeAvatar
-                          avatarUrl={avatarUrl(post.userAvatar)}
-                          name={post.userName}
-                          badge={getBadgeFromRole((post as any).userRole)}
-                          size="sm"
-                        />
+                        <MemberLink id={(post as any).userId} name={post.userName}>
+                          <BadgeAvatar
+                            avatarUrl={avatarUrl(post.userAvatar)}
+                            name={post.userName}
+                            badge={getBadgeFromRole((post as any).userRole)}
+                            size="sm"
+                          />
+                        </MemberLink>
                         <div>
-                          <p className="mb-0 fw-semibold fs-14">{post.userName}</p>
+                          <p className="mb-0 fw-semibold fs-14"><MemberLink id={(post as any).userId} name={post.userName}>{post.userName}</MemberLink></p>
                           <p className="mb-0 text-muted fs-12">{formatDate(post.createdAt)}</p>
                         </div>
                       </div>
