@@ -8,10 +8,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { message } from 'antd';
+import { message, Modal } from 'antd';
 import { all_routes } from '../router/all_routes';
 import ebookService, { Ebook } from '../../services/api/ebook.service';
-import paymentService from '../../services/api/payment.service';
+import paymentService, { PayMethod } from '../../services/api/payment.service';
+import PaymentMethodPicker, { usePayMethod, usePayPalConfig } from '../../components/PaymentMethodPicker';
 import { extractApiError } from '../../services/api/error.utils';
 import { useAppSelector } from '../../core/redux/hooks';
 import { getShowcase, ShowcaseLang, ShowcaseText } from './ebookShowcase';
@@ -74,6 +75,9 @@ const EbookDetail: React.FC = () => {
   const [ebook, setEbook] = useState<Ebook | null>(null);
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState(false);
+  const [payMethod, setPayMethod] = usePayMethod();
+  const [chooseOpen, setChooseOpen] = useState(false);
+  const payPalOn = !!usePayPalConfig()?.enabled;
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [photo, setPhoto] = useState(0);
   const [openRecipe, setOpenRecipe] = useState<number | null>(0);
@@ -101,16 +105,23 @@ const EbookDetail: React.FC = () => {
     return () => io.disconnect();
   }, [ebook]);
 
-  const handleBuy = async () => {
+  const handleBuy = () => {
     if (!ebook) return;
     // An ebook needs an account, but deliberately NOT a subscription.
     if (!isAuthenticated) {
       navigate(all_routes.login, { state: { from: `/ebooks/${ebook.slug}` } });
       return;
     }
+    // With PayPal on, ask how to pay first; otherwise straight to the card page.
+    if (payPalOn) setChooseOpen(true);
+    else pay('card');
+  };
+
+  const pay = async (method: PayMethod) => {
+    if (!ebook) return;
     setBuying(true);
     try {
-      const res = await paymentService.initiateCmiEbook(ebook.id);
+      const res = await paymentService.startPayment(method, { kind: 'ebook', id: ebook.id });
       // Same keys as the other checkouts, so the payment result page shows the
       // ebook screen (not a stale subscription / course one).
       sessionStorage.setItem('sl_pending_txn_id', String(res.transactionId));
@@ -118,7 +129,7 @@ const EbookDetail: React.FC = () => {
       sessionStorage.setItem('sl_pending_ebook_slug', ebook.slug);
       localStorage.setItem('sl_pending_txn_id_fb', String(res.transactionId));
       localStorage.setItem('sl_pending_plan_id_fb', 'ebook');
-      paymentService.submitCmiForm(res.gatewayUrl, res.formParams);
+      res.go();
     } catch (err) {
       message.error(extractApiError(err, 'Could not start the payment'));
       setBuying(false);
@@ -220,7 +231,7 @@ const EbookDetail: React.FC = () => {
                     </div>
                     <PrimaryAction big />
                     <p className="ebd-buy__trust">
-                      <span><i className="isax isax-shield-tick" /> {t('ebooks.securePayment', 'Secure payment by CMI')}</span>
+                      <span><i className="isax isax-shield-tick" /> {payPalOn ? t('ebooks.securePaymentPP', 'Secure payment: card or PayPal') : t('ebooks.securePayment', 'Secure payment by CMI')}</span>
                       <span><i className="isax isax-receipt-2" /> {t('ebooks.invoiceNote', 'Invoice in your account')}</span>
                     </p>
                   </>
@@ -369,6 +380,23 @@ const EbookDetail: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* ── How to pay (only when PayPal is on) ── */}
+      <Modal
+        open={chooseOpen}
+        onCancel={() => { if (!buying) setChooseOpen(false); }}
+        title={t('payMethod.dialogTitle', 'Complete your purchase')}
+        okText={buying ? t('common.loading', 'Loading…') : t('payMethod.continue', 'Continue to payment')}
+        onOk={() => pay(payMethod)}
+        okButtonProps={{ loading: buying, style: { background: '#651C32', borderColor: '#651C32' } }}
+        cancelText={t('common.cancel', 'Cancel')}
+        destroyOnClose
+      >
+        <p style={{ margin: '0 0 14px', fontWeight: 700 }}>
+          {title} · {ebook.price} {ebook.currency}
+        </p>
+        <PaymentMethodPicker value={payMethod} onChange={setPayMethod} amountMad={Number(ebook.price) || 0} disabled={buying} />
+      </Modal>
 
       {/* ── Slim purchase bar ── */}
       <div className={`ebd-bar${showBar ? ' is-on' : ''}`} aria-hidden={!showBar}>

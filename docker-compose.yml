@@ -100,6 +100,15 @@ services:
       CMI_FAIL_URL:     https://${SERVER_IP}/api/v1/payments/cmi/return
       CMI_SHOP_URL:     https://${SERVER_IP}
 
+      # PayPal (optional — the PayPal button only shows when both keys are set)
+      PAYPAL_MODE:          ${PAYPAL_MODE:-sandbox}
+      PAYPAL_CLIENT_ID:     ${PAYPAL_CLIENT_ID:-}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
+      PAYPAL_CURRENCY:      ${PAYPAL_CURRENCY:-EUR}
+      PAYPAL_MAD_PER_UNIT:  ${PAYPAL_MAD_PER_UNIT:-10.80}
+      PAYPAL_RETURN_URL:    https://${SERVER_IP}/api/v1/payments/paypal/return
+      PAYPAL_CANCEL_URL:    https://${SERVER_IP}/api/v1/payments/paypal/cancel
+
       # Mail
       MAIL_HOST:     ${MAIL_HOST}
       MAIL_PORT:     ${MAIL_PORT}

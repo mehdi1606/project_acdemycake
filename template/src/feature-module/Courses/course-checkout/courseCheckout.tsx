@@ -22,6 +22,7 @@ import { App } from 'antd';
 import { getFileUrl } from '../../../environment';
 import PaymentBadges from '../../common/PaymentBadges';
 import { paymentService } from '../../../services/api/payment.service';
+import PaymentMethodPicker, { usePayMethod } from '../../../components/PaymentMethodPicker';
 
 /* ── Design tokens ── */
 const GOLD   = '#C5973E';
@@ -50,6 +51,7 @@ const CourseCheckout = () => {
   const chargedNow = payable.length > 0 ? (payable[0].price ?? 0) : 0;
 
   const [processing, setProcessing] = useState(false);
+  const [payMethod, setPayMethod] = usePayMethod();
   /** Set when the payment could not be started: shown above the pay button with next steps. */
   const [payError, setPayError] = useState<{ detail?: string } | null>(null);
 
@@ -74,12 +76,12 @@ const CourseCheckout = () => {
       // Take the first paid course; store the rest in a queue
       const [firstItem, ...remainingItems] = payable;
 
-      const cmiResp = await paymentService.initiateCmiCourse(firstItem.id);
-      sessionStorage.setItem('sl_pending_txn_id', cmiResp.transactionId);
+      const started = await paymentService.startPayment(payMethod, { kind: 'course', id: firstItem.id });
+      sessionStorage.setItem('sl_pending_txn_id', started.transactionId);
       sessionStorage.setItem('sl_pending_plan_id', 'course');
       sessionStorage.setItem('sl_pending_course_id', firstItem.id);
       // localStorage fallback — survives /login redirects when JWT expires mid-payment
-      localStorage.setItem('sl_pending_txn_id_fb', cmiResp.transactionId);
+      localStorage.setItem('sl_pending_txn_id_fb', started.transactionId);
       localStorage.setItem('sl_pending_plan_id_fb', 'course');
 
       if (remainingItems.length > 0) {
@@ -88,8 +90,8 @@ const CourseCheckout = () => {
         sessionStorage.removeItem('sl_checkout_queue');
       }
 
-      // Browser navigates away to CMI payment page — no further React work
-      paymentService.submitCmiForm(cmiResp.gatewayUrl, cmiResp.formParams);
+      // Browser navigates away to CMI or PayPal — no further React work
+      started.go();
     } catch (err: unknown) {
       setProcessing(false);
       const axiosErr = err as { response?: { data?: { message?: string } } };
@@ -426,8 +428,10 @@ const CourseCheckout = () => {
                       </p>
                     </div>
 
+                    <PaymentMethodPicker value={payMethod} onChange={setPayMethod} amountMad={chargedNow} disabled={processing} />
+
                     {/* ⚠️ CMI no-refresh warning */}
-                    <div style={{
+                    {payMethod === 'card' && <div style={{
                       background: '#FFF8E6',
                       border: '1px solid #F5C842',
                       borderRadius: 10,
@@ -444,7 +448,7 @@ const CourseCheckout = () => {
                           'You will be redirected to the CMI Chaabi payment page. Do not refresh or close that page — simply complete your payment and wait to be brought back here automatically.'
                         )}
                       </p>
-                    </div>
+                    </div>}
 
                     {payError && (
                       <div role="alert" style={{

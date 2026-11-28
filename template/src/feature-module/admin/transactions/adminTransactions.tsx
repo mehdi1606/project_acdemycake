@@ -237,7 +237,14 @@ const AdminTransactions = () => {
                           </small>
                         </div>
                       </td>
-                      <td>{getTypeBadge(transaction.transactionType)}</td>
+                      <td>
+                        {getTypeBadge(transaction.transactionType)}
+                        {transaction.paymentMethod === 'PayPal' && (
+                          <span style={{ display: 'inline-block', marginInlineStart: 6, padding: '1px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800, fontStyle: 'italic', background: 'rgba(0,112,186,0.10)', color: '#003087' }}>
+                            PayPal
+                          </span>
+                        )}
+                      </td>
                       <td>
                         <span
                           style={{

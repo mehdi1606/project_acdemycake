@@ -54,6 +54,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final EmailService emailService;
     private final UserService userService;
     private final PayZoneService payZoneService;
+    private final com.academy.integration.paypal.PayPalRefundService payPalRefundService;
     private final MasterclassBookingService masterclassBookingService;
     private final com.academy.repository.UserRepository userRepository;
     private final com.academy.repository.InstructorEarningRepository instructorEarningRepository;
@@ -411,7 +412,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Money back through the gateway that took it. PayZone orders have a payment
         // URL; CMI orders are refunded in the CMI back office — here we only record it.
-        if (transaction.getPaymentUrl() != null) {
+        if (com.academy.service.payment.CheckoutOrderService.METHOD_PAYPAL.equals(transaction.getPaymentMethod())) {
+            // PayPal: the money goes back to the buyer's PayPal now (refused → nothing is recorded).
+            payPalRefundService.refund(transaction, amount, fullRefund, reason);
+        } else if (transaction.getPaymentUrl() != null) {
             payZoneService.processRefund(transaction.getPayzoneTransactionId(), amount, reason);
         } else {
             log.info("CMI order {} — refund of {} to be issued in the CMI back office", transaction.getPayzoneOrderId(), amount);

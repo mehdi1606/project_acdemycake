@@ -67,6 +67,7 @@ const PaymentCallbackPage: React.FC = () => {
 
   // Outcome hint + order reference straight from the CMI return URL.
   const resultHint     = (params.get('result') || '').toLowerCase(); // success | failed | pending
+  const viaPayPal      = params.get('via') === 'paypal';
   const orderRefFromUrl = params.get('oid') || '';
 
   // Read once on mount: cleanup() clears storage before the result screen renders.
@@ -136,7 +137,9 @@ const PaymentCallbackPage: React.FC = () => {
     // sitting on the "Confirming your payment…" spinner. No polling — nothing to await.
     if (resultHint === 'failed') {
       setStage('failed');
-      setMessage(t('paymentCallback.msgFailedNoCharge', 'Your payment was not completed. No charge has been made to your card.'));
+      setMessage((viaPayPal
+        ? t('paymentCallback.msgFailedPayPal', 'Your PayPal payment was not completed. If any amount was taken, it is refunded to your PayPal automatically.')
+        : t('paymentCallback.msgFailedNoCharge', 'Your payment was not completed. No charge has been made to your card.')));
       if (transactionId) {
         // One-shot fetch purely to enrich the order summary (amount / item / reason).
         paymentService.getTransactionStatus(transactionId)
@@ -159,7 +162,9 @@ const PaymentCallbackPage: React.FC = () => {
       // still show a meaningful success/failure screen instead of a dead-end.
       if (resultHint === 'failed') {
         setStage('failed');
-        setMessage(t('paymentCallback.msgFailedNoCharge', 'Your payment was not completed. No charge has been made to your card.'));
+        setMessage((viaPayPal
+        ? t('paymentCallback.msgFailedPayPal', 'Your PayPal payment was not completed. If any amount was taken, it is refunded to your PayPal automatically.')
+        : t('paymentCallback.msgFailedNoCharge', 'Your payment was not completed. No charge has been made to your card.')));
       } else if (resultHint === 'success') {
         setStage('timeout');
         setMessage(t('paymentCallback.msgReceivedPending', 'Your payment was received. Your access will activate automatically once the provider confirms it.'));

@@ -8,7 +8,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import { useTranslation } from "react-i18next";
 import { subscriptionService } from "../../../services/api/subscription.service";
-import { paymentService } from "../../../services/api/payment.service";
+import { paymentService, PayMethod } from "../../../services/api/payment.service";
+import PaymentMethodPicker, { usePayMethod, usePayPalConfig } from "../../../components/PaymentMethodPicker";
 import { Subscription } from "../../../services/api/types";
 import { useAppSelector } from "../../../core/redux/hooks";
 import { Spin, Modal, App } from "antd";
@@ -294,7 +295,7 @@ interface ConfirmModalProps {
   plan: Plan;
   user: { fullName?: string; email?: string } | null;
   subscribing: boolean;
-  onConfirm: (couponCode: string | null) => void;
+  onConfirm: (couponCode: string | null, method: PayMethod) => void;
   onCancel: () => void;
 }
 
@@ -307,6 +308,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
   const [couponValidation, setCouponValidation] = useState<CouponValidation | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [payMethod, setPayMethod] = usePayMethod();
+  const payPalOn = !!usePayPalConfig()?.enabled;
 
   const isAnnual = plan.id === 'yearly';
   const displayPrice = couponValidation?.valid && couponValidation.finalPrice != null
@@ -588,13 +591,17 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
               fontSize: 12, color: '#9B7B50', marginBottom: 12,
             }}>
               <i className="isax isax-shield-tick" style={{ fontSize: 16, color: '#1A7F4B' }} />
-              {t('pricing.modal.securePayment', 'Secure payment via CMI Chaabi · Cancel anytime')}
+              {payPalOn
+                ? t('pricing.modal.securePaymentPP', 'Secure payment by card (CMI) or PayPal · Cancel anytime')
+                : t('pricing.modal.securePayment', 'Secure payment via CMI Chaabi · Cancel anytime')}
             </div>
             <PaymentBadges variant="light" />
           </div>
 
+          <PaymentMethodPicker value={payMethod} onChange={setPayMethod} amountMad={displayPrice} disabled={subscribing} />
+
           {/* ⚠️ CMI no-refresh warning */}
-          <div style={{
+          {payMethod === 'card' && <div style={{
             background: '#FFF8E6',
             border: '1px solid #F5C842',
             borderRadius: 10,
@@ -611,7 +618,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
                 "You will be redirected to the CMI Chaabi payment page. Do not refresh or close that page — your session will expire and you will need to restart. If that happens, simply come back here and try again."
               )}
             </p>
-          </div>
+          </div>}
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: 12 }}>
@@ -629,7 +636,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ plan, user, subscribing, on
               {t('common.cancel', 'Cancel')}
             </button>
             <button
-              onClick={() => onConfirm(appliedCoupon)}
+              onClick={() => onConfirm(appliedCoupon, payPalOn ? payMethod : 'card')}
               disabled={subscribing}
               style={{
                 flex: 2, padding: '14px', borderRadius: 12, border: 'none',
@@ -772,13 +779,13 @@ const PricePlanning: React.FC = () => {
     if (plan) setConfirmPlan(plan);
   };
 
-  const handleConfirmPayment = async (couponCode: string | null) => {
+  const handleConfirmPayment = async (couponCode: string | null, method: PayMethod) => {
     if (!confirmPlan) return;
     const planId = confirmPlan.id;
     try {
       setSubscribing(planId);
-      // ── CMI Chaabi: get form params, store txn id, auto-submit form to gateway
-      const cmiResp = await paymentService.initiateCmiSubscription(planId, couponCode || undefined);
+      // ── Card (CMI) or PayPal: create the order, store txn id, leave for the gateway
+      const cmiResp = await paymentService.startPayment(method, { kind: 'subscription', planId, couponCode: couponCode || undefined });
       // Store in sessionStorage AND localStorage (localStorage survives /login redirects
       // that happen when the 15-min JWT expires while the user is on the CMI page)
       sessionStorage.setItem('sl_pending_txn_id', cmiResp.transactionId);
@@ -787,7 +794,7 @@ const PricePlanning: React.FC = () => {
       localStorage.setItem('sl_pending_plan_id_fb', planId);
       setConfirmPlan(null);
       // Browser navigates away to the CMI hosted payment page — no return after this
-      paymentService.submitCmiForm(cmiResp.gatewayUrl, cmiResp.formParams);
+      cmiResp.go();
       // Keep the button in its loading state while the browser navigates to CMI
       // (resetting it here let users click Subscribe again mid-redirect).
     } catch (err: unknown) {

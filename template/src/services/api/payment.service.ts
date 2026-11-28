@@ -12,6 +12,36 @@ export interface CmiInitiateResponse {
   formParams: Record<string, string>; // all CMI params including pre-computed HASH
 }
 
+// ── PayPal ────────────────────────────────────────────────────────────────────
+export type PayMethod = 'card' | 'paypal';
+
+export interface PayPalConfig {
+  enabled: boolean;
+  currency: string;     // e.g. "EUR" (MAD is not a PayPal currency)
+  madPerUnit: number;   // 1 EUR = madPerUnit MAD
+}
+
+export interface PayPalInitiateResponse {
+  transactionId: string;
+  approveUrl: string;     // PayPal page where the buyer approves the payment
+  chargedAmount: number;
+  chargedCurrency: string;
+}
+
+/** What to buy — the server decides the price. */
+export type CheckoutTarget =
+  | { kind: 'subscription'; planId: string; couponCode?: string }
+  | { kind: 'course'; id: string }
+  | { kind: 'ebook'; id: string };
+
+/** A started payment: remember transactionId, then call go() to leave for the gateway. */
+export interface StartedPayment {
+  transactionId: string;
+  go: () => void;
+}
+
+let payPalConfigPromise: Promise<PayPalConfig> | null = null;
+
 // ── Public transaction status poll (no JWT) ──────────────────────────────────
 export interface TransactionStatusInfo {
   status: string;          // PENDING | COMPLETED | FAILED | CANCELLED | NOT_FOUND
@@ -96,6 +126,55 @@ class PaymentService {
       `/payments/cmi/initiate/ebook/${ebookId}`
     );
     return response.data;
+  }
+
+  // ── PayPal ──────────────────────────────────────────────────────────────────
+
+  /** Is PayPal on, and at what rate (cached for the page's lifetime; off on any error). */
+  getPayPalConfig(): Promise<PayPalConfig> {
+    if (!payPalConfigPromise) {
+      payPalConfigPromise = api
+        .get<PayPalConfig>('/payments/paypal/config')
+        .then((r) => ({
+          enabled: !!r.data?.enabled,
+          currency: r.data?.currency || 'EUR',
+          madPerUnit: Number(r.data?.madPerUnit) || 0,
+        }))
+        .catch(() => {
+          payPalConfigPromise = null;
+          return { enabled: false, currency: 'EUR', madPerUnit: 0 };
+        });
+    }
+    return payPalConfigPromise;
+  }
+
+  async initiatePayPal(target: CheckoutTarget): Promise<PayPalInitiateResponse> {
+    let response;
+    if (target.kind === 'subscription') {
+      const params: Record<string, string> = { planId: target.planId };
+      if (target.couponCode?.trim()) params.couponCode = target.couponCode.trim();
+      response = await api.post<PayPalInitiateResponse>('/payments/paypal/initiate/subscription', null, { params });
+    } else {
+      response = await api.post<PayPalInitiateResponse>(`/payments/paypal/initiate/${target.kind}/${target.id}`);
+    }
+    return response.data;
+  }
+
+  /**
+   * Start a payment with the chosen method (card = CMI, or PayPal).
+   * Returns the transaction id to remember, and go() which leaves for the gateway.
+   */
+  async startPayment(method: PayMethod, target: CheckoutTarget): Promise<StartedPayment> {
+    if (method === 'paypal') {
+      const r = await this.initiatePayPal(target);
+      return { transactionId: r.transactionId, go: () => { window.location.assign(r.approveUrl); } };
+    }
+    const r = target.kind === 'subscription'
+      ? await this.initiateCmiSubscription(target.planId, target.couponCode)
+      : target.kind === 'course'
+        ? await this.initiateCmiCourse(target.id)
+        : await this.initiateCmiEbook(target.id);
+    return { transactionId: r.transactionId, go: () => this.submitCmiForm(r.gatewayUrl, r.formParams) };
   }
 
   /**

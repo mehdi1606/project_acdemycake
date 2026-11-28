@@ -82,6 +82,12 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 
     long countByStatus(PaymentStatus status);
 
+    /** Gateway data (PayPal order / capture ids) — updated alone so a settlement in flight is never overwritten. */
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @Query("UPDATE PaymentTransaction t SET t.callbackData = :data WHERE t.id = :id")
+    int updateCallbackData(@Param("id") UUID id, @Param("data") String data);
+
     // ── Unfinished-payment reminders (PendingPaymentReminderJob) ──
 
     /** PENDING payments old enough for their next reminder (legacy rows, reminder_count -1, excluded). */

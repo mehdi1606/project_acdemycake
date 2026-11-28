@@ -11,12 +11,13 @@
  * Seat numbers come from the server (seatsRemaining / seatsTaken). Nothing here
  * changes availability; the browser only displays it.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { App, Spin } from 'antd';
 import { Course } from '../../../services/api/types';
-import { paymentService } from '../../../services/api/payment.service';
+import { paymentService, PayMethod } from '../../../services/api/payment.service';
+import PaymentMethodPicker, { usePayMethod, usePayPalConfig } from '../../../components/PaymentMethodPicker';
 import { all_routes } from '../../router/all_routes';
 
 const WA = '#1da851';
@@ -83,6 +84,9 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
   const navigate = useNavigate();
   const location = useLocation();
   const [paying, setPaying] = useState(false);
+  const [savedMethod, saveMethod] = usePayMethod();
+  // Read by the confirm dialog's OK button (the dialog content keeps its own state).
+  const methodRef = useRef<PayMethod>(savedMethod);
 
   const price = Number(c?.price ?? 0);
   const currency = c?.currency || 'MAD';
@@ -112,12 +116,12 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
     navigate(all_routes.login, { state: { from: `${location.pathname}${location.search}`, reason: 'book' } });
   };
 
-  /* Card payment through the existing CMI checkout */
+  /* Card (CMI) or PayPal payment */
   const startPayment = async () => {
     if (!c) return;
     setPaying(true);
     try {
-      const resp = await paymentService.initiateCmiCourse(c.id);
+      const resp = await paymentService.startPayment(methodRef.current, { kind: 'course', id: c.id });
       const pending = JSON.stringify({ slug: c.slug, title: c.title, date: dateLabel, time: timeLabel, location: c.sessionLocation });
       try {
         sessionStorage.setItem('sl_pending_txn_id', resp.transactionId);
@@ -128,8 +132,8 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
         localStorage.setItem('sl_pending_plan_id_fb', 'masterclass');
         localStorage.setItem(`${PENDING_MASTERCLASS_KEY}_fb`, pending);
       } catch { /* storage unavailable — the callback page still works from the URL */ }
-      paymentService.submitCmiForm(resp.gatewayUrl, resp.formParams);
-      // The browser now navigates to CMI; keep the loading state.
+      resp.go();
+      // The browser now navigates to CMI or PayPal; keep the loading state.
     } catch (err: any) {
       setPaying(false);
       const status = err?.response?.status;
@@ -149,15 +153,23 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
   const confirmPayment = () => {
     if (!c) return;
     if (!isAuthenticated) { goToLogin(); return; }
+    methodRef.current = savedMethod;
     modal.confirm({
-      title: t('liveBooking.confirmTitle', 'Pay {{price}} {{currency}} by card?', { price, currency }),
+      title: t('liveBooking.confirmTitlePay', 'Pay {{price}} {{currency}} to book your place?', { price, currency }),
       content: (
         <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6 }}>
           <div><strong>{c.title}</strong></div>
           {dateLabel && <div>{dateLabel}{timeLabel ? ` · ${timeLabel}` : ''}</div>}
           {c.sessionLocation && <div>{c.sessionLocation}</div>}
-          <div style={{ marginTop: 8 }}>
-            {t('liveBooking.confirmBody2', 'You will be redirected to the secure CMI payment page. Your place is confirmed as soon as the payment is verified.')}
+          <div style={{ marginTop: 12 }}>
+            <DialogMethodChoice
+              initial={savedMethod}
+              amountMad={price}
+              onChange={(m) => { methodRef.current = m; saveMethod(m); }}
+            />
+          </div>
+          <div style={{ marginTop: 4 }}>
+            {t('liveBooking.confirmBody3', 'You will be redirected to the secure payment page. Your place is confirmed as soon as the payment is verified.')}
           </div>
         </div>
       ),
@@ -171,6 +183,13 @@ export function useLiveBookingActions(c: Course | null, { isAuthenticated, user,
 
   return { price, currency, cardEnabled, isFull, past, paying, waHref, confirmPayment };
 }
+
+/** Card / PayPal choice inside the confirm dialog (the dialog's content can't use the hook's state). */
+const DialogMethodChoice: React.FC<{ initial: PayMethod; amountMad: number; onChange: (m: PayMethod) => void }> = ({ initial, amountMad, onChange }) => {
+  const [m, setM] = useState<PayMethod>(initial);
+  const pick = React.useCallback((next: PayMethod) => { setM(next); onChange(next); }, [onChange]);
+  return <PaymentMethodPicker value={m} onChange={pick} amountMad={amountMad} />;
+};
 
 /* ── component ─────────────────────────────────────────────────────────────── */
 
@@ -207,6 +226,7 @@ const LiveMasterclassBooking: React.FC<Props> = ({
   const { t, i18n } = useTranslation();
   const { price, currency, cardEnabled, paying, waHref, confirmPayment } =
     useLiveBookingActions(c, { isAuthenticated, user, onRefresh });
+  const payPalOn = !!usePayPalConfig()?.enabled;
 
   // Keep availability fresh while the page is open (other people may be booking).
   useEffect(() => {
@@ -357,11 +377,12 @@ const LiveMasterclassBooking: React.FC<Props> = ({
                     ? t('liveBooking.redirecting', 'Redirecting to secure payment…')
                     : past ? t('liveBooking.status.past', 'Session over')
                     : isFull ? t('liveBooking.status.full', 'Fully booked')
-                    : t('liveBooking.payByCard', 'Pay by card · {{price}} {{currency}}', { price, currency })}
+                    : t('liveBooking.payToBook', 'Book & pay · {{price}} {{currency}}', { price, currency })}
                 </button>
                 <p style={{ fontSize: 12, color: '#7A6060', margin: '8px 0 0', lineHeight: 1.5 }}>
                   <i className="fa-solid fa-shield-halved me-1" style={{ color: '#10B981' }} />
-                  {t('liveBooking.cardNote', 'Secure payment by CMI. Your place is confirmed only after the payment is verified. If the session fills up first, your card is not charged.')}
+                  {payPalOn ? t('liveBooking.payNote', 'Pay by card (CMI) or PayPal. Your place is confirmed only after the payment is verified. If the session fills up first, you are not charged or you are refunded at once.')
+                    : t('liveBooking.cardNote', 'Secure payment by CMI. Your place is confirmed only after the payment is verified. If the session fills up first, your card is not charged.')}
                 </p>
               </div>
             )}

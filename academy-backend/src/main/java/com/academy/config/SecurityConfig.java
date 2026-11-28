@@ -128,6 +128,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,  "/api/v1/payments/cmi/return", "/api/v1/payments/cmi/return/**").permitAll()
                         // CMI Chaabi server-to-server callback — no JWT (CMI posts without auth header)
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments/cmi/callback").permitAll()
+                        // PayPal: browser return/cancel, webhook (re-reads the order from PayPal) and public config.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/payments/paypal/return", "/api/v1/payments/paypal/cancel",
+                                "/api/v1/payments/paypal/config").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/payments/paypal/webhook").permitAll()
                         // Public transaction status polling — used by payment callback page even if JWT expired
                         .requestMatchers(HttpMethod.GET, "/api/v1/payments/cmi/status/*").permitAll()
                         // Personal lists need a login (they used to fail with a 500 for guests)

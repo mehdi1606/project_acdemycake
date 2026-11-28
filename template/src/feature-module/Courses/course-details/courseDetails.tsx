@@ -1306,7 +1306,7 @@ const CourseDetails = () => {
                     {la.paying ? <Spin size="small" /> : <i className="fa-regular fa-credit-card" />}
                     {la.past ? t('liveBooking.status.past', 'Session over')
                       : la.isFull ? t('liveBooking.status.full', 'Fully booked')
-                      : t('liveBooking.payByCard', 'Pay by card · {{price}} {{currency}}', { price: la.price, currency: la.currency })}
+                      : t('liveBooking.payToBook', 'Book & pay · {{price}} {{currency}}', { price: la.price, currency: la.currency })}
                   </button>
                 )}
                 {la.waHref && (

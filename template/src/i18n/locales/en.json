@@ -66,7 +66,8 @@
     "fileUnavailable": "Your purchase is saved, but this ebook file is temporarily unavailable. Please try again later or contact us.",
     "opening": "Opening your ebook…",
     "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out"
+    "zoomOut": "Zoom out",
+    "securePaymentPP": "Secure payment: card or PayPal"
   },
   "instructorPage": {
     "eyebrow": "Saralöwe instructor",
@@ -2366,7 +2367,8 @@
       "securePayment": "Secure payment powered by PayZone · Cancel anytime",
       "confirmPay": "Confirm & Pay",
       "couponValidateFailed": "Failed to validate coupon. Please try again.",
-      "cmiWarning": "You will be redirected to the CMI Chaabi payment page. Do not refresh or close that page — your session will expire and you will need to restart. If that happens, simply come back here and try again."
+      "cmiWarning": "You will be redirected to the CMI Chaabi payment page. Do not refresh or close that page — your session will expire and you will need to restart. If that happens, simply come back here and try again.",
+      "securePaymentPP": "Secure payment by card (CMI) or PayPal · Cancel anytime"
     },
     "hero": {
       "breadcrumb": "Subscription Plans",
@@ -3445,7 +3447,8 @@
     "needHelp": "Need help?",
     "contactSupportLink": "Contact support",
     "mcDesc": "Payment verified — you are registered for <0>{{title}}</0>. A confirmation has been sent to your email.",
-    "subActive": "Your <0>{{plan}}</0> subscription is now active."
+    "subActive": "Your <0>{{plan}}</0> subscription is now active.",
+    "msgFailedPayPal": "Your PayPal payment was not completed. If any amount was taken, it is refunded to your PayPal automatically."
   },
   "studentPages": {
     "profileCard": {
@@ -4146,7 +4149,11 @@
     "bookCta": "Book my place",
     "payByCard": "Pay by card · {{price}} {{currency}}",
     "waHint": "Opens WhatsApp to talk to us",
-    "bookWhatsapp": "Book via WhatsApp"
+    "bookWhatsapp": "Book via WhatsApp",
+    "confirmTitlePay": "Pay {{price}} {{currency}} to book your place?",
+    "confirmBody3": "You will be redirected to the secure payment page. Your place is confirmed as soon as the payment is verified.",
+    "payToBook": "Book & pay · {{price}} {{currency}}",
+    "payNote": "Pay by card (CMI) or PayPal. Your place is confirmed only after the payment is verified. If the session fills up first, you are not charged or you are refunded at once."
   },
   "mcRes": {
     "allMasterclasses": "All masterclasses",
@@ -4989,5 +4996,15 @@
       "logout": "Log out",
       "note": "Your photo is visible to your instructors and the community."
     }
+  },
+  "payMethod": {
+    "title": "How would you like to pay?",
+    "card": "Bank card",
+    "cardSub": "Visa, Mastercard · in MAD",
+    "paypalSub": "PayPal account or card, in euros",
+    "paypalSubAmount": "Pay {{amount}} with PayPal",
+    "paypalNote": "PayPal charges in {{currency}} (1 {{currency}} = {{rate}} MAD). You will be taken to PayPal to confirm, then brought back here automatically.",
+    "dialogTitle": "Complete your purchase",
+    "continue": "Continue to payment"
   }
 }
